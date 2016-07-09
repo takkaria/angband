@@ -593,8 +593,7 @@ bool file_getl(ang_file *f, char *buf, size_t len)
 }
 
 /**
- * Append a line of text 'buf' to the end of file 'f', using system-dependent
- * line ending.
+ * Append a line of text 'buf' to the end of file 'f'.
  */
 bool file_put(ang_file *f, const char *buf)
 {
