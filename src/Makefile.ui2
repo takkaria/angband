@@ -54,7 +54,7 @@ CFLAGS := -std=c99 -g \
 
 # Add additional search directives here
 # Example: -I/usr/X11R6/include -I/usr/include/ncurses
-INCLUDES := -I/usr/include/ncursesw
+#INCLUDES := -I/usr/include/ncursesw
 # Example: -L/usr/X11R6/lib 
 LIBS := -lm
 
