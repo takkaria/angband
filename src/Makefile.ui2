@@ -2,7 +2,7 @@
 # Makefile for compiling SDL2 frontend
 #
 # This makefile probably requires GNU make.
-# It is primarily intended for testing SDL2 based UI
+# It is primarily intended for development of textui2
 # It assumes Angband was configured properly
 # (see -DHAVE_CONFIG_H and autoconf.h)
 #
@@ -27,7 +27,7 @@
 	-lSDL_ttf -lSDL_image
 
 # Support SDL2 frontend
-SYS_sdl2 := -DUSE_SDL2 \
+#SYS_sdl2 := -DUSE_SDL2 \
 	$(shell sdl2-config --cflags) $(shell sdl2-config --libs) \
 	-lSDL2_ttf -lSDL2_image
 
@@ -100,7 +100,7 @@ default: install
 
 # Makefile.inc contains an up-to-date set of object files to compile, so
 # we include it
-include Makefile.inc
+include Makefile.inc.ui2
 
 # Version info
 EXE := $(PROGNAME)

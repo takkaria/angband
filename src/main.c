@@ -52,6 +52,8 @@
  */
 static const struct module modules[] =
 {
+	/* TODO UI2 */
+	{ "dummy", "this doesn't work", NULL },
 #ifdef USE_X11
 	{ "x11", help_x11, init_x11 },
 #endif /* USE_X11 */
@@ -84,19 +86,15 @@ static const struct module modules[] =
  */
 static void quit_hook(const char *s)
 {
-	int j;
-
 	/* Unused parameter */
 	(void)s;
 
-	/* Scan windows */
-	for (j = ANGBAND_TERM_MAX - 1; j >= 0; j--) {
-		/* Unused */
+	/* TODO UI2
+	for (size_t j = ANGBAND_TERM_MAX - 1; j >= 0; j--) {
 		if (!angband_term[j]) continue;
-
-		/* Nuke it */
 		term_nuke(angband_term[j]);
 	}
+	*/
 }
 
 /**
@@ -361,9 +359,11 @@ int main(int argc, char *argv[])
 				new_game = true;
 				break;
 
+				/* TODO UI2
 			case 'w':
 				arg_wizard = true;
 				break;
+				*/
 
 			case 'p':
 				arg_power = true;
@@ -371,13 +371,6 @@ int main(int argc, char *argv[])
 
 			case 'r':
 				arg_rebalance = true;
-				break;
-
-			case 'g':
-				/* Default graphics tile */
-				/* in graphics.txt, 2 corresponds to adam bolt's tiles */
-				arg_graphics = 2; 
-				if (*arg) arg_graphics = atoi(arg);
 				break;
 
 			case 'u': {
@@ -393,17 +386,19 @@ int main(int argc, char *argv[])
 				 * But if the player is running with per-user saves, they
 				 * can do whatever the hell they want.
 				 */
+				/* TODO UI2
 #ifdef SETGID
 				savefile_set_name(player_safe_name(player, false));
 #else
 				savefile_set_name(arg);
-#endif /* SETGID */
+#endif
+				*/
 
 				continue;
 			}
 
 			case 'f':
-				arg_force_name = true;
+				/* TODO UI2 arg_force_name = true; */
 				break;
 
 			case 'm':
@@ -507,7 +502,7 @@ int main(int argc, char *argv[])
 		user_name(op_ptr->full_name, sizeof(op_ptr->full_name), player_uid);
 
 		/* Set the savefile to load */
-		savefile_set_name(player_safe_name(player, false));
+		/* TODO UI2 savefile_set_name(player_safe_name(player, false)); */
 	}
 
 	/* Create any missing directories */
@@ -516,10 +511,10 @@ int main(int argc, char *argv[])
 #endif /* UNIX */
 
 	/* Catch nasty signals */
-	signals_init();
+	/* TODO UI2 signals_init(); */
 
 	/* Set up the command hook */
-	cmd_get_hook = textui_get_cmd;
+	/* TODO UI2 cmd_get_hook = textui_get_cmd; */
 
 #ifdef SOUND
 	/* Initialise sound */
@@ -527,18 +522,18 @@ int main(int argc, char *argv[])
 #endif
 
 	/* Set up the display handlers and things. */
-	init_display();
+	/* TODO UI2 init_display(); */
 	init_angband();
-	textui_init();
+	/* TODO UI2 textui_init(); */
 
 	/* Wait for response */
-	pause_line(Term);
+	/* TODO UI2 pause_line(Term); */
 
 	/* Play the game */
-	play_game(new_game);
+	/* TODO UI2 play_game(new_game); */
 
 	/* Free resources */
-	textui_cleanup();
+	/* TODO UI2 textui_cleanup(); */
 	cleanup_angband();
 
 	/* Quit */
