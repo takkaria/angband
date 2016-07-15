@@ -225,8 +225,7 @@ void Term_dirty_region(int x, int y, int w, int h);
 /* make all points of the term dirty */
 void Term_dirty_all(void);
 
-/* erase len characters starting at x, y and ending
- * with the edge of the term window; these functions do not move the cursor */
+/* erase len characters starting at x, y; this function does not move the cursor */
 void Term_erase(int x, int y, int len);
 /* wipe the whole window */
 void Term_clear(void);
