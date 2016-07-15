@@ -806,14 +806,25 @@ bool Term_mousepress(int x, int y, int button, byte mods)
 	return term_append_event(event);
 }
 
-bool Term_take_event(ui_event *event, bool wait)
+bool Term_take_event(ui_event *event)
+{
+	STACK_OK();
+
+	if (event_queue.number == 0) {
+		TOP->callbacks.event(TOP->user, false);
+	}
+
+	return term_take_event(event);
+}
+
+bool Term_wait_event(ui_event *event)
 {
 	STACK_OK();
 
 	assert(event != NULL);
 
-	if (event_queue.number == 0) {
-		TOP->callbacks.event(TOP->user, wait);
+	while (event_queue.number == 0) {
+		TOP->callbacks.event(TOP->user, true);
 	}
 
 	return term_take_event(event);
@@ -822,6 +833,10 @@ bool Term_take_event(ui_event *event, bool wait)
 bool Term_check_event(ui_event *event)
 {
 	STACK_OK();
+
+	if (event_queue.number == 0) {
+		TOP->callbacks.event(TOP->user, false);
+	}
 
 	return term_check_event(event);
 }

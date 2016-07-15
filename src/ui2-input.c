@@ -685,7 +685,8 @@ bool askfor_aux_keypress(char *buf, size_t buflen, size_t *curs, size_t *len,
  * 'askfor_aux_keypress' (the default handler if you supply NULL for
  * 'keypress_h') for an example.
  */
-bool askfor_aux(char *buf, size_t len, bool (*keypress_h)(char *, size_t, size_t *, size_t *, struct keypress, bool))
+bool askfor_aux(char *buf, size_t len,
+		bool (*keypress_h)(char *, size_t, size_t *, size_t *, struct keypress, bool))
 {
 	int y, x;
 

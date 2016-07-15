@@ -295,9 +295,10 @@ bool Term_keypress(keycode_t key, byte mods);
 bool Term_mousepress(int x, int y, int button, byte mods);
 
 /* get the first event from the event queue
- * returns false if there are no events
- * wait means wait as long as necessary for an event */
-bool Term_take_event(ui_event *event, bool wait);
+ * returns false if there are no events */
+bool Term_take_event(ui_event *event);
+/* as above, but waits as long as necessary for an event */
+bool Term_wait_event(ui_event *event);
 /* check if there is at least one event in the queue;
  * the event will be copied to the first argument, but not removed
  * from the queue; if you don't want the event, supply NULL as the argument */
