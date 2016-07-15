@@ -243,14 +243,14 @@ void Term_clear(void);
  * and return false if some could not be added
  * because of the cursor's inability to advance from its current position
  * (due to it being the last legal position) */
-bool Term_putwchar(int x, int y,
-		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags);
+bool Term_putwchar(uint32_t fga, wchar_t fgc,
+		uint32_t bga, wchar_t bgc, bitflag *flags);
 /* simplified interface to the above */
-bool Term_putwc(int x, int y, uint32_t fga, wchar_t fgc);
+bool Term_putwc(uint32_t fga, wchar_t fgc);
 /* as above, but with a null-terminated string of wchar_t */
-bool Term_putws(int x, int y, uint32_t fga, const wchar_t *fgc);
+bool Term_putws(uint32_t fga, const wchar_t *fgc);
 /* as above, but with a (utf-8 encoded) string of chars */
-bool Term_puts(int x, int y, uint32_t fga, const char *fgc);
+bool Term_puts(uint32_t fga, const char *fgc);
 
 /* determine the position and visibility of the cursor
  * "usable" means that the cursor is not beyond the edge of the term window

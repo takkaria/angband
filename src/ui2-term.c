@@ -601,32 +601,24 @@ void Term_adds(int x, int y, uint32_t fga, const char *fgc)
 	(void) term_add_ws(x, y, fga, ws);
 }
 
-bool Term_putwchar(int x, int y,
-		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags)
+bool Term_putwchar(uint32_t fga, wchar_t fgc,
+		uint32_t bga, wchar_t bgc, bitflag *flags)
 {
-	term_move_cursor(x, y);
-
 	return term_put_point_at_cursor(term_make_point(fga, fgc, bga, bgc, flags));
 }
 
-bool Term_putwc(int x, int y, uint32_t fga, wchar_t fgc)
+bool Term_putwc(uint32_t fga, wchar_t fgc)
 {
-	term_move_cursor(x, y);
-
 	return term_put_fg_at_cursor(fga, fgc);
 }
 
-bool Term_putws(int x, int y, uint32_t fga, const wchar_t *fgc)
+bool Term_putws(uint32_t fga, const wchar_t *fgc)
 {
-	term_move_cursor(x, y);
-
 	return term_put_ws_at_cursor(fga, fgc);
 }
 
-bool Term_puts(int x, int y, uint32_t fga, const char *fgc)
+bool Term_puts(uint32_t fga, const char *fgc)
 {
-	term_move_cursor(x, y);
-
 	wchar_t ws[WIDESTRING_MAX];
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
 
