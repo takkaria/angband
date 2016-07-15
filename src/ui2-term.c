@@ -532,7 +532,11 @@ void *Term_getpriv(term t)
 
 term Term_top(void)
 {
-	return TOP;
+	if (term_stack.top > NOTOP) {
+		return TOP;
+	} else {
+		return NULL;
+	}
 }
 
 void Term_push(term t)
@@ -707,6 +711,8 @@ void Term_cursor_to_xy(int x, int y)
 
 void Term_cursor_visible(bool visible)
 {
+	STACK_OK();
+
 	TOP->cursor.new.visible = visible;
 }
 
@@ -786,6 +792,8 @@ void Term_resize(int w, int h)
 
 void Term_flush_output(void)
 {
+	STACK_OK();
+
 	term_erase_cursor(TOP->cursor.old);
 	term_flush();
 	term_draw_cursor(TOP->cursor.new);
