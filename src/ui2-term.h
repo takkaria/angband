@@ -18,9 +18,9 @@
 #ifndef INCLUDED_UI2_TERM_H
 #define INCLUDED_UI2_TERM_H
 
-#include "ui2-event.h"
 #include "h-basic.h"
 #include "z-bitflag.h"
+#include "ui2-event.h"
 
 typedef struct term *term;
 

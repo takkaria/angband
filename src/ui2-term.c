@@ -284,7 +284,7 @@ static struct term_point term_make_point(uint32_t fga, wchar_t fgc,
 	return point;
 }
 
-static void term_set_point(int x, int y, struct term_point point)
+static void term_add_point(int x, int y, struct term_point point)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
@@ -293,7 +293,7 @@ static void term_set_point(int x, int y, struct term_point point)
 	term_mark_point_dirty(x, y);
 }
 
-static void term_set_fg(int x, int y, uint32_t fga, wchar_t fgc)
+static void term_add_fg(int x, int y, uint32_t fga, wchar_t fgc)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
@@ -309,7 +309,7 @@ static bool term_put_point_at_cursor(struct term_point point)
 	CURSOR_OK();
 	
 	if (TOP->cursor.new.x < TOP->width) {
-		term_set_point(TOP->cursor.new.x, TOP->cursor.new.y, point);
+		term_add_point(TOP->cursor.new.x, TOP->cursor.new.y, point);
 		TOP->cursor.new.x++;
 		return true;
 	} else {
@@ -323,7 +323,7 @@ static bool term_put_fg_at_cursor(uint32_t fga, wchar_t fgc)
 	CURSOR_OK();
 	
 	if (TOP->cursor.new.x < TOP->width) {
-		term_set_fg(TOP->cursor.new.x, TOP->cursor.new.y, fga, fgc);
+		term_add_fg(TOP->cursor.new.x, TOP->cursor.new.y, fga, fgc);
 		TOP->cursor.new.x++;
 		return true;
 	} else {
@@ -580,12 +580,12 @@ void Term_pop(void)
 void Term_addwchar(int x, int y,
 		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags)
 {
-	term_set_point(x, y, term_make_point(fga, fgc, bga, bgc, flags));
+	term_add_point(x, y, term_make_point(fga, fgc, bga, bgc, flags));
 }
 
 void Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
 {
-	term_set_fg(x, y, fga, fgc);
+	term_add_fg(x, y, fga, fgc);
 }
 
 void Term_addws(int x, int y, uint32_t fga, const wchar_t *fgc)
@@ -723,7 +723,7 @@ void Term_get_point(int x, int y, struct term_point *point)
 
 void Term_add_point(int x, int y, struct term_point point)
 {
-	term_set_point(x, y, point);
+	term_add_point(x, y, point);
 }
 
 bool Term_put_point(int x, int y, struct term_point point)
