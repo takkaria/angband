@@ -714,6 +714,16 @@ void Term_get_size(int *w, int *h)
 	*h = TOP->height;
 }
 
+int Term_width(void)
+{
+	return TOP->width;
+}
+
+int Term_height(void)
+{
+	return TOP->height;
+}
+
 void Term_get_point(int x, int y, struct term_point *point)
 {
 	STACK_OK();

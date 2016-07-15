@@ -270,6 +270,9 @@ bool Term_put_point(int x, int y, struct term_point point);
 
 /* determine the size of the top term */
 void Term_get_size(int *w, int *h);
+/* simplified interface to the above */
+int Term_width(void);
+int Term_height(void);
 /* returns the maximum width and height that a term can have */
 void Term_max_size(int *w, int *h);
 /* make the top term bigger or smaller */
