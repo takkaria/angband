@@ -337,6 +337,7 @@ static int term_add_ws(int x, int y, int len, uint32_t fga, const wchar_t *ws)
 	COORDS_OK(x, y);
 
 	assert(*ws != 0);
+	assert(len > 0);
 
 	const wchar_t *curws = ws;
 
@@ -623,7 +624,7 @@ bool Term_putws(int len, uint32_t fga, const wchar_t *fgc)
 {
 	assert(len > 0);
 
-	return term_put_ws_at_cursor(TOP->width, fga, fgc);
+	return term_put_ws_at_cursor(len, fga, fgc);
 }
 
 bool Term_puts(int len, uint32_t fga, const char *fgc)
@@ -633,7 +634,7 @@ bool Term_puts(int len, uint32_t fga, const char *fgc)
 	wchar_t ws[WIDESTRING_MAX];
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
 
-	return term_put_ws_at_cursor(TOP->width, fga, ws);
+	return term_put_ws_at_cursor(len, fga, ws);
 }
 
 void Term_erase(int x, int y, int len)
