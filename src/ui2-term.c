@@ -345,8 +345,8 @@ static int term_add_ws(int x, int y, int len, uint32_t fga, const wchar_t *ws)
 
 	const wchar_t *curws = ws;
 
-	for (int curx = x, z = MIN(TOP->width, x + len);
-			curx < z && *curws != 0;
+	for (int curx = x;
+			curx < MIN(TOP->width, x + len) && *curws != 0;
 			curx++, curws++)
 	{
 		POINT(curx, y).fg_attr = fga;
