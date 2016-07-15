@@ -645,7 +645,7 @@ void Term_erase(int x, int y, int len)
 {
 	assert(len > 0);
 
-	term_wipe_line(x, y, TOP->width);
+	term_wipe_line(x, y, len);
 }
 
 void Term_clear(void)
