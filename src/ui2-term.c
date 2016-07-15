@@ -75,10 +75,13 @@ term angband_term_status_line;
 #define TERM_KEY_QUEUE_MAX \
 	1024
 
+#define WIDESTRING_MAX \
+	1024
+
 #define TOP \
 	(term_stack.stack[term_stack.top])
 
-#define INITIAL_TOP \
+#define NOTOP \
 	(-1)
 
 #define COORDS_OK(x, y) do { \
@@ -91,7 +94,7 @@ term angband_term_status_line;
 
 #define STACK_OK() do { \
 	assert(TOP != NULL); \
-	assert(term_stack.top > INITIAL_TOP); \
+	assert(term_stack.top > NOTOP); \
 	assert(term_stack.top < (int) N_ELEMENTS(term_stack.stack)); \
 } while (0)
 
@@ -109,14 +112,11 @@ term angband_term_status_line;
 #define POINT(x, y) \
 	(TOP->points[INDEX(x, y)])
 
-#define WIDESTRING_MAX \
-	1024
-
 static struct {
 	term stack[TERM_STACK_MAX];
 	int top;
 } term_stack = {
-	.top = INITIAL_TOP
+	.top = NOTOP
 };
 
 static struct {
@@ -574,6 +574,8 @@ void Term_push_new(struct term_hints *hints)
 
 void Term_pop(void)
 {
+	STACK_OK();
+
 	if (TOP->temporary) {
 		TOP->callbacks.pop_new(TOP->user);
 		term_free(TOP);
@@ -581,8 +583,6 @@ void Term_pop(void)
 
 	TOP = NULL;
 	term_stack.top--;
-
-	STACK_OK();
 }
 
 void Term_addwchar(int x, int y,
