@@ -455,6 +455,8 @@ static void term_mbstowcs(wchar_t *ws, const char *mbs, size_t ws_max_len)
 
 static void term_erase_cursor(struct term_cursor cursor)
 {
+	STACK_OK();
+
 	if (cursor.visible && cursor.x < TOP->width) {
 		term_draw(cursor.x, cursor.y, 1);
 	}
@@ -462,6 +464,8 @@ static void term_erase_cursor(struct term_cursor cursor)
 
 static void term_draw_cursor(struct term_cursor cursor)
 {
+	STACK_OK();
+
 	if (cursor.visible && cursor.x < TOP->width) {
 		TOP->callbacks.cursor(TOP->user, cursor.x, cursor.y);
 	}
