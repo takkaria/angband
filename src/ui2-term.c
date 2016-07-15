@@ -55,6 +55,8 @@ struct term {
 	struct term_dirty dirty;
 	struct term_callbacks callbacks;
 	struct term_point blank;
+
+	bitflag flags[TWF_SIZE];
 };
 
 /* Global variables */
@@ -188,6 +190,8 @@ static term term_new(const struct term_create_info *info)
 	t->user = info->user;
 	t->blank = info->blank;
 	t->callbacks = info->callbacks;
+
+	twf_copy(t->flags, info->flags);
 
 	assert(t->callbacks.max_size != NULL);
 	assert(t->callbacks.push_new != NULL);
@@ -722,6 +726,13 @@ int Term_width(void)
 int Term_height(void)
 {
 	return TOP->height;
+}
+
+bitflag *Term_flags(void)
+{
+	STACK_OK();
+
+	return TOP->flags;
 }
 
 void Term_get_point(int x, int y, struct term_point *point)

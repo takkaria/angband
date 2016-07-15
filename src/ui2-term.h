@@ -186,6 +186,7 @@ struct term_create_info {
 	void *user;
 	struct term_callbacks callbacks;
 	struct term_point blank;
+	bitflag flags[TWF_SIZE];
 };
 
 term Term_create(const struct term_create_info *info);
@@ -277,6 +278,8 @@ int Term_height(void);
 void Term_max_size(int *w, int *h);
 /* make the top term bigger or smaller */
 void Term_resize(int w, int h);
+/* direct access to term flags; for use with twf_* macros */
+bitflag *Term_flags(void);
 
 /* flush the output (it won't necessarily appear on the screen;
  * that depends on how th frontend does it; what will happen is that
