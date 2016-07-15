@@ -212,9 +212,9 @@ void Term_addwchar(int x, int y,
 void Term_addwc(int x, int y, uint32_t fga, wchar_t fgc);
 /* as above, but with a null-terminated string of wchar_t
  * only the part of the string that fits in the term window will be used */
-void Term_addws(int x, int y, uint32_t fga, const wchar_t *fgc);
+void Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc);
 /* as above, but with a (utf-8 encoded) string of chars */
-void Term_adds(int x, int y, uint32_t fga, const char *fgc);
+void Term_adds(int x, int y, int len, uint32_t fga, const char *fgc);
 
 /* make a point "dirty" - it will be passed to draw_hook()
  * at the time of flushing output */
@@ -224,11 +224,9 @@ void Term_dirty_region(int x, int y, int w, int h);
 /* make all points of the term dirty */
 void Term_dirty_all(void);
 
-/* erase row starting at x, y and ending with the edge of the term window
- * these functions do not move the cursor */
-void Term_erase(int x, int y);
-/* erase some characters starting at x, y; but no more than len of them */
-void Term_erase_length(int x, int y, int len);
+/* erase len characters starting at x, y and ending
+ * with the edge of the term window; these functions do not move the cursor */
+void Term_erase(int x, int y, int len);
 /* wipe the whole window */
 void Term_clear(void);
 
@@ -248,9 +246,9 @@ bool Term_putwchar(uint32_t fga, wchar_t fgc,
 /* simplified interface to the above */
 bool Term_putwc(uint32_t fga, wchar_t fgc);
 /* as above, but with a null-terminated string of wchar_t */
-bool Term_putws(uint32_t fga, const wchar_t *fgc);
+bool Term_putws(int len, uint32_t fga, const wchar_t *fgc);
 /* as above, but with a (utf-8 encoded) string of chars */
-bool Term_puts(uint32_t fga, const char *fgc);
+bool Term_puts(int len, uint32_t fga, const char *fgc);
 
 /* determine the position and visibility of the cursor
  * "usable" means that the cursor is not beyond the edge of the term window
