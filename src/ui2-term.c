@@ -720,11 +720,15 @@ void Term_get_size(int *w, int *h)
 
 int Term_width(void)
 {
+	STACK_OK();
+
 	return TOP->width;
 }
 
 int Term_height(void)
 {
+	STACK_OK();
+
 	return TOP->height;
 }
 
