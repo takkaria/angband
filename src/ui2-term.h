@@ -15,8 +15,8 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 
-#ifndef INCLUDED_UI2_TERM_H
-#define INCLUDED_UI2_TERM_H
+#ifndef UI2_TERM_H
+#define UI2_TERM_H
 
 #include "h-basic.h"
 #include "z-bitflag.h"
@@ -63,65 +63,6 @@ struct term_point {
 	bitflag flags[TPF_SIZE];
 };
 
-/*
- * the terms above MUST be initialized at the start of the game
- * by the frontend. Recommended placement of these terms:
- * angband_term_cave in the center
- * angband_term_message_line above angband_term_cave
- * angband_term_status_line below angband_term_cave
- * (see Angband sirca 4.0.5)
- */
-extern term angband_term_cave;
-extern term angband_term_message_line;
-extern term angband_term_status_line;
-
-struct angband_user_terms {
-	term *term;
-	char *name;
-	size_t number;
-};
-
-/* what is displayed in these terms can be controlled by the user;
- * it is recommended to create several of those */
-extern struct angband_user_terms angband_user_terms;
-
-/* Flags which determine what this term does */
-enum term_window_flags {
-	TWF_NONE, /* cave, message line and status line have no flags */
-	TWF_INVEN,
-	TWF_EQUIP,
-	TWF_PLAYER_BASIC,
-	TWF_PLAYER_EXTRA,
-	TWF_PLAYER_COMPACT,
-	TWF_MAP,
-	TWF_MESSAGE,
-	TWF_OVERHEAD,
-	TWF_MONSTER,
-	TWF_OBJECT,
-	TWF_MONLIST,
-	TWF_ITEMLIST,
-	TWF_MAX
-};
-
-#define TWF_SIZE                FLAG_SIZE(TWF_MAX)
-#define twf_has(f, flag)        flag_has_dbg(f, TWF_SIZE, flag, #f, #flag)
-#define twf_next(f, flag)       flag_next(f, TWF_SIZE, flag)
-#define twf_is_empty(f)         flag_is_empty(f, TWF_SIZE)
-#define twf_is_full(f)          flag_is_full(f, TWF_SIZE)
-#define twf_is_inter(f1, f2)    flag_is_inter(f1, f2, TWF_SIZE)
-#define twf_is_subset(f1, f2)   flag_is_subset(f1, f2, TWF_SIZE)
-#define twf_is_equal(f1, f2)    flag_is_equal(f1, f2, TWF_SIZE)
-#define twf_on(f, flag)         flag_on_dbg(f, TWF_SIZE, flag, #f, #flag)
-#define twf_off(f, flag)        flag_off(f, TWF_SIZE, flag)
-#define twf_wipe(f)             flag_wipe(f, TWF_SIZE)
-#define twf_setall(f)           flag_setall(f, TWF_SIZE)
-#define twf_negate(f)           flag_negate(f, TWF_SIZE)
-#define twf_copy(f1, f2)        flag_copy(f1, f2, TWF_SIZE)
-#define twf_union(f1, f2)       flag_union(f1, f2, TWF_SIZE)
-#define twf_comp_union(f1, f2)  flag_comp_union(f1, f2, TWF_SIZE)
-#define twf_inter(f1, f2)       flag_inter(f1, f2, TWF_SIZE)
-#define twf_diff(f1, f2)        flag_diff(f1, f2, TWF_SIZE)
-
 /* forward declaration */
 struct term_create_info;
 
@@ -134,8 +75,6 @@ struct term_create_info;
  * and must be ready to draw on this new term
  * pop_new_hook is called when the temporary term is about to be popped
  * from the stack; the frontend must perform all necessary cleanup
- *
- * push_new_hook and pop_new_hook are mandatory
  *
  * note that the frontend shouldn't create or destroy temporary terms;
  * that will be done without it */
@@ -166,6 +105,8 @@ typedef void (*redraw_hook)(void *user);
  * if there are corresponding events; if wait is true, the frontend should
  * wait for events (as long as necessary to get at least one) */
 typedef void (*event_hook)(void *user, bool wait);
+/* flush_events_hook should discard all pending events */
+typedef void (*flush_events_hook)(void *user);
 /* delay_hook should pause for specified number of milliseconds */
 typedef void (*delay_hook)(void *user, int msecs);
 
@@ -178,6 +119,7 @@ struct term_callbacks {
 	cursor_hook cursor;
 	redraw_hook redraw;
 	max_size_hook max_size;
+	flush_events_hook flush_events;
 };
 
 struct term_create_info {
@@ -186,12 +128,10 @@ struct term_create_info {
 	void *user;
 	struct term_callbacks callbacks;
 	struct term_point blank;
-	bitflag flags[TWF_SIZE];
 };
 
 term Term_create(const struct term_create_info *info);
 void Term_destroy(term *t);
-
 
 void *Term_getpriv(term t);
 void Term_setpriv(term t, void *user);
@@ -199,6 +139,7 @@ void Term_setpriv(term t, void *user);
 term Term_top(void);
 
 void Term_push(term t);
+void Term_push_new(struct term_hints *hints);
 void Term_pop(void);
 
 /* fga - foreground attr (usually color)
@@ -268,6 +209,9 @@ void Term_add_point(int x, int y, struct term_point point);
  * returns true if the point was added */
 bool Term_put_point(int x, int y, struct term_point point);
 
+/* valid coordinates for point in term */
+bool Term_ok_point(int x, int y);
+
 /* determine the size of the top term */
 void Term_get_size(int *w, int *h);
 /* simplified interface to the above */
@@ -277,8 +221,6 @@ int Term_height(void);
 void Term_max_size(int *w, int *h);
 /* make the top term bigger or smaller */
 void Term_resize(int w, int h);
-/* direct access to term flags; for use with twf_* macros */
-bitflag *Term_flags(void);
 
 /* flush the output (it won't necessarily appear on the screen;
  * that depends on how th frontend does it; what will happen is that
@@ -306,8 +248,16 @@ bool Term_wait_event(ui_event *event);
  * the event will be copied to the first argument, but not removed
  * from the queue; if you don't want the event, supply NULL as the argument */
 bool Term_check_event(ui_event *event);
+/* forget all queued events (make the queue empty */
+void Term_flush_events(void);
+/* prepend an event to the front of the event_queue;
+ * or append to the end of the queue;
+ * if there is not enough room
+ * none of the events will be pushed, and the return value is false */
+bool Term_prepend_events(const ui_event *events, size_t num_events);
+bool Term_append_events(const ui_event *events, size_t num_events);
 
 /* pause for some milliseconds */
 void Term_delay(int msecs);
 
-#endif /* INCLUDED_UI2_TERM_H */
+#endif /* UI2_TERM_H */

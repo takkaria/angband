@@ -55,24 +55,12 @@ struct term {
 	struct term_dirty dirty;
 	struct term_callbacks callbacks;
 	struct term_point blank;
-
-	bitflag flags[TWF_SIZE];
 };
-
-/* Global variables */
-
-/* TODO move that to ui2-display.c? */
-struct angband_user_terms angband_user_terms;
-term angband_term_cave;
-term angband_term_message_line;
-term angband_term_status_line;
-
-/* Local variables */
 
 #define TERM_STACK_MAX \
 	128
 
-#define TERM_KEY_QUEUE_MAX \
+#define TERM_EVENT_QUEUE_MAX \
 	1024
 
 #define WIDESTRING_MAX \
@@ -112,6 +100,8 @@ term angband_term_status_line;
 #define POINT(x, y) \
 	(TOP->points[INDEX(x, y)])
 
+/* Local variables */
+
 static struct {
 	term stack[TERM_STACK_MAX];
 	int top;
@@ -120,13 +110,13 @@ static struct {
 };
 
 static struct {
-	ui_event queue[TERM_KEY_QUEUE_MAX];
+	ui_event queue[TERM_EVENT_QUEUE_MAX];
 	size_t head;
 	size_t tail;
 	size_t size;
 	size_t number;
 } event_queue = {
-	.size = TERM_KEY_QUEUE_MAX
+	.size = TERM_EVENT_QUEUE_MAX
 };
 
 /* Local functions */
@@ -191,8 +181,7 @@ static term term_new(const struct term_create_info *info)
 	t->blank = info->blank;
 	t->callbacks = info->callbacks;
 
-	twf_copy(t->flags, info->flags);
-
+	assert(t->callbacks.flush_events != NULL);
 	assert(t->callbacks.max_size != NULL);
 	assert(t->callbacks.push_new != NULL);
 	assert(t->callbacks.pop_new != NULL);
@@ -425,18 +414,39 @@ static bool term_take_event(ui_event *event)
 	return true;
 }
 
-static bool term_append_event(ui_event event)
+static bool term_prepend_events(const ui_event *events, size_t num_events)
 {
-	if (event_queue.number == event_queue.size) {
+	if (event_queue.size - event_queue.number < num_events) {
 		return false;
 	}
 
-	event_queue.queue[event_queue.head] = event;
-	event_queue.number++;
-	event_queue.head++;
+	for (size_t i = 0; i < num_events; i++) {
+		if (event_queue.tail == 0) {
+			event_queue.tail = event_queue.size - 1;
+		}
+		event_queue.tail--;
 
-	if (event_queue.head == event_queue.size) {
-		event_queue.head = 0;
+		event_queue.queue[event_queue.tail] = events[i];
+		event_queue.number++;
+	}
+
+	return true;
+}
+
+static bool term_append_events(const ui_event *events, size_t num_events)
+{
+	if (event_queue.size - event_queue.number < num_events) {
+		return false;
+	}
+
+	for (size_t i = 0; i < num_events; i++) {
+		event_queue.queue[event_queue.head] = events[i];
+		event_queue.number++;
+
+		event_queue.head++;
+		if (event_queue.head == event_queue.size) {
+			event_queue.head = 0;
+		}
 	}
 
 	return true;
@@ -499,7 +509,7 @@ static void term_flush_row(int y)
 	term_mark_row_flushed(y);
 }
 
-static void term_flush(void)
+static void term_flush_out(void)
 {
 	for (int y = TOP->dirty.top; y <= TOP->dirty.bottom; y++) {
 		term_flush_row(y);
@@ -742,13 +752,6 @@ int Term_height(void)
 	return TOP->height;
 }
 
-bitflag *Term_flags(void)
-{
-	STACK_OK();
-
-	return TOP->flags;
-}
-
 void Term_get_point(int x, int y, struct term_point *point)
 {
 	STACK_OK();
@@ -767,6 +770,16 @@ bool Term_put_point(int x, int y, struct term_point point)
 	term_move_cursor(x, y);
 
 	return term_put_point_at_cursor(point);
+}
+
+bool Term_ok_point(int x, int y)
+{
+	STACK_OK();
+
+	return x >= 0
+		&& y >= 0
+		&& x < TOP->width
+		&& y < TOP->width;
 }
 
 void Term_resize(int w, int h)
@@ -799,7 +812,7 @@ void Term_flush_output(void)
 	STACK_OK();
 
 	term_erase_cursor(TOP->cursor.old);
-	term_flush();
+	term_flush_out();
 	term_draw_cursor(TOP->cursor.new);
 
 	TOP->cursor.old = TOP->cursor.new;
@@ -824,7 +837,7 @@ bool Term_keypress(keycode_t key, byte mods)
 		}
 	};
 
-	return term_append_event(event);
+	return term_append_events(&event, 1);
 }
 
 bool Term_mousepress(int x, int y, int button, byte mods)
@@ -841,7 +854,7 @@ bool Term_mousepress(int x, int y, int button, byte mods)
 		}
 	};
 
-	return term_append_event(event);
+	return term_append_events(&event, 1);
 }
 
 bool Term_take_event(ui_event *event)
@@ -877,6 +890,27 @@ bool Term_check_event(ui_event *event)
 	}
 
 	return term_check_event(event);
+}
+
+bool Term_prepend_events(const ui_event *events, size_t num_events)
+{
+	return term_prepend_events(events, num_events);
+}
+
+bool Term_append_events(const ui_event *events, size_t num_events)
+{
+	return term_append_events(events, num_events);
+}
+
+void Term_flush_events(void)
+{
+	STACK_OK();
+
+	TOP->callbacks.flush_events(TOP->user);
+
+	event_queue.head = 0;
+	event_queue.tail = 0;
+	event_queue.number = 0;
 }
 
 void Term_delay(int msecs)

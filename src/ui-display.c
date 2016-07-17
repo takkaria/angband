@@ -1028,8 +1028,8 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
  * ------------------------------------------------------------------------ */
 
 #ifdef MAP_DEBUG
-static void trace_map_updates(game_event_type type, game_event_data *data,
-							  void *user)
+static void trace_map_updates(game_event_type type,
+		game_event_data *data, void *user)
 {
 	if (data->point.x == -1 && data->point.y == -1)
 		printf("Redraw whole map\n");

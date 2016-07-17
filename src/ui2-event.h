@@ -75,7 +75,6 @@ typedef enum
 			((v) >= 0x3A && (v) <= 0x60) || \
 			((v) >= 0x7B && (v) <= 0x7E)) ? false : true)
 
-
 /**
  * If keycode you're trying to apply control to is between 0x40-0x5F
  * inclusive, then you should take 0x40 from the keycode and leave
@@ -87,20 +86,17 @@ typedef enum
 #define ENCODE_KTRL(v) \
 	(((v) >= 0x40 && (v) <= 0x5F) ? true : false)
 
-
 /**
  * Given a character X, turn it into a control character.
  */
 #define KTRL(X) \
 	((X) & 0x1F)
 
-
 /**
  * Given a control character X, turn it into its uppercase ASCII equivalent.
  */
 #define UN_KTRL(X) \
 	((X) + 64)
-
 
 /**
  * Keyset mappings for various keys.
@@ -149,12 +145,10 @@ typedef enum
  */
 #define isarrow(c)  ((c >= ARROW_DOWN) && (c <= ARROW_UP))
 
-
 /**
  * Type capable of holding any input key we might want to use.
  */
 typedef u32b keycode_t;
-
 
 /**
  * Struct holding all relevant info for keypresses.
@@ -199,7 +193,6 @@ typedef union {
  */
 #define EVENT_EMPTY		{ 0 }
 
-
 /*** Functions ***/
 
 /**
@@ -229,8 +222,6 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str);
  */
 void keypress_to_readable(char *buf, size_t len, struct keypress src);
 
-
 extern bool char_matches_key(wchar_t c, keycode_t key);
-
 
 #endif /* INCLUDED_UI2_EVENT_H */

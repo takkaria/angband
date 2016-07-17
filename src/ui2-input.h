@@ -16,13 +16,13 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 
-#ifndef INCLUDED_UI2_INPUT_H
-#define INCLUDED_UI2_INPUT_H
+#ifndef UI2_INPUT_H
+#define UI2_INPUT_H
 
 #include "cmd-core.h"
 #include "game-event.h"
-#include "ui-event.h"
-#include "ui-term.h"
+#include "ui2-event.h"
+#include "ui2-term.h"
 
 /**
  * Holds a generic command - if cmd is set to other than CMD_NULL 
@@ -74,13 +74,13 @@ void display_message(game_event_type unused, game_event_data *data, void *user);
 void bell_message(game_event_type unused, game_event_data *data, void *user);
 void message_flush(game_event_type unused, game_event_data *data, void *user);
 void clear_from(int row);
-bool askfor_aux_keypress(char *buf, size_t buflen, size_t *curs, size_t *len,
-		struct keypress keypress, bool firsttime);
+bool askfor_aux_keypress(char *buf, size_t buflen,
+		size_t *curs, size_t *len, struct keypress keypress, bool firsttime);
 bool askfor_aux(char *buf, size_t len,
 		bool (*keypress_h)(char *, size_t, size_t *, size_t *, struct keypress, bool));
 bool get_character_name(char *buf, size_t buflen);
-char get_char(const char *prompt, const char *options, size_t len,
-		char fallback);
+char get_char(const char *prompt,
+		const char *options, size_t len, char fallback);
 extern bool (*get_file)(const char *suggested_name, char *path, size_t len);
 bool get_com_ex(const char *prompt, ui_event *command);
 void pause_line(struct term *term);
@@ -89,4 +89,4 @@ ui_event textui_get_command(int *count);
 bool key_confirm_command(unsigned char c);
 bool textui_process_key(struct keypress kp, unsigned char *c, int count);
 
-#endif /* INCLUDED_UI2_INPUT_H */
+#endif /* UI2_INPUT_H */
