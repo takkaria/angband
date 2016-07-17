@@ -2041,7 +2041,6 @@ static void see_floor_items(game_event_type type,
 
 	const char *p = "see";
 	bool can_pickup = false;
-	int i;
 
 	/* Scan all visible, sensed objects in the grid */
 	floor_num = scan_floor(floor_list, floor_max,
@@ -2052,7 +2051,7 @@ static void see_floor_items(game_event_type type,
 	}
 
 	/* Can we pick any up? */
-	for (i = 0; i < floor_num; i++) {
+	for (int i = 0; i < floor_num; i++) {
 	    if (inven_carry_okay(floor_list[i])) {
 			can_pickup = true;
 		}
@@ -2089,8 +2088,8 @@ static void see_floor_items(game_event_type type,
 		/* Display objects on the floor */
 		/* TODO UI2 */
 		struct term_hints hints = {
-			.width = 80,
-			.height = 24
+			.height = floor_num,
+			.purpose = TERM_PURPOSE_SHOW_OBJECTS
 		};
 		Term_push_new(&hints);
 

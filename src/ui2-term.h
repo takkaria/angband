@@ -80,13 +80,13 @@ struct term_create_info;
  * that will be done without it */
 
 enum term_position {
-	TERM_POSITION_IVALID,
+	TERM_POSITION_NONE,
 	TERM_POSITION_PRECISE,
 	TERM_POSITION_CENTERED
 };
 
 enum term_purpose {
-	TERM_PURPOSE_INVALID,
+	TERM_PURPOSE_NONE,
 	TERM_PURPOSE_TEXT,
 	TERM_PURPOSE_MENU,
 	TERM_PURPOSE_BIG_MAP,
