@@ -56,11 +56,12 @@
 #include "ui2-term.h"
 #include "wizard.h"
 
-struct angband_user_terms angband_terms;
 struct angband_term angband_cave;
 struct angband_term angband_message_line;
 struct angband_term angband_status_line;
 struct angband_term angband_sidebar;
+
+struct angband_user_terms angband_terms;
 
 const char *atf_descr[ATF_MAX] = {
 	#define ATF(a, b) b,
@@ -147,9 +148,7 @@ void cnv_stat(int val, char *out_val, size_t out_len)
  */
 static void prt_field(const char *info, int row, int col)
 {
-	/* Dump 13 spaces to clear */
-	c_put_str(COLOUR_WHITE, "             ", row, col);
-
+	Term_erase(col, row, Term_width());
 	/* Dump the info itself */
 	c_put_str(COLOUR_L_BLUE, info, row, col);
 }
@@ -219,14 +218,15 @@ static void prt_level(int row, int col)
 static void prt_exp(int row, int col)
 {
 	char out_val[32];
-	bool lev50 = (player->lev == 50);
+	bool lev50 = player->lev == 50;
 
-	long xp = (long)player->exp;
+	long xp = (long) player->exp;
 
 	/* Calculate XP for next level */
-	if (!lev50)
-		xp = (long)(player_exp[player->lev - 1] * player->expfact / 100L) -
+	if (!lev50) {
+		xp = (long) (player_exp[player->lev - 1] * player->expfact / 100L) -
 			player->exp;
+	}
 
 	/* Format XP */
 	strnfmt(out_val, sizeof(out_val), "%8d", xp);
@@ -449,8 +449,9 @@ static void prt_speed(int row, int col)
 
 	char buf[32] = {0};
 
-	if (type)
+	if (type) {
 		strnfmt(buf, sizeof(buf), "%s (%+d)", type, (speed - 110));
+	}
 
 	c_put_str(attr, format("%-10s", buf), row, col);
 }
@@ -476,40 +477,13 @@ static void prt_depth(int row, int col)
 /**
  * Some simple wrapper functions
  */
-static void prt_str(int row, int col)
-{
-	prt_stat(STAT_STR, row, col);
-}
-
-static void prt_dex(int row, int col)
-{
-	prt_stat(STAT_DEX, row, col);
-}
-
-static void prt_wis(int row, int col)
-{
-	prt_stat(STAT_WIS, row, col);
-}
-
-static void prt_int(int row, int col)
-{
-	prt_stat(STAT_INT, row, col);
-}
-
-static void prt_con(int row, int col)
-{
-	prt_stat(STAT_CON, row, col);
-}
-
-static void prt_race(int row, int col)
-{
-	prt_field(player->race->name, row, col);
-}
-
-static void prt_class(int row, int col)
-{
-	prt_field(player->class->name, row, col);
-}
+static void prt_str(int row, int col)   { prt_stat(STAT_STR, row, col); }
+static void prt_dex(int row, int col)   { prt_stat(STAT_DEX, row, col); }
+static void prt_wis(int row, int col)   { prt_stat(STAT_WIS, row, col); }
+static void prt_int(int row, int col)   { prt_stat(STAT_INT, row, col); }
+static void prt_con(int row, int col)   { prt_stat(STAT_CON, row, col); }
+static void prt_race(int row, int col)  { prt_field(player->race->name, row, col); } 
+static void prt_class(int row, int col) { prt_field(player->class->name, row, col); }
 
 /**
  * Struct of sidebar handlers.
@@ -555,9 +529,8 @@ static void update_sidebar(game_event_type type,
 		game_event_data *data, void *user)
 {
 	(void) data;
-	(void) user;
 
-	Term_push(angband_sidebar.term);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	unsigned height = Term_height();
 
@@ -585,15 +558,16 @@ static void update_sidebar(game_event_type type,
  * that using this command is only for when graphics mode is off, as
  * otherwise it causes the character to be a black square.
  */
-static void hp_colour_change(game_event_type type, game_event_data *data,
-							 void *user)
+static void hp_colour_change(game_event_type type,
+		game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
 	(void) user;
 
-	if ((OPT(hp_changes_color)) && (use_graphics == GRAPHICS_NONE))
+	if ((OPT(hp_changes_color)) && (use_graphics == GRAPHICS_NONE)) {
 		square_light_spot(cave, player->py, player->px);
+	}
 }
 
 /**
@@ -601,92 +575,82 @@ static void hp_colour_change(game_event_type type, game_event_data *data,
  * Status line display functions
  * ------------------------------------------------------------------------ */
 
-/**
- * Struct to describe different timed effects
- */
-struct state_info
-{
+struct state_info {
 	int value;
 	const char *str;
 	size_t len;
 	uint32_t attr;
 };
 
+#define STATE_INFO(value, str, attr) \
+	{ (value), (str), sizeof(str), (attr) }
+
 /**
  * TMD_CUT descriptions
  */
-#define S(s) \
-	(s), sizeof(s)
-
-static const struct state_info cut_data[] =
-{
-	{ 1000, S("Mortal wound"), COLOUR_L_RED },
-	{  200, S("Deep gash"),    COLOUR_RED },
-	{  100, S("Severe cut"),   COLOUR_RED },
-	{   50, S("Nasty cut"),    COLOUR_ORANGE },
-	{   25, S("Bad cut"),      COLOUR_ORANGE },
-	{   10, S("Light cut"),    COLOUR_YELLOW },
-	{    0, S("Graze"),        COLOUR_YELLOW },
+static const struct state_info cut_data[] = {
+	STATE_INFO(1000, "Mortal wound", COLOUR_L_RED ),
+	STATE_INFO( 200, "Deep gash",    COLOUR_RED ),
+	STATE_INFO( 100, "Severe cut",   COLOUR_RED ),
+	STATE_INFO(  50, "Nasty cut",    COLOUR_ORANGE ),
+	STATE_INFO(  25, "Bad cut",      COLOUR_ORANGE ),
+	STATE_INFO(  10, "Light cut",    COLOUR_YELLOW ),
+	STATE_INFO(   0, "Graze",        COLOUR_YELLOW )
 };
 
 /**
  * TMD_STUN descriptions
  */
-static const struct state_info stun_data[] =
-{
-	{   100, S("Knocked out"), COLOUR_RED },
-	{    50, S("Heavy stun"),  COLOUR_ORANGE },
-	{     0, S("Stun"),        COLOUR_ORANGE },
+static const struct state_info stun_data[] = {
+	STATE_INFO(100, "Knocked out", COLOUR_RED),
+	STATE_INFO( 50, "Heavy stun",  COLOUR_ORANGE),
+	STATE_INFO(  0, "Stun",        COLOUR_ORANGE)
 };
 
 /**
  * player->hunger descriptions
  */
-static const struct state_info hunger_data[] =
-{
-	{ PY_FOOD_FAINT, S("Faint"),    COLOUR_RED },
-	{ PY_FOOD_WEAK,  S("Weak"),     COLOUR_ORANGE },
-	{ PY_FOOD_ALERT, S("Hungry"),   COLOUR_YELLOW },
-	{ PY_FOOD_FULL,  S(""),         COLOUR_L_GREEN },
-	{ PY_FOOD_MAX,   S("Full"),     COLOUR_L_GREEN },
+static const struct state_info hunger_data[] = {
+	STATE_INFO( PY_FOOD_FAINT, "Faint",    COLOUR_RED),
+	STATE_INFO( PY_FOOD_WEAK,  "Weak",     COLOUR_ORANGE),
+	STATE_INFO( PY_FOOD_ALERT, "Hungry",   COLOUR_YELLOW),
+	STATE_INFO( PY_FOOD_FULL,  "",         COLOUR_L_GREEN),
+	STATE_INFO( PY_FOOD_MAX,   "Full",     COLOUR_L_GREEN)
 };
 
 /**
  * For the various TMD_* effects
  */
-static const struct state_info effects[] =
-{
-	{ TMD_BLIND,     S("Blind"),      COLOUR_ORANGE },
-	{ TMD_PARALYZED, S("Paralyzed!"), COLOUR_RED },
-	{ TMD_CONFUSED,  S("Confused"),   COLOUR_ORANGE },
-	{ TMD_AFRAID,    S("Afraid"),     COLOUR_ORANGE },
-	{ TMD_TERROR,    S("Terror"),     COLOUR_RED },
-	{ TMD_IMAGE,     S("Halluc"),     COLOUR_ORANGE },
-	{ TMD_POISONED,  S("Poisoned"),   COLOUR_ORANGE },
-	{ TMD_PROTEVIL,  S("ProtEvil"),   COLOUR_L_GREEN },
-	{ TMD_SPRINT,    S("Sprint"),     COLOUR_L_GREEN },
-	{ TMD_TRAPSAFE,  S("TrapSafe"),   COLOUR_L_GREEN },
-	{ TMD_TELEPATHY, S("ESP"),        COLOUR_L_BLUE },
-	{ TMD_INVULN,    S("Invuln"),     COLOUR_L_GREEN },
-	{ TMD_HERO,      S("Hero"),       COLOUR_L_GREEN },
-	{ TMD_SHERO,     S("Berserk"),    COLOUR_L_GREEN },
-	{ TMD_BOLD,      S("Bold"),       COLOUR_L_GREEN },
-	{ TMD_STONESKIN, S("Stone"),      COLOUR_L_GREEN },
-	{ TMD_SHIELD,    S("Shield"),     COLOUR_L_GREEN },
-	{ TMD_BLESSED,   S("Blssd"),      COLOUR_L_GREEN },
-	{ TMD_SINVIS,    S("SInvis"),     COLOUR_L_GREEN },
-	{ TMD_SINFRA,    S("Infra"),      COLOUR_L_GREEN },
-	{ TMD_OPP_ACID,  S("RAcid"),      COLOUR_SLATE },
-	{ TMD_OPP_ELEC,  S("RElec"),      COLOUR_BLUE },
-	{ TMD_OPP_FIRE,  S("RFire"),      COLOUR_RED },
-	{ TMD_OPP_COLD,  S("RCold"),      COLOUR_WHITE },
-	{ TMD_OPP_POIS,  S("RPois"),      COLOUR_GREEN },
-	{ TMD_OPP_CONF,  S("RConf"),      COLOUR_VIOLET },
-	{ TMD_AMNESIA,   S("Amnesiac"),   COLOUR_ORANGE },
-	{ TMD_SCRAMBLE,  S("Scrambled"),  COLOUR_VIOLET },
+static const struct state_info effects[] = {
+	STATE_INFO( TMD_BLIND,     "Blind",      COLOUR_ORANGE),
+	STATE_INFO( TMD_PARALYZED, "Paralyzed!", COLOUR_RED),
+	STATE_INFO( TMD_CONFUSED,  "Confused",   COLOUR_ORANGE),
+	STATE_INFO( TMD_AFRAID,    "Afraid",     COLOUR_ORANGE),
+	STATE_INFO( TMD_TERROR,    "Terror",     COLOUR_RED),
+	STATE_INFO( TMD_IMAGE,     "Halluc",     COLOUR_ORANGE),
+	STATE_INFO( TMD_POISONED,  "Poisoned",   COLOUR_ORANGE),
+	STATE_INFO( TMD_PROTEVIL,  "ProtEvil",   COLOUR_L_GREEN),
+	STATE_INFO( TMD_SPRINT,    "Sprint",     COLOUR_L_GREEN),
+	STATE_INFO( TMD_TRAPSAFE,  "TrapSafe",   COLOUR_L_GREEN),
+	STATE_INFO( TMD_TELEPATHY, "ESP",        COLOUR_L_BLUE),
+	STATE_INFO( TMD_INVULN,    "Invuln",     COLOUR_L_GREEN),
+	STATE_INFO( TMD_HERO,      "Hero",       COLOUR_L_GREEN),
+	STATE_INFO( TMD_SHERO,     "Berserk",    COLOUR_L_GREEN),
+	STATE_INFO( TMD_BOLD,      "Bold",       COLOUR_L_GREEN),
+	STATE_INFO( TMD_STONESKIN, "Stone",      COLOUR_L_GREEN),
+	STATE_INFO( TMD_SHIELD,    "Shield",     COLOUR_L_GREEN),
+	STATE_INFO( TMD_BLESSED,   "Blssd",      COLOUR_L_GREEN),
+	STATE_INFO( TMD_SINVIS,    "SInvis",     COLOUR_L_GREEN),
+	STATE_INFO( TMD_SINFRA,    "Infra",      COLOUR_L_GREEN),
+	STATE_INFO( TMD_OPP_ACID,  "RAcid",      COLOUR_SLATE),
+	STATE_INFO( TMD_OPP_ELEC,  "RElec",      COLOUR_BLUE),
+	STATE_INFO( TMD_OPP_FIRE,  "RFire",      COLOUR_RED),
+	STATE_INFO( TMD_OPP_COLD,  "RCold",      COLOUR_WHITE),
+	STATE_INFO( TMD_OPP_POIS,  "RPois",      COLOUR_GREEN),
+	STATE_INFO( TMD_OPP_CONF,  "RConf",      COLOUR_VIOLET),
+	STATE_INFO( TMD_AMNESIA,   "Amnesiac",   COLOUR_ORANGE),
+	STATE_INFO( TMD_SCRAMBLE,  "Scrambled",  COLOUR_VIOLET)
 };
-
-#undef S
 
 /**
  * Print recall status.
@@ -695,7 +659,7 @@ static size_t prt_recall(int row, int col)
 {
 	if (player->word_recall) {
 		c_put_str(COLOUR_WHITE, "Recall", row, col);
-		return sizeof "Recall";
+		return sizeof("Recall");
 	}
 
 	return 0;
@@ -708,31 +672,33 @@ static size_t prt_descent(int row, int col)
 {
 	if (player->deep_descent) {
 		c_put_str(COLOUR_WHITE, "Descent", row, col);
-		return sizeof "Descent";
+		return sizeof("Descent");
 	}
 
 	return 0;
 }
 
-#define PRINT_STATE(sym, index, data, row, col) do { \
-	for (size_t i = 0; i < N_ELEMENTS(data); i++) { \
-		if ((index) sym (data)[i].value) { \
-			if ((data)[i].str[0]) { \
-				c_put_str((data)[i].attr, (data)[i].str, (row), (col)); \
-				return (data)[i].len; \
-			} else { \
-				return 0; \
-			} \
-		} \
-	} \
-} while (0)
+static size_t prt_data(struct state_info info, int row, int col)
+{
+	if (info.str[0]) {
+		c_put_str(info.attr, info.str, row, col);
+		return info.len;
+	} else {
+		return 0;
+	}
+}
 
 /**
  * Print cut indicator.
  */
 static size_t prt_cut(int row, int col)
 {
-	PRINT_STATE(>, player->timed[TMD_CUT], cut_data, row, col);
+	for (size_t i = 0; i < N_ELEMENTS(cut_data); i++) {
+		if (player->timed[TMD_CUT] > cut_data[i].value) {
+			return prt_data(cut_data[i], row, col);
+		}
+	}
+
 	return 0;
 }
 
@@ -741,7 +707,12 @@ static size_t prt_cut(int row, int col)
  */
 static size_t prt_stun(int row, int col)
 {
-	PRINT_STATE(>, player->timed[TMD_STUN], stun_data, row, col);
+	for (size_t i = 0; i < N_ELEMENTS(stun_data); i++) {
+		if (player->timed[TMD_STUN] > stun_data[i].value) {
+			return prt_data(stun_data[i], row, col);
+		}
+	}
+
 	return 0;
 }
 
@@ -750,10 +721,14 @@ static size_t prt_stun(int row, int col)
  */
 static size_t prt_hunger(int row, int col)
 {
-	PRINT_STATE(<=, player->food, hunger_data, row, col);
+	for (size_t i = 0; i <= N_ELEMENTS(hunger_data); i++) {
+		if (player->food <= hunger_data[i].value) {
+			return prt_data(hunger_data[i], row, col);
+		}
+	}
+
 	return 0;
 }
-#undef PRINT_STATE
 
 /**
  * Prints Resting, or 'count' status
@@ -815,15 +790,13 @@ static size_t prt_state(int row, int col)
 		}
 	}
 
-	/* Display the info (or blanks) */
 	c_put_str(attr, text, row, col);
 
 	return strlen(text);
 }
 
 /* Colors used to display each obj feeling 	*/
-static const uint32_t obj_feeling_color[] = 
-{
+static const uint32_t obj_feeling_color[] = {
 	COLOUR_WHITE,    /* "Looks like any other level." */
 	COLOUR_L_PURPLE, /* "you sense an item of wondrous power!" */
 	COLOUR_L_RED,    /* "there are superb treasures here." */
@@ -838,8 +811,7 @@ static const uint32_t obj_feeling_color[] =
 };
 
 /* Colors used to display each monster feeling */
-static const uint32_t mon_feeling_color[] = 
-{
+static const uint32_t mon_feeling_color[] = {
 	COLOUR_WHITE,  /* "You are still uncertain about this place" */
 	COLOUR_RED,    /* "Omens of death haunt this place" */
 	COLOUR_ORANGE, /* "This place seems murderous" */
@@ -852,20 +824,17 @@ static const uint32_t mon_feeling_color[] =
 	COLOUR_BLUE,   /* "This seems a quiet, peaceful place" */
 };
 
+
 /**
  * Prints level feelings at status if they are enabled.
  */
 static size_t prt_level_feeling(int row, int col)
 {
-	/* Don't show feelings for cold-hearted characters */
-	/* No useful feeling in town */
+	/* Don't show feelings for cold-hearted characters
+	 * no useful feelings in town */
 	if (!OPT(birth_feelings) || player->depth == 0) {
 		return 0;
 	}
-
-	/* Get feelings */
-	u16b obj_feeling = cave->feeling / 10;
-	u16b mon_feeling = cave->feeling - (10 * obj_feeling);
 
 	/*
 	 * Convert object feeling to a symbol easier to parse for a human.
@@ -883,9 +852,9 @@ static size_t prt_level_feeling(int row, int col)
 	 * to get a feeling. If not display as '?'
 	 */
 
-	byte obj_feeling_color_print;
+	u16b obj_feeling = cave->feeling / 10;
+	uint32_t obj_feeling_color_print;
 	char obj_feeling_str[6];
-	char mon_feeling_str[6];
 
 	if (cave->feeling_squares < z_info->feeling_need) {
 		my_strcpy(obj_feeling_str, "?", sizeof(obj_feeling_str));
@@ -898,7 +867,8 @@ static size_t prt_level_feeling(int row, int col)
 		} else if (obj_feeling == 1) {
 			my_strcpy(obj_feeling_str, "$", sizeof(obj_feeling_str));
 		} else {
-			strnfmt(obj_feeling_str, 5, "%u", (unsigned) (11-obj_feeling));
+			strnfmt(obj_feeling_str, sizeof(obj_feeling_str),
+					"%d", 11 - obj_feeling);
 		}
 	}
 
@@ -908,15 +878,20 @@ static size_t prt_level_feeling(int row, int col)
 	 * 1 to 9 are feelings from omens of death to quiet, paceful.
 	 * We also reverse this so that what we show is a danger feeling.
 	 */
+	u16b mon_feeling = cave->feeling - (10 * obj_feeling);
+	char mon_feeling_str[6];
+
 	if (mon_feeling == 0) {
 		my_strcpy(mon_feeling_str, "?", sizeof(mon_feeling_str));
 	} else {
-		strnfmt(mon_feeling_str, 5, "%u", (unsigned) (10-mon_feeling));
+		strnfmt(mon_feeling_str, sizeof(mon_feeling_str),
+				"%d", 10 - mon_feeling);
 	}
+
+	/* Display it */
 
 	int old_col = col;
 
-	/* Display it */
 	c_put_str(COLOUR_WHITE, "LF:", row, col);
 	col += 3;
 
@@ -926,7 +901,7 @@ static size_t prt_level_feeling(int row, int col)
 	c_put_str(COLOUR_WHITE, "-", row, col);
 	col++;
 
-	c_put_str(obj_feeling_color_print, obj_feeling_str,	row, col);
+	c_put_str(obj_feeling_color_print, obj_feeling_str, row, col);
 	col += strlen(obj_feeling_str) + 1;
 
 	return col - old_col;
@@ -937,23 +912,17 @@ static size_t prt_level_feeling(int row, int col)
  */
 static size_t prt_study(int row, int col)
 {
-	char *text;
-	uint32_t attr = COLOUR_WHITE;
-
-	/* Can the player learn new spells? */
-	if (player->upkeep->new_spells) {
-		/* If the player does not carry a book with spells they can study,
-		   the message is displayed in a darker colour */
-		if (!player_book_has_unlearned_spells(player))
-			attr = COLOUR_L_DARK;
-
-		/* Print study message */
-		text = format("Study (%d)", player->upkeep->new_spells);
-		c_put_str(attr, text, row, col);
-		return strlen(text) + 1;
+	if (player->upkeep->new_spells == 0) {
+		return 0;
 	}
 
-	return 0;
+	uint32_t attr = player_book_has_unlearned_spells(player) ? 
+		COLOUR_WHITE : COLOUR_L_DARK;
+	char *str = format("Study (%d)", player->upkeep->new_spells);
+
+	c_put_str(attr, str, row, col);
+
+	return strlen(str) + 1;
 }
 
 /**
@@ -978,9 +947,9 @@ static size_t prt_tmd(int row, int col)
 static size_t prt_unignore(int row, int col)
 {
 	if (player->unignoring) {
-		const char *str = "Unignoring";
+		const char str[] = "Unignoring";
 		put_str(str, row, col);
-		return strlen(str) + 1;
+		return sizeof(str);
 	}
 
 	return 0;
@@ -1011,15 +980,12 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 {
 	(void) type;
 	(void) data;
-	(void) user;
 
-	Term_push(angband_status_line.term);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	Term_erase(0, 0, Term_width());
 
-	int col = 0;
-
-	for (size_t i = 0; i < N_ELEMENTS(status_handlers); i++) {
+	for (size_t i = 0, col = 0; i < N_ELEMENTS(status_handlers); i++) {
 		col += status_handlers[i](0, col);
 	}
 
@@ -1051,9 +1017,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 
-	struct angband_term *t = user;
-
-	Term_push(t->term);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	if (data->point.x == -1 && data->point.y == -1) {
 		/* This signals a whole-map redraw. */
@@ -1062,8 +1026,8 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		/* Single point to be redrawn */
 
 		/* Location relative to panel */
-		int relx = data->point.x - t->offset_x;
-		int rely = data->point.y - t->offset_y;
+		int relx = data->point.x - ANGBAND_TERM(user)->offset_x;
+		int rely = data->point.y - ANGBAND_TERM(user)->offset_y;
 
 		if (Term_ok_point(relx, rely)) {
 			struct grid_data grid;
@@ -1090,7 +1054,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		int x = player->py - Term_width() / 2;
 		int y = player->px - Term_height() / 2;
 
-		if (panel_should_modify(t->term, x, y)) {
+		if (panel_should_modify(ANGBAND_TERM(user)->term, x, y)) {
 			Term_pop();
 			return;
 		}
@@ -1253,7 +1217,8 @@ static void display_explosion(game_event_type type,
 		game_event_data *data, void *user)
 {
 	(void) type;
-	(void) user;
+
+	Term_push(ANGBAND_TERM(user)->term);
 
 	bool new_radius = false;
 	bool drawn = false;
@@ -1336,6 +1301,8 @@ static void display_explosion(game_event_type type,
 		}
 		Term_redraw_screen();
 	}
+
+	Term_pop();
 }
 
 /**
@@ -1345,7 +1312,8 @@ static void display_bolt(game_event_type type,
 		game_event_data *data, void *user)
 {
 	(void) type;
-	(void) user;
+
+	Term_push(ANGBAND_TERM(user)->term);
 
 	int gf_type = data->bolt.gf_type;
 	bool drawing = data->bolt.drawing;
@@ -1396,6 +1364,8 @@ static void display_bolt(game_event_type type,
 		/* Delay for consistency */
 		Term_delay(op_ptr->delay_factor);
 	}
+
+	Term_pop();
 }
 
 /**
@@ -1406,6 +1376,8 @@ static void display_missile(game_event_type type,
 {
 	(void) type;
 	(void) user;
+
+	Term_push(ANGBAND_TERM(user)->term);
 
 	struct object *obj = data->missile.obj;
 	bool seen = data->missile.seen;
@@ -1432,6 +1404,8 @@ static void display_missile(game_event_type type,
 		}
 		Term_redraw_screen();
 	}
+
+	Term_pop();
 }
 
 /**
@@ -1451,7 +1425,7 @@ static void update_inven_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	if (!flip_inven) {
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
@@ -1469,7 +1443,7 @@ static void update_equip_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	if (!flip_inven) {
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
@@ -1491,10 +1465,10 @@ void toggle_inven_equip(void)
 
 	/* Redraw any subwindows showing the inventory/equipment lists */
 	for (size_t i = 0; i < angband_terms.number; i++) {
-		struct angband_term *t = &angband_terms.terms[i];
+		struct angband_term *term = &angband_terms.terms[i];
 
-		if (atf_has(t->flags, ATF_INVEN)) {
-			Term_push(t->term);
+		if (atf_has(term->flags, ATF_INVEN)) {
+			Term_push(term->term);
 
 			if (!flip_inven) {
 				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
@@ -1504,8 +1478,8 @@ void toggle_inven_equip(void)
 
 			Term_flush_output();
 			Term_pop();
-		} else if (atf_has(t->flags, ATF_EQUIP)) {
-			Term_push(t->term);
+		} else if (atf_has(term->flags, ATF_EQUIP)) {
+			Term_push(term->term);
 
 			if (!flip_inven) {
 				show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
@@ -1525,7 +1499,7 @@ static void update_itemlist_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
     Term_clear();
 
     object_list_show_subwindow(Term_height(), Term_width());
@@ -1540,7 +1514,7 @@ static void update_monlist_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 	Term_clear();
 
 	monster_list_show_subwindow(Term_height(), Term_width());
@@ -1556,7 +1530,7 @@ static void update_monster_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	/* Display monster race info */
 	if (player->upkeep->monster_race) {
@@ -1575,7 +1549,7 @@ static void update_object_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 	
 	if (player->upkeep->object != NULL) {
 		display_object_recall(player->upkeep->object);
@@ -1594,7 +1568,7 @@ static void update_messages_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	int width;
 	int height;
@@ -1636,7 +1610,7 @@ static void update_player_basic_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	display_player(0);
 
@@ -1653,7 +1627,7 @@ static void update_player_extra_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	display_player(1);
 
@@ -1674,7 +1648,7 @@ static void update_player_compact_subwindow(game_event_type type,
 	int row = 0;
 	int col = 0;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 
 	/* Race and Class */
 	prt_field(player->race->name, row++, col);
@@ -1714,7 +1688,7 @@ static void flush_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(user);
+	Term_push(ANGBAND_TERM(user)->term);
 	Term_flush_output();
 	Term_pop();
 }
@@ -1728,7 +1702,7 @@ static void flush_subwindow(game_event_type type,
  * Character screen, Small scale map, Previous Messages, Store screen, etc.
  */
 
-void subwindow_flag_changed(term term, int flag, bool enable)
+static void subwindow_flag_changed(struct angband_term *aterm, int flag, bool enable)
 {
 	assert(flag > ATF_NONE);
 	assert(flag < ATF_MAX);
@@ -1750,63 +1724,63 @@ void subwindow_flag_changed(term term, int flag, bool enable)
 	switch (flag) {
 		case ATF_INVEN:
 			register_or_deregister(EVENT_INVENTORY,
-					update_inven_subwindow, term);
+					update_inven_subwindow, aterm);
 			break;
 
 		case ATF_EQUIP:
 			register_or_deregister(EVENT_EQUIPMENT,
-					update_equip_subwindow, term);
+					update_equip_subwindow, aterm);
 			break;
 
 		case ATF_PLAYER_BASIC:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
-					update_player_basic_subwindow, term);
+					update_player_basic_subwindow, aterm);
 			break;
 
 		case ATF_PLAYER_EXTRA:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
-					update_player_extra_subwindow, term);
+					update_player_extra_subwindow, aterm);
 			break;
 
 		case ATF_PLAYER_COMPACT:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
-					update_player_compact_subwindow, term);
+					update_player_compact_subwindow, aterm);
 			break;
 
 		case ATF_MAP:
 			register_or_deregister(EVENT_MAP,
-					update_maps, term);
+					update_maps, aterm);
 
 			register_or_deregister(EVENT_END,
-					flush_subwindow, term);
+					flush_subwindow, aterm);
 			break;
 
 		case ATF_MESSAGE:
 			register_or_deregister(EVENT_MESSAGE,
-					update_messages_subwindow, term);
+					update_messages_subwindow, aterm);
 			break;
 
 		case ATF_MONSTER:
 			register_or_deregister(EVENT_MONSTERTARGET,
-					update_monster_subwindow, term);
+					update_monster_subwindow, aterm);
 			break;
 
 		case ATF_OBJECT:
 			register_or_deregister(EVENT_OBJECTTARGET,
-					update_object_subwindow, term);
+					update_object_subwindow, aterm);
 			break;
 
 		case ATF_MONLIST:
 			register_or_deregister(EVENT_MONSTERLIST,
-					update_monlist_subwindow, term);
+					update_monlist_subwindow, aterm);
 			break;
 
 		case ATF_ITEMLIST:
 			register_or_deregister(EVENT_ITEMLIST,
-					update_itemlist_subwindow, term);
+					update_itemlist_subwindow, aterm);
 			break;
 
 		default:
@@ -1820,21 +1794,22 @@ void subwindow_flag_changed(term term, int flag, bool enable)
  * that has changed setting so that it can do any housekeeping to do with 
  * displaying the new thing or no longer displaying the old one.
  */
-void subwindow_set_flags(struct angband_term *t, bitflag *flags, size_t size)
+void subwindow_set_flags(struct angband_term *aterm, bitflag *flags, size_t size)
 {
 	assert(size == ATF_SIZE);
 
 	/* Deal with the changed flags by seeing what's changed */
 	for (int flag = ATF_NONE + 1; flag < ATF_MAX; flag++) {
-		bool old = atf_has(t->flags, flag);
+		bool old = atf_has(aterm->flags, flag);
 		bool new = atf_has(flags, flag);
 		if (new != old) {
-			subwindow_flag_changed(t->term, flag, new);
+			subwindow_flag_changed(aterm, flag, new);
 		}
 	}
-	atf_copy(t->flags, flags);
 
-	Term_push(t->term);
+	atf_copy(aterm->flags, flags);
+
+	Term_push(aterm->term);
 	Term_clear();
 	Term_flush_output();
 	Term_pop();
@@ -1948,7 +1923,8 @@ static void refresh(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
-	(void) user;
+
+	Term_push(ANGBAND_TERM(user)->term);
 
 	/* Place cursor on player/target */
 	if (OPT(show_target) && target_sighted()) {
@@ -1959,6 +1935,8 @@ static void refresh(game_event_type type, game_event_data *data, void *user)
 
 	Term_flush_output();
 	Term_redraw_screen();
+
+	Term_pop();
 }
 
 static void repeated_command_display(game_event_type type,
@@ -1979,11 +1957,12 @@ static void new_level_display_update(game_event_type type,
 {
 	(void) type;
 	(void) data;
-	(void) user;
+
+	Term_push(ANGBAND_TERM(user)->term);
 
 	/* force invalid offsets so that they will be updated later */
-	angband_cave.offset_x = z_info->dungeon_wid;
-	angband_cave.offset_y = z_info->dungeon_hgt;
+	ANGBAND_TERM(user)->offset_x = z_info->dungeon_wid;
+	ANGBAND_TERM(user)->offset_y = z_info->dungeon_hgt;
 
 	if (player->upkeep->autosave) {
 		save_game();
@@ -2018,6 +1997,8 @@ static void new_level_display_update(game_event_type type,
 	player->upkeep->only_partial = false;
 
 	Term_flush_output();
+
+	Term_pop();
 }
 
 
@@ -2195,19 +2176,22 @@ static void ui_enter_world(game_event_type type,
 	(void) data;
 	(void) user;
 
-	/* Redraw stuff */
+	Term_push(angband_cave.term);
+
 	player->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_MONSTER | PR_MESSAGE);
 	redraw_stuff(player);
+
+	Term_pop();
 
 	/* Because of the "flexible" sidebar, all these things trigger
 	   the same function. */
 	event_add_handler_set(player_events,
-			N_ELEMENTS(player_events), update_sidebar, NULL);
+			N_ELEMENTS(player_events), update_sidebar, &angband_sidebar);
 
 	/* The flexible statusbar has similar requirements, so is
 	   also trigger by a large set of events. */
 	event_add_handler_set(statusline_events,
-			N_ELEMENTS(statusline_events), update_statusline, NULL);
+			N_ELEMENTS(statusline_events), update_statusline, &angband_status_line);
 
 	/* Player HP can optionally change the colour of the '@' now. */
 	event_add_handler(EVENT_HP, hp_colour_change, NULL);
@@ -2215,7 +2199,7 @@ static void ui_enter_world(game_event_type type,
 	/* Simplest way to keep the map up to date */
 	event_add_handler(EVENT_MAP, update_maps, &angband_cave);
 #ifdef MAP_DEBUG
-	event_add_handler(EVENT_MAP, trace_map_updates, NULL);
+	event_add_handler(EVENT_MAP, trace_map_updates, &angband_cave);
 #endif
 
 	/* Check if the panel should shift when the player's moved */
@@ -2228,22 +2212,22 @@ static void ui_enter_world(game_event_type type,
 	event_add_handler(EVENT_ENTER_STORE, enter_store, NULL);
 
 	/* Display an explosion */
-	event_add_handler(EVENT_EXPLOSION, display_explosion, NULL);
+	event_add_handler(EVENT_EXPLOSION, display_explosion, &angband_cave);
 
 	/* Display a bolt spell */
-	event_add_handler(EVENT_BOLT, display_bolt, NULL);
+	event_add_handler(EVENT_BOLT, display_bolt, &angband_cave);
 
 	/* Display a physical missile */
-	event_add_handler(EVENT_MISSILE, display_missile, NULL);
+	event_add_handler(EVENT_MISSILE, display_missile, &angband_cave);
 
 	/* Check to see if the player has tried to cancel game processing */
-	event_add_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, NULL);
+	event_add_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, &angband_cave);
 
 	/* Refresh the screen and put the cursor in the appropriate place */
-	event_add_handler(EVENT_REFRESH, refresh, NULL);
+	event_add_handler(EVENT_REFRESH, refresh, &angband_cave);
 
 	/* Do the visual updates required on a new dungeon level */
-	event_add_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, NULL);
+	event_add_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, &angband_cave);
 
 	/* Automatically clear messages while the game is repeating commands */
 	event_add_handler(EVENT_COMMAND_REPEAT, repeated_command_display, NULL);
@@ -2253,6 +2237,7 @@ static void ui_enter_world(game_event_type type,
 
 	/* Allow the player to cheat death, if appropriate */
 	event_add_handler(EVENT_CHEAT_DEATH, cheat_death, NULL);
+
 }
 
 static void ui_leave_world(game_event_type type,
@@ -2265,12 +2250,12 @@ static void ui_leave_world(game_event_type type,
 	/* Because of the "flexible" sidebar, all these things trigger
 	   the same function. */
 	event_remove_handler_set(player_events,
-			N_ELEMENTS(player_events), update_sidebar, NULL);
+			N_ELEMENTS(player_events), update_sidebar, &angband_sidebar);
 
 	/* The flexible statusbar has similar requirements, so is
 	   also trigger by a large set of events. */
 	event_remove_handler_set(statusline_events,
-			N_ELEMENTS(statusline_events), update_statusline, NULL);
+			N_ELEMENTS(statusline_events), update_statusline, &angband_status_line);
 
 	/* Player HP can optionally change the colour of the '@' now. */
 	event_remove_handler(EVENT_HP, hp_colour_change, NULL);
@@ -2288,22 +2273,22 @@ static void ui_leave_world(game_event_type type,
 	event_remove_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
 
 	/* Display an explosion */
-	event_remove_handler(EVENT_EXPLOSION, display_explosion, NULL);
+	event_remove_handler(EVENT_EXPLOSION, display_explosion, &angband_cave);
 
 	/* Display a bolt spell */
-	event_remove_handler(EVENT_BOLT, display_bolt, NULL);
+	event_remove_handler(EVENT_BOLT, display_bolt, &angband_cave);
 
 	/* Display a physical missile */
-	event_remove_handler(EVENT_MISSILE, display_missile, NULL);
+	event_remove_handler(EVENT_MISSILE, display_missile, &angband_cave);
 
 	/* Check to see if the player has tried to cancel game processing */
-	event_remove_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, NULL);
+	event_remove_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, &angband_cave);
 
 	/* Refresh the screen and put the cursor in the appropriate place */
-	event_remove_handler(EVENT_REFRESH, refresh, NULL);
+	event_remove_handler(EVENT_REFRESH, refresh, &angband_cave);
 
 	/* Do the visual updates required on a new dungeon level */
-	event_remove_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, NULL);
+	event_remove_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, &angband_cave);
 
 	/* Automatically clear messages while the game is repeating commands */
 	event_remove_handler(EVENT_COMMAND_REPEAT, repeated_command_display, NULL);

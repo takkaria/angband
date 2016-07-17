@@ -67,6 +67,10 @@ struct angband_term {
 	bitflag flags[ATF_SIZE];
 };
 
+/* for use with event handlers */
+#define ANGBAND_TERM(vptr) \
+	((struct angband_term *) (vptr))
+
 /*
  * these terms MUST be initialized at the start of the game
  * by the frontend. Recommended placement of these terms:
@@ -95,7 +99,8 @@ uint32_t monster_health_attr(struct monster *mon);
 void cnv_stat(int val, char *out_val, size_t out_len);
 void idle_update(void);
 void toggle_inven_equip(void);
-void subwindows_set_flags(u32b *new_flags, size_t n_subwindows);
+void subwindow_set_flags(struct angband_term *aterm,
+		bitflag *flags, size_t size);
 void init_display(void);
 
 #endif /* UI2_DISPLAY_H */
