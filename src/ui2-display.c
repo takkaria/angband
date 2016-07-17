@@ -74,8 +74,7 @@ const char *atf_descr[ATF_MAX] = {
  * of the basic player events.  For convenience, these have been grouped 
  * in this list.
  */
-static game_event_type player_events[] =
-{
+static game_event_type player_events[] = {
 	EVENT_RACE_CLASS,
 	EVENT_PLAYERTITLE,
 	EVENT_EXPERIENCE,
@@ -93,8 +92,7 @@ static game_event_type player_events[] =
 	EVENT_DUNGEONLEVEL,
 };
 
-static game_event_type statusline_events[] =
-{
+static game_event_type statusline_events[] = {
 	EVENT_STUDYSTATUS,
 	EVENT_STATUS,
 	EVENT_STATE,
@@ -104,16 +102,14 @@ static game_event_type statusline_events[] =
 /**
  * Abbreviations of healthy stats
  */
-const char *stat_names[STAT_MAX] =
-{
+const char *stat_names[STAT_MAX] = {
 	"STR: ", "INT: ", "WIS: ", "DEX: ", "CON: "
 };
 
 /**
  * Abbreviations of damaged stats
  */
-const char *stat_names_reduced[STAT_MAX] =
-{
+const char *stat_names_reduced[STAT_MAX] = {
 	"Str: ", "Int: ", "Wis: ", "Dex: ", "Con: "
 };
 
@@ -126,12 +122,13 @@ void cnv_stat(int val, char *out_val, size_t out_len)
 	if (val > 18) {
 		int bonus = (val - 18);
 
-		if (bonus >= 220)
+		if (bonus >= 220) {
 			strnfmt(out_val, out_len, "18/***");
-		else if (bonus >= 100)
+		} else if (bonus >= 100) {
 			strnfmt(out_val, out_len, "18/%03d", bonus);
-		else
+		} else {
 			strnfmt(out_val, out_len, " 18/%02d", bonus);
+		}
 	} else {
 		strnfmt(out_val, out_len, "    %2d", val);
 	}
@@ -550,6 +547,7 @@ static void update_sidebar(game_event_type type,
 		}
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -824,7 +822,6 @@ static const uint32_t mon_feeling_color[] = {
 	COLOUR_BLUE,   /* "This seems a quiet, peaceful place" */
 };
 
-
 /**
  * Prints level feelings at status if they are enabled.
  */
@@ -989,9 +986,9 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 		col += status_handlers[i](0, col);
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
-
 
 /**
  * ------------------------------------------------------------------------
@@ -1175,38 +1172,39 @@ void idle_update(void)
 /**
  * Find the attr/char pair to use for a spell effect
  *
- * It is moving (or has moved) from (x, y) to (nx, ny); if the distance is not
- * "one", we (may) return "*".
+ * It is moving (or has moved) from (x, y) to (newx, newy); if the distance is not
+ * one, we (may) return "*".
  */
-static void bolt_pict(int y, int x, int ny, int nx,
-		int typ, uint32_t *a, wchar_t *c)
+static void bolt_pict(int y, int x, int newy, int newx,
+		int typ, uint32_t *attr, wchar_t *ch)
 {
 	int motion;
 
 	/* Convert co-ordinates into motion */
-	if ((ny == y) && (nx == x))
+	if (newy == y && newx == x) {
 		motion = BOLT_NO_MOTION;
-	else if (nx == x)
+	} else if (newx == x) {
 		motion = BOLT_0;
-	else if ((ny-y) == (x-nx))
+	} else if (newy - y == x - newx) {
 		motion = BOLT_45;
-	else if (ny == y)
+	} else if (newy == y) {
 		motion = BOLT_90;
-	else if ((ny-y) == (nx-x))
+	} else if (newy - y == newx - x) {
 		motion = BOLT_135;
-	else
+	} else {
 		motion = BOLT_NO_MOTION;
+	}
 
 	/* Decide on output char */
 	if (use_graphics == GRAPHICS_NONE) {
 		/* ASCII is simple */
-		wchar_t chars[] = L"*|/-\\";
+		const wchar_t chars[] = L"*|/-\\";
 
-		*c = chars[motion];
-		*a = gf_color(typ);
+		*attr = gf_color(typ);
+		*ch = chars[motion];
 	} else {
-		*a = gf_to_attr[typ][motion];
-		*c = gf_to_char[typ][motion];
+		*attr = gf_to_attr[typ][motion];
+		*ch = gf_to_char[typ][motion];
 	}
 }
 
@@ -1229,7 +1227,6 @@ static void display_explosion(game_event_type type,
 	bool drawing = data->explosion.drawing;
 	bool *player_sees_grid = data->explosion.player_sees_grid;
 	struct loc *blast_grid = data->explosion.blast_grid;
-	struct loc centre = data->explosion.centre;
 
 	/* Draw the blast from inside out */
 	for (int i = 0; i < num_grids; i++) {
@@ -1239,20 +1236,17 @@ static void display_explosion(game_event_type type,
 
 		/* Only do visuals if the player can see the blast */
 		if (player_sees_grid[i]) {
-			uint32_t a;
-			wchar_t c;
+			uint32_t attr;
+			wchar_t ch;
 
 			drawn = true;
 
 			/* Obtain the explosion pict */
-			bolt_pict(y, x, y, x, gf_type, &a, &c);
+			bolt_pict(y, x, y, x, gf_type, &attr, &ch);
 
 			/* Just display the pict, ignoring what was under it */
-			print_rel(user, 1, a, c, y, x);
+			print_rel(user, 1, attr, ch, y, x);
 		}
-
-		/* Center the cursor to stop it tracking the blast grids  */
-		move_cursor_relative(user, 1, centre.y, centre.x);
 
 		/* Check for new radius, taking care not to overrun array */
 		if (i == num_grids - 1
@@ -1265,10 +1259,6 @@ static void display_explosion(game_event_type type,
 		if (new_radius) {
 			/* Flush all the grids at this radius */
 			Term_flush_output();
-			if (player->upkeep->redraw) {
-				redraw_stuff(player);
-			}
-
 			/* Delay to show this radius appearing */
 			if (drawn || drawing) {
 				Term_redraw_screen();
@@ -1291,14 +1281,8 @@ static void display_explosion(game_event_type type,
 			}
 		}
 
-		/* Center the cursor */
-		move_cursor_relative(user, 1, centre.y, centre.x);
-
 		/* Flush the explosion */
 		Term_flush_output();
-		if (player->upkeep->redraw) {
-			redraw_stuff(player);
-		}
 		Term_redraw_screen();
 	}
 
@@ -1326,39 +1310,25 @@ static void display_bolt(game_event_type type,
 
 	/* Only do visuals if the player can "see" the bolt */
 	if (seen) {
-		uint32_t a;
-		wchar_t c;
+		uint32_t attr;
+		wchar_t ch;
+		bolt_pict(oy, ox, y, x, gf_type, &attr, &ch);
 
-		/* Obtain the bolt pict */
-		bolt_pict(oy, ox, y, x, gf_type, &a, &c);
-
-		/* Visual effects */
-		print_rel(user, 1, a, c, y, x);
-		move_cursor_relative(user, 1, y, x);
+		print_rel(user, 1, attr, ch, y, x);
 
 		Term_flush_output();
-		if (player->upkeep->redraw) {
-			redraw_stuff(player);
-		}
 		Term_redraw_screen();
 		Term_delay(op_ptr->delay_factor);
 
 		event_signal_point(EVENT_MAP, x, y);
 
 		Term_flush_output();
-		if (player->upkeep->redraw) {
-			redraw_stuff(player);
-		}
 		Term_redraw_screen();
 
 		/* Display "beam" grids */
 		if (beam) {
-
-			/* Obtain the explosion pict */
-			bolt_pict(y, x, y, x, gf_type, &a, &c);
-
-			/* Visual effects */
-			print_rel(user, 1, a, c, y, x);
+			bolt_pict(y, x, y, x, gf_type, &attr, &ch);
+			print_rel(user, 1, attr, ch, y, x);
 		}
 	} else if (drawing) {
 		/* Delay for consistency */
@@ -1387,21 +1357,14 @@ static void display_missile(game_event_type type,
 	/* Only do visuals if the player can "see" the missile */
 	if (seen) {
 		print_rel(user, 1, object_attr(obj), object_char(obj), y, x);
-		move_cursor_relative(user, 1, y, x);
 
 		Term_flush_output();
-		if (player->upkeep->redraw) {
-			redraw_stuff(player);
-		}
 		Term_delay(op_ptr->delay_factor);
 		Term_redraw_screen();
 
 		event_signal_point(EVENT_MAP, x, y);
 
 		Term_flush_output();
-		if (player->upkeep->redraw) {
-			redraw_stuff(player);
-		}
 		Term_redraw_screen();
 	}
 
@@ -1465,10 +1428,10 @@ void toggle_inven_equip(void)
 
 	/* Redraw any subwindows showing the inventory/equipment lists */
 	for (size_t i = 0; i < angband_terms.number; i++) {
-		struct angband_term *term = &angband_terms.terms[i];
+		struct angband_term *aterm = &angband_terms.terms[i];
 
-		if (atf_has(term->flags, ATF_INVEN)) {
-			Term_push(term->term);
+		if (atf_has(aterm->flags, ATF_INVEN)) {
+			Term_push(aterm->term);
 
 			if (!flip_inven) {
 				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
@@ -1478,8 +1441,8 @@ void toggle_inven_equip(void)
 
 			Term_flush_output();
 			Term_pop();
-		} else if (atf_has(term->flags, ATF_EQUIP)) {
-			Term_push(term->term);
+		} else if (atf_has(aterm->flags, ATF_EQUIP)) {
+			Term_push(aterm->term);
 
 			if (!flip_inven) {
 				show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
@@ -1523,7 +1486,6 @@ static void update_monlist_subwindow(game_event_type type,
 	Term_pop();
 }
 
-
 static void update_monster_subwindow(game_event_type type,
 		game_event_data *data, void *user)
 {
@@ -1542,7 +1504,6 @@ static void update_monster_subwindow(game_event_type type,
 	Term_pop();
 }
 
-
 static void update_object_subwindow(game_event_type type,
 		game_event_data *data, void *user)
 {
@@ -1560,7 +1521,6 @@ static void update_object_subwindow(game_event_type type,
 	Term_flush_output();
 	Term_pop();
 }
-
 
 static void update_messages_subwindow(game_event_type type,
 		game_event_data *data, void *user)
@@ -1584,17 +1544,13 @@ static void update_messages_subwindow(game_event_type type,
 		if (count == 1) {
 			msg = str;
 		} else if (count == 0) {
-			msg = " ";
+			msg = " "; /* TODO ??? */
 		} else {
 			msg = format("%s <%dx>", str, count);
 		}
 
+		Term_erase(0, height - 1 - i, width);
 		Term_adds(0, height - 1 - i, width, color, msg);
-
-		int x;
-		int y;
-		Term_get_cursor(&x, &y, NULL, NULL);
-		Term_erase(x, y, width);
 	}
 
 	Term_flush_output();
@@ -1634,7 +1590,6 @@ static void update_player_extra_subwindow(game_event_type type,
 	Term_flush_output();
 	Term_pop();
 }
-
 
 /**
  * Display the left-hand-side of the main term, in more compact fashion.
@@ -1681,7 +1636,6 @@ static void update_player_compact_subwindow(game_event_type type,
 	Term_pop();
 }
 
-
 static void flush_subwindow(game_event_type type,
 		game_event_data *data, void *user)
 {
@@ -1701,7 +1655,6 @@ static void flush_subwindow(game_event_type type,
  * main window, including File dump (help), File dump (artifacts, uniques),
  * Character screen, Small scale map, Previous Messages, Store screen, etc.
  */
-
 static void subwindow_flag_changed(struct angband_term *aterm, int flag, bool enable)
 {
 	assert(flag > ATF_NONE);
@@ -1788,9 +1741,8 @@ static void subwindow_flag_changed(struct angband_term *aterm, int flag, bool en
 	}
 }
 
-
 /**
- * Set the flags for one term, calling "subwindow_flag_changed" with each flag
+ * Set the flags for one term, calling subwindow_flag_changed() with each flag
  * that has changed setting so that it can do any housekeeping to do with 
  * displaying the new thing or no longer displaying the old one.
  */
@@ -1914,7 +1866,6 @@ static void show_splashscreen(game_event_type type,
 	Term_redraw_screen();
 }
 
-
 /**
  * ------------------------------------------------------------------------
  * Visual updates betweeen player turns.
@@ -1997,10 +1948,8 @@ static void new_level_display_update(game_event_type type,
 	player->upkeep->only_partial = false;
 
 	Term_flush_output();
-
 	Term_pop();
 }
-
 
 /**
  * ------------------------------------------------------------------------
@@ -2137,7 +2086,6 @@ static void process_character_pref_files(void)
 		process_pref_file(buf, true, true);
     }
 }
-
 
 static void ui_enter_init(game_event_type type,
 		game_event_data *data, void *user)
