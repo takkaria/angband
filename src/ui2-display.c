@@ -1463,9 +1463,9 @@ static void update_itemlist_subwindow(game_event_type type,
 	(void) data;
 
 	Term_push(ANGBAND_TERM(user)->term);
-    Term_clear();
+	Term_clear();
 
-    object_list_show_subwindow(Term_height(), Term_width());
+	object_list_show_subwindow(Term_height(), Term_width());
 
 	Term_flush_output();
 	Term_pop();
@@ -2076,15 +2076,15 @@ static void process_character_pref_files(void)
 	strnfmt(buf, sizeof(buf), "%s.prf", player_safe_name(player, true));
 	found = process_pref_file(buf, true, true);
 
-    /* Try pref file using savefile name if we fail using character name */
-    if (!found) {
+	/* Try pref file using savefile name if we fail using character name */
+	if (!found) {
 		int filename_index = path_filename_index(savefile);
 		char filename[128];
 
 		my_strcpy(filename, &savefile[filename_index], sizeof(filename));
 		strnfmt(buf, sizeof(buf), "%s.prf", filename);
 		process_pref_file(buf, true, true);
-    }
+	}
 }
 
 static void ui_enter_init(game_event_type type,
