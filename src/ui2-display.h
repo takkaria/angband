@@ -89,7 +89,7 @@ struct angband_user_terms {
  * it is recommended to create several of those */
 extern struct angband_user_terms angband_terms;
 
-byte monster_health_attr(struct monster *mon);
+uint32_t monster_health_attr(struct monster *mon);
 void cnv_stat(int val, char *out_val, size_t out_len);
 void idle_update(void);
 void toggle_inven_equip(void);

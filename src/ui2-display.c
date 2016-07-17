@@ -330,9 +330,10 @@ static void prt_sp(int row, int col)
 /**
  * Calculate the monster bar color separately, for ports.
  */
-byte monster_health_attr(struct monster *mon)
+uint32_t monster_health_attr(struct monster *mon)
 {
-	uint32_t attr;
+	/* Default to almost dead */
+	uint32_t attr = COLOUR_RED;
 
 	if (!mon) {
 		/* Not tracking */
@@ -343,37 +344,42 @@ byte monster_health_attr(struct monster *mon)
 	{
 		/* The monster health is unknown */
 		attr = COLOUR_WHITE;
-
 	} else {
-		/* Default to almost dead */
-		attr = COLOUR_RED;
-
 		/* Extract the percent of health */
 		int pct = 100L * mon->hp / mon->maxhp;
 
-		/* Badly wounded */
-		if (pct >= 10) attr = COLOUR_L_RED;
-
-		/* Wounded */
-		if (pct >= 25) attr = COLOUR_ORANGE;
-
-		/* Somewhat Wounded */
-		if (pct >= 60) attr = COLOUR_YELLOW;
-
-		/* Healthy */
-		if (pct >= 100) attr = COLOUR_L_GREEN;
-
-		/* Afraid */
-		if (mon->m_timed[MON_TMD_FEAR]) attr = COLOUR_VIOLET;
-
-		/* Confused */
-		if (mon->m_timed[MON_TMD_CONF]) attr = COLOUR_UMBER;
-
-		/* Stunned */
-		if (mon->m_timed[MON_TMD_STUN]) attr = COLOUR_L_BLUE;
-
-		/* Asleep */
-		if (mon->m_timed[MON_TMD_SLEEP]) attr = COLOUR_BLUE;
+		if (pct >= 10) {
+			/* Badly wounded */
+			attr = COLOUR_L_RED;
+		}
+		if (pct >= 25) {
+			/* Wounded */
+			attr = COLOUR_ORANGE;
+		}
+		if (pct >= 60) {
+			/* Somewhat wounded */
+			attr = COLOUR_YELLOW;
+		}
+		if (pct >= 100) {
+			/* Healthy */
+			attr = COLOUR_L_GREEN;
+		}
+		if (mon->m_timed[MON_TMD_FEAR]) {
+			/* Afraid */
+			attr = COLOUR_VIOLET;
+		}
+		if (mon->m_timed[MON_TMD_CONF]) {
+			/* Confused */
+			attr = COLOUR_UMBER;
+		}
+		if (mon->m_timed[MON_TMD_STUN]) {
+			/* Stunned */
+			attr = COLOUR_L_BLUE;
+		}
+		if (mon->m_timed[MON_TMD_SLEEP]) {
+			/* Asleep */
+			attr = COLOUR_BLUE;
+		}
 	}
 	
 	return attr;
@@ -392,7 +398,6 @@ byte monster_health_attr(struct monster *mon)
 static void prt_health(int row, int col)
 {
 	struct monster *mon = player->upkeep->health_who;
-	byte attr = monster_health_attr(mon);
 
 	/* Not tracking */
 	if (!mon) {
@@ -400,6 +405,8 @@ static void prt_health(int row, int col)
 		Term_erase(col, row, 12);
 		return;
 	}
+
+	uint32_t attr = monster_health_attr(mon);
 
 	/* Tracking an unseen, hallucinatory, or dead monster */
 	if (!mflag_has(mon->mflag, MFLAG_VISIBLE) /* Unseen */
@@ -409,16 +416,12 @@ static void prt_health(int row, int col)
 		/* The monster health is unknown */
 		Term_adds(col, row, 12, attr, "[----------]");
 	} else {
-		/* Visible */
 		/* Extract the percent of health */
 		int pct = 100L * mon->hp / mon->maxhp;
-
 		/* Convert percent into health */
 		int len = (pct < 10) ? 1 : (pct < 90) ? (pct / 10 + 1) : 10;
-
 		/* Default to unknown */
 		Term_adds(col, row, 12, COLOUR_WHITE, "[----------]");
-
 		/* Dump the current health (use '*' symbols) */
 		Term_adds(col + 1, row, len, attr, "**********");
 	}
