@@ -19,12 +19,15 @@
 #ifndef UI2_MAP_H
 #define UI2_MAP_H
 
+#include "ui2-display.h"
+
 extern void grid_data_as_text(struct grid_data *g,
-		uint32_t *ap, wchar_t *cp, uint32_t *tap, wchar_t *tcp);
-extern void move_cursor_relative(int y, int x);
-extern void print_rel(uint32_t a, wchar_t c, int y, int x);
+		uint32_t *fg_attr, wchar_t *fg_char, uint32_t *bg_attr, wchar_t *bg_char);
+extern void move_cursor_relative(struct angband_term *aterms, size_t num_terms,
+		int y, int x);
+extern void print_rel(struct angband_term *aterms, size_t num_terms,
+		uint32_t attr, wchar_t ch, int y, int x);
+extern void print_map(struct angband_term *aterms, size_t num_terms);
+extern void do_cmd_view_map(void);
 
 #endif /* UI2_MAP_H */
-extern void prt_map(void);
-extern void display_map(int *cy, int *cx);
-extern void do_cmd_view_map(void);

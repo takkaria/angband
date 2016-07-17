@@ -573,9 +573,6 @@ void Term_push_new(struct term_hints *hints)
 
 	TOP->callbacks.push_new(*hints, &info);
 
-	assert(info.width == 0 || info.width == hints->width);
-	assert(info.height == 0 || info.height == hints->height);
-
 	if (info.width == 0) {
 		info.width = hints->width;
 	}
@@ -772,7 +769,7 @@ bool Term_put_point(int x, int y, struct term_point point)
 	return term_put_point_at_cursor(point);
 }
 
-bool Term_ok_point(int x, int y)
+bool Term_point_ok(int x, int y)
 {
 	STACK_OK();
 

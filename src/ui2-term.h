@@ -79,9 +79,27 @@ struct term_create_info;
  * note that the frontend shouldn't create or destroy temporary terms;
  * that will be done without it */
 
+enum term_position {
+	TERM_POSITION_IVALID,
+	TERM_POSITION_PRECISE,
+	TERM_POSITION_CENTERED
+};
+
+enum term_purpose {
+	TERM_PURPOSE_INVALID,
+	TERM_PURPOSE_TEXT,
+	TERM_PURPOSE_MENU,
+	TERM_PURPOSE_BIG_MAP,
+	TERM_PURPOSE_SHOW_OBJECTS
+};
+
 struct term_hints {
+	int row;
+	int col;
 	int width;
 	int height;
+	enum term_position position;
+	enum term_purpose purpose;
 };
 
 /* NOTE THAT ALL HOOKS ARE MANDATORY */
@@ -210,7 +228,7 @@ void Term_add_point(int x, int y, struct term_point point);
 bool Term_put_point(int x, int y, struct term_point point);
 
 /* valid coordinates for point in term */
-bool Term_ok_point(int x, int y);
+bool Term_point_ok(int x, int y);
 
 /* determine the size of the top term */
 void Term_get_size(int *w, int *h);

@@ -1021,7 +1021,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 
 	if (data->point.x == -1 && data->point.y == -1) {
 		/* This signals a whole-map redraw. */
-		prt_map();
+		print_map(user, 1);
 	} else {
 		/* Single point to be redrawn */
 
@@ -1029,7 +1029,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		int relx = data->point.x - ANGBAND_TERM(user)->offset_x;
 		int rely = data->point.y - ANGBAND_TERM(user)->offset_y;
 
-		if (Term_ok_point(relx, rely)) {
+		if (Term_point_ok(relx, rely)) {
 			struct grid_data grid;
 			map_info(data->point.y, data->point.x, &grid);
 
@@ -1248,11 +1248,11 @@ static void display_explosion(game_event_type type,
 			bolt_pict(y, x, y, x, gf_type, &a, &c);
 
 			/* Just display the pict, ignoring what was under it */
-			print_rel(a, c, y, x);
+			print_rel(user, 1, a, c, y, x);
 		}
 
 		/* Center the cursor to stop it tracking the blast grids  */
-		move_cursor_relative(centre.y, centre.x);
+		move_cursor_relative(user, 1, centre.y, centre.x);
 
 		/* Check for new radius, taking care not to overrun array */
 		if (i == num_grids - 1
@@ -1292,7 +1292,7 @@ static void display_explosion(game_event_type type,
 		}
 
 		/* Center the cursor */
-		move_cursor_relative(centre.y, centre.x);
+		move_cursor_relative(user, 1, centre.y, centre.x);
 
 		/* Flush the explosion */
 		Term_flush_output();
@@ -1333,8 +1333,8 @@ static void display_bolt(game_event_type type,
 		bolt_pict(oy, ox, y, x, gf_type, &a, &c);
 
 		/* Visual effects */
-		print_rel(a, c, y, x);
-		move_cursor_relative(y, x);
+		print_rel(user, 1, a, c, y, x);
+		move_cursor_relative(user, 1, y, x);
 
 		Term_flush_output();
 		if (player->upkeep->redraw) {
@@ -1358,7 +1358,7 @@ static void display_bolt(game_event_type type,
 			bolt_pict(y, x, y, x, gf_type, &a, &c);
 
 			/* Visual effects */
-			print_rel(a, c, y, x);
+			print_rel(user, 1, a, c, y, x);
 		}
 	} else if (drawing) {
 		/* Delay for consistency */
@@ -1386,8 +1386,8 @@ static void display_missile(game_event_type type,
 
 	/* Only do visuals if the player can "see" the missile */
 	if (seen) {
-		print_rel(object_attr(obj), object_char(obj), y, x);
-		move_cursor_relative(y, x);
+		print_rel(user, 1, object_attr(obj), object_char(obj), y, x);
+		move_cursor_relative(user, 1, y, x);
 
 		Term_flush_output();
 		if (player->upkeep->redraw) {
@@ -1930,7 +1930,7 @@ static void refresh(game_event_type type, game_event_data *data, void *user)
 	if (OPT(show_target) && target_sighted()) {
 		int col, row;
 		target_get(&col, &row);
-		move_cursor_relative(row, col);
+		move_cursor_relative(user, 1, row, col);
 	}
 
 	Term_flush_output();

@@ -26,58 +26,48 @@
 #include "obj-util.h"
 #include "player-timed.h"
 #include "trap.h"
-#include "ui-input.h"
-#include "ui-map.h"
-#include "ui-object.h"
-#include "ui-output.h"
-#include "ui-prefs.h"
-#include "ui-term.h"
+#include "ui2-map.h"
+#include "ui2-input.h"
+#include "ui2-object.h"
+#include "ui2-output.h"
+#include "ui2-prefs.h"
+#include "ui2-term.h"
 
-
-/**
- * Hack -- Hallucinatory monster
- */
-static void hallucinatory_monster(int *a, wchar_t *c)
+static void hallucinatory_monster(uint32_t *a, wchar_t *c)
 {
-	while (1) {
+	while (true) {
 		/* Select a random monster */
 		struct monster_race *race = &r_info[randint0(z_info->r_max)];
+		if (!race->name) {
+			continue;
+		}
 		
-		/* Skip non-entries */
-		if (!race->name) continue;
-		
-		/* Retrieve attr/char */
 		*a = monster_x_attr[race->ridx];
 		*c = monster_x_char[race->ridx];
 		return;
 	}
 }
 
-
-/**
- * Hack -- Hallucinatory object
- */
-static void hallucinatory_object(int *a, wchar_t *c)
+static void hallucinatory_object(uint32_t *a, wchar_t *c)
 {
-	
-	while (1) {
+	while (true) {
 		/* Select a random object */
 		struct object_kind *kind = &k_info[randint0(z_info->k_max - 1) + 1];
-
-		/* Skip non-entries */
-		if (!kind->name) continue;
+		if (!kind->name) {
+			continue;
+		}
 		
-		/* Retrieve attr/char (HACK - without flavors) */
+		/* Retrieve attr/char (without flavors) */
 		*a = kind_x_attr[kind->kidx];
 		*c = kind_x_char[kind->kidx];
 		
-		/* HACK - Skip empty entries */
-		if (*a == 0 || *c == 0) continue;
+		if (*a == 0 || *c == 0) {
+			continue;
+		}
 
 		return;
 	}
 }
-
 
 /**
  * Get the graphics of a listed trap.
@@ -85,65 +75,185 @@ static void hallucinatory_object(int *a, wchar_t *c)
  * We should probably have better handling of stacked traps, but that can
  * wait until we do, in fact, have stacked traps under normal conditions.
  */
-static void get_trap_graphics(struct chunk *c, struct grid_data *g, int *a,
-							  wchar_t *w)
+static void get_trap_graphics(struct chunk *c,
+		struct grid_data *g, uint32_t *attr, wchar_t *ch)
 {
-    /* Trap is visible */
-    if (trf_has(g->trap->flags, TRF_VISIBLE) ||
-		trf_has(g->trap->flags, TRF_RUNE)) {
-		/* Get the graphics */
-		*a = trap_x_attr[g->lighting][g->trap->kind->tidx];
-		*w = trap_x_char[g->lighting][g->trap->kind->tidx];
-    }
+	(void) c;
+
+	/* Trap is visible */
+	if (trf_has(g->trap->flags, TRF_VISIBLE)
+			|| trf_has(g->trap->flags, TRF_RUNE))
+	{
+		*attr = trap_x_attr[g->lighting][g->trap->kind->tidx];
+		*ch = trap_x_char[g->lighting][g->trap->kind->tidx];
+	}
+}
+
+static void grid_get_light(const struct grid_data *g,
+		struct feature *feat, uint32_t *attr)
+{
+	enum grid_light_level light = g->lighting;
+
+	if (tf_has(feat->flags, TF_TORCH)) {
+		/* If it's a floor tile then we'll tint based on lighting. */
+		if (light == LIGHTING_TORCH) {
+			*attr = COLOUR_YELLOW;
+		} else if (light == LIGHTING_DARK || light == LIGHTING_LIT) {
+			*attr = COLOUR_L_DARK;
+		}
+	} else if (light == LIGHTING_DARK || light == LIGHTING_LIT) {
+		/* If it's another kind of tile, only tint when unlit. */
+		*attr = COLOUR_L_DARK;
+	}
 }
 
 /**
  * Apply text lighting effects
  */
-static void grid_get_attr(struct grid_data *g, int *a)
+static void grid_get_attr(const struct grid_data *g, uint32_t *attr)
 {
-    struct feature *feat = &f_info[g->f_idx];
+	struct feature *feat = &f_info[g->f_idx];
 
-	/* Save the high-bit, since it's used for attr inversion in GCU */
-	int a0 = *a & 0x80;
-
-	/* Remove the high bit so we can add it back again at the end */
-	*a = (*a & 0x7F);
-
-	/* Never play with fg colours for treasure */
 	if (!feat_is_treasure(g->f_idx)) {
-		/* Only apply lighting effects when the attr is white and it's a 
-		 * floor or wall */
-		if ((*a == COLOUR_WHITE) &&
-			(tf_has(feat->flags, TF_FLOOR) || feat_is_wall(g->f_idx))) {
-			/* If it's a floor tile then we'll tint based on lighting. */
-			if (tf_has(feat->flags, TF_TORCH))
-				switch (g->lighting) {
-					case LIGHTING_TORCH: *a = COLOUR_YELLOW; break;
-					case LIGHTING_LIT: *a = COLOUR_L_DARK; break;
-					case LIGHTING_DARK: *a = COLOUR_L_DARK; break;
-					default: break;
-				}
+		/* Only apply lighting effects when the attr is white
+		 * and it's a floor or wall */
+		if (*attr == COLOUR_WHITE
+				&& (tf_has(feat->flags, TF_FLOOR) || feat_is_wall(g->f_idx)))
+		{
+			grid_get_light(g, feat, attr);
 
-			/* If it's another kind of tile, only tint when unlit. */
-			else if (g->lighting == LIGHTING_DARK ||
-					 g->lighting == LIGHTING_LIT)
-				*a = COLOUR_L_DARK;
 		} else if (feat_is_magma(g->f_idx) || feat_is_quartz(g->f_idx)) {
 			if (!g->in_view) {
-				*a = COLOUR_L_DARK;
+				*attr = COLOUR_L_DARK;
 			}
 		}
 	}
 
-	/* Hybrid or block walls -- for GCU, then for everyone else */
-	if (a0) {
-		*a = a0 | *a;
-	} else if (use_graphics == GRAPHICS_NONE && feat_is_wall(g->f_idx)) {
-		if (OPT(hybrid_walls))
-			*a = *a + (MAX_COLORS * BG_DARK);
-		else if (OPT(solid_walls))
-			*a = *a + (MAX_COLORS * BG_SAME);
+	/* Hybrid or block walls */
+	if (use_graphics == GRAPHICS_NONE && feat_is_wall(g->f_idx)) {
+		if (OPT(hybrid_walls)) {
+			*attr = *attr + (MAX_COLORS * BG_DARK);
+		} else if (OPT(solid_walls)) {
+			*attr = *attr + (MAX_COLORS * BG_SAME);
+		}
+	}
+}
+
+static void grid_get_object(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+{
+	if (g->unseen_money) {
+		/* money gets an orange star */
+		*attr = object_kind_attr(unknown_gold_kind);
+		*ch = object_kind_char(unknown_gold_kind);
+	} else if (g->unseen_object) {	
+		/* Everything else gets a red star */    
+		*attr = object_kind_attr(unknown_item_kind);
+		*ch = object_kind_char(unknown_item_kind);
+	} else if (g->first_kind) {
+		if (g->hallucinate) {
+			/* Just pick a random object to display. */
+			hallucinatory_object(attr, ch);
+		} else if (g->multiple_objects) {
+			/* Get the "pile" feature instead */
+			*attr = object_kind_attr(pile_kind);
+			*ch = object_kind_char(pile_kind);
+		} else {
+			/* Normal attr and char */
+			*attr = object_kind_attr(g->first_kind);
+			*ch = object_kind_char(g->first_kind);
+		}
+	}
+}
+
+static void grid_get_monster(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+{
+	if (g->hallucinate) {
+		/* Just pick a random monster to display. */
+		hallucinatory_monster(attr, ch);
+	} else if (!is_mimicking(cave_monster(cave, g->m_idx)))	{
+		struct monster *mon = cave_monster(cave, g->m_idx);
+
+		/* Desired attr and char */
+		uint32_t da = monster_x_attr[mon->race->ridx];
+		wchar_t dc = monster_x_char[mon->race->ridx];
+
+		/* Special handling of attrs and/or chars */
+		if (da & 0x80) {
+			/* Special attr/char codes */
+			/* TODO remove */
+			*attr = da;
+			*ch = dc;
+		} else if (OPT(purple_uniques)
+				&& rf_has(mon->race->flags, RF_UNIQUE)) {
+			/* Turn uniques purple if desired (violet, actually) */
+			*attr = COLOUR_VIOLET;
+			*ch = dc;
+		} else if (rf_has(mon->race->flags, RF_ATTR_MULTI)
+				|| rf_has(mon->race->flags, RF_ATTR_FLICKER)
+				|| rf_has(mon->race->flags, RF_ATTR_RAND))
+		{
+			/* Multi-hued monster */
+			*attr = mon->attr ? mon->attr : da;
+			*ch = dc;
+		} else if (!flags_test(mon->race->flags, RF_SIZE,
+					RF_ATTR_CLEAR, RF_CHAR_CLEAR, FLAG_END))
+		{
+			/* Normal monster (not "clear" in any way) */
+			*attr = da;
+			*ch = dc;
+		} else if (rf_has(mon->race->flags, RF_ATTR_CLEAR)) {
+			/* Normal char, Clear attr, monster */
+			*ch = dc;
+		} else if (rf_has(mon->race->flags, RF_CHAR_CLEAR)) {
+			/* Normal attr, Clear char, monster */
+			*attr = da;
+		}
+
+		/* Store the drawing attr so we can use it elsewhere */
+		mon->attr = *attr;
+	}
+}
+
+static void grid_get_player(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+{
+	(void) g;
+
+	struct monster_race *race = &r_info[0];
+
+	/* Player attr and char */
+	*attr = monster_x_attr[race->ridx];
+	*ch = monster_x_char[race->ridx];
+
+	if ((OPT(hp_changes_color)) && !(*attr & 0x80)) {
+		switch(player->chp * 10 / player->mhp) {
+			case 10: case 9:
+				*attr = COLOUR_WHITE;
+				break;
+			case 8: case 7:
+				*attr = COLOUR_YELLOW;
+				break;
+			case 6: case 5:
+				*attr = COLOUR_ORANGE;
+				break;
+			case 4: case 3:
+				*attr = COLOUR_L_RED;
+				break;
+			case 2: case 1: case 0:
+				*attr = COLOUR_RED;
+				break;
+			default:
+				*attr = COLOUR_WHITE;
+				break;
+		}
+	}
+}
+
+static void grid_get_creature(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+{
+	if (g->m_idx > 0) {
+		grid_get_monster(g, attr, ch);
+	} else if (g->is_player) {
+		grid_get_player(g, attr, ch);
 	}
 }
 
@@ -152,12 +262,13 @@ static void grid_get_attr(struct grid_data *g, int *a)
  * contents of a grid location (as obtained through the function map_info)
  * and fills in the character and attr pairs for display.
  *
- * ap and cp are filled with the attr/char pair for the monster, object or 
- * floor tile that is at the "top" of the grid (monsters covering objects, 
- * which cover floor, assuming all are present).
+ * fg_attr and fg_char are filled with the attr/char pair for the monster,
+ * object, trap or floor tile that is at the top of the grid
+ * (monsters covering objects, which cover traps, which cover floor,
+ * assuming all are present).
  *
- * tap and tcp are filled with the attr/char pair for the floor, regardless
- * of what is on it.  This can be used by graphical displays with
+ * bg_attr and bg_char are filled with the attr/char pair for the floor,
+ * regardless of what is on it.  This can be used by graphical displays with
  * transparency to place an object onto a floor tile, is desired.
  *
  * Any lighting effects are also applied to these pairs, clear monsters allow
@@ -174,631 +285,224 @@ static void grid_get_attr(struct grid_data *g, int *a)
  * used to provide "special" attr/char codes, with "monster zero" being
  * used for the player attr/char, "object zero" being used for the "pile"
  * attr/char, and "feature zero" being used for the "darkness" attr/char.
- *
- * TODO:
- * The transformations for tile colors, or brightness for the 16x16
- * tiles should be handled differently.  One possibility would be to
- * extend feature_type with attr/char definitions for the different states.
- * This will probably be done outside of the current text->graphics mappings
- * though.
  */
 void grid_data_as_text(struct grid_data *g,
-		uint32_t *ap, wchar_t *cp, uint32_t *tap, wchar_t *tcp)
+		uint32_t *fg_attr, wchar_t *fg_char, uint32_t *bg_attr, wchar_t *bg_char)
 {
 	struct feature *feat = &f_info[g->f_idx];
 
-	int a = feat_x_attr[g->lighting][feat->fidx];
-	wchar_t c = feat_x_char[g->lighting][feat->fidx];
+	uint32_t attr = feat_x_attr[g->lighting][feat->fidx];
+	wchar_t ch = feat_x_char[g->lighting][feat->fidx];
 
 	/* Get the colour for ASCII */
-	if (use_graphics == GRAPHICS_NONE)
-		grid_get_attr(g, &a);
+	if (use_graphics == GRAPHICS_NONE) {
+		grid_get_attr(g, &attr);
+	}
 
 	/* Save the terrain info for the transparency effects */
-	(*tap) = a;
-	(*tcp) = c;
+	*bg_attr = attr;
+	*bg_char = ch;
 
 	/* There is a trap in this grid, and we are not hallucinating */
-	if (g->trap && (!g->hallucinate))
-	    /* Change graphics to indicate a trap (if visible) */
-	    get_trap_graphics(cave, g, &a, &c);
-
-	/* If there's an object, deal with that. */
-	if (g->unseen_money) {
-	
-		/* $$$ gets an orange star*/
-		a = object_kind_attr(unknown_gold_kind);
-		c = object_kind_char(unknown_gold_kind);
-		
-	} else if (g->unseen_object) {	
-	
-		/* Everything else gets a red star */    
-		a = object_kind_attr(unknown_item_kind);
-		c = object_kind_char(unknown_item_kind);
-		
-	} else if (g->first_kind) {
-		if (g->hallucinate) {
-			/* Just pick a random object to display. */
-			hallucinatory_object(&a, &c);
-		} else if (g->multiple_objects) {
-			/* Get the "pile" feature instead */
-			a = object_kind_attr(pile_kind);
-			c = object_kind_char(pile_kind);
-		} else {
-			/* Normal attr and char */
-			a = object_kind_attr(g->first_kind);
-			c = object_kind_char(g->first_kind);
-		}
+	if (g->trap && (!g->hallucinate)) {
+	    get_trap_graphics(cave, g, &attr, &ch);
 	}
 
-	/* Handle monsters, the player and trap borders */
-	if (g->m_idx > 0) {
-		if (g->hallucinate) {
-			/* Just pick a random monster to display. */
-			hallucinatory_monster(&a, &c);
-		} else if (!is_mimicking(cave_monster(cave, g->m_idx)))	{
-			struct monster *mon = cave_monster(cave, g->m_idx);
+	grid_get_object(g, &attr, &ch);
+	grid_get_creature(g, &attr, &ch);
 
-			byte da;
-			wchar_t dc;
-
-			/* Desired attr & char */
-			da = monster_x_attr[mon->race->ridx];
-			dc = monster_x_char[mon->race->ridx];
-
-			/* Special handling of attrs and/or chars */
-			if (da & 0x80) {
-				/* Special attr/char codes */
-				a = da;
-				c = dc;
-			} else if (OPT(purple_uniques) && 
-					   rf_has(mon->race->flags, RF_UNIQUE)) {
-				/* Turn uniques purple if desired (violet, actually) */
-				a = COLOUR_VIOLET;
-				c = dc;
-			} else if (rf_has(mon->race->flags, RF_ATTR_MULTI) ||
-					   rf_has(mon->race->flags, RF_ATTR_FLICKER) ||
-					   rf_has(mon->race->flags, RF_ATTR_RAND)) {
-				/* Multi-hued monster */
-				a = mon->attr ? mon->attr : da;
-				c = dc;
-			} else if (!flags_test(mon->race->flags, RF_SIZE,
-								   RF_ATTR_CLEAR, RF_CHAR_CLEAR, FLAG_END)) {
-				/* Normal monster (not "clear" in any way) */
-				a = da;
-				/* Desired attr & char. da is not used, should a be set to it?*/
-				/*da = monster_x_attr[mon->race->ridx];*/
-				dc = monster_x_char[mon->race->ridx];
-				c = dc;
-			} else if (a & 0x80) {
-				/* Hack -- Bizarre grid under monster */
-				a = da;
-				c = dc;
-			} else if (!rf_has(mon->race->flags, RF_CHAR_CLEAR)) {
-				/* Normal char, Clear attr, monster */
-				c = dc;
-			} else if (!rf_has(mon->race->flags, RF_ATTR_CLEAR)) {
-				/* Normal attr, Clear char, monster */
-				a = da;
-			}
-
-			/* Store the drawing attr so we can use it elsewhere */
-			mon->attr = a;
-		}
-	} else if (g->is_player) {
-		struct monster_race *race = &r_info[0];
-
-		/* Get the "player" attr */
-		a = monster_x_attr[race->ridx];
-		if ((OPT(hp_changes_color)) && !(a & 0x80)) {
-			switch(player->chp * 10 / player->mhp)
-			{
-			case 10:
-			case  9: 
-			{
-				a = COLOUR_WHITE; 
-				break;
-			}
-			case  8:
-			case  7:
-			{
-				a = COLOUR_YELLOW;
-				break;
-			}
-			case  6:
-			case  5:
-			{
-				a = COLOUR_ORANGE;
-				break;
-			}
-			case  4:
-			case  3:
-			{
-				a = COLOUR_L_RED;
-				break;
-			}
-			case  2:
-			case  1:
-			case  0:
-			{
-				a = COLOUR_RED;
-				break;
-			}
-			default:
-			{
-				a = COLOUR_WHITE;
-				break;
-			}
-			}
-		}
-
-		/* Get the "player" char */
-		c = monster_x_char[race->ridx];
-	}
-
-	/* Result */
-	(*ap) = a;
-	(*cp) = c;
+	*fg_attr = attr;
+	*fg_char = ch;
 }
 
-
-/**
- * Move the cursor to a given map location.
- */
-static void move_cursor_relative_map(int y, int x)
+void move_cursor_relative(struct angband_term *aterms, size_t num_terms,
+		int y, int x)
 {
-	int ky, kx;
+	for (size_t i = 0; i < num_terms; i++) {
+		struct angband_term *aterm = &aterms[i];
 
-	term *old;
+		Term_push(aterm->term);
 
-	int j;
+		int relx = x - aterm->offset_x;
+		int rely = y - aterm->offset_y;
 
-	/* Scan windows */
-	for (j = 0; j < ANGBAND_TERM_MAX; j++) {
-		term *t = angband_term[j];
+		if (Term_point_ok(relx, rely)) {
+			Term_cursor_to_xy(relx, rely);
+		}
 
-		/* No window */
-		if (!t) continue;
-
-		/* No relevant flags */
-		if (!(window_flag[j] & (PW_MAPS))) continue;
-
-		/* Location relative to panel */
-		ky = y - t->offset_y;
-
-		if (tile_height > 1)
-			ky = tile_height * ky;
-
-		/* Verify location */
-		if ((ky < 0) || (ky >= t->hgt)) continue;
-
-		/* Location relative to panel */
-		kx = x - t->offset_x;
-
-		if (tile_width > 1)
-			kx = tile_width * kx;
-
-		/* Verify location */
-		if ((kx < 0) || (kx >= t->wid)) continue;
-
-		/* Go there */
-		old = Term;
-		Term_activate(t);
-		(void)Term_gotoxy(kx, ky);
-		Term_activate(old);
+		Term_pop();
 	}
 }
 
-
-/**
- * Move the cursor to a given map location.
- *
- * The main screen will always be at least 24x80 in size.
- */
-void move_cursor_relative(int y, int x)
+void print_rel(struct angband_term *aterms, size_t num_terms,
+		uint32_t attr, wchar_t ch, int y, int x)
 {
-	int ky, kx;
-	int vy, vx;
+	for (size_t i = 0; i < num_terms; i++) {
+		struct angband_term *aterm = &aterms[i];
 
-	/* Move the cursor on map sub-windows */
-	move_cursor_relative_map(y, x);
+		Term_push(aterm->term);
 
-	/* Location relative to panel */
-	ky = y - Term->offset_y;
+		int relx = x - aterm->offset_x;
+		int rely = y - aterm->offset_y;
 
-	/* Verify location */
-	if ((ky < 0) || (ky >= SCREEN_HGT)) return;
-
-	/* Location relative to panel */
-	kx = x - Term->offset_x;
-
-	/* Verify location */
-	if ((kx < 0) || (kx >= SCREEN_WID)) return;
-
-	/* Location in window */
-	vy = ky + ROW_MAP;
-
-	/* Location in window */
-	vx = kx + COL_MAP;
-
-	if (tile_width > 1)
-		vx += (tile_width - 1) * kx;
-
-	if (tile_height > 1)
-		vy += (tile_height - 1) * ky;
-
-	/* Go there */
-	(void)Term_gotoxy(vx, vy);
-}
-
-/**
- * Display an attr/char pair at the given map location
- *
- * Note the inline use of "panel_contains()" for efficiency.
- *
- * Note the use of "Term_queue_char()" for efficiency.
- */
-static void print_rel_map(uint32_t a, wchar_t c, int y, int x)
-{
-	int ky, kx;
-
-	int j;
-
-	/* Scan windows */
-	for (j = 0; j < ANGBAND_TERM_MAX; j++) {
-		term *t = angband_term[j];
-
-		/* No window */
-		if (!t) continue;
-
-		/* No relevant flags */
-		if (!(window_flag[j] & (PW_MAPS))) continue;
-
-		/* Location relative to panel */
-		ky = y - t->offset_y;
-
-		if (tile_height > 1) {
-			ky = tile_height * ky;
-			if (ky + 1 >= t->hgt) continue;
+		if (Term_point_ok(relx, rely)) {
+			Term_addwc(relx, rely, attr, ch);
 		}
 
-		/* Verify location */
-		if ((ky < 0) || (ky >= t->hgt)) continue;
-
-		/* Location relative to panel */
-		kx = x - t->offset_x;
-
-		if (tile_width > 1) {
-			kx = tile_width * kx;
-			if (kx + 1 >= t->wid) continue;
-		}
-
-		/* Verify location */
-		if ((kx < 0) || (kx >= t->wid)) continue;
-
-		/* Hack -- Queue it */
-		Term_queue_char(t, kx, ky, a, c, 0, 0);
-
-		if ((tile_width > 1) || (tile_height > 1))
-			Term_big_queue_char(Term, kx, ky, a, c, 0, 0);
+		Term_pop();
 	}
 }
 
-
-
-/**
- * Display an attr/char pair at the given map location
- *
- * Note the inline use of "panel_contains()" for efficiency.
- *
- * Note the use of "Term_queue_char()" for efficiency.
- *
- * The main screen will always be at least 24x80 in size.
- */
-void print_rel(uint32_t a, wchar_t c, int y, int x)
+void print_map(struct angband_term *aterms, size_t num_terms)
 {
-	int ky, kx;
-	int vy, vx;
+	for (size_t i = 0; i < num_terms; i++) {
+		struct angband_term *aterm = &aterms[i];
+		Term_push(aterm->term);
 
-	/* Print on map sub-windows */
-	print_rel_map(c, a, y, x);
-
-	/* Location relative to panel */
-	ky = y - Term->offset_y;
-
-	/* Verify location */
-	if ((ky < 0) || (ky >= SCREEN_HGT)) return;
-
-	/* Location relative to panel */
-	kx = x - Term->offset_x;
-
-	/* Verify location */
-	if ((kx < 0) || (kx >= SCREEN_WID)) return;
-
-	/* Get right position */
-	vx = COL_MAP + (tile_width * kx);
-	vy = ROW_MAP + (tile_height * ky);
-
-	/* Hack -- Queue it */
-	Term_queue_char(Term, vx, vy, a, c, 0, 0);
-
-	if ((tile_width > 1) || (tile_height > 1))
-		Term_big_queue_char(Term, vx, vy, a, c, 0, 0);
-  
-}
-
-
-static void prt_map_aux(void)
-{
-	int a, ta;
-	wchar_t c, tc;
-	struct grid_data g;
-
-	int y, x;
-	int vy, vx;
-	int ty, tx;
-
-	int j;
-
-	/* Scan windows */
-	for (j = 0; j < ANGBAND_TERM_MAX; j++) {
-		term *t = angband_term[j];
-
-		/* No window */
-		if (!t) continue;
-
-		/* No relevant flags */
-		if (!(window_flag[j] & (PW_MAPS))) continue;
-
-		/* Assume screen */
-		ty = t->offset_y + (t->hgt / tile_height);
-		tx = t->offset_x + (t->wid / tile_width);
+		int width;
+		int height;
+		Term_get_size(&width, &height);
 
 		/* Dump the map */
-		for (y = t->offset_y, vy = 0; y < ty; vy++, y++) {
-			if (vy + tile_height - 1 >= t->hgt) continue;
-			for (x = t->offset_x, vx = 0; x < tx; vx++, x++) {
-				/* Check bounds */
-				if (!square_in_bounds(cave, y, x)) continue;
-				if (vx + tile_width - 1 >= t->wid) continue;
+		for (int rely = 0, absy = aterm->offset_y; rely < height; rely++, absy++) {
+			for (int relx = 0, absx = aterm->offset_x; relx < width; relx++, absx++) {
+				if (!square_in_bounds(cave, absy, absx)) {
+					continue;
+				}
 
-				/* Determine what is there */
-				map_info(y, x, &g);
-				grid_data_as_text(&g, &a, &c, &ta, &tc);
-				Term_queue_char(t, vx, vy, a, c, ta, tc);
+				struct grid_data g;
+				map_info(absy, absx, &g);
 
-				if ((tile_width > 1) || (tile_height > 1))
-					Term_big_queue_char(t, vx, vy, 255, -1, 0, 0);
+				uint32_t fg_attr;
+				wchar_t fg_char;
+				uint32_t bg_attr;
+				wchar_t bg_char;
+				grid_data_as_text(&g, &fg_attr, &fg_char, &bg_attr, &bg_char);
+
+				Term_addwchar(relx, rely, fg_attr, fg_char, bg_attr, bg_char, NULL);
 			}
 		}
+
+		Term_pop();
 	}
 }
 
-
-
-/**
- * Redraw (on the screen) the current map panel
- *
- * Note the inline use of "light_spot()" for efficiency.
- *
- * The main screen will always be at least 24x80 in size.
- */
-void prt_map(void)
+static byte **make_priority_grid(void)
 {
-	int a, ta;
-	wchar_t c, tc;
-	struct grid_data g;
+	byte **priority_grid =
+		mem_zalloc(cave->height * sizeof(*priority_grid));
 
-	int y, x;
-	int vy, vx;
-	int ty, tx;
+	for (int y = 0; y < cave->height; y++) {
+		priority_grid[y] =
+			mem_zalloc(cave->width * sizeof(**priority_grid));
+	}
 
-	/* Redraw map sub-windows */
-	prt_map_aux();
+	return priority_grid;
+}
 
-	/* Assume screen */
-	ty = Term->offset_y + SCREEN_HGT;
-	tx = Term->offset_x + SCREEN_WID;
-
-	/* Dump the map */
-	for (y = Term->offset_y, vy = ROW_MAP; y < ty; vy+=tile_height, y++)
-		for (x = Term->offset_x, vx = COL_MAP; x < tx; vx+=tile_width, x++) {
-			/* Check bounds */
-			if (!square_in_bounds(cave, y, x)) continue;
-
-			/* Determine what is there */
-			map_info(y, x, &g);
-			grid_data_as_text(&g, &a, &c, &ta, &tc);
-
-			/* Hack -- Queue it */
-			Term_queue_char(Term, vx, vy, a, c, ta, tc);
-
-			if ((tile_width > 1) || (tile_height > 1))
-				Term_big_queue_char(Term, vx, vy, a, c, COLOUR_WHITE, L' ');
-		}
+static void free_priority_grid(byte **priority_grid)
+{
+	for (int y = 0; y < cave->height; y++) {
+		mem_free(priority_grid[y]);
+	}
+	mem_free(priority_grid);
 }
 
 /**
- * Display a "small-scale" map of the dungeon in the active Term.
- *
- * Note that this function must "disable" the special lighting effects so
- * that the "priority" function will work.
- *
- * Note the use of a specialized "priority" function to allow this function
- * to work with any graphic attr/char mappings, and the attempts to optimize
- * this function where possible.
- *
- * If "cy" and "cx" are not NULL, then returns the screen location at which
+ * Display a small-scale map of the dungeon in the active term.
+ * If "py" and "px" are not NULL, then returns the screen location at which
  * the player was displayed, so the cursor can be moved to that location,
- * and restricts the horizontal map size to SCREEN_WID.  Otherwise, nothing
- * is returned (obviously), and no restrictions are enforced.
  */
-void display_map(int *cy, int *cx)
+static void view_map(int *py, int *px)
 {
-	int py = player->py;
-	int px = player->px;
-
-	int map_hgt, map_wid;
-	int row, col;
-
-	int x, y;
-	struct grid_data g;
-
-	int a, ta;
-	wchar_t c, tc;
-
-	byte tp;
-
 	struct monster_race *race = &r_info[0];
 
-	/* Priority array */
-	byte **mp = mem_zalloc(cave->height * sizeof(byte*));
-	for (y = 0; y < cave->height; y++)
-		mp[y] = mem_zalloc(cave->width * sizeof(byte));
-
 	/* Desired map height */
-	map_hgt = Term->hgt - 2;
-	map_wid = Term->wid - 2;
+	int width;
+	int height;
+	Term_get_size(&width, &height);
 
-	/* Prevent accidents */
-	if (map_hgt > cave->height) map_hgt = cave->height;
-	if (map_wid > cave->width) map_wid = cave->width;
+	width = MIN(width, cave->width);
+	height = MIN(height, cave->height);
 
-	/* Prevent accidents */
-	if ((map_wid < 1) || (map_hgt < 1)) {
-		for (y = 0; y < cave->height; y++)
-			mem_free(mp[y]);
-		mem_free(mp);
+	if (width < 1 || height < 1) {
 		return;
 	}
 
-	/* Nothing here */
-	a = COLOUR_WHITE;
-    c = L' ';
-	ta = COLOUR_WHITE;
-	tc = L' ';
+	byte **priority_grid = make_priority_grid();
 
-	/* Draw a box around the edge of the term */
-	window_make(0, 0, map_wid + 1, map_hgt + 1);
+	for (int y = 0; y < cave->height; y++) {
+		int row = y * height / cave->height;
 
-	/* Analyze the actual map */
-	for (y = 0; y < cave->height; y++)
-		for (x = 0; x < cave->width; x++) {
-			row = (y * map_hgt / cave->height);
-			col = (x * map_wid / cave->width);
-
-			if (tile_width > 1)
-				col = col - (col % tile_width);
-			if (tile_height > 1)
-				row = row - (row % tile_height);
+		for (int x = 0; x < cave->width; x++) {
+			int col = x * width / cave->width;
 
 			/* Get the attr/char at that map location */
+			struct grid_data g;
 			map_info(y, x, &g);
-			grid_data_as_text(&g, &a, &c, &ta, &tc);
 
-			/* Get the priority of that attr/char */
-			tp = f_info[g.f_idx].priority;
+			uint32_t fg_attr;
+			wchar_t fg_char;
+			uint32_t bg_attr;
+			wchar_t bg_char;
+			grid_data_as_text(&g, &fg_attr, &fg_char, &bg_attr, &bg_char);
+
+			byte priority = f_info[g.f_idx].priority;
 
 			/* Stuff on top of terrain gets higher priority */
-			if ((a != ta) || (c != tc)) tp = 20;
+			if (fg_attr != bg_attr || fg_char != bg_char) {
+				priority = 20;
+			}
 
-			/* Save "best" */
-			if (mp[row][col] < tp) {
-				/* Hack - make every grid on the map lit */
-				g.lighting = LIGHTING_LIT;
-				grid_data_as_text(&g, &a, &c, &ta, &tc);
-
-				Term_queue_char(Term, col + 1, row + 1, a, c, ta, tc);
-
-				if ((tile_width > 1) || (tile_height > 1))
-					Term_big_queue_char(Term, col + 1, row + 1, 255, -1, 0, 0);
-
-				/* Save priority */
-				mp[row][col] = tp;
+			if (priority_grid[row][col] < priority) {
+				Term_addwchar(col, row, fg_attr, fg_char, bg_attr, bg_char, NULL);
+				priority_grid[row][col] = priority;
 			}
 		}
-
-	/*** Display the player ***/
+	}
 
 	/* Player location */
-	row = (py * map_hgt / cave->height);
-	col = (px * map_wid / cave->width);
+	int col = player->px * width / cave->width;
+	int row = player->py * height / cave->height;
 
-	if (tile_width > 1)
-		col = col - (col % tile_width);
-	if (tile_height > 1)
-		row = row - (row % tile_height);
-
-	/* Get the "player" tile */
-	ta = monster_x_attr[race->ridx];
-	tc = monster_x_char[race->ridx];
+	/* Get the player tile */
+	uint32_t attr = monster_x_attr[race->ridx];
+	wchar_t ch = monster_x_char[race->ridx];
 
 	/* Draw the player */
-	Term_putch(col + 1, row + 1, ta, tc);
+	Term_addwc(col, row, attr, ch);
 
-	if ((tile_width > 1) || (tile_height > 1))
-		Term_big_putch(col + 1, row + 1, ta, tc);
-  
-	/* Return player location */
-	if (cy != NULL) (*cy) = row + 1;
-	if (cx != NULL) (*cx) = col + 1;
+	if (px != NULL) {
+		*px = col;
+	}
+	if (py != NULL) {
+		*py = row;
+	}
 
-	for (y = 0; y < cave->height; y++)
-		mem_free(mp[y]);
-	mem_free(mp);
+	free_priority_grid(priority_grid);
 }
 
-
 /*
- * Display a "small-scale" map of the dungeon.
- *
- * Note that the "player" is always displayed on the map.
+ * Display a map of the dungeon, possibly scaled
  */
 void do_cmd_view_map(void)
 {
-	int cy, cx;
-	byte w, h;
-	const char *prompt = "Hit any key to continue";
-	if (Term->view_map_hook) {
-		(*(Term->view_map_hook))(Term);
-		return;
-	}
-	/* Save screen */
-	screen_save();
+	struct term_hints hints = {
+		.width = cave->width,
+		.height = cave->height,
+		.purpose = TERM_PURPOSE_BIG_MAP
+	};
+	Term_push_new(&hints);
 
-	/* Note */
-	prt("Please wait...", 0, 0);
+	int py;
+	int px;
+	view_map(&py, &px);
 
-	/* Flush */
-	Term_fresh();
+	Term_cursor_to_xy(px, py);
+	Term_flush_output();
+	Term_redraw_screen();
 
-	/* Clear the screen */
-	Term_clear();
+	anykey();
 
-	/* store the tile multipliers */
-	w = tile_width;
-	h = tile_height;
-	tile_width = 1;
-	tile_height = 1;
-
-	/* Display the map */
-	display_map(&cy, &cx);
-
-	/* Show the prompt */
-	put_str(prompt, Term->hgt - 1, Term->wid / 2 - strlen(prompt) / 2);
-
-	/* Highlight the player */
-	Term_gotoxy(cx, cy);
-
-	/* Get any key */
-	(void)anykey();
-
-	/* Restore the tile multipliers */
-	tile_width = w;
-	tile_height = h;
-
-	/* Load screen */
-	screen_load();
+	Term_pop();
 }
-
-
