@@ -70,14 +70,16 @@ struct angband_term {
 /*
  * these terms MUST be initialized at the start of the game
  * by the frontend. Recommended placement of these terms:
- * angband_term_cave in the center
- * angband_term_message_line above angband_term_cave
- * angband_term_status_line below angband_term_cave
+ * angband_cave in the center (of display)
+ * angband_message_line above angband_cave
+ * angband_status_line below angband_cave
+ * angband_sidebar to the left of angband_cave
  * (see Angband sirca 4.0.5)
  */
 extern struct angband_term angband_cave;
 extern struct angband_term angband_message_line;
 extern struct angband_term angband_status_line;
+extern struct angband_term angband_sidebar;
 
 struct angband_user_terms {
 	struct angband_term *terms;

@@ -60,6 +60,7 @@ struct angband_user_terms angband_terms;
 struct angband_term angband_cave;
 struct angband_term angband_message_line;
 struct angband_term angband_status_line;
+struct angband_term angband_sidebar;
 
 const char *atf_descr[ATF_MAX] = {
 	#define ATF(a, b) b,
@@ -513,10 +514,9 @@ static void prt_class(int row, int col)
 /**
  * Struct of sidebar handlers.
  */
-static const struct side_handler_t
-{
-	void (*hook)(int, int);	 /* int row, int col */
-	int priority;		 /* 1 is most important (always displayed) */
+static const struct side_handler_t {
+	void (*hook)(int ros, int col);
+	unsigned priority;		 /* 0 is most important */
 	game_event_type type;	 /* PR_* flag this corresponds to */
 } side_handlers[] = {
 	{ prt_race,    19, EVENT_RACE_CLASS },
@@ -539,52 +539,45 @@ static const struct side_handler_t
 	{ prt_health,  12, EVENT_MONSTERHEALTH },
 	{ NULL,        20, 0 },
 	{ NULL,        22, 0 },
-	{ prt_speed,   13, EVENT_PLAYERSPEED }, /* Slow (-NN) / Fast (+NN) */
+	{ prt_speed,   13, EVENT_PLAYERSPEED },  /* Slow (-NN) / Fast (+NN) */
 	{ prt_depth,   14, EVENT_DUNGEONLEVEL }, /* Lev NNN / NNNN ft */
 };
 
-
 /**
  * This prints the sidebar, using a clever method which means that it will only
- * print as much as can be displayed on <24-line screens.
+ * print as much as can be displayed.
  *
- * Each row is given a priority; the least important higher numbers and the most
- * important lower numbers.  As the screen gets smaller, the rows start to
+ * Each row is given a priority; higher numbers are less important and
+ * lower numbers are more important. As the screen gets smaller, the rows start to
  * disappear in the order of lowest to highest importance.
  */
-static void update_sidebar(game_event_type type, game_event_data *data,
-						   void *user)
+static void update_sidebar(game_event_type type,
+		game_event_data *data, void *user)
 {
 	(void) data;
 	(void) user;
 
-	int height = Term_height();
+	Term_push(angband_sidebar.term);
+
+	unsigned height = Term_height();
 
 	/* Display list entries */
-	for (size_t i = 0, row = 0; i < N_ELEMENTS(side_handlers); i++) {
+	for (size_t i = 0, row = 0;
+			i < N_ELEMENTS(side_handlers) && row < height;
+			i++)
+	{
 		const struct side_handler_t *handler = &side_handlers[i];
 
-		int priority = handler->priority;
-		bool from_bottom = false;
-
-		/* Negative means print from bottom */
-		if (priority < 0) {
-			priority = -priority;
-			from_bottom = true;
-		}
-
 		/* If this is high enough priority, display it */
-		if (priority < height) {
+		if (handler->priority < height) {
 			if (handler->type == type && handler->hook != NULL) {
-				if (from_bottom) {
-					handler->hook(height - row - 1, 0);
-				} else {
-					handler->hook(row, 0);
-				}
+				handler->hook(row, 0);
 			}
 			row++;
 		}
 	}
+
+	Term_pop();
 }
 
 /**
