@@ -28,44 +28,34 @@ extern const char *stat_names[STAT_MAX];
 extern const char *stat_names_reduced[STAT_MAX];
 extern const char *window_flag_desc[32];
 
-/* flags which determine what a term window does */
-enum angband_window_flags {
-	AWF_NONE,
-	AWF_MESSAGE_LINE,
-	AWF_STATUS_LINE,
-	AWF_INVEN,
-	AWF_EQUIP,
-	AWF_PLAYER_BASIC,
-	AWF_PLAYER_EXTRA,
-	AWF_PLAYER_COMPACT,
-	AWF_MAP,
-	AWF_MESSAGE,
-	AWF_OVERHEAD,
-	AWF_MONSTER,
-	AWF_OBJECT,
-	AWF_MONLIST,
-	AWF_ITEMLIST,
-	AWF_MAX
+/* angband_term flags which determine what a particular term does */
+enum {
+	#define ATF(a, b) ATF_ ##a,
+	#include "list-term-flags.h"
+	#undef ATF
+	ATF_MAX
 };
 
-#define AWF_SIZE                FLAG_SIZE(AWF_MAX)
-#define awf_has(f, flag)        flag_has_dbg(f, AWF_SIZE, flag, #f, #flag)
-#define awf_next(f, flag)       flag_next(f, AWF_SIZE, flag)
-#define awf_is_empty(f)         flag_is_empty(f, AWF_SIZE)
-#define awf_is_full(f)          flag_is_full(f, AWF_SIZE)
-#define awf_is_inter(f1, f2)    flag_is_inter(f1, f2, AWF_SIZE)
-#define awf_is_subset(f1, f2)   flag_is_subset(f1, f2, AWF_SIZE)
-#define awf_is_equal(f1, f2)    flag_is_equal(f1, f2, AWF_SIZE)
-#define awf_on(f, flag)         flag_on_dbg(f, AWF_SIZE, flag, #f, #flag)
-#define awf_off(f, flag)        flag_off(f, AWF_SIZE, flag)
-#define awf_wipe(f)             flag_wipe(f, AWF_SIZE)
-#define awf_setall(f)           flag_setall(f, AWF_SIZE)
-#define awf_negate(f)           flag_negate(f, AWF_SIZE)
-#define awf_copy(f1, f2)        flag_copy(f1, f2, AWF_SIZE)
-#define awf_union(f1, f2)       flag_union(f1, f2, AWF_SIZE)
-#define awf_comp_union(f1, f2)  flag_comp_union(f1, f2, AWF_SIZE)
-#define awf_inter(f1, f2)       flag_inter(f1, f2, AWF_SIZE)
-#define awf_diff(f1, f2)        flag_diff(f1, f2, AWF_SIZE)
+#define ATF_SIZE                FLAG_SIZE(ATF_MAX)
+#define atf_has(f, flag)        flag_has_dbg(f, ATF_SIZE, flag, #f, #flag)
+#define atf_next(f, flag)       flag_next(f, ATF_SIZE, flag)
+#define atf_is_empty(f)         flag_is_empty(f, ATF_SIZE)
+#define atf_is_full(f)          flag_is_full(f, ATF_SIZE)
+#define atf_is_inter(f1, f2)    flag_is_inter(f1, f2, ATF_SIZE)
+#define atf_is_subset(f1, f2)   flag_is_subset(f1, f2, ATF_SIZE)
+#define atf_is_equal(f1, f2)    flag_is_equal(f1, f2, ATF_SIZE)
+#define atf_on(f, flag)         flag_on_dbg(f, ATF_SIZE, flag, #f, #flag)
+#define atf_off(f, flag)        flag_off(f, ATF_SIZE, flag)
+#define atf_wipe(f)             flag_wipe(f, ATF_SIZE)
+#define atf_setall(f)           flag_setall(f, ATF_SIZE)
+#define atf_negate(f)           flag_negate(f, ATF_SIZE)
+#define atf_copy(f1, f2)        flag_copy(f1, f2, ATF_SIZE)
+#define atf_union(f1, f2)       flag_union(f1, f2, ATF_SIZE)
+#define atf_comp_union(f1, f2)  flag_comp_union(f1, f2, ATF_SIZE)
+#define atf_inter(f1, f2)       flag_inter(f1, f2, ATF_SIZE)
+#define atf_diff(f1, f2)        flag_diff(f1, f2, ATF_SIZE)
+
+extern const char *atf_descr[ATF_MAX];
 
 struct angband_term {
 	term term;
@@ -74,7 +64,7 @@ struct angband_term {
 	int offset_x;
 	int offset_y;
 
-	bitflag flags[AWF_SIZE];
+	bitflag flags[ATF_SIZE];
 };
 
 /*

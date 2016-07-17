@@ -61,6 +61,12 @@ struct angband_term angband_cave;
 struct angband_term angband_message_line;
 struct angband_term angband_status_line;
 
+const char *atf_descr[ATF_MAX] = {
+	#define ATF(a, b) b,
+	#include "list-term-flags.h"
+	#undef ATF
+};
+
 /**
  * There are a few functions installed to be triggered by several 
  * of the basic player events.  For convenience, these have been grouped 
@@ -1491,7 +1497,7 @@ void toggle_inven_equip(void)
 	for (size_t i = 0; i < angband_terms.number; i++) {
 		struct angband_term *t = &angband_terms.terms[i];
 
-		if (awf_has(t->flags, AWF_INVEN)) {
+		if (atf_has(t->flags, ATF_INVEN)) {
 			Term_push(t->term);
 
 			if (!flip_inven) {
@@ -1502,7 +1508,7 @@ void toggle_inven_equip(void)
 
 			Term_flush_output();
 			Term_pop();
-		} else if (awf_has(t->flags, AWF_EQUIP)) {
+		} else if (atf_has(t->flags, ATF_EQUIP)) {
 			Term_push(t->term);
 
 			if (!flip_inven) {
@@ -1726,53 +1732,55 @@ static void flush_subwindow(game_event_type type,
  * Character screen, Small scale map, Previous Messages, Store screen, etc.
  */
 
-void subwindow_flag_changed(term term,
-		enum angband_window_flags flag, bool enable)
+void subwindow_flag_changed(term term, int flag, bool enable)
 {
+	assert(flag > ATF_NONE);
+	assert(flag < ATF_MAX);
+
 	void (*register_or_deregister)(game_event_type type,
 			game_event_handler *fn, void *user);
 	void (*set_register_or_deregister)(game_event_type *type,
 			size_t n_events, game_event_handler *fn, void *user);
 
-	/* Decide whether to register or deregister an evenrt handler */
-	if (!enable) {
-		register_or_deregister = event_remove_handler;
-		set_register_or_deregister = event_remove_handler_set;
-	} else {
+	/* Decide whether to register or deregister an event handler */
+	if (enable) {
 		register_or_deregister = event_add_handler;
 		set_register_or_deregister = event_add_handler_set;
+	} else {
+		register_or_deregister = event_remove_handler;
+		set_register_or_deregister = event_remove_handler_set;
 	}
 
 	switch (flag) {
-		case AWF_INVEN:
+		case ATF_INVEN:
 			register_or_deregister(EVENT_INVENTORY,
 					update_inven_subwindow, term);
 			break;
 
-		case AWF_EQUIP:
+		case ATF_EQUIP:
 			register_or_deregister(EVENT_EQUIPMENT,
 					update_equip_subwindow, term);
 			break;
 
-		case AWF_PLAYER_BASIC:
+		case ATF_PLAYER_BASIC:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
 					update_player_basic_subwindow, term);
 			break;
 
-		case AWF_PLAYER_EXTRA:
+		case ATF_PLAYER_EXTRA:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
 					update_player_extra_subwindow, term);
 			break;
 
-		case AWF_PLAYER_COMPACT:
+		case ATF_PLAYER_COMPACT:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
 					update_player_compact_subwindow, term);
 			break;
 
-		case AWF_MAP:
+		case ATF_MAP:
 			register_or_deregister(EVENT_MAP,
 					update_maps, term);
 
@@ -1780,27 +1788,27 @@ void subwindow_flag_changed(term term,
 					flush_subwindow, term);
 			break;
 
-		case AWF_MESSAGE:
+		case ATF_MESSAGE:
 			register_or_deregister(EVENT_MESSAGE,
 					update_messages_subwindow, term);
 			break;
 
-		case AWF_MONSTER:
+		case ATF_MONSTER:
 			register_or_deregister(EVENT_MONSTERTARGET,
 					update_monster_subwindow, term);
 			break;
 
-		case AWF_OBJECT:
+		case ATF_OBJECT:
 			register_or_deregister(EVENT_OBJECTTARGET,
 					update_object_subwindow, term);
 			break;
 
-		case AWF_MONLIST:
+		case ATF_MONLIST:
 			register_or_deregister(EVENT_MONSTERLIST,
 					update_monlist_subwindow, term);
 			break;
 
-		case AWF_ITEMLIST:
+		case ATF_ITEMLIST:
 			register_or_deregister(EVENT_ITEMLIST,
 					update_itemlist_subwindow, term);
 			break;
@@ -1812,23 +1820,23 @@ void subwindow_flag_changed(term term,
 
 
 /**
- * Set the flags for one Term, calling "subwindow_flag_changed" with each flag
+ * Set the flags for one term, calling "subwindow_flag_changed" with each flag
  * that has changed setting so that it can do any housekeeping to do with 
  * displaying the new thing or no longer displaying the old one.
  */
-void subwindow_set_flag(struct angband_term *t, bitflag *flags, size_t size)
+void subwindow_set_flags(struct angband_term *t, bitflag *flags, size_t size)
 {
-	assert(size == AWF_SIZE);
+	assert(size == ATF_SIZE);
 
 	/* Deal with the changed flags by seeing what's changed */
-	for (int flag = 1; flag < AWF_MAX; flag++) {
-		bool old = awf_has(t->flags, flag);
-		bool new = awf_has(flags, flag);
+	for (int flag = ATF_NONE + 1; flag < ATF_MAX; flag++) {
+		bool old = atf_has(t->flags, flag);
+		bool new = atf_has(flags, flag);
 		if (new != old) {
-			subwindow_flag_changed(t->term, flag, !awf_has(t->flags, new));
+			subwindow_flag_changed(t->term, flag, new);
 		}
 	}
-	awf_copy(t->flags, flags);
+	atf_copy(t->flags, flags);
 
 	Term_push(t->term);
 	Term_clear();
