@@ -69,7 +69,7 @@ void do_cmd_redraw(void)
 	term *old = Term;
 
 	/* Low level flush */
-	/* TODO UI2 Term_flush(); */
+	Term_flush();
 
 	/* Reset "inkey()" */
 	event_signal(EVENT_INPUT_FLUSH);
