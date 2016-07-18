@@ -1019,7 +1019,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 
 	if (data->point.x == -1 && data->point.y == -1) {
 		/* This signals a whole-map redraw. */
-		print_map(user, 1);
+		print_map(angband_maps);
 	} else {
 		/* Single point to be redrawn */
 
@@ -1241,7 +1241,7 @@ static void display_explosion(game_event_type type,
 			bolt_pict(y, x, y, x, gf_type, &attr, &ch);
 
 			/* Just display the pict, ignoring what was under it */
-			print_rel(user, 1, attr, ch, y, x);
+			print_rel(angband_maps, attr, ch, y, x);
 		}
 
 		/* Check for new radius, taking care not to overrun array */
@@ -1310,7 +1310,7 @@ static void display_bolt(game_event_type type,
 		wchar_t ch;
 		bolt_pict(oy, ox, y, x, gf_type, &attr, &ch);
 
-		print_rel(user, 1, attr, ch, y, x);
+		print_rel(angband_maps, attr, ch, y, x);
 
 		Term_flush_output();
 		Term_redraw_screen();
@@ -1324,7 +1324,7 @@ static void display_bolt(game_event_type type,
 		/* Display "beam" grids */
 		if (beam) {
 			bolt_pict(y, x, y, x, gf_type, &attr, &ch);
-			print_rel(user, 1, attr, ch, y, x);
+			print_rel(angband_maps, attr, ch, y, x);
 		}
 	} else if (drawing) {
 		/* Delay for consistency */
@@ -1352,7 +1352,7 @@ static void display_missile(game_event_type type,
 
 	/* Only do visuals if the player can "see" the missile */
 	if (seen) {
-		print_rel(user, 1, object_attr(obj), object_char(obj), y, x);
+		print_rel(angband_maps, object_attr(obj), object_char(obj), y, x);
 
 		Term_flush_output();
 		Term_delay(op_ptr->delay_factor);
@@ -1871,18 +1871,15 @@ static void refresh(game_event_type type, game_event_data *data, void *user)
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
-
 	/* Place cursor on player/target */
 	if (OPT(show_target) && target_sighted()) {
 		int col, row;
 		target_get(&col, &row);
-		move_cursor_relative(user, 1, row, col);
+		move_cursor_relative(angband_maps, row, col);
 	}
 
-	Term_flush_output();
+	Term_push(ANGBAND_TERM(user)->term);
 	Term_redraw_screen();
-
 	Term_pop();
 }
 
