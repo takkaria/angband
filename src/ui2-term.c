@@ -484,6 +484,11 @@ static void term_draw_cursor(struct term_cursor cursor)
 static void term_flush_row(int y)
 {
 	STACK_OK();
+
+	if (TOP->dirty.rows[y].left > TOP->dirty.rows[y].right) {
+		return;
+	}
+
 	COORDS_OK(TOP->dirty.rows[y].left, y);
 	COORDS_OK(TOP->dirty.rows[y].right, y);
 
