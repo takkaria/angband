@@ -33,7 +33,7 @@
 #include "ui2-prefs.h"
 #include "ui2-term.h"
 
-static void hallucinatory_monster(uint32_t *a, wchar_t *c)
+static void hallucinatory_monster(uint32_t *attr, wchar_t *ch)
 {
 	while (true) {
 		/* Select a random monster */
@@ -42,13 +42,14 @@ static void hallucinatory_monster(uint32_t *a, wchar_t *c)
 			continue;
 		}
 		
-		*a = monster_x_attr[race->ridx];
-		*c = monster_x_char[race->ridx];
+		*attr = monster_x_attr[race->ridx];
+		*ch = monster_x_char[race->ridx];
+
 		return;
 	}
 }
 
-static void hallucinatory_object(uint32_t *a, wchar_t *c)
+static void hallucinatory_object(uint32_t *attr, wchar_t *ch)
 {
 	while (true) {
 		/* Select a random object */
@@ -58,10 +59,10 @@ static void hallucinatory_object(uint32_t *a, wchar_t *c)
 		}
 		
 		/* Retrieve attr/char (without flavors) */
-		*a = kind_x_attr[kind->kidx];
-		*c = kind_x_char[kind->kidx];
+		*attr = kind_x_attr[kind->kidx];
+		*ch = kind_x_char[kind->kidx];
 		
-		if (*a == 0 || *c == 0) {
+		if (*attr == 0 || *ch == 0) {
 			continue;
 		}
 
@@ -75,12 +76,14 @@ static void hallucinatory_object(uint32_t *a, wchar_t *c)
  * We should probably have better handling of stacked traps, but that can
  * wait until we do, in fact, have stacked traps under normal conditions.
  */
-static void get_trap_graphics(struct chunk *c,
-		struct grid_data *g, uint32_t *attr, wchar_t *ch)
+static void grid_get_trap(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 {
-	(void) c;
+	if (!g->trap || g->hallucinate) {
+		return;
+	}
 
-	/* Trap is visible */
+	/* There is a trap in this grid, we are not hallucinating
+	 * and trap is visible */
 	if (trf_has(g->trap->flags, TRF_VISIBLE)
 			|| trf_has(g->trap->flags, TRF_RUNE))
 	{
@@ -131,6 +134,7 @@ static void grid_get_attr(const struct grid_data *g, uint32_t *attr)
 
 	/* Hybrid or block walls */
 	if (use_graphics == GRAPHICS_NONE && feat_is_wall(g->f_idx)) {
+		/* TODO UI2 rework */
 		if (OPT(hybrid_walls)) {
 			*attr = *attr + (MAX_COLORS * BG_DARK);
 		} else if (OPT(solid_walls)) {
@@ -167,6 +171,10 @@ static void grid_get_object(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 
 static void grid_get_monster(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 {
+	if (g->m_idx == 0) {
+		return;
+	}
+
 	if (g->hallucinate) {
 		/* Just pick a random monster to display. */
 		hallucinatory_monster(attr, ch);
@@ -216,7 +224,9 @@ static void grid_get_monster(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 
 static void grid_get_player(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 {
-	(void) g;
+	if (!g->is_player) {
+		return;
+	}
 
 	struct monster_race *race = &r_info[0];
 
@@ -225,7 +235,7 @@ static void grid_get_player(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 	*ch = monster_x_char[race->ridx];
 
 	if ((OPT(hp_changes_color)) && !(*attr & 0x80)) {
-		switch(player->chp * 10 / player->mhp) {
+		switch (player->chp * 10 / player->mhp) {
 			case 10: case 9:
 				*attr = COLOUR_WHITE;
 				break;
@@ -286,8 +296,7 @@ static void grid_get_creature(struct grid_data *g, uint32_t *attr, wchar_t *ch)
  * used for the player attr/char, "object zero" being used for the "pile"
  * attr/char, and "feature zero" being used for the "darkness" attr/char.
  */
-void grid_data_as_text(struct grid_data *g,
-		uint32_t *fg_attr, wchar_t *fg_char, uint32_t *bg_attr, wchar_t *bg_char)
+void grid_data_as_point(struct grid_data *g, struct term_point *point)
 {
 	struct feature *feat = &f_info[g->f_idx];
 
@@ -300,19 +309,18 @@ void grid_data_as_text(struct grid_data *g,
 	}
 
 	/* Save the terrain info for the transparency effects */
-	*bg_attr = attr;
-	*bg_char = ch;
+	point->bg_attr = attr;
+	point->bg_char = ch;
 
-	/* There is a trap in this grid, and we are not hallucinating */
-	if (g->trap && (!g->hallucinate)) {
-	    get_trap_graphics(cave, g, &attr, &ch);
-	}
-
+	grid_get_trap(g, &attr, &ch);
 	grid_get_object(g, &attr, &ch);
 	grid_get_creature(g, &attr, &ch);
 
-	*fg_attr = attr;
-	*fg_char = ch;
+	point->fg_attr = attr;
+	point->fg_char = ch;
+
+	/* TODO UI2 set some flags */
+	tpf_wipe(point->flags);
 }
 
 void move_cursor_relative(struct angband_term *aterms, size_t num_terms,
@@ -373,13 +381,10 @@ void print_map(struct angband_term *aterms, size_t num_terms)
 				struct grid_data g;
 				map_info(absy, absx, &g);
 
-				uint32_t fg_attr;
-				wchar_t fg_char;
-				uint32_t bg_attr;
-				wchar_t bg_char;
-				grid_data_as_text(&g, &fg_attr, &fg_char, &bg_attr, &bg_char);
+				struct term_point point;
+				grid_data_as_point(&g, &point);
 
-				Term_addwchar(relx, rely, fg_attr, fg_char, bg_attr, bg_char, NULL);
+				Term_add_point(relx, rely, point);
 			}
 		}
 
@@ -409,65 +414,71 @@ static void free_priority_grid(byte **priority_grid)
 }
 
 /**
- * Display a small-scale map of the dungeon in the active term.
+ * Display a map of the dungeon in the active term.
+ * The map may be scaled if the term is too small for the whole dungeon.
  * If "py" and "px" are not NULL, then returns the screen location at which
  * the player was displayed, so the cursor can be moved to that location,
  */
-static void view_map(int *py, int *px)
+static void view_map_aux(int *py, int *px)
 {
-	struct monster_race *race = &r_info[0];
-
 	/* Desired map height */
 	int width;
 	int height;
 	Term_get_size(&width, &height);
 
-	width = MIN(width, cave->width);
-	height = MIN(height, cave->height);
+	const int cave_width = cave->width;
+	const int cave_height = cave->height;
+	const int term_width = MIN(width, cave_width);
+	const int term_height = MIN(height, cave_height);
 
-	if (width < 1 || height < 1) {
+	if (term_width < 1 || term_height < 1) {
 		return;
 	}
 
-	byte **priority_grid = make_priority_grid();
+	byte **priority_grid = NULL;
+	if (term_width != cave_width || term_height != cave_height) {
+		priority_grid = make_priority_grid();
+	}
 
-	for (int y = 0; y < cave->height; y++) {
-		int row = y * height / cave->height;
+	for (int y = 0; y < cave_height; y++) {
+		int row = y * term_height / cave_height;
 
-		for (int x = 0; x < cave->width; x++) {
-			int col = x * width / cave->width;
+		for (int x = 0; x < cave_width; x++) {
+			int col = x * term_width / cave_width;
 
-			/* Get the attr/char at that map location */
 			struct grid_data g;
 			map_info(y, x, &g);
 
-			uint32_t fg_attr;
-			wchar_t fg_char;
-			uint32_t bg_attr;
-			wchar_t bg_char;
-			grid_data_as_text(&g, &fg_attr, &fg_char, &bg_attr, &bg_char);
+			struct term_point point;
+			grid_data_as_point(&g, &point);
 
-			byte priority = f_info[g.f_idx].priority;
+			if (priority_grid == NULL) {
+				Term_add_point(col, row, point);
+			} else {
+				byte priority = f_info[g.f_idx].priority;
 
-			/* Stuff on top of terrain gets higher priority */
-			if (fg_attr != bg_attr || fg_char != bg_char) {
-				priority = 20;
-			}
+				/* Stuff on top of terrain gets higher priority */
+				if (point.fg_attr != point.bg_attr
+						|| point.fg_char != point.bg_char)
+				{
+					priority = 20;
+				}
 
-			if (priority_grid[row][col] < priority) {
-				Term_addwchar(col, row, fg_attr, fg_char, bg_attr, bg_char, NULL);
-				priority_grid[row][col] = priority;
+				if (priority_grid[row][col] < priority) {
+					Term_add_point(col, row, point);
+					priority_grid[row][col] = priority;
+				}
 			}
 		}
 	}
 
 	/* Player location */
-	int col = player->px * width / cave->width;
-	int row = player->py * height / cave->height;
+	int col = player->px * term_width / cave_width;
+	int row = player->py * term_height / cave_height;
 
 	/* Get the player tile */
-	uint32_t attr = monster_x_attr[race->ridx];
-	wchar_t ch = monster_x_char[race->ridx];
+	uint32_t attr = monster_x_attr[r_info[0].ridx];
+	wchar_t ch = monster_x_char[r_info[0].ridx];
 
 	/* Draw the player */
 	Term_addwc(col, row, attr, ch);
@@ -479,7 +490,9 @@ static void view_map(int *py, int *px)
 		*py = row;
 	}
 
-	free_priority_grid(priority_grid);
+	if (priority_grid != NULL) {
+		free_priority_grid(priority_grid);
+	}
 }
 
 /*
@@ -496,7 +509,7 @@ void do_cmd_view_map(void)
 
 	int py;
 	int px;
-	view_map(&py, &px);
+	view_map_aux(&py, &px);
 
 	Term_cursor_to_xy(px, py);
 	Term_flush_output();

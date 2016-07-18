@@ -2035,7 +2035,6 @@ static void see_floor_items(game_event_type type,
 		}
 
 		/* Display objects on the floor */
-		/* TODO UI2 */
 		struct term_hints hints = {
 			.height = floor_num,
 			.purpose = TERM_PURPOSE_SHOW_OBJECTS

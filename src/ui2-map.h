@@ -19,10 +19,10 @@
 #ifndef UI2_MAP_H
 #define UI2_MAP_H
 
+#include "ui2-term.h"
 #include "ui2-display.h"
 
-extern void grid_data_as_text(struct grid_data *g,
-		uint32_t *fg_attr, wchar_t *fg_char, uint32_t *bg_attr, wchar_t *bg_char);
+extern void grid_data_as_point(struct grid_data *g, struct term_point *point);
 extern void move_cursor_relative(struct angband_term *aterms, size_t num_terms,
 		int y, int x);
 extern void print_rel(struct angband_term *aterms, size_t num_terms,
