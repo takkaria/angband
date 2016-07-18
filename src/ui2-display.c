@@ -1027,17 +1027,12 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		int rely = data->point.y - ANGBAND_TERM(user)->offset_y;
 
 		if (Term_point_ok(relx, rely)) {
-			struct grid_data grid;
-			map_info(data->point.y, data->point.x, &grid);
+			struct grid_data g;
+			map_info(data->point.y, data->point.x, &g);
 
-			uint32_t fg_attr;
-			uint32_t bg_attr;
-			wchar_t fg_char;
-			wchar_t bg_char;
-			grid_data_as_text(&grid,
-					&fg_attr, &fg_char, &bg_attr, &bg_char);
-			Term_addwchar(relx, rely,
-					fg_attr, fg_char, bg_attr, bg_char, NULL);
+			struct term_point point;
+			grid_data_as_point(&g, &point);
+			Term_add_point(relx, rely, point);
 #ifdef MAP_DEBUG
 			/* Plot 'spot' updates in light green to make them visible */
 			Term_addwchar(relx, rely,
@@ -1047,7 +1042,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 	}
 
 	/* Refresh the main screen unless the map needs to center */
-	if (player->upkeep->update & (PU_PANEL) && OPT(center_player)) {
+	if (player->upkeep->update & PU_PANEL && OPT(center_player)) {
 		int x = player->py - Term_width() / 2;
 		int y = player->px - Term_height() / 2;
 
