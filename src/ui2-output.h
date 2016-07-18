@@ -20,7 +20,7 @@
 #define UI2_OUTPUT_H
 
 #include "ui2-event.h"
-#include "ui2-term.h"
+#include "ui2-display.h"
 #include "z-textblock.h"
 
 /**
@@ -32,12 +32,14 @@
  */
 typedef struct region region;
 
+/* non-positive values of col, row, width or height
+ * are relative, to, respectively,
+ * left, top, right and bottom of the screen */
 struct region {
-	int col;	/* x-coordinate of upper right corner */
-	int row;	/* y-coord of upper right coordinate */
-	int width;	/* width of display area. 1 - use system default. */
-				/* non-positive - rel to right of screen */
-	int page_rows;	/* non-positive value is relative to the bottom of the screen */
+	int col;
+	int row;
+	int width;
+	int page_rows;
 };
 
 /**
@@ -63,7 +65,7 @@ region region_calculate(region loc);
 /**
  * Check whether a (mouse) event is inside a region
  */
-bool region_inside(const region *loc, const ui_event *key);
+bool region_inside(const region *loc, const ui_event *event);
 
 /**
  * ------------------------------------------------------------------------
@@ -89,30 +91,21 @@ void text_out_e(const char *fmt, ...);
  * ------------------------------------------------------------------------
  * Simple text display
  * ------------------------------------------------------------------------ */
-void c_put_str(byte attr, const char *str, int row, int col);
+void c_put_str(uint32_t attr, const char *str, int row, int col);
 void put_str(const char *str, int row, int col);
-void c_prt(byte attr, const char *str, int row, int col);
+void c_prt(uint32_t attr, const char *str, int row, int col);
 void prt(const char *str, int row, int col);
-
-/**
- * ------------------------------------------------------------------------
- * Screen loading/saving
- * ------------------------------------------------------------------------ */
-extern s16b screen_save_depth;
-void screen_save(void);
-void screen_load(void);
-bool textui_map_is_visible(void);
 
 /**
  * ------------------------------------------------------------------------
  * Miscellaneous things
  * ------------------------------------------------------------------------ */
 void window_make(int origin_x, int origin_y, int end_x, int end_y);
-bool panel_should_modify(term t, int wy, int wx);
-bool modify_panel(term t, int wy, int wx);
-bool change_panel(int dir);
-void verify_panel(void);
-void center_panel(void);
+bool panel_should_modify(const struct angband_term *aterm, int y, int x);
+bool modify_panel(struct angband_term *aterm, int y, int x);
+bool change_panel(struct angband_terms maps, int dir);
+void verify_panel(struct angband_terms maps);
+void center_panel(struct angband_terms maps);
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x);
 bool textui_panel_contains(unsigned int y, unsigned int x);
 

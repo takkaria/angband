@@ -61,7 +61,8 @@ struct angband_term angband_message_line;
 struct angband_term angband_status_line;
 struct angband_term angband_sidebar;
 
-struct angband_user_terms angband_terms;
+struct angband_terms angband_terms;
+struct angband_terms angband_maps;
 
 const char *atf_descr[ATF_MAX] = {
 	#define ATF(a, b) b,
@@ -1046,7 +1047,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		int x = player->py - Term_width() / 2;
 		int y = player->px - Term_height() / 2;
 
-		if (panel_should_modify(ANGBAND_TERM(user)->term, x, y)) {
+		if (panel_should_modify(user, y, x)) {
 			Term_pop();
 			return;
 		}
@@ -1423,7 +1424,7 @@ void toggle_inven_equip(void)
 
 	/* Redraw any subwindows showing the inventory/equipment lists */
 	for (size_t i = 0; i < angband_terms.number; i++) {
-		struct angband_term *aterm = &angband_terms.terms[i];
+		struct angband_term *aterm = angband_terms.terms[i];
 
 		if (atf_has(aterm->flags, ATF_INVEN)) {
 			Term_push(aterm->term);
@@ -1904,8 +1905,6 @@ static void new_level_display_update(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
-
 	/* force invalid offsets so that they will be updated later */
 	ANGBAND_TERM(user)->offset_x = z_info->dungeon_wid;
 	ANGBAND_TERM(user)->offset_y = z_info->dungeon_hgt;
@@ -1915,7 +1914,9 @@ static void new_level_display_update(game_event_type type,
 		player->upkeep->autosave = false;
 	}
 
-	verify_panel();
+	verify_panel(angband_maps);
+
+	Term_push(ANGBAND_TERM(user)->term);
 	Term_clear();
 
 	player->upkeep->only_partial = true;
@@ -1968,7 +1969,7 @@ static void check_panel(game_event_type type, game_event_data *data, void *user)
 	(void) data;
 	(void) user;
 
-	verify_panel();
+	verify_panel(angband_maps);
 }
 
 static void see_floor_items(game_event_type type,

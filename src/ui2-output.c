@@ -18,11 +18,13 @@
 #include "angband.h"
 #include "cave.h"
 #include "player-calcs.h"
-#include "ui-input.h"
-#include "ui-output.h"
+#include "ui2-input.h"
+#include "ui2-output.h"
 #include "z-textblock.h"
 
-s16b screen_save_depth;
+/* scroll when player is too close to the edge of a term
+ * TODO this should be an option */
+#define SCROLL_DISTANCE 3
 
 /**
  * ------------------------------------------------------------------------
@@ -39,14 +41,18 @@ region region_calculate(region loc)
 	int w, h;
 	Term_get_size(&w, &h);
 
-	if (loc.col < 0)
+	if (loc.col < 0) {
 		loc.col += w;
-	if (loc.row < 0)
+	}
+	if (loc.row < 0) {
 		loc.row += h;
-	if (loc.width <= 0)
+	}
+	if (loc.width <= 0) {
 		loc.width += w - loc.col;
-	if (loc.page_rows <= 0)
+	}
+	if (loc.page_rows <= 0) {
 		loc.page_rows += h - loc.row;
+	}
 
 	return loc;
 }
@@ -54,38 +60,33 @@ region region_calculate(region loc)
 void region_erase_bordered(const region *loc)
 {
 	region calc = region_calculate(*loc);
-	int i = 0;
 
 	calc.col = MAX(calc.col - 1, 0);
 	calc.row = MAX(calc.row - 1, 0);
 	calc.width += 2;
 	calc.page_rows += 2;
 
-	for (i = 0; i < calc.page_rows; i++)
-		Term_erase(calc.col, calc.row + i, calc.width);
+	for (int y = 0; y < calc.page_rows; y++) {
+		Term_erase(calc.col, calc.row + y, calc.width);
+	}
 }
 
 void region_erase(const region *loc)
 {
 	region calc = region_calculate(*loc);
-	int i = 0;
 
-	for (i = 0; i < calc.page_rows; i++)
-		Term_erase(calc.col, calc.row + i, calc.width);
+	for (int y = 0; y < calc.page_rows; y++) {
+		Term_erase(calc.col, calc.row + y, calc.width);
+	}
 }
 
-bool region_inside(const region *loc, const ui_event *key)
+bool region_inside(const region *loc, const ui_event *event)
 {
-	if ((loc->col > key->mouse.x) || (loc->col + loc->width <= key->mouse.x))
-		return false;
-
-	if ((loc->row > key->mouse.y) ||
-		(loc->row + loc->page_rows <= key->mouse.y))
-		return false;
-
-	return true;
+	return loc->col <= event->mouse.x
+		&& loc->col + loc->width > event->mouse.x
+		&& loc->row <= event->mouse.y
+		&& loc->row + loc->page_rows > event->mouse.y;
 }
-
 
 /**
  * ------------------------------------------------------------------------
@@ -104,18 +105,19 @@ bool region_inside(const region *loc, const ui_event *key)
 static void display_area(const wchar_t *text, const byte *attrs,
 		size_t *line_starts, size_t *line_lengths,
 		size_t n_lines,
-		region area, size_t line_from)
+		const region area,
+		size_t cur_line)
 {
-	size_t i, j;
-
 	n_lines = MIN(n_lines, (size_t) area.page_rows);
 
-	for (i = 0; i < n_lines; i++) {
-		Term_erase(area.col, area.row + i, area.width);
-		for (j = 0; j < line_lengths[line_from + i]; j++) {
-			Term_putch(area.col + j, area.row + i,
-					attrs[line_starts[line_from + i] + j],
-					text[line_starts[line_from + i] + j]);
+	for (size_t y = 0; y < n_lines; y++, cur_line++) {
+		Term_erase(area.col, area.row + y, area.width);
+
+		for (size_t x = 0; x < line_lengths[cur_line]; x++) {
+			size_t position = line_starts[cur_line] + x;
+
+			Term_addwc(area.col + x, area.row + y,
+					attrs[position], text[position]);
 		}
 	}
 }
@@ -125,13 +127,12 @@ static void display_area(const wchar_t *text, const byte *attrs,
  */
 void textui_textblock_place(textblock *tb, region orig_area, const char *header)
 {
-	/* xxx on resize this should be recalculated */
 	region area = region_calculate(orig_area);
 
-	size_t *line_starts = NULL, *line_lengths = NULL;
-	size_t n_lines;
+	size_t *line_starts = NULL;
+	size_t *line_lengths = NULL;
 
-	n_lines = textblock_calculate_lines(tb,
+	size_t n_lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, area.width);
 
 	if (header != NULL) {
@@ -140,11 +141,12 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
 		area.row++;
 	}
 
-	if (n_lines > (size_t) area.page_rows)
+	if (n_lines > (size_t) area.page_rows) {
 		n_lines = area.page_rows;
+	}
 
-	display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
-	             line_lengths, n_lines, area, 0);
+	display_area(textblock_text(tb), textblock_attrs(tb),
+			line_starts, line_lengths, n_lines, area, 0);
 
 	mem_free(line_starts);
 	mem_free(line_lengths);
@@ -155,17 +157,23 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
  */
 void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 {
-	/* xxx on resize this should be recalculated */
 	region area = region_calculate(orig_area);
 
-	size_t *line_starts = NULL, *line_lengths = NULL;
-	size_t n_lines;
-
-	n_lines = textblock_calculate_lines(tb,
+	size_t *line_starts = NULL;
+	size_t *line_lengths = NULL;
+	size_t n_lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, area.width);
 
-	screen_save();
-
+	struct term_hints hints = {
+		.row = area.row,
+		.col = area.col,
+		.width = area.width,
+		.height = area.page_rows,
+		.position = TERM_POSITION_EXACT,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+	
 	/* make room for the footer */
 	area.page_rows -= 2;
 
@@ -178,55 +186,53 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	if (n_lines > (size_t) area.page_rows) {
 		int start_line = 0;
 
-		c_prt(COLOUR_WHITE, "", area.row + area.page_rows, area.col);
+		c_prt(COLOUR_WHITE, "", area.page_rows, area.col);
 		c_prt(COLOUR_L_BLUE, "(Up/down or ESCAPE to exit.)",
-				area.row + area.page_rows + 1, area.col);
+				area.page_rows + 1, area.col);
 
 		/* Pager mode */
-		while (1) {
-			struct keypress ch;
-
+		while (true) {
 			display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 					line_lengths, n_lines, area, start_line);
 
-			ch = inkey();
-			if (ch.code == ARROW_UP)
-				start_line--;
-			else if (ch.code== ESCAPE || ch.code == 'q')
-				break;
-			else if (ch.code == ARROW_DOWN)
-				start_line++;
-			else if (ch.code == ' ')
-				start_line += area.page_rows;
+			struct keypress ch = inkey();
 
-			if (start_line < 0)
+			switch (ch.code) {
+				case ARROW_UP:
+					start_line--;
+					break;
+				case ARROW_DOWN:
+					start_line++;
+					break;
+				case ' ':
+					start_line += area.page_rows;
+					break;
+				case ESCAPE: /* fallthru */
+				case 'q':
+					break;
+			}
+
+			if (start_line < 0) {
 				start_line = 0;
-			if (start_line + (size_t) area.page_rows > n_lines)
+			} else if ((size_t) (start_line + area.page_rows) > n_lines) {
 				start_line = n_lines - area.page_rows;
+			}
 		}
 	} else {
 		display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 				line_lengths, n_lines, area, 0);
 
-		c_prt(COLOUR_WHITE, "", area.row + n_lines, area.col);
+		c_prt(COLOUR_WHITE, "", n_lines, area.col);
 		c_prt(COLOUR_L_BLUE, "(Press any key to continue.)",
-				area.row + n_lines + 1, area.col);
+				n_lines + 1, area.col);
 		inkey();
 	}
 
 	mem_free(line_starts);
 	mem_free(line_lengths);
 
-	screen_load();
-
-	return;
+	Term_pop();
 }
-
-
-/**
- * ------------------------------------------------------------------------
- * text_out hook for screen display
- * ------------------------------------------------------------------------ */
 
 /**
  * Hack -- Where to wrap the text when using text_out().  Use the default
@@ -244,6 +250,20 @@ int text_out_indent = 0;
  */
 int text_out_pad = 0;
 
+static void text_out_newline(int *col, int *row)
+{
+	int x = *col;
+	int y = *row;
+
+	x = text_out_indent;
+	y++;
+	Term_erase(x, y, Term_width());
+	x += text_out_pad;
+	Term_cursor_to_xy(x, y);
+
+	*col = x;
+	*row = y;
+}
 
 /**
  * Print some (colored) text to the screen at the current cursor position,
@@ -255,158 +275,94 @@ int text_out_pad = 0;
  *
  * Once this function has been called, the cursor should not be moved
  * until all the related "text_out()" calls to the window are complete.
- *
- * This function will correctly handle any width up to the maximum legal
- * value of 256, though it works best for a standard 80 character width.
  */
-static void text_out_to_screen(byte a, const char *str)
+static void text_out_to_screen(uint32_t attr, const char *str)
 {
-	int x, y;
+	const int width = Term_width();
+	const int wrap = text_out_wrap > 0 && text_out_wrap < width ?
+		text_out_wrap - 1 : width - 1;
 
-	int wid, h;
+	int x;
+	int y;
+	Term_get_cursor(&x, &y, NULL, NULL);
 
-	int wrap;
-
-	const wchar_t *s;
 	wchar_t buf[1024];
-
-	/* Obtain the size */
-	(void)Term_get_size(&wid, &h);
-
-	/* Obtain the cursor */
-	(void)Term_locate(&x, &y);
-
-	/* Copy to a rewriteable string */
-	text_mbstowcs(buf, str, 1024);
+	text_mbstowcs(buf, str, sizeof(buf));
 	
-	/* Use special wrapping boundary? */
-	if ((text_out_wrap > 0) && (text_out_wrap < wid))
-		wrap = text_out_wrap;
-	else
-		wrap = wid;
-
-	/* Process the string */
-	for (s = buf; *s; s++) {
-		wchar_t ch;
-
-		/* Force wrap */
-		if (*s == L'\n') {
-			/* Wrap */
-			x = text_out_indent;
-			y++;
-
-			/* Clear line, move cursor */
-			Term_erase(x, y, 255);
-
-			x += text_out_pad;
-			Term_gotoxy(x, y);
-
+	for (const wchar_t *ws = buf; *ws; ws++) {
+		if (*ws == L'\n') {
+			text_out_newline(&x, &y);
 			continue;
 		}
 
-		/* Clean up the char */
-		ch = (iswprint(*s) ? *s : L' ');
+		wchar_t ch = iswprint(*ws) ? *ws : L' ';
 
 		/* Wrap words as needed */
-		if ((x >= wrap - 1) && (ch != L' ')) {
-			int i, n = 0;
+		if (x >= wrap) {
+			if (ch == L' ') {
+				text_out_newline(&x, &y);
+				continue;
+			}
 
-			int av[256];
-			wchar_t cv[256];
+			struct term_point points[wrap];
 
-			/* Wrap word */
-			if (x < wrap) {
-				/* Scan existing text */
-				for (i = wrap - 2; i >= 0; i--) {
-					/* Grab existing attr/char */
-					Term_what(i, y, &av[i], &cv[i]);
+			int space = 0;
+			for (int w = wrap - 1; w >= 0; w--) {
+				Term_get_point(w, y, &points[w]);
 
-					/* Break on space */
-					if (cv[i] == L' ') break;
-
-					/* Track current word */
-					n = i;
+				if (points[w].fg_char == L' ') {
+					break;
+				} else {
+					space = w;
 				}
 			}
 
-			/* Special case */
-			if (n == 0) n = wrap;
+			if (space != 0) {
+				Term_erase(space, y, width);
+				text_out_newline(&x, &y);
 
-			/* Clear line */
-			Term_erase(n, y, 255);
-
-			/* Wrap */
-			x = text_out_indent;
-			y++;
-
-			/* Clear line, move cursor */
-			Term_erase(x, y, 255);
-
-			x += text_out_pad;
-			Term_gotoxy(x, y);
-
-			/* Wrap the word (if any) */
-			for (i = n; i < wrap - 1; i++) {
-				/* Dump */
-				Term_addch(av[i], cv[i]);
-
-				/* Advance (no wrap) */
-				if (++x > wrap) x = wrap;
+				while (space < wrap) {
+					Term_putwc(points[space].fg_attr, points[space].fg_char);
+					space++;
+					x++;
+				}
+			} else {
+				text_out_newline(&x, &y);
 			}
 		}
 
-		/* Dump */
-		Term_addch(a, ch);
-
-		/* Advance */
-		if (++x > wrap) x = wrap;
+		Term_putwc(attr, ch);
+		x++;
 	}
 }
 
-
-
 /**
- * Output text to the screen or to a file depending on the selected
- * text_out hook.
+ * Output text to the screen
  */
 void text_out(const char *fmt, ...)
 {
 	char buf[1024];
 	va_list vp;
 
-	/* Begin the Varargs Stuff */
 	va_start(vp, fmt);
-
-	/* Do the va_arg fmt to the buffer */
-	(void)vstrnfmt(buf, sizeof(buf), fmt, vp);
-
-	/* End the Varargs Stuff */
+	(void) vstrnfmt(buf, sizeof(buf), fmt, vp);
 	va_end(vp);
 
-	/* Output now */
 	text_out_to_screen(COLOUR_WHITE, buf);
 }
 
-
 /**
- * Output text to the screen (in color) or to a file depending on the
- * selected hook.
+ * Output text to the screen (in color)
  */
 void text_out_c(byte a, const char *fmt, ...)
 {
 	char buf[1024];
 	va_list vp;
 
-	/* Begin the Varargs Stuff */
 	va_start(vp, fmt);
-
-	/* Do the va_arg fmt to the buffer */
-	(void)vstrnfmt(buf, sizeof(buf), fmt, vp);
-
-	/* End the Varargs Stuff */
+	(void) vstrnfmt(buf, sizeof(buf), fmt, vp);
 	va_end(vp);
 
-	/* Output now */
 	text_out_to_screen(a, buf);
 }
 
@@ -426,26 +382,30 @@ void text_out_c(byte a, const char *fmt, ...)
  *
  * See text_out_e for an example of its use.
  */
-static bool next_section(const char *source, size_t init, const char **text,
-						 size_t *len, const char **tag, size_t *taglen,
-						 const char **end)
+static bool next_section(const char *source, size_t init,
+		const char **text, size_t *len,
+		const char **tag, size_t *taglen,
+		const char **end)
 {
 	const char *next;	
 
 	*tag = NULL;
 	*text = source + init;
-	if (*text[0] == '\0') return false;
+	if (*text[0] == '\0') {
+		return false;
+	}
 
 	next = strchr(*text, '{');
-	while (next)
-	{
+	while (next) {
 		const char *s = next + 1;
 
-		while (*s && (isalpha((unsigned char) *s) ||
-					  isspace((unsigned char) *s)))
+		while (*s && (isalpha((unsigned char) *s)
+					|| isspace((unsigned char) *s)))
+		{
 			s++;
+		}
 
-		/* Woo!  valid opening tag thing */
+		/* valid opening tag */
 		if (*s == '}') {
 			const char *close = strstr(s, "{/}");
 
@@ -509,13 +469,8 @@ void text_out_e(const char *fmt, ...)
 	const char *start, *next, *text, *tag;
 	size_t textlen, taglen = 0;
 
-	/* Begin the Varargs Stuff */
 	va_start(vp, fmt);
-
-	/* Do the va_arg fmt to the buffer */
-	(void)vstrnfmt(buf, sizeof(buf), fmt, vp);
-
-	/* End the Varargs Stuff */
+	(void) vstrnfmt(buf, sizeof(buf), fmt, vp);
 	va_end(vp);
 
 	start = buf;
@@ -537,8 +492,9 @@ void text_out_e(const char *fmt, ...)
 			a = color_text_to_attr(tagbuffer);
 		}
 		
-		if (a == -1) 
+		if (a == -1) {
 			a = COLOUR_WHITE;
+		}
 
 		/* Output now */
 		text_out_to_screen(a, smallbuf);
@@ -546,8 +502,6 @@ void text_out_e(const char *fmt, ...)
 		start = next;
 	}
 }
-
-
 
 /**
  * ------------------------------------------------------------------------
@@ -558,13 +512,15 @@ void text_out_e(const char *fmt, ...)
  * Display a string on the screen using an attribute.
  *
  * At the given location, using the given attribute, if allowed,
- * add the given string.  Do not clear the line.
+ * add the given string.  Do not clear the line. Ignore strings
+ * with invalid coordinates.
  */
-void c_put_str(byte attr, const char *str, int row, int col) {
+void c_put_str(uint32_t attr, const char *str, int row, int col) {
 	/* Position cursor, Dump the attr/text */
-	Term_putstr(col, row, -1, attr, str);
+	if (Term_point_ok(col, row)) {
+		Term_adds(col, row, Term_width(), attr, str);
+	}
 }
-
 
 /**
  * As above, but in white
@@ -575,14 +531,15 @@ void put_str(const char *str, int row, int col) {
 
 /**
  * Display a string on the screen using an attribute, and clear to the
- * end of the line.
+ * end of the line. Ignore strings with invalid coordinates.
  */
-void c_prt(byte attr, const char *str, int row, int col) {
-	/* Clear line, position cursor */
-	Term_erase(col, row, 255);
+void c_prt(uint32_t attr, const char *str, int row, int col) {
+	if (Term_point_ok(col, row)) {
+		int width = Term_width();
 
-	/* Dump the attr/text */
-	Term_addstr(-1, attr, str);
+		Term_erase(col, row, width);
+		Term_adds(col, row, width, attr, str);
+	}
 }
 
 /**
@@ -590,59 +547,6 @@ void c_prt(byte attr, const char *str, int row, int col) {
  */
 void prt(const char *str, int row, int col) {
 	c_prt(COLOUR_WHITE, str, row, col);
-}
-
-
-
-/**
- * ------------------------------------------------------------------------
- * Screen loading/saving
- * ------------------------------------------------------------------------ */
-
-/**
- * Screen loading and saving can be done to an arbitrary depth but it's
- * important that every call to screen_save() is balanced by a call to
- * screen_load() later on.  'screen_save_depth' is used by the game to keep
- * track of whether it should try to update the map and sidebar or not,
- * so if you miss out a screen_load you will not get proper game updates.
- *
- * Term_save() / Term_load() do all the heavy lifting here.
- */
-
-/**
- * Depth of the screen_save() stack
- */
-s16b screen_save_depth;
-
-/**
- * Save the screen, and increase the "icky" depth.
- */
-void screen_save(void)
-{
-	player->upkeep->redraw |= PR_MAP;
-	redraw_stuff(player);
-	event_signal(EVENT_MESSAGE_FLUSH);
-	Term_save();
-	screen_save_depth++;
-}
-
-/**
- * Load the screen, and decrease the "icky" depth.
- */
-void screen_load(void)
-{
-	event_signal(EVENT_MESSAGE_FLUSH);
-	Term_load();
-	screen_save_depth--;
-
-	/* Redraw big graphics */
-	if (screen_save_depth == 0 && (tile_width > 1 || tile_height > 1))
-		Term_redraw();
-}
-
-bool textui_map_is_visible(void)
-{
-	return (screen_save_depth == 0);
 }
 
 /**
@@ -655,47 +559,54 @@ bool textui_map_is_visible(void)
  */
 void window_make(int origin_x, int origin_y, int end_x, int end_y)
 {
-	int n;
-	region to_clear;
-
-	to_clear.col = origin_x;
-	to_clear.row = origin_y;
-	to_clear.width = end_x - origin_x;
-	to_clear.page_rows = end_y - origin_y;
+	region to_clear = {
+		.col = origin_x,
+		.row = origin_y,
+		.width = end_x - origin_x,
+		.page_rows = end_y - origin_y
+	};
 
 	region_erase(&to_clear);
 
-	Term_putch(origin_x, origin_y, COLOUR_WHITE, '+');
-	Term_putch(end_x, origin_y, COLOUR_WHITE, '+');
-	Term_putch(origin_x, end_y, COLOUR_WHITE, '+');
-	Term_putch(end_x, end_y, COLOUR_WHITE, '+');
+	Term_addwc(origin_x, origin_y, COLOUR_WHITE, L'+');
+	Term_addwc(end_x, origin_y, COLOUR_WHITE, L'+');
+	Term_addwc(origin_x, end_y, COLOUR_WHITE, L'+');
+	Term_addwc(end_x, end_y, COLOUR_WHITE, L'+');
 
-	for (n = 1; n < (end_x - origin_x); n++) {
-		Term_putch(origin_x + n, origin_y, COLOUR_WHITE, '-');
-		Term_putch(origin_x + n, end_y, COLOUR_WHITE, '-');
+	for (int n = 1; n < end_x - origin_x; n++) {
+		Term_addwc(origin_x + n, origin_y, COLOUR_WHITE, L'-');
+		Term_addwc(origin_x + n, end_y, COLOUR_WHITE, L'-');
 	}
 
-	for (n = 1; n < (end_y - origin_y); n++) {
-		Term_putch(origin_x, origin_y + n, COLOUR_WHITE, '|');
-		Term_putch(end_x, origin_y + n, COLOUR_WHITE, '|');
+	for (int n = 1; n < end_y - origin_y; n++) {
+		Term_addwc(origin_x, origin_y + n, COLOUR_WHITE, L'|');
+		Term_addwc(end_x, origin_y + n, COLOUR_WHITE, L'|');
 	}
 }
 
-bool panel_should_modify(term *t, int wy, int wx)
+static void panel_fix_coords(const struct angband_term *aterm, int *y, int *x)
 {
-	int dungeon_hgt = cave->height;
-	int dungeon_wid = cave->width;
+	Term_push(aterm->term);
 
-	/* Verify wy, adjust if needed */
-	if (wy > dungeon_hgt - SCREEN_HGT) wy = dungeon_hgt - SCREEN_HGT;
-	if (wy < 0) wy = 0;
+	int width;
+	int height;
+	Term_get_size(&width, &height);
+	Term_pop();
 
-	/* Verify wx, adjust if needed */
-	if (wx > dungeon_wid - SCREEN_WID) wx = dungeon_wid - SCREEN_WID;
-	if (wx < 0) wx = 0;
+	int curx = *x;
+	int cury = *y;
+	int maxx = cave->width - width;
+	int maxy = cave->height - height;
 
-	/* Needs changes? */
-	return ((t->offset_y != wy) || (t->offset_x != wx));
+	*x = MAX(0, MIN(curx, maxx));
+	*y = MAX(0, MIN(cury, maxy));
+}
+
+bool panel_should_modify(const struct angband_term *aterm, int y, int x)
+{
+	panel_fix_coords(aterm, &y, &x);
+
+	return aterm->offset_y != y || aterm->offset_x != x;
 }
 
 /**
@@ -709,132 +620,99 @@ bool panel_should_modify(term *t, int wy, int wx)
  * As a total hack, whenever the current panel changes, we assume that
  * the "overhead view" window should be updated.
  */
-bool modify_panel(term *t, int wy, int wx)
+bool modify_panel(struct angband_term *aterm, int y, int x)
 {
-	int dungeon_hgt = cave->height;
-	int dungeon_wid = cave->width;
+	panel_fix_coords(aterm, &y, &x);
 
-	/* Verify wy, adjust if needed */
-	if (wy > dungeon_hgt - SCREEN_HGT) wy = dungeon_hgt - SCREEN_HGT;
-	if (wy < 0) wy = 0;
+	if (aterm->offset_x != x || aterm->offset_y != y) {
+		aterm->offset_x = x;
+		aterm->offset_y = y;
 
-	/* Verify wx, adjust if needed */
-	if (wx > dungeon_wid - SCREEN_WID) wx = dungeon_wid - SCREEN_WID;
-	if (wx < 0) wx = 0;
+		player->upkeep->redraw |= PR_MAP;
 
-	/* React to changes */
-	if (panel_should_modify(t, wy, wx)) {
-		/* Save wy, wx */
-		t->offset_y = wy;
-		t->offset_x = wx;
-
-		/* Redraw map */
-		player->upkeep->redraw |= (PR_MAP);
-
-		/* Redraw for big graphics */
-		if ((tile_width > 1) || (tile_height > 1)) redraw_stuff(player);
-
-		/* Changed */
-		return (true);
+		return true;
+	} else {
+		return false;
 	}
-
-	/* No change */
-	return (false);
 }
 
-static void verify_panel_int(bool centered)
+static void verify_panel_int(struct angband_terms maps, bool centered)
 {
-	int wy, wx;
-	int screen_hgt, screen_wid;
+	for (size_t i = 0; i < maps.number; i++) {
+		struct angband_term *aterm = maps.terms[i];
 
-	int panel_wid, panel_hgt;
+		Term_push(aterm->term);
 
-	int py = player->py;
-	int px = player->px;
+		int term_width;
+		int term_height;
+		Term_get_size(&term_width, &term_height);
 
-	int j;
+		Term_pop();
 
-	/* Scan windows */
-	for (j = 0; j < ANGBAND_TERM_MAX; j++) {
-		term *t = angband_term[j];
+		int offset_x = aterm->offset_x;
+		int offset_y = aterm->offset_y;
 
-		/* No window */
-		if (!t) continue;
+		int player_x = player->px;
+		int player_y = player->py;
 
-		/* No relevant flags */
-		if ((j > 0) && !(window_flag[j] & (PW_MAPS))) continue;
+		/* center screen horizontally
+		 * when off-center and not running
+		 * OR
+		 * when SCROLL_DISTANCE grids from top/bottom edge */
+		if ((centered && !player->upkeep->running
+					&& player_x != offset_x + term_width / 2)
+				|| (player_x < offset_x + SCROLL_DISTANCE
+					|| player_x >= offset_x + term_width - SCROLL_DISTANCE))
+		{
+			offset_x = player_x - term_width / 2;
+		}
 
-		wy = t->offset_y;
-		wx = t->offset_x;
+		/* center screen vertically
+		 * when off-center and not running
+		 * OR
+		 * when SCROLL_DISTANCE grids from top/bottom edge */
+		if ((centered && !player->upkeep->running
+					&& player_y != offset_y + term_height / 2)
+				|| (player_y < offset_y + SCROLL_DISTANCE
+					|| player_y >= offset_y + term_height - SCROLL_DISTANCE))
+		{
+			offset_y = player_y - term_height / 2;
+		}
 
-		screen_hgt = (j == 0) ? SCREEN_HGT : t->hgt;
-		screen_wid = (j == 0) ? SCREEN_WID : t->wid;
-
-		panel_wid = screen_wid / 2;
-		panel_hgt = screen_hgt / 2;
-
-
-		/* Scroll screen vertically when off-center */
-		if (centered && !player->upkeep->running && (py != wy + panel_hgt))
-			wy = py - panel_hgt;
-
-		/* Scroll screen vertically when 3 grids from top/bottom edge */
-		else if ((py < wy + 3) || (py >= wy + screen_hgt - 3))
-			wy = py - panel_hgt;
-
-
-		/* Scroll screen horizontally when off-center */
-		if (centered && !player->upkeep->running && (px != wx + panel_wid))
-			wx = px - panel_wid;
-
-		/* Scroll screen horizontally when 3 grids from left/right edge */
-		else if ((px < wx + 3) || (px >= wx + screen_wid - 3))
-			wx = px - panel_wid;
-
-
-		/* Scroll if needed */
-		modify_panel(t, wy, wx);
+		modify_panel(aterm, offset_y, offset_x);
 	}
 }
 
 /**
- * Change the current panel to the panel lying in the given direction.
- *
- * Return true if the panel was changed.
+ * Change the panels to the panel lying in the given direction.
+ * Return true if any panel was changed.
  */
-bool change_panel(int dir)
+bool change_panel(struct angband_terms maps, int dir)
 {
 	bool changed = false;
-	int j;
 
-	/* Scan windows */
-	for (j = 0; j < ANGBAND_TERM_MAX; j++)
-	{
-		int screen_hgt, screen_wid;
-		int wx, wy;
+	for (size_t i = 0; i < maps.number; i++) {
+		struct angband_term *aterm = maps.terms[i];
 
-		term *t = angband_term[j];
+		Term_push(aterm->term);
 
-		/* No window */
-		if (!t) continue;
+		int term_width;
+		int term_height;
+		Term_get_size(&term_width, &term_height);
 
-		/* No relevant flags */
-		if ((j > 0) && !(window_flag[j] & PW_MAPS)) continue;
-
-		screen_hgt = (j == 0) ? SCREEN_HGT : t->hgt;
-		screen_wid = (j == 0) ? SCREEN_WID : t->wid;
+		Term_pop();
 
 		/* Shift by half a panel */
-		wy = t->offset_y + ddy[dir] * screen_hgt / 2;
-		wx = t->offset_x + ddx[dir] * screen_wid / 2;
+		int offset_x = aterm->offset_x + ddx[dir] * term_width / 2;
+		int offset_y = aterm->offset_y + ddy[dir] * term_height / 2;
 
-		/* Use "modify_panel" */
-		if (modify_panel(t, wy, wx)) changed = true;
+		if (modify_panel(aterm, offset_y, offset_x)) {
+			changed = true;
+		}
 	}
 
-	return (changed);
+	return changed;
 }
-
 
 /**
  * Verify the current panel (relative to the player location).
@@ -847,35 +725,48 @@ bool change_panel(int dir)
  * centered around the player, which is very expensive, and also has some
  * interesting gameplay ramifications.
  */
-void verify_panel(void)
+void verify_panel(struct angband_terms maps)
 {
-	verify_panel_int(OPT(center_player));
+	verify_panel_int(maps, OPT(center_player));
 }
 
-void center_panel(void)
+void center_panel(struct angband_terms maps)
 {
-	verify_panel_int(true);
+	verify_panel_int(maps, true);
 }
 
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 {
-	term *t = term_screen;
+	struct angband_term *aterm = &angband_cave;
 
-	if (!t) return;
+	Term_push(aterm->term);
 
-	*min_y = t->offset_y;
-	*min_x = t->offset_x;
-	*max_y = t->offset_y + SCREEN_HGT;
-	*max_x = t->offset_x + SCREEN_WID;
+	int width;
+	int height;
+	Term_get_size(&width, &height);
+
+	Term_pop();
+
+	*min_y = aterm->offset_y;
+	*min_x = aterm->offset_x;
+	*max_y = aterm->offset_y + width;
+	*max_x = aterm->offset_x + height;
 }
 
 bool textui_panel_contains(unsigned int y, unsigned int x)
 {
-	unsigned int hgt;
-	unsigned int wid;
-	if (!Term)
-		return true;
-	hgt = SCREEN_HGT;
-	wid = SCREEN_WID;
-	return (y - Term->offset_y) < hgt && (x - Term->offset_x) < wid;
+	struct angband_term *aterm = &angband_cave;
+
+	Term_push(aterm->term);
+
+	int width;
+	int height;
+	Term_get_size(&width, &height);
+
+	Term_pop();
+
+	return (int) x >= aterm->offset_x
+		&& (int) x <  aterm->offset_x + width
+		&& (int) y >= aterm->offset_y
+		&& (int) y <  aterm->offset_y + height;
 }
