@@ -509,7 +509,7 @@ static void term_flush_row(int y)
 	term_mark_row_flushed(y);
 }
 
-static void term_flush_out(void)
+static void term_flush_points(void)
 {
 	for (int y = TOP->dirty.top; y <= TOP->dirty.bottom; y++) {
 		term_flush_row(y);
@@ -517,6 +517,17 @@ static void term_flush_out(void)
 
 	TOP->dirty.top = TOP->height;
 	TOP->dirty.bottom = 0;
+}
+
+static void term_flush_out(void)
+{
+	STACK_OK();
+
+	term_erase_cursor(TOP->cursor.old);
+	term_flush_points();
+	term_draw_cursor(TOP->cursor.new);
+
+	TOP->cursor.old = TOP->cursor.new;
 }
 
 /* External functions */
@@ -594,6 +605,8 @@ void Term_pop(void)
 	if (TOP->temporary) {
 		TOP->callbacks.pop_new(TOP->user);
 		term_free(TOP);
+	} else {
+		term_flush_out();
 	}
 
 	TOP = NULL;
@@ -806,13 +819,7 @@ void Term_resize(int w, int h)
 
 void Term_flush_output(void)
 {
-	STACK_OK();
-
-	term_erase_cursor(TOP->cursor.old);
 	term_flush_out();
-	term_draw_cursor(TOP->cursor.new);
-
-	TOP->cursor.old = TOP->cursor.new;
 }
 
 void Term_redraw_screen(void)

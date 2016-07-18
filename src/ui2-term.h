@@ -158,6 +158,9 @@ term Term_top(void);
 
 void Term_push(term t);
 void Term_push_new(struct term_hints *hints);
+/* note that, for convinience, popping a non-temporary term
+ * (that was pushed with Term_push(), not Term_push_new())
+ * flushes its output */
 void Term_pop(void);
 
 /* fga - foreground attr (usually color)
