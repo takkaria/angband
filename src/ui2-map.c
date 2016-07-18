@@ -323,11 +323,10 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 	tpf_wipe(point->flags);
 }
 
-void move_cursor_relative(struct angband_term *aterms, size_t num_terms,
-		int y, int x)
+void move_cursor_relative(struct angband_terms maps, int y, int x)
 {
-	for (size_t i = 0; i < num_terms; i++) {
-		struct angband_term *aterm = &aterms[i];
+	for (size_t i = 0; i < maps.number; i++) {
+		struct angband_term *aterm = maps.terms[i];
 
 		Term_push(aterm->term);
 
@@ -342,11 +341,11 @@ void move_cursor_relative(struct angband_term *aterms, size_t num_terms,
 	}
 }
 
-void print_rel(struct angband_term *aterms, size_t num_terms,
+void print_rel(struct angband_terms maps,
 		uint32_t attr, wchar_t ch, int y, int x)
 {
-	for (size_t i = 0; i < num_terms; i++) {
-		struct angband_term *aterm = &aterms[i];
+	for (size_t i = 0; i < maps.number; i++) {
+		struct angband_term *aterm = maps.terms[i];
 
 		Term_push(aterm->term);
 
@@ -361,10 +360,10 @@ void print_rel(struct angband_term *aterms, size_t num_terms,
 	}
 }
 
-void print_map(struct angband_term *aterms, size_t num_terms)
+void print_map(struct angband_terms maps)
 {
-	for (size_t i = 0; i < num_terms; i++) {
-		struct angband_term *aterm = &aterms[i];
+	for (size_t i = 0; i < maps.number; i++) {
+		struct angband_term *aterm = maps.terms[i];
 		Term_push(aterm->term);
 
 		int width;
