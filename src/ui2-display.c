@@ -548,6 +548,7 @@ static void update_sidebar(game_event_type type,
 		}
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -986,6 +987,7 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 		col += status_handlers[i](0, col);
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1040,6 +1042,18 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		}
 	}
 
+	/* Refresh the main screen unless the map needs to center */
+	if (player->upkeep->update & PU_PANEL && OPT(center_player)) {
+		int x = player->py - Term_width() / 2;
+		int y = player->px - Term_height() / 2;
+
+		if (panel_should_modify(user, y, x)) {
+			Term_pop();
+			return;
+		}
+	}
+
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1147,9 +1161,8 @@ void idle_update(void)
 	do_animation();
 	redraw_stuff(player);
 
-	Term_push(angband_cave.term);
+	Term_flush_output();
 	Term_redraw_screen();
-	Term_pop();
 }
 
 /**
@@ -1240,6 +1253,9 @@ static void display_explosion(game_event_type type,
 
 		/* We have all the grids at the current radius, so draw it */
 		if (new_radius) {
+			/* Flush all the grids at this radius */
+			Term_flush_output();
+			/* Delay to show this radius appearing */
 			if (drawn || drawing) {
 				Term_redraw_screen();
 				Term_delay(op_ptr->delay_factor);
@@ -1261,6 +1277,8 @@ static void display_explosion(game_event_type type,
 			}
 		}
 
+		/* Flush the explosion */
+		Term_flush_output();
 		Term_redraw_screen();
 	}
 
@@ -1294,11 +1312,13 @@ static void display_bolt(game_event_type type,
 
 		print_rel(angband_maps, attr, ch, y, x);
 
+		Term_flush_output();
 		Term_redraw_screen();
 		Term_delay(op_ptr->delay_factor);
 
 		event_signal_point(EVENT_MAP, x, y);
 
+		Term_flush_output();
 		Term_redraw_screen();
 
 		/* Display "beam" grids */
@@ -1334,11 +1354,13 @@ static void display_missile(game_event_type type,
 	if (seen) {
 		print_rel(angband_maps, object_attr(obj), object_char(obj), y, x);
 
-		Term_redraw_screen();
+		Term_flush_output();
 		Term_delay(op_ptr->delay_factor);
+		Term_redraw_screen();
 
 		event_signal_point(EVENT_MAP, x, y);
 
+		Term_flush_output();
 		Term_redraw_screen();
 	}
 
@@ -1370,6 +1392,7 @@ static void update_inven_subwindow(game_event_type type,
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1387,6 +1410,7 @@ static void update_equip_subwindow(game_event_type type,
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1411,6 +1435,7 @@ void toggle_inven_equip(void)
 				show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 			}
 
+			Term_flush_output();
 			Term_pop();
 		} else if (atf_has(aterm->flags, ATF_EQUIP)) {
 			Term_push(aterm->term);
@@ -1421,6 +1446,7 @@ void toggle_inven_equip(void)
 				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
 			}
 
+			Term_flush_output();
 			Term_pop();
 		}
 	}
@@ -1437,6 +1463,7 @@ static void update_itemlist_subwindow(game_event_type type,
 
 	object_list_show_subwindow(Term_height(), Term_width());
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1451,6 +1478,7 @@ static void update_monlist_subwindow(game_event_type type,
 
 	monster_list_show_subwindow(Term_height(), Term_width());
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1468,6 +1496,7 @@ static void update_monster_subwindow(game_event_type type,
 							get_lore(player->upkeep->monster_race));
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1485,6 +1514,7 @@ static void update_object_subwindow(game_event_type type,
 		display_object_kind_recall(player->upkeep->object_kind);
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1519,6 +1549,7 @@ static void update_messages_subwindow(game_event_type type,
 		Term_adds(0, height - 1 - i, width, color, msg);
 	}
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1535,6 +1566,7 @@ static void update_player_basic_subwindow(game_event_type type,
 
 	display_player(0);
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1551,6 +1583,7 @@ static void update_player_extra_subwindow(game_event_type type,
 
 	display_player(1);
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1595,6 +1628,7 @@ static void update_player_compact_subwindow(game_event_type type,
 	/* Monster health */
 	prt_health(row++, col);
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1605,6 +1639,7 @@ static void flush_subwindow(game_event_type type,
 	(void) data;
 
 	Term_push(ANGBAND_TERM(user)->term);
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1724,6 +1759,7 @@ void subwindow_set_flags(struct angband_term *aterm, bitflag *flags, size_t size
 
 	Term_push(aterm->term);
 	Term_clear();
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -1904,6 +1940,7 @@ static void new_level_display_update(game_event_type type,
 	redraw_stuff(player);
 	player->upkeep->only_partial = false;
 
+	Term_flush_output();
 	Term_pop();
 }
 
@@ -2069,8 +2106,6 @@ static void ui_leave_init(game_event_type type,
 
 	/* Flush the message */
 	Term_flush_output();
-	Term_redraw_screen();
-	Term_pop();
 }
 
 static void ui_enter_world(game_event_type type,
@@ -2080,8 +2115,12 @@ static void ui_enter_world(game_event_type type,
 	(void) data;
 	(void) user;
 
+	Term_push(angband_cave.term);
+
 	player->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_MONSTER | PR_MESSAGE);
 	redraw_stuff(player);
+
+	Term_pop();
 
 	/* Because of the "flexible" sidebar, all these things trigger
 	   the same function. */
