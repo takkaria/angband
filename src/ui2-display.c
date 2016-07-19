@@ -180,8 +180,7 @@ void display_message(game_event_type type, game_event_data *data, void *user)
 
 	Term_push(aterm->term);
 
-	const int width = Term_width();
-	const int wrap = width - MSG_MORE_LEN;
+	const int wrap = Term_width() - MSG_MORE_LEN;
 
 	wchar_t buf[1024];
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
@@ -196,7 +195,7 @@ void display_message(game_event_type type, game_event_data *data, void *user)
 	uint32_t color = message_type_color(data->message.type);
 	wchar_t *ws = buf;
 
-	while (len > width) {
+	while (len > wrap) {
 		int split = wrap;
 
 		for (int i = 0; i < wrap; i++) {
