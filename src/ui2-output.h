@@ -103,9 +103,9 @@ void prt(const char *str, int row, int col);
 void window_make(int origin_x, int origin_y, int end_x, int end_y);
 bool panel_should_modify(const struct angband_term *aterm, int y, int x);
 bool modify_panel(struct angband_term *aterm, int y, int x);
-bool change_panel(struct angband_terms maps, int dir);
-void verify_panel(struct angband_terms maps);
-void center_panel(struct angband_terms maps);
+bool change_panel(struct angband_term *aterm, int dir);
+void verify_panel(struct angband_term *aterm);
+void center_panel(struct angband_term *aterm);
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x);
 bool textui_panel_contains(unsigned int y, unsigned int x);
 

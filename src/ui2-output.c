@@ -636,82 +636,72 @@ bool modify_panel(struct angband_term *aterm, int y, int x)
 	}
 }
 
-static void verify_panel_int(struct angband_terms maps, bool centered)
+static void verify_panel_int(struct angband_term *aterm, bool centered)
 {
-	for (size_t i = 0; i < maps.number; i++) {
-		struct angband_term *aterm = maps.terms[i];
+	Term_push(aterm->term);
 
-		Term_push(aterm->term);
+	int term_width;
+	int term_height;
+	Term_get_size(&term_width, &term_height);
 
-		int term_width;
-		int term_height;
-		Term_get_size(&term_width, &term_height);
+	Term_pop();
 
-		Term_pop();
+	int offset_x = aterm->offset_x;
+	int offset_y = aterm->offset_y;
 
-		int offset_x = aterm->offset_x;
-		int offset_y = aterm->offset_y;
+	int player_x = player->px;
+	int player_y = player->py;
 
-		int player_x = player->px;
-		int player_y = player->py;
-
-		/* center screen horizontally
-		 * when off-center and not running
-		 * OR
-		 * when SCROLL_DISTANCE grids from top/bottom edge */
-		if ((centered && !player->upkeep->running
-					&& player_x != offset_x + term_width / 2)
-				|| (player_x < offset_x + SCROLL_DISTANCE
-					|| player_x >= offset_x + term_width - SCROLL_DISTANCE))
-		{
-			offset_x = player_x - term_width / 2;
-		}
-
-		/* center screen vertically
-		 * when off-center and not running
-		 * OR
-		 * when SCROLL_DISTANCE grids from top/bottom edge */
-		if ((centered && !player->upkeep->running
-					&& player_y != offset_y + term_height / 2)
-				|| (player_y < offset_y + SCROLL_DISTANCE
-					|| player_y >= offset_y + term_height - SCROLL_DISTANCE))
-		{
-			offset_y = player_y - term_height / 2;
-		}
-
-		modify_panel(aterm, offset_y, offset_x);
+	/* center screen horizontally
+	 * when off-center and not running
+	 * OR
+	 * when SCROLL_DISTANCE grids from top/bottom edge */
+	if ((centered && !player->upkeep->running
+				&& player_x != offset_x + term_width / 2)
+			|| (player_x < offset_x + SCROLL_DISTANCE
+				|| player_x >= offset_x + term_width - SCROLL_DISTANCE))
+	{
+		offset_x = player_x - term_width / 2;
 	}
+
+	/* center screen vertically
+	 * when off-center and not running
+	 * OR
+	 * when SCROLL_DISTANCE grids from top/bottom edge */
+	if ((centered && !player->upkeep->running
+				&& player_y != offset_y + term_height / 2)
+			|| (player_y < offset_y + SCROLL_DISTANCE
+				|| player_y >= offset_y + term_height - SCROLL_DISTANCE))
+	{
+		offset_y = player_y - term_height / 2;
+	}
+
+	modify_panel(aterm, offset_y, offset_x);
 }
 
 /**
  * Change the panels to the panel lying in the given direction.
  * Return true if any panel was changed.
  */
-bool change_panel(struct angband_terms maps, int dir)
+bool change_panel(struct angband_term *aterm, int dir)
 {
-	bool changed = false;
+	Term_push(aterm->term);
 
-	for (size_t i = 0; i < maps.number; i++) {
-		struct angband_term *aterm = maps.terms[i];
+	int term_width;
+	int term_height;
+	Term_get_size(&term_width, &term_height);
 
-		Term_push(aterm->term);
+	Term_pop();
 
-		int term_width;
-		int term_height;
-		Term_get_size(&term_width, &term_height);
+	/* Shift by half a panel */
+	int offset_x = aterm->offset_x + ddx[dir] * term_width / 2;
+	int offset_y = aterm->offset_y + ddy[dir] * term_height / 2;
 
-		Term_pop();
-
-		/* Shift by half a panel */
-		int offset_x = aterm->offset_x + ddx[dir] * term_width / 2;
-		int offset_y = aterm->offset_y + ddy[dir] * term_height / 2;
-
-		if (modify_panel(aterm, offset_y, offset_x)) {
-			changed = true;
-		}
+	if (modify_panel(aterm, offset_y, offset_x)) {
+		return true;
+	} else {
+		return false;
 	}
-
-	return changed;
 }
 
 /**
@@ -725,14 +715,14 @@ bool change_panel(struct angband_terms maps, int dir)
  * centered around the player, which is very expensive, and also has some
  * interesting gameplay ramifications.
  */
-void verify_panel(struct angband_terms maps)
+void verify_panel(struct angband_term *aterm)
 {
-	verify_panel_int(maps, OPT(center_player));
+	verify_panel_int(aterm, OPT(center_player));
 }
 
-void center_panel(struct angband_terms maps)
+void center_panel(struct angband_term *aterm)
 {
-	verify_panel_int(maps, true);
+	verify_panel_int(aterm, true);
 }
 
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)

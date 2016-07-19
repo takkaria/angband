@@ -323,72 +323,61 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 	tpf_wipe(point->flags);
 }
 
-void move_cursor_relative(struct angband_terms maps, int y, int x)
+void move_cursor_relative(struct angband_term *aterm, int y, int x)
 {
-	for (size_t i = 0; i < maps.number; i++) {
-		struct angband_term *aterm = maps.terms[i];
+	Term_push(aterm->term);
 
-		Term_push(aterm->term);
+	int relx = x - aterm->offset_x;
+	int rely = y - aterm->offset_y;
 
-		int relx = x - aterm->offset_x;
-		int rely = y - aterm->offset_y;
-
-		if (Term_point_ok(relx, rely)) {
-			Term_cursor_to_xy(relx, rely);
-		}
-
-		Term_pop();
+	if (Term_point_ok(relx, rely)) {
+		Term_cursor_to_xy(relx, rely);
 	}
+
+	Term_pop();
 }
 
-void print_rel(struct angband_terms maps,
+void print_rel(struct angband_term *aterm,
 		uint32_t attr, wchar_t ch, int y, int x)
 {
-	for (size_t i = 0; i < maps.number; i++) {
-		struct angband_term *aterm = maps.terms[i];
+	Term_push(aterm->term);
 
-		Term_push(aterm->term);
+	int relx = x - aterm->offset_x;
+	int rely = y - aterm->offset_y;
 
-		int relx = x - aterm->offset_x;
-		int rely = y - aterm->offset_y;
-
-		if (Term_point_ok(relx, rely)) {
-			Term_addwc(relx, rely, attr, ch);
-		}
-
-		Term_pop();
+	if (Term_point_ok(relx, rely)) {
+		Term_addwc(relx, rely, attr, ch);
 	}
+
+	Term_pop();
 }
 
-void print_map(struct angband_terms maps)
+void print_map(struct angband_term *aterm)
 {
-	for (size_t i = 0; i < maps.number; i++) {
-		struct angband_term *aterm = maps.terms[i];
-		Term_push(aterm->term);
+	Term_push(aterm->term);
 
-		int width;
-		int height;
-		Term_get_size(&width, &height);
+	int width;
+	int height;
+	Term_get_size(&width, &height);
 
-		/* Dump the map */
-		for (int rely = 0, absy = aterm->offset_y; rely < height; rely++, absy++) {
-			for (int relx = 0, absx = aterm->offset_x; relx < width; relx++, absx++) {
-				if (!square_in_bounds(cave, absy, absx)) {
-					continue;
-				}
-
-				struct grid_data g;
-				map_info(absy, absx, &g);
-
-				struct term_point point;
-				grid_data_as_point(&g, &point);
-
-				Term_add_point(relx, rely, point);
+	/* Dump the map */
+	for (int rely = 0, absy = aterm->offset_y; rely < height; rely++, absy++) {
+		for (int relx = 0, absx = aterm->offset_x; relx < width; relx++, absx++) {
+			if (!square_in_bounds(cave, absy, absx)) {
+				continue;
 			}
-		}
 
-		Term_pop();
+			struct grid_data g;
+			map_info(absy, absx, &g);
+
+			struct term_point point;
+			grid_data_as_point(&g, &point);
+
+			Term_add_point(relx, rely, point);
+		}
 	}
+
+	Term_pop();
 }
 
 static byte **make_priority_grid(void)

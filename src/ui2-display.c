@@ -62,7 +62,6 @@ struct angband_term angband_status_line;
 struct angband_term angband_sidebar;
 
 struct angband_terms angband_terms;
-struct angband_terms angband_maps;
 
 const char *atf_descr[ATF_MAX] = {
 	#define ATF(a, b) b,
@@ -1019,7 +1018,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 
 	if (data->point.x == -1 && data->point.y == -1) {
 		/* This signals a whole-map redraw. */
-		print_map(angband_maps);
+		print_map(ANGBAND_TERM(user));
 	} else {
 		/* Single point to be redrawn */
 
@@ -1047,7 +1046,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		int x = player->py - Term_width() / 2;
 		int y = player->px - Term_height() / 2;
 
-		if (panel_should_modify(user, y, x)) {
+		if (panel_should_modify(ANGBAND_TERM(user), y, x)) {
 			Term_pop();
 			return;
 		}
@@ -1241,7 +1240,7 @@ static void display_explosion(game_event_type type,
 			bolt_pict(y, x, y, x, gf_type, &attr, &ch);
 
 			/* Just display the pict, ignoring what was under it */
-			print_rel(angband_maps, attr, ch, y, x);
+			print_rel(ANGBAND_TERM(user), attr, ch, y, x);
 		}
 
 		/* Check for new radius, taking care not to overrun array */
@@ -1310,7 +1309,7 @@ static void display_bolt(game_event_type type,
 		wchar_t ch;
 		bolt_pict(oy, ox, y, x, gf_type, &attr, &ch);
 
-		print_rel(angband_maps, attr, ch, y, x);
+		print_rel(ANGBAND_TERM(user), attr, ch, y, x);
 
 		Term_flush_output();
 		Term_redraw_screen();
@@ -1324,7 +1323,7 @@ static void display_bolt(game_event_type type,
 		/* Display "beam" grids */
 		if (beam) {
 			bolt_pict(y, x, y, x, gf_type, &attr, &ch);
-			print_rel(angband_maps, attr, ch, y, x);
+			print_rel(ANGBAND_TERM(user), attr, ch, y, x);
 		}
 	} else if (drawing) {
 		/* Delay for consistency */
@@ -1352,11 +1351,11 @@ static void display_missile(game_event_type type,
 
 	/* Only do visuals if the player can "see" the missile */
 	if (seen) {
-		print_rel(angband_maps, object_attr(obj), object_char(obj), y, x);
+		print_rel(ANGBAND_TERM(user), object_attr(obj), object_char(obj), y, x);
 
 		Term_flush_output();
-		Term_delay(op_ptr->delay_factor);
 		Term_redraw_screen();
+		Term_delay(op_ptr->delay_factor);
 
 		event_signal_point(EVENT_MAP, x, y);
 
@@ -1424,7 +1423,7 @@ void toggle_inven_equip(void)
 
 	/* Redraw any subwindows showing the inventory/equipment lists */
 	for (size_t i = 0; i < angband_terms.number; i++) {
-		struct angband_term *aterm = angband_terms.terms[i];
+		struct angband_term *aterm = &angband_terms.terms[i];
 
 		if (atf_has(aterm->flags, ATF_INVEN)) {
 			Term_push(aterm->term);
@@ -1785,13 +1784,14 @@ static void splashscreen_note(game_event_type type,
 		game_event_data *data, void *user)
 {
 	(void) type;
+	(void) user;
 
 	if (data->message.type == MSG_BIRTH) {
 		static int y = 2;
 
 		/* Draw the message */
 		prt(data->message.msg, y, 0);
-		pause_line(user);
+		/* TODO UI2 pause_line(ANGBAND_TERM(user)); */
 
 		/* Advance one line (wrap if needed) */
 		y++;
@@ -1871,14 +1871,16 @@ static void refresh(game_event_type type, game_event_data *data, void *user)
 	(void) type;
 	(void) data;
 
+	Term_push(ANGBAND_TERM(user)->term);
+
 	/* Place cursor on player/target */
 	if (OPT(show_target) && target_sighted()) {
 		int col, row;
 		target_get(&col, &row);
-		move_cursor_relative(angband_maps, row, col);
+		move_cursor_relative(ANGBAND_TERM(user), row, col);
 	}
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_flush_output();
 	Term_redraw_screen();
 	Term_pop();
 }
@@ -1911,7 +1913,7 @@ static void new_level_display_update(game_event_type type,
 		player->upkeep->autosave = false;
 	}
 
-	verify_panel(angband_maps);
+	verify_panel(ANGBAND_TERM(user));
 
 	Term_push(ANGBAND_TERM(user)->term);
 	Term_clear();
@@ -1964,9 +1966,8 @@ static void check_panel(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
-	(void) user;
 
-	verify_panel(angband_maps);
+	verify_panel(ANGBAND_TERM(user));
 }
 
 static void see_floor_items(game_event_type type,
@@ -2115,12 +2116,8 @@ static void ui_enter_world(game_event_type type,
 	(void) data;
 	(void) user;
 
-	Term_push(angband_cave.term);
-
 	player->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_MONSTER | PR_MESSAGE);
 	redraw_stuff(player);
-
-	Term_pop();
 
 	/* Because of the "flexible" sidebar, all these things trigger
 	   the same function. */
@@ -2142,7 +2139,7 @@ static void ui_enter_world(game_event_type type,
 #endif
 
 	/* Check if the panel should shift when the player's moved */
-	event_add_handler(EVENT_PLAYERMOVED, check_panel, NULL);
+	event_add_handler(EVENT_PLAYERMOVED, check_panel, &angband_cave);
 
 	/* Take note of what's on the floor */
 	event_add_handler(EVENT_SEEFLOOR, see_floor_items, NULL);

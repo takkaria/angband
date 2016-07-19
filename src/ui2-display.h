@@ -59,7 +59,6 @@ extern const char *atf_descr[ATF_MAX];
 struct angband_term {
 	term term;
 
-	char *name;
 	/* offset_x and offset_y are used by terms
 	 * that display game map (dungeon) */
 	int offset_x;
@@ -87,17 +86,14 @@ extern struct angband_term angband_status_line;
 extern struct angband_term angband_sidebar;
 
 struct angband_terms {
-	struct angband_term **terms;
+	struct angband_term *terms;
+	char **names;
 	size_t number;
 };
 
 /* what is displayed in these terms can be controlled by the user;
  * it is recommended to create several of those */
 extern struct angband_terms angband_terms;
-
-/* all terms that contain maps are here
- * (since they often need simultaneous updates */
-extern struct angband_terms angband_maps;
 
 uint32_t monster_health_attr(struct monster *mon);
 void cnv_stat(int val, char *out_val, size_t out_len);
