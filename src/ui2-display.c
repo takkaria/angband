@@ -141,14 +141,13 @@ void cnv_stat(int val, char *out_val, size_t out_len)
  * ------------------------------------------------------------------------
  */
 
-/* "-more-" is 6 chars; 1 for preceding space; one for cursor */
+/* "-more-" is 6 chars; 1 for preceding space; 1 for cursor */
 #define MSG_MORE_LEN 8
 
 static void msg_more(int x)
 {
 	if (!OPT(auto_more)) {
-		Term_cursor_to_xy(x, 0);
-		Term_putws(MSG_MORE_LEN, COLOUR_L_BLUE, L"-more-");
+		Term_addws(x, 0, MSG_MORE_LEN, COLOUR_L_BLUE, L"-more-");
 		Term_cursor_visible(true);
 
 		anykey();
@@ -171,7 +170,6 @@ void display_message(game_event_type type, game_event_data *data, void *user)
 	(void) type;
 
 	if (data == NULL
-			|| data->message.type == MSG_BELL
 			|| data->message.msg == NULL
 			|| !character_generated)
 	{
@@ -182,8 +180,8 @@ void display_message(game_event_type type, game_event_data *data, void *user)
 
 	Term_push(aterm->term);
 
-	int width = Term_width();
-	int wrap = width - MSG_MORE_LEN;
+	const int width = Term_width();
+	const int wrap = width - MSG_MORE_LEN;
 
 	wchar_t buf[1024];
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
@@ -215,6 +213,8 @@ void display_message(game_event_type type, game_event_data *data, void *user)
 	}
 
 	Term_addws(aterm->offset_x, 0, len, color, ws);
+	Term_flush_output();
+
 	aterm->offset_x += len + 1;
 
 	Term_pop();
@@ -225,7 +225,10 @@ void display_message(game_event_type type, game_event_data *data, void *user)
  */
 void bell_message(game_event_type type, game_event_data *data, void *user)
 {
-	display_message(type, data, user);
+	(void) type;
+	(void) data;
+	(void) user;
+
 	player->upkeep->redraw |= PR_MESSAGE;
 }
 
@@ -237,7 +240,15 @@ void message_flush(game_event_type type, game_event_data *data, void *user)
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	struct angband_term *aterm = user;
+
+	Term_push(aterm->term);
+
+	if (aterm->offset_x > 0) {
+		msg_more(aterm->offset_x);
+		aterm->offset_x = 0;
+	}
+
 	Term_flush_output();
 	Term_redraw_screen();
 	Term_pop();
@@ -2371,7 +2382,7 @@ static void ui_enter_game(game_event_type type,
 	event_add_handler(EVENT_MESSAGE, display_message, &angband_message_line);
 
 	/* Display a message and make a noise to the player */
-	event_add_handler(EVENT_BELL, bell_message, &angband_message_line);
+	event_add_handler(EVENT_BELL, bell_message, NULL);
 
 	/* Tell the UI to ignore all pending input */
 	/* TODO give this function a better name */
