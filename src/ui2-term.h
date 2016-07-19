@@ -197,7 +197,7 @@ bool Term_putwchar(uint32_t fga, wchar_t fgc,
 bool Term_putwc(uint32_t fga, wchar_t fgc);
 /* as above, but with a null-terminated string of wchar_t */
 bool Term_putws(int len, uint32_t fga, const wchar_t *fgc);
-/* as above, but with a (utf-8 encoded) string of wchar_t
+/* as above, but with a (utf-8 encoded) string of bytes; len is length in codepoints
  * only the part of the string that fits in the term window will be used */
 bool Term_puts(int len, uint32_t fga, const char *fgc);
  /* Term_add* are like Term_put* functions, but allow to specify coordinates */
