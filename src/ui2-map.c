@@ -346,7 +346,17 @@ void print_rel(struct angband_term *aterm,
 	int rely = y - aterm->offset_y;
 
 	if (Term_point_ok(relx, rely)) {
-		Term_addwc(relx, rely, attr, ch);
+		struct term_point point;
+		Term_get_point(relx, rely, &point);
+
+		struct term_point other = {
+			.fg_attr = attr,
+			.fg_char = ch,
+			.bg_attr = point.bg_attr,
+			.bg_char = point.bg_char
+		};
+
+		Term_set_point(relx, rely, other);
 	}
 
 	Term_pop();
@@ -373,7 +383,7 @@ void print_map(struct angband_term *aterm)
 			struct term_point point;
 			grid_data_as_point(&g, &point);
 
-			Term_add_point(relx, rely, point);
+			Term_set_point(relx, rely, point);
 		}
 	}
 
@@ -441,7 +451,7 @@ static void view_map_aux(int *py, int *px)
 			grid_data_as_point(&g, &point);
 
 			if (priority_grid == NULL) {
-				Term_add_point(col, row, point);
+				Term_set_point(col, row, point);
 			} else {
 				byte priority = f_info[g.f_idx].priority;
 
@@ -453,7 +463,7 @@ static void view_map_aux(int *py, int *px)
 				}
 
 				if (priority_grid[row][col] < priority) {
-					Term_add_point(col, row, point);
+					Term_set_point(col, row, point);
 					priority_grid[row][col] = priority;
 				}
 			}
@@ -464,12 +474,18 @@ static void view_map_aux(int *py, int *px)
 	int col = player->px * term_width / cave_width;
 	int row = player->py * term_height / cave_height;
 
-	/* Get the player tile */
-	uint32_t attr = monster_x_attr[r_info[0].ridx];
-	wchar_t ch = monster_x_char[r_info[0].ridx];
+	struct term_point point;
+	Term_get_point(col, row, &point);
+
+	struct term_point other = {
+		.fg_attr = monster_x_attr[r_info[0].ridx],
+		.fg_char = monster_x_attr[r_info[0].ridx],
+		.bg_attr = point.bg_attr,
+		.bg_char = point.bg_char
+	};
 
 	/* Draw the player */
-	Term_addwc(col, row, attr, ch);
+	Term_set_point(col, row, other);
 
 	if (px != NULL) {
 		*px = col;
