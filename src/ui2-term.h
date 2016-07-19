@@ -160,22 +160,6 @@ void Term_push(term t);
 void Term_push_new(struct term_hints *hints);
 void Term_pop(void);
 
-/* fga - foreground attr (usually color)
- * fgc - foreground char
- * bga - background attr (usually color)
- * bgc - background char
- * x and y must be valid 
- * Term_add* are like Term_put* functions, but dont move the cursor */
-void Term_addwchar(int x, int y,
-		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags);
-/* simplified interface to the above; background attr and char will be unchanged */
-void Term_addwc(int x, int y, uint32_t fga, wchar_t fgc);
-/* as above, but with a null-terminated string of wchar_t
- * only the part of the string that fits in the term window will be used */
-void Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc);
-/* as above, but with a (utf-8 encoded) string of chars */
-void Term_adds(int x, int y, int len, uint32_t fga, const char *fgc);
-
 /* make a point "dirty" - it will be passed to draw_hook()
  * at the time of flushing output */
 void Term_dirty_point(int x, int y);
@@ -197,19 +181,31 @@ void Term_clear(void);
  * note that the cursor can be one point beyond the right edge of the term.
  * All other positions are FATAL ERRORS */
 
-/* Term_put* functions move the cursor 
+/* the following functions move the cursor 
  * they return true if all characters were added
  * and return false if some could not be added
  * because of the cursor's inability to advance from its current position
- * (due to it being the last legal position) */
+ * (due to it being the last legal position)
+ * fga - foreground attr (usually color)
+ * fgc - foreground char
+ * bga - background attr (usually color)
+ * bgc - background char
+ * x and y must be valid */
 bool Term_putwchar(uint32_t fga, wchar_t fgc,
 		uint32_t bga, wchar_t bgc, bitflag *flags);
-/* simplified interface to the above */
+/* simplified interface to the above; background attr and char will be unchanged */
 bool Term_putwc(uint32_t fga, wchar_t fgc);
 /* as above, but with a null-terminated string of wchar_t */
 bool Term_putws(int len, uint32_t fga, const wchar_t *fgc);
-/* as above, but with a (utf-8 encoded) string of chars */
+/* as above, but with a (utf-8 encoded) string of wchar_t
+ * only the part of the string that fits in the term window will be used */
 bool Term_puts(int len, uint32_t fga, const char *fgc);
+ /* Term_add* are like Term_put* functions, but allow to specify coordinates */
+bool Term_addwchar(int x, int y,
+		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags);
+bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc);
+bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc);
+bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc);
 
 /* determine the position and visibility of the cursor
  * "usable" means that the cursor is not beyond the edge of the term window
@@ -223,11 +219,11 @@ void Term_cursor_visible(bool visible);
 
 /* At a given location, determine the current point */
 void Term_get_point(int x, int y, struct term_point *point);
-/* add a point; dont move the cursor */
+/* set a point at x, y, and don't move the cursor;
+ * this is the most efficient way to add a point to a term */
+void Term_set_point(int x, int y, struct term_point point);
+/* as above, but does move the cursor */
 void Term_add_point(int x, int y, struct term_point point);
-/* add a point; and move the cursor
- * returns true if the point was added */
-bool Term_put_point(int x, int y, struct term_point point);
 
 /* valid coordinates for point in term */
 bool Term_point_ok(int x, int y);

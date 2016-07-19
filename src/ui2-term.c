@@ -277,7 +277,7 @@ static struct term_point term_make_point(uint32_t fga, wchar_t fgc,
 	return point;
 }
 
-static void term_add_point(int x, int y, struct term_point point)
+static void term_set_point(int x, int y, struct term_point point)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
@@ -286,7 +286,7 @@ static void term_add_point(int x, int y, struct term_point point)
 	term_mark_point_dirty(x, y);
 }
 
-static void term_add_fg(int x, int y, uint32_t fga, wchar_t fgc)
+static void term_set_fg(int x, int y, uint32_t fga, wchar_t fgc)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
@@ -302,7 +302,7 @@ static bool term_put_point_at_cursor(struct term_point point)
 	CURSOR_OK();
 	
 	if (TOP->cursor.new.x < TOP->width) {
-		term_add_point(TOP->cursor.new.x, TOP->cursor.new.y, point);
+		term_set_point(TOP->cursor.new.x, TOP->cursor.new.y, point);
 		TOP->cursor.new.x++;
 		return true;
 	} else {
@@ -316,7 +316,7 @@ static bool term_put_fg_at_cursor(uint32_t fga, wchar_t fgc)
 	CURSOR_OK();
 	
 	if (TOP->cursor.new.x < TOP->width) {
-		term_add_fg(TOP->cursor.new.x, TOP->cursor.new.y, fga, fgc);
+		term_set_fg(TOP->cursor.new.x, TOP->cursor.new.y, fga, fgc);
 		TOP->cursor.new.x++;
 		return true;
 	} else {
@@ -324,7 +324,7 @@ static bool term_put_fg_at_cursor(uint32_t fga, wchar_t fgc)
 	}
 }
 
-static int term_add_ws(int x, int y, int len, uint32_t fga, const wchar_t *ws)
+static int term_set_ws(int x, int y, int len, uint32_t fga, const wchar_t *ws)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
@@ -353,7 +353,7 @@ static bool term_put_ws_at_cursor(int len, uint32_t fga, const wchar_t *ws)
 	CURSOR_OK();
 
 	TOP->cursor.new.x +=
-		term_add_ws(TOP->cursor.new.x, TOP->cursor.new.y, len, fga, ws);
+		term_set_ws(TOP->cursor.new.x, TOP->cursor.new.y, len, fga, ws);
 
 	CURSOR_OK();
 
@@ -600,34 +600,6 @@ void Term_pop(void)
 	term_stack.top--;
 }
 
-void Term_addwchar(int x, int y,
-		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags)
-{
-	term_add_point(x, y, term_make_point(fga, fgc, bga, bgc, flags));
-}
-
-void Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
-{
-	term_add_fg(x, y, fga, fgc);
-}
-
-void Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
-{
-	assert(len > 0);
-
-	(void) term_add_ws(x, y, len, fga, fgc);
-}
-
-void Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
-{
-	assert(len > 0);
-
-	wchar_t ws[WIDESTRING_MAX];
-	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
-
-	(void) term_add_ws(x, y, len, fga, ws);
-}
-
 bool Term_putwchar(uint32_t fga, wchar_t fgc,
 		uint32_t bga, wchar_t bgc, bitflag *flags)
 {
@@ -649,6 +621,42 @@ bool Term_putws(int len, uint32_t fga, const wchar_t *fgc)
 bool Term_puts(int len, uint32_t fga, const char *fgc)
 {
 	assert(len > 0);
+
+	wchar_t ws[WIDESTRING_MAX];
+	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
+
+	return term_put_ws_at_cursor(len, fga, ws);
+}
+
+bool Term_addwchar(int x, int y,
+		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags)
+{
+	term_move_cursor(x, y);
+
+	return term_put_point_at_cursor(term_make_point(fga, fgc, bga, bgc, flags));
+}
+
+bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
+{
+	term_move_cursor(x, y);
+
+	return term_put_fg_at_cursor(fga, fgc);
+}
+
+bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
+{
+	assert(len > 0);
+
+	term_move_cursor(x, y);
+
+	return term_put_ws_at_cursor(len, fga, fgc);
+}
+
+bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
+{
+	assert(len > 0);
+
+	term_move_cursor(x, y);
 
 	wchar_t ws[WIDESTRING_MAX];
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
@@ -764,16 +772,16 @@ void Term_get_point(int x, int y, struct term_point *point)
 	*point = POINT(x, y);
 }
 
-void Term_add_point(int x, int y, struct term_point point)
+void Term_set_point(int x, int y, struct term_point point)
 {
-	term_add_point(x, y, point);
+	term_set_point(x, y, point);
 }
 
-bool Term_put_point(int x, int y, struct term_point point)
+void Term_add_point(int x, int y, struct term_point point)
 {
 	term_move_cursor(x, y);
 
-	return term_put_point_at_cursor(point);
+	term_put_point_at_cursor(point);
 }
 
 bool Term_point_ok(int x, int y)
