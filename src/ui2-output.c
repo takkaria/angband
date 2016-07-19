@@ -573,14 +573,14 @@ void window_make(int origin_x, int origin_y, int end_x, int end_y)
 	Term_addwc(origin_x, end_y, COLOUR_WHITE, L'+');
 	Term_addwc(end_x, end_y, COLOUR_WHITE, L'+');
 
-	for (int n = 1; n < end_x - origin_x; n++) {
-		Term_addwc(origin_x + n, origin_y, COLOUR_WHITE, L'-');
-		Term_addwc(origin_x + n, end_y, COLOUR_WHITE, L'-');
+	for (int x = origin_x + 1; x < end_x; x++) {
+		Term_addwc(x, origin_y, COLOUR_WHITE, L'-');
+		Term_addwc(x, end_y, COLOUR_WHITE, L'-');
 	}
 
-	for (int n = 1; n < end_y - origin_y; n++) {
-		Term_addwc(origin_x, origin_y + n, COLOUR_WHITE, L'|');
-		Term_addwc(end_x, origin_y + n, COLOUR_WHITE, L'|');
+	for (int y = origin_y + 1; y < end_y; y++) {
+		Term_addwc(origin_x, y, COLOUR_WHITE, L'|');
+		Term_addwc(end_x, y, COLOUR_WHITE, L'|');
 	}
 }
 
