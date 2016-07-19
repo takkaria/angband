@@ -2083,6 +2083,13 @@ static void process_character_pref_files(void)
 static void ui_enter_init(game_event_type type,
 		game_event_data *data, void *user)
 {
+	struct term_hints hints = {
+		.width = 80,
+		.height = 24,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+
 	show_splashscreen(type, data, user);
 
 	event_add_handler(EVENT_INITSTATUS, splashscreen_note, NULL);
@@ -2107,6 +2114,8 @@ static void ui_leave_init(game_event_type type,
 
 	/* Flush the message */
 	Term_flush_output();
+	Term_redraw_screen();
+	Term_pop();
 }
 
 static void ui_enter_world(game_event_type type,
