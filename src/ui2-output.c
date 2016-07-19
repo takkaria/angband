@@ -780,9 +780,7 @@ bool textui_panel_contains(unsigned int y, unsigned int x)
  */
 void clear_from(int row)
 {
-	int width;
-	int height;
-	Term_get_size(&width, &height);
+	int height = Term_height();
 
 	for (int y = row; y < height; y++) {
 		Term_erase_from(0, y);
