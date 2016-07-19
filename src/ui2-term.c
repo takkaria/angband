@@ -663,6 +663,13 @@ void Term_erase(int x, int y, int len)
 	term_wipe_line(x, y, len);
 }
 
+void Term_erase_from(int x, int y)
+{
+	STACK_OK();
+
+	term_wipe_line(x, y, TOP->width);
+}
+
 void Term_clear(void)
 {
 	for (int y = 0; y < TOP->height; y++) {
