@@ -760,3 +760,17 @@ bool textui_panel_contains(unsigned int y, unsigned int x)
 		&& (int) y >= aterm->offset_y
 		&& (int) y <  aterm->offset_y + height;
 }
+
+/**
+ * Clear the bottom part of the screen
+ */
+void clear_from(int row)
+{
+	int width;
+	int height;
+	Term_get_size(&width, &height);
+
+	for (int y = row; y < height; y++) {
+		Term_erase(0, y, width);
+	}
+}

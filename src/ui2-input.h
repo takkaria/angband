@@ -29,8 +29,7 @@
  * it simply pushes that command to the game, otherwise the hook 
  * function will be called.
  */
-struct cmd_info
-{
+struct cmd_info {
 	const char *desc;
 	keycode_t key[2];
 	cmd_code cmd;
@@ -41,15 +40,11 @@ struct cmd_info
 /**
  * A categorised list of all the command lists.
  */
-struct command_list
-{
+struct command_list {
 	const char *name;
 	struct cmd_info *list;
 	size_t len;
 };
-
-#define SCAN_INSTANT ((u32b) -1)
-#define SCAN_OFF 0
 
 extern struct cmd_info cmd_item[];
 extern struct cmd_info cmd_action[];

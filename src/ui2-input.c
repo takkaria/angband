@@ -29,21 +29,21 @@
 #include "randname.h"
 #include "savefile.h"
 #include "target.h"
-#include "ui-command.h"
-#include "ui-context.h"
-#include "ui-display.h"
-#include "ui-help.h"
-#include "ui-keymap.h"
-#include "ui-knowledge.h"
-#include "ui-map.h"
-#include "ui-object.h"
-#include "ui-output.h"
-#include "ui-player.h"
-#include "ui-prefs.h"
-#include "ui-signals.h"
-#include "ui-spell.h"
-#include "ui-store.h"
-#include "ui-target.h"
+#include "ui2-command.h"
+#include "ui2-context.h"
+#include "ui2-display.h"
+#include "ui2-help.h"
+#include "ui2-keymap.h"
+#include "ui2-knowledge.h"
+#include "ui2-map.h"
+#include "ui2-object.h"
+#include "ui2-output.h"
+#include "ui2-player.h"
+#include "ui2-prefs.h"
+#include "ui2-signals.h"
+#include "ui2-spell.h"
+#include "ui2-store.h"
+#include "ui2-target.h"
 
 static bool inkey_xtra;
 u32b inkey_scan;		/* See the "inkey()" function */
@@ -415,87 +415,52 @@ void display_message(game_event_type unused, game_event_data *data, void *user)
 	type = data->message.type;
 	msg = data->message.msg;
 
-	if (type == MSG_BELL || !msg || !Term || !character_generated)
+	if (type == MSG_BELL || !msg || !Term || !character_generated) {
 		return;
+	}
 
-	/* Obtain the size */
-	(void)Term_get_size(&w, &h);
+	Term_get_size(&w, &h);
 
-	/* Hack -- Reset */
-	if (!msg_flag) message_column = 0;
-
-	/* Message Length */
-	n = (msg ? strlen(msg) : 0);
-
-	/* Hack -- flush when requested or needed */
-	if (message_column && (!msg || ((message_column + n) > (w - 8)))) {
-		/* Flush */
-		msg_flush(message_column);
-
-		/* Forget it */
-		msg_flag = false;
-
-		/* Reset */
+	if (!msg_flag) {
 		message_column = 0;
 	}
 
-	/* No message */
+	n = msg ? strlen(msg) : 0;
+
+	if (message_column && (!msg || ((message_column + n) > (w - 8)))) {
+		msg_flush(message_column);
+		msg_flag = false;
+		message_column = 0;
+	}
+
 	if (!msg) return;
 
-	/* Paranoia */
-	if (n > 1000) return;
-
-	/* Copy it */
 	my_strcpy(buf, msg, sizeof(buf));
-
-	/* Analyze the buffer */
 	t = buf;
-
-	/* Get the color of the message */
 	color = message_type_color(type);
 
-	/* Split message */
 	while (n > w - 1) {
 		char oops;
-
 		int check, split;
 
-		/* Default split */
 		split = w - 8;
 
-		/* Find the rightmost split point */
 		for (check = (w / 2); check < w - 8; check++)
 			if (t[check] == ' ') split = check;
 
-		/* Save the split character */
 		oops = t[split];
-
-		/* Split the message */
 		t[split] = '\0';
-
-		/* Display part of the message */
 		Term_putstr(0, 0, split, color, t);
 
-		/* Flush it */
 		msg_flush(split + 1);
-
-		/* Restore the split character */
 		t[split] = oops;
-
-		/* Insert a space */
 		t[--split] = ' ';
 
-		/* Prepare to recurse on the rest of "buf" */
 		t += split; n -= split;
 	}
 
-	/* Display the tail of the message */
 	Term_putstr(message_column, 0, n, color, t);
-
-	/* Remember the message */
 	msg_flag = true;
-
-	/* Remember the position */
 	message_column += n + 1;
 }
 
