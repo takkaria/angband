@@ -252,14 +252,50 @@ int text_out_pad = 0;
 
 static void text_out_newline(int *col, int *row)
 {
-	int x = *col;
+	int x = text_out_indent;
 	int y = *row;
 
-	x = text_out_indent;
 	y++;
 	Term_erase_from(x, y);
 	x += text_out_pad;
 	Term_cursor_to_xy(x, y);
+
+	*col = x;
+	*row = y;
+}
+
+static void text_out_backtrack(int wrap, int *col, int *row)
+{
+	int x = *col;
+	int y = *row;
+
+	assert(wrap > 0);
+	struct term_point points[wrap];
+
+	int split = 0;
+	for (int w = wrap - 1; w > text_out_indent + text_out_pad; w--) {
+		Term_get_point(w, y, &points[w]);
+
+		if (points[w].fg_char == L' ') {
+			split = w + 1;
+			break;
+		}
+	}
+
+	/* split == 0 when there are no spaces in this line
+	 * split == wrap when the last char in this line is space */
+	if (split > 0 && split < wrap) {
+		Term_erase_from(split, y);
+		text_out_newline(&x, &y);
+
+		while (split < wrap) {
+			Term_putwc(points[split].fg_attr, points[split].fg_char);
+			split++;
+			x++;
+		}
+	} else {
+		text_out_newline(&x, &y);
+	}
 
 	*col = x;
 	*row = y;
@@ -282,6 +318,8 @@ static void text_out_to_screen(uint32_t attr, const char *str)
 	const int wrap = text_out_wrap > 0 && text_out_wrap < width ?
 		text_out_wrap - 1 : width - 1;
 
+	assert(text_out_indent + text_out_pad < wrap);
+
 	int x;
 	int y;
 	Term_get_cursor(&x, &y, NULL, NULL);
@@ -302,32 +340,8 @@ static void text_out_to_screen(uint32_t attr, const char *str)
 			if (ch == L' ') {
 				text_out_newline(&x, &y);
 				continue;
-			}
-
-			struct term_point points[wrap];
-
-			int space = 0;
-			for (int w = wrap - 1; w >= 0; w--) {
-				Term_get_point(w, y, &points[w]);
-
-				if (points[w].fg_char == L' ') {
-					break;
-				} else {
-					space = w;
-				}
-			}
-
-			if (space != 0) {
-				Term_erase_from(space, y);
-				text_out_newline(&x, &y);
-
-				while (space < wrap) {
-					Term_putwc(points[space].fg_attr, points[space].fg_char);
-					space++;
-					x++;
-				}
 			} else {
-				text_out_newline(&x, &y);
+				text_out_backtrack(wrap, &x, &y);
 			}
 		}
 
