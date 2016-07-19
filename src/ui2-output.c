@@ -549,10 +549,8 @@ void put_str(const char *str, int row, int col) {
  */
 void c_prt(uint32_t attr, const char *str, int row, int col) {
 	if (Term_point_ok(col, row)) {
-		int width = Term_width();
-
 		Term_erase_from(col, row);
-		Term_adds(col, row, width, attr, str);
+		Term_adds(col, row, Term_width(), attr, str);
 	}
 }
 
