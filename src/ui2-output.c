@@ -257,7 +257,7 @@ static void text_out_newline(int *col, int *row)
 
 	x = text_out_indent;
 	y++;
-	Term_erase(x, y, Term_width());
+	Term_erase_from(x, y);
 	x += text_out_pad;
 	Term_cursor_to_xy(x, y);
 
@@ -318,7 +318,7 @@ static void text_out_to_screen(uint32_t attr, const char *str)
 			}
 
 			if (space != 0) {
-				Term_erase(space, y, width);
+				Term_erase_from(space, y);
 				text_out_newline(&x, &y);
 
 				while (space < wrap) {
@@ -537,7 +537,7 @@ void c_prt(uint32_t attr, const char *str, int row, int col) {
 	if (Term_point_ok(col, row)) {
 		int width = Term_width();
 
-		Term_erase(col, row, width);
+		Term_erase_from(col, row);
 		Term_adds(col, row, width, attr, str);
 	}
 }
@@ -771,6 +771,6 @@ void clear_from(int row)
 	Term_get_size(&width, &height);
 
 	for (int y = row; y < height; y++) {
-		Term_erase(0, y, width);
+		Term_erase_from(0, y);
 	}
 }
