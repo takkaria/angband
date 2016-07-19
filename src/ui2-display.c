@@ -74,6 +74,7 @@ const char *atf_descr[ATF_MAX] = {
  * of the basic player events.  For convenience, these have been grouped 
  * in this list.
  */
+
 static game_event_type player_events[] = {
 	EVENT_RACE_CLASS,
 	EVENT_PLAYERTITLE,
@@ -132,6 +133,114 @@ void cnv_stat(int val, char *out_val, size_t out_len)
 	} else {
 		strnfmt(out_val, out_len, "    %2d", val);
 	}
+}
+
+/**
+ * ------------------------------------------------------------------------
+ * Message line display functions
+ * ------------------------------------------------------------------------
+ */
+
+/* "-more-" is 6 chars; 1 for preceding space; one for cursor */
+#define MSG_MORE_LEN 8
+
+static void msg_more(int x)
+{
+	if (!OPT(auto_more)) {
+		Term_cursor_to_xy(x, 0);
+		Term_putws(MSG_MORE_LEN, COLOUR_L_BLUE, L"-more-");
+		Term_cursor_visible(true);
+
+		anykey();
+
+		Term_cursor_visible(false);
+	}
+
+	Term_erase(0, 0, Term_width());
+}
+
+/**
+ * Output a message to the top line of the screen.
+ *
+ * Break long messages into multiple pieces
+ * Allow multiple short messages to share the top line.
+ * Prompt the user to make sure he has a chance to read them.
+ */
+void display_message(game_event_type type, game_event_data *data, void *user)
+{
+	(void) type;
+
+	if (data == NULL
+			|| data->message.type == MSG_BELL
+			|| data->message.msg == NULL
+			|| !character_generated)
+	{
+		return;
+	}
+
+	struct angband_term *aterm = user;
+
+	Term_push(aterm->term);
+
+	int width = Term_width();
+	int wrap = width - MSG_MORE_LEN;
+
+	wchar_t buf[1024];
+	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
+
+	if (aterm->offset_x > 0
+			&& aterm->offset_x + len > wrap)
+	{
+		msg_more(aterm->offset_x);
+		aterm->offset_x = 0;
+	}
+
+	uint32_t color = message_type_color(data->message.type);
+	wchar_t *ws = buf;
+
+	while (len > width) {
+		int split = wrap;
+
+		for (int i = 0; i < wrap; i++) {
+			if (ws[i] == L' ') {
+				split = i;
+			}
+		}
+
+		Term_addws(0, 0, split, color, ws);
+		msg_more(split + 1);
+
+		ws += split;
+		len -= split;
+	}
+
+	Term_addws(aterm->offset_x, 0, len, color, ws);
+	aterm->offset_x += len + 1;
+
+	Term_pop();
+}
+
+/**
+ * Flush the output before displaying for emphasis
+ */
+void bell_message(game_event_type type, game_event_data *data, void *user)
+{
+	display_message(type, data, user);
+	player->upkeep->redraw |= PR_MESSAGE;
+}
+
+/**
+ * Print the queued messages.
+ */
+void message_flush(game_event_type type, game_event_data *data, void *user)
+{
+	(void) type;
+	(void) data;
+
+	Term_push(ANGBAND_TERM(user)->term);
+	Term_flush_output();
+	Term_redraw_screen();
+	Term_pop();
 }
 
 /**
@@ -2259,16 +2368,17 @@ static void ui_enter_game(game_event_type type,
 	(void) user;
 
 	/* Display a message to the player */
-	event_add_handler(EVENT_MESSAGE, display_message, NULL);
+	event_add_handler(EVENT_MESSAGE, display_message, &angband_message_line);
 
 	/* Display a message and make a noise to the player */
-	event_add_handler(EVENT_BELL, bell_message, NULL);
+	event_add_handler(EVENT_BELL, bell_message, &angband_message_line);
 
 	/* Tell the UI to ignore all pending input */
+	/* TODO give this function a better name */
 	event_add_handler(EVENT_INPUT_FLUSH, flush, NULL);
 
 	/* Print all waiting messages */
-	event_add_handler(EVENT_MESSAGE_FLUSH, message_flush, NULL);
+	event_add_handler(EVENT_MESSAGE_FLUSH, message_flush, &angband_message_line);
 }
 
 static void ui_leave_game(game_event_type type,
