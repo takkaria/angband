@@ -326,7 +326,7 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 			if (*curs < *len) (*curs)++;
 			break;
 		
-		case KC_BACKSPACE:
+		case KC_BACKSPACE: /* fallthru */
 		case KC_DELETE:
 			/* If this is the first time round, backspace means "delete all" */
 			if (firsttime) {
@@ -338,16 +338,16 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 
 			/* Refuse to backspace into oblivion */
 			if ((keypress.code == KC_BACKSPACE && *curs == 0)
-					|| (keypress.code == KC_DELETE && *curs >= *len)) {
+					|| (keypress.code == KC_DELETE && *curs >= *len))
+			{
 				break;
 			}
 
-			/* Move the string from k to nul along to the left by 1 */
 			if (keypress.code == KC_BACKSPACE) {
 				memmove(&buf[*curs - 1], &buf[*curs], *len - *curs);
 				(*curs)--;
 			} else {
-				memmove(&buf[*curs], &buf[*curs + 1], *len - *curs - 1);
+				memmove(&buf[*curs], &buf[*curs + 1], *len - (*curs + 1));
 			}
 
 			(*len)--;
@@ -556,9 +556,7 @@ int textui_get_quantity(const char *prompt, int max)
 		}
 	}
 
-	amt = MAX(0, MIN(amt, max));
-
-	return amt;
+	return MAX(0, MIN(amt, max));
 }
 
 /**
@@ -568,8 +566,6 @@ int textui_get_quantity(const char *prompt, int max)
  */
 bool textui_get_check(const char *prompt)
 {
-	event_signal(EVENT_MESSAGE_FLUSH);
-
 	char buf[80];
 	strnfmt(buf, sizeof(buf), "%.70s[y/n] ", prompt);
 
@@ -579,7 +575,6 @@ bool textui_get_check(const char *prompt)
 
 	clear_prompt();
 
-	/* Normal negation */
 	if (event.type == EVT_MOUSE
 			&& event.mouse.button == MOUSE_BUTTON_LEFT)
 	{
@@ -632,8 +627,8 @@ static bool get_file_text(const char *suggested_name, char *path, size_t len)
 	char buf[1024];
 
 	/* Get filename */
-	my_strcpy(buf, suggested_name, sizeof buf);
-	if (!get_string("File name: ", buf, sizeof buf)) {
+	my_strcpy(buf, suggested_name, sizeof(buf));
+	if (!get_string("File name: ", buf, sizeof(buf))) {
 		return false;
 	}
 
@@ -642,10 +637,8 @@ static bool get_file_text(const char *suggested_name, char *path, size_t len)
 		return false;
 	}
 
-	/* Build the path */
 	path_build(path, len, ANGBAND_DIR_USER, buf);
 
-	/* Check if it already exists */
 	if (file_exists(path) && !get_check("Replace existing file? ")) {
 		return false;
 	}
@@ -782,7 +775,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
 				dir = dir_transitions[dir][target_dir_allow(event.key, allow_5)];
 
 				if (dir == 0
-						|| op_ptr->lazymove_delay <= 0
+						|| op_ptr->lazymove_delay == 0
 						|| ++keypresses_handled > 1)
 				{
 					break;
@@ -857,7 +850,7 @@ bool textui_get_aim_dir(int *dp)
 					break;
 
 				default:
-					while (event.key.code != 0) {
+					while (event.type == EVT_KBRD && event.key.code != 0) {
 						dir = dir_transitions[dir][target_dir(event.key)];
 
 						if (dir == 0
@@ -942,31 +935,36 @@ static void textui_get_command_aux(ui_event *event,
 	assert(event->type == EVT_KBRD);
 
 	switch (event->key.code) {
-		case '0': {
-			int c = textui_get_count();
-			if (c > 0 && get_com_mouse_or_key("Command: ", event)) {
-				*count = c;
+		char ch;
+		int cnt;
+
+		case '0':
+			/* Allow repeat count to be entered */
+			cnt = textui_get_count();
+			if (cnt > 0 && get_com_mouse_or_key("Command: ", event)) {
+				*count = cnt;
 			} else {
 				event->type = EVT_NONE;
 				return;
 			}
 			break;
-		}
 
-		case '\\': {
-			/* Allow keymaps to be bypassed */
-			get_com_mouse_or_key("Command: ", event);
-			return;
-		}
-
-		case '^': {
-			char ch;
-			/* Allow "control chars" to be entered */
+		case '^':
+			/* Allow control chars to be entered */
 			if (get_com("Control: ", &ch)) {
 				event->key.code = KTRL(ch);
+			} else {
+				event->type = EVT_NONE;
+				return;
 			}
 			break;
-		}
+
+		case '\\':
+			/* Allow keymaps to be bypassed */
+			if (!get_com_mouse_or_key("Command: ", event)) {
+				event->type = EVT_NONE;
+			}
+			return;
 	}
 
 	if (keymap != NULL) {
@@ -993,8 +991,6 @@ ui_event textui_get_command(int *count)
 	while (event.type == EVT_NONE) {
 		const struct keypress *keymap = NULL;
 
-		message_skip_more();
-
 		ui_event event = inkey_simple();
 
 		if (event.type == EVT_KBRD) {
@@ -1003,6 +999,7 @@ ui_event textui_get_command(int *count)
 					inkey_state_has_keymap() ? NULL : &keymap);
 		}
 
+		message_skip_more();
 		clear_prompt();
 
 		if (keymap != NULL) {
@@ -1027,7 +1024,7 @@ bool key_confirm_command(unsigned char c)
 		char verify_inscrip[] = "^*";
 
 		struct object *obj = slot_object(player, i);
-		if (!obj) {
+		if (obj == NULL) {
 			continue;
 		}
 
@@ -1050,21 +1047,21 @@ bool key_confirm_command(unsigned char c)
 /**
  * Process a textui keypress.
  */
-bool textui_process_key(struct keypress kp, unsigned char *c, int count)
+bool textui_process_key(struct keypress key, unsigned char *c)
 {
-	(void) count;
-
-	keycode_t key = kp.code;
-
-	if (key == '\0' || key == ESCAPE || key == ' ' || key == '\a') {
+	if (key.code == '\0'
+			|| key.code == ESCAPE
+			|| key.code == ' '
+			|| key.code == '\a')
+	{
 		return true;
 	}
 
-	if (key > UCHAR_MAX) {
+	if (key.code > UCHAR_MAX) {
 		return false;
 	}
 
-	*c = key;
+	*c = key.code;
 
 	return true;
 }
