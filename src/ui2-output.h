@@ -96,7 +96,7 @@ void put_str(const char *str, int row, int col);
 void c_prt(uint32_t attr, const char *str, int row, int col);
 void prt(const char *str, int row, int col);
 
-void show_prompt(const char *str, int row, int col);
+void show_prompt(const char *str);
 void clear_prompt(void);
 
 /**
