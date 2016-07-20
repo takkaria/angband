@@ -951,7 +951,7 @@ ui_event textui_get_command(int *count)
 	const struct keypress *act = NULL;
 	ui_event event = EVENT_EMPTY;
 
-	do {
+	while (true) {
 		message_skip_more();
 
 		ui_event event = inkey_simple();
@@ -1000,7 +1000,9 @@ ui_event textui_get_command(int *count)
 			inkey_state_add_keymap(act, n);
 			continue;
 		}
-	} while (false); /* only "continue" restart the loop */
+
+		break;
+	}
 
 	return event;
 }
