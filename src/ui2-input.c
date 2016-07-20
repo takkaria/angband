@@ -285,7 +285,7 @@ ui_event inkey_simple(void)
 /**
  * Get a keypress or mouse click from the user and ignore it.
  */
-void anykey(void)
+void inkey_any(void)
 {
 	ui_event event = EVENT_EMPTY;
 
@@ -421,20 +421,14 @@ bool askfor_aux(char *buf, size_t buflen,
 		keypress_h = askfor_aux_keypress;
 	}
 
+	Term_push(angband_message_line.term);
+	Term_cursor_visible(true);
+
 	size_t len = strlen(buf);
 
 	int x;
 	int y;
 	Term_get_cursor(&x, &y, NULL, NULL);
-
-	/* Paranoia */
-	if (x < 0 || x >= 80) {
-		x = 0;
-	}
-	if (x + len > 80) {
-		len = 80 - x;
-		buf[len - 1] = 0;
-	}
 
 	/* Display the default answer */
 	Term_adds(x, y, len, COLOUR_YELLOW, buf);
@@ -446,6 +440,7 @@ bool askfor_aux(char *buf, size_t buflen,
 
 	while (!done) {
 		Term_cursor_to_xy(x + curs, y);
+		Term_flush_output();
 
 		key = inkey_only_key();
 		done = keypress_h(buf, buflen, &curs, &len, key, firsttime);
@@ -455,6 +450,9 @@ bool askfor_aux(char *buf, size_t buflen,
 
 		firsttime = false;
 	}
+
+	Term_cursor_visible(false);
+	Term_pop();
 
 	return key.code != ESCAPE;
 }
@@ -512,13 +510,13 @@ bool get_character_name(char *buf, size_t buflen)
  * See askfor_aux() for some notes about buf and len, and about
  * the return value of this function.
  */
-bool textui_get_string(const char *prompt, char *buf, size_t len)
+bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 {
 	event_signal(EVENT_MESSAGE_FLUSH);
 
 	show_prompt(prompt);
 
-	bool res = askfor_aux(buf, len, NULL);
+	bool res = askfor_aux(buf, buflen, NULL);
 
 	clear_prompt();
 
@@ -538,7 +536,7 @@ int textui_get_quantity(const char *prompt, int max)
 		char buf[80];
 
 		/* Build a prompt if needed */
-		if (!prompt) {
+		if (prompt == NULL) {
 			strnfmt(tmp, sizeof(tmp), "Quantity (0-%d, *=all): ", max);
 			prompt = tmp;
 		}
@@ -549,11 +547,12 @@ int textui_get_quantity(const char *prompt, int max)
 			return 0;
 		}
 
-		amt = atoi(buf);
-
 		/* A star or letter means "all" */
 		if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
 			amt = max;
+		} else {
+			/* TODO something better than atoi() */
+			amt = atoi(buf);
 		}
 	}
 
@@ -581,15 +580,17 @@ bool textui_get_check(const char *prompt)
 	clear_prompt();
 
 	/* Normal negation */
-	if (event.type == EVT_MOUSE) {
-		if (event.mouse.button != MOUSE_BUTTON_LEFT && event.mouse.y != 0) {
-			return false;
-		}
-	} else if (event.key.code != 'Y' && event.key.code != 'y') {
-		return false;
+	if (event.type == EVT_MOUSE
+			&& event.mouse.button == MOUSE_BUTTON_LEFT)
+	{
+		return true;
+	} else if (event.type == EVT_KBRD
+			&& (event.key.code == 'Y' || event.key.code == 'y'))
+	{
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 /**
@@ -628,7 +629,7 @@ char get_char(const char *prompt, const char *options, size_t len, char fallback
  */
 static bool get_file_text(const char *suggested_name, char *path, size_t len)
 {
-	char buf[160];
+	char buf[1024];
 
 	/* Get filename */
 	my_strcpy(buf, suggested_name, sizeof buf);
@@ -651,7 +652,7 @@ static bool get_file_text(const char *suggested_name, char *path, size_t len)
 
 	show_prompt(format("Saving as %s.", path));
 
-	anykey();
+	inkey_any();
 
 	clear_prompt();
 
@@ -708,7 +709,7 @@ void pause_line(void)
 	Term_push_new(&hints);
 
 	put_str(msg, 0, 0);
-	anykey();
+	inkey_any();
 
 	Term_pop();
 }
@@ -740,7 +741,7 @@ static int dir_transitions[10][10] = {
  */
 bool textui_get_rep_dir(int *dp, bool allow_5)
 {
-	(*dp) = 0;
+	*dp = 0;
 
 	int dir = 0;
 
@@ -781,7 +782,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
 				dir = dir_transitions[dir][target_dir_allow(event.key, allow_5)];
 
 				if (dir == 0
-						|| op_ptr->lazymove_delay == 0
+						|| op_ptr->lazymove_delay <= 0
 						|| ++keypresses_handled > 1)
 				{
 					break;
@@ -803,7 +804,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
 	}
 
 	clear_prompt();
-	(*dp) = dir;
+	*dp = dir;
 
 	return true;
 }
@@ -818,7 +819,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
  */
 bool textui_get_aim_dir(int *dp)
 {
-	(*dp) = 0;
+	*dp = 0;
 
 	int dir = OPT(use_old_target) && target_okay() ? 5 : 0;
 
@@ -878,7 +879,7 @@ bool textui_get_aim_dir(int *dp)
 	}
 
 	clear_prompt();
-	(*dp) = dir;
+	*dp = dir;
 
 	return dir != 0;
 }
@@ -920,7 +921,7 @@ static int textui_get_count(void)
 		} else if (isdigit((unsigned char) key.code)) {
 			count = count * 10 + D2I(key.code);
 
-			if (count >= 9999) {
+			if (count > 9999) {
 				bell("Invalid repeat count!");
 				count = 9999;
 			}

@@ -63,10 +63,10 @@ struct keypress inkey_only_key(void);
 ui_event inkey_mouse_or_key(void);
 ui_event inkey_simple(void);
 ui_event inkey_wait(int scans);
+void inkey_any(void);
 
 bool auto_more(void);
 
-void anykey(void);
 void pause_line(void);
 
 bool askfor_aux_keypress(char *buf, size_t buflen,
