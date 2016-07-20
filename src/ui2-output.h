@@ -96,6 +96,9 @@ void put_str(const char *str, int row, int col);
 void c_prt(uint32_t attr, const char *str, int row, int col);
 void prt(const char *str, int row, int col);
 
+void show_prompt(const char *str, int row, int col);
+void clear_prompt(void);
+
 /**
  * ------------------------------------------------------------------------
  * Miscellaneous things
@@ -107,6 +110,7 @@ void verify_panel(struct angband_term *aterm);
 void center_panel(struct angband_term *aterm);
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x);
 bool textui_panel_contains(unsigned int y, unsigned int x);
+bool textui_map_is_visible(void);
 void window_make(int origin_x, int origin_y, int end_x, int end_y);
 void clear_from(int row);
 

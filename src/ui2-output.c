@@ -523,6 +523,27 @@ void text_out_e(const char *fmt, ...)
  * ------------------------------------------------------------------------ */
 
 /**
+ * Display a prompt on the screen
+ */
+void show_prompt(const char *str, int row, int col)
+{
+	event_signal(EVENT_MESSAGE_FLUSH);
+
+	Term_push(angband_message_line.term);
+	Term_adds(col, row, Term_width(), COLOUR_WHITE, str);
+	Term_flush_output();
+	Term_pop();
+}
+
+void clear_prompt(void)
+{
+	Term_push(angband_message_line.term);
+	Term_clear();
+	Term_flush_output();
+	Term_pop();
+}
+
+/**
  * Display a string on the screen using an attribute.
  *
  * At the given location, using the given attribute, if allowed,
@@ -771,6 +792,11 @@ bool textui_panel_contains(unsigned int y, unsigned int x)
 		&& (int) x <  aterm->offset_x + width
 		&& (int) y >= aterm->offset_y
 		&& (int) y <  aterm->offset_y + height;
+}
+
+bool textui_map_is_visible(void)
+{
+	return true;
 }
 
 /**
