@@ -940,16 +940,14 @@ static void textui_get_command_aux(ui_event *event,
 {
 	assert(event->type == EVT_KBRD);
 
-	bool try_find_keymap = true;
-
 	switch (event->key.code) {
 		case '0': {
 			int c = textui_get_count();
 			if (c > 0 && get_com_mouse_or_key("Command: ", event)) {
 				*count = c;
 			} else {
-				try_find_keymap = false;
 				event->type = EVT_NONE;
+				return;
 			}
 			break;
 		}
@@ -957,8 +955,7 @@ static void textui_get_command_aux(ui_event *event,
 		case '\\': {
 			/* Allow keymaps to be bypassed */
 			get_com_mouse_or_key("Command: ", event);
-			try_find_keymap = false;
-			break;
+			return;
 		}
 
 		case '^': {
@@ -971,7 +968,7 @@ static void textui_get_command_aux(ui_event *event,
 		}
 	}
 
-	if (try_find_keymap) {
+	if (keymap != NULL) {
 		*keymap = keymap_find(OPT(rogue_like_commands) ?
 				KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG, event->key);
 	}
@@ -1000,13 +997,14 @@ ui_event textui_get_command(int *count)
 		ui_event event = inkey_simple();
 
 		if (event.type == EVT_KBRD) {
-			textui_get_command_aux(&event, count, &keymap);
+			/* Don't apply keymap if inside a keymap already */
+			textui_get_command_aux(&event, count,
+					inkey_state_has_keymap() ? NULL : &keymap);
 		}
 
 		clear_prompt();
 
-		/* Apply keymap if not inside a keymap already */
-		if (!inkey_state_has_keymap() && keymap != NULL) {
+		if (keymap != NULL) {
 			size_t n = 0;
 			while (keymap[n].type) {
 				n++;
