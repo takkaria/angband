@@ -935,6 +935,48 @@ static int textui_get_count(void)
 	return count;
 }
 
+static void textui_get_command_aux(ui_event *event,
+		int *count, const struct keypress **keymap)
+{
+	assert(event->type == EVT_KBRD);
+
+	bool try_find_keymap = true;
+
+	switch (event->key.code) {
+		case '0': {
+			int c = textui_get_count();
+			if (c > 0 && get_com_mouse_or_key("Command: ", event)) {
+				*count = c;
+			} else {
+				try_find_keymap = false;
+				event->type = EVT_NONE;
+			}
+			break;
+		}
+
+		case '\\': {
+			/* Allow keymaps to be bypassed */
+			get_com_mouse_or_key("Command: ", event);
+			try_find_keymap = false;
+			break;
+		}
+
+		case '^': {
+			char ch;
+			/* Allow "control chars" to be entered */
+			if (get_com("Control: ", &ch)) {
+				event->key.code = KTRL(ch);
+			}
+			break;
+		}
+	}
+
+	if (try_find_keymap) {
+		*keymap = keymap_find(OPT(rogue_like_commands) ?
+				KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG, event->key);
+	}
+}
+
 /**
  * Request a command from the user.
  *
@@ -948,60 +990,30 @@ static int textui_get_count(void)
  */
 ui_event textui_get_command(int *count)
 {
-	const struct keypress *act = NULL;
 	ui_event event = EVENT_EMPTY;
 
-	while (true) {
+	while (event.type == EVT_NONE) {
+		const struct keypress *keymap = NULL;
+
 		message_skip_more();
 
 		ui_event event = inkey_simple();
 
 		if (event.type == EVT_KBRD) {
-			bool find_keymap = true;
-			switch (event.key.code) {
-				case '0': {
-					int c = textui_get_count();
-					if (c > 0 && get_com_mouse_or_key("Command: ", &event)) {
-						*count = c;
-					} else {
-						continue;
-					}
-					break;
-				}
-				case '\\': {
-					/* Allow keymaps to be bypassed */
-					get_com_mouse_or_key("Command: ", &event);
-					find_keymap = false;
-					break;
-				}
-				case '^': {
-					char ch;
-					/* Allow "control chars" to be entered */
-					if (get_com("Control: ", &ch)) {
-						event.key.code = KTRL(ch);
-					}
-					break;
-				}
-			}
-			if (find_keymap) {
-				act = keymap_find(OPT(rogue_like_commands) ?
-						KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG, event.key);
-			}
+			textui_get_command_aux(&event, count, &keymap);
 		}
 
 		clear_prompt();
 
 		/* Apply keymap if not inside a keymap already */
-		if (!inkey_state_has_keymap() && act) {
+		if (!inkey_state_has_keymap() && keymap != NULL) {
 			size_t n = 0;
-			while (act[n].type) {
+			while (keymap[n].type) {
 				n++;
 			}
-			inkey_state_add_keymap(act, n);
-			continue;
+			inkey_state_add_keymap(keymap, n);
+			event.type = EVT_NONE;
 		}
-
-		break;
 	}
 
 	return event;
