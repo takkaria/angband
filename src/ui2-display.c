@@ -144,9 +144,9 @@ void cnv_stat(int val, char *out_val, size_t out_len)
 /* "-more-" is 6 chars; 1 for preceding space; 1 for cursor */
 #define MSG_MORE_LEN 8
 
-static void msg_more(int x)
+static void message_more(int x)
 {
-	if (!OPT(auto_more)) {
+	if (!auto_more()) {
 		Term_addws(x, 0, MSG_MORE_LEN, COLOUR_L_BLUE, L"-more-");
 		Term_cursor_visible(true);
 
@@ -165,7 +165,7 @@ static void msg_more(int x)
  * Allow multiple short messages to share the top line.
  * Prompt the user to make sure he has a chance to read them.
  */
-void display_message(game_event_type type, game_event_data *data, void *user)
+static void display_message(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 
@@ -188,7 +188,7 @@ void display_message(game_event_type type, game_event_data *data, void *user)
 	if (aterm->offset_x > 0
 			&& aterm->offset_x + len > wrap)
 	{
-		msg_more(aterm->offset_x);
+		message_more(aterm->offset_x);
 		aterm->offset_x = 0;
 	}
 
@@ -205,7 +205,7 @@ void display_message(game_event_type type, game_event_data *data, void *user)
 		}
 
 		Term_addws(0, 0, split, color, ws);
-		msg_more(split + 1);
+		message_more(split + 1);
 
 		ws += split;
 		len -= split;
@@ -222,7 +222,7 @@ void display_message(game_event_type type, game_event_data *data, void *user)
 /**
  * Flush the output before displaying for emphasis
  */
-void bell_message(game_event_type type, game_event_data *data, void *user)
+static void bell_message(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
@@ -234,7 +234,7 @@ void bell_message(game_event_type type, game_event_data *data, void *user)
 /**
  * Print the queued messages.
  */
-void message_flush(game_event_type type, game_event_data *data, void *user)
+static void message_flush(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
@@ -244,13 +244,21 @@ void message_flush(game_event_type type, game_event_data *data, void *user)
 	Term_push(aterm->term);
 
 	if (aterm->offset_x > 0) {
-		msg_more(aterm->offset_x);
+		message_more(aterm->offset_x);
 		aterm->offset_x = 0;
 	}
 
 	Term_flush_output();
 	Term_redraw_screen();
 	Term_pop();
+}
+
+/*
+ * skip next "-more-" prompt, if any
+ */
+void message_skip_more(void)
+{
+	angband_message_line.offset_x = 0;
 }
 
 /**
@@ -2157,7 +2165,7 @@ static void see_floor_items(game_event_type type,
 		show_floor(floor_list, floor_num, OLIST_WEIGHT, NULL);
 		prt(format("You %s: ", p), 0, 0);
 
-		ui_event event = inkey_ex();
+		ui_event event = inkey_simple();
 		Term_prepend_events(&event, 1);
 
 		Term_pop();
@@ -2384,8 +2392,7 @@ static void ui_enter_game(game_event_type type,
 	event_add_handler(EVENT_BELL, bell_message, NULL);
 
 	/* Tell the UI to ignore all pending input */
-	/* TODO give this function a better name */
-	event_add_handler(EVENT_INPUT_FLUSH, flush, NULL);
+	event_add_handler(EVENT_INPUT_FLUSH, inkey_flush, NULL);
 
 	/* Print all waiting messages */
 	event_add_handler(EVENT_MESSAGE_FLUSH, message_flush, &angband_message_line);
@@ -2405,7 +2412,7 @@ static void ui_leave_game(game_event_type type,
 	event_remove_handler(EVENT_BELL, bell_message, NULL);
 
 	/* Tell the UI to ignore all pending input */
-	event_remove_handler(EVENT_INPUT_FLUSH, flush, NULL);
+	event_remove_handler(EVENT_INPUT_FLUSH, inkey_flush, NULL);
 
 	/* Print all waiting messages */
 	event_remove_handler(EVENT_MESSAGE_FLUSH, message_flush, NULL);
