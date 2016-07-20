@@ -24,6 +24,10 @@
 #include "ui2-event.h"
 #include "ui2-term.h"
 
+/* milliseconds to wait between checking for events;
+ * inkey_wait() takes the number of this periods as an argument */
+#define INKEY_SCAN_PERIOD 10
+
 /**
  * Holds a generic command - if cmd is set to other than CMD_NULL 
  * it simply pushes that command to the game, otherwise the hook 
@@ -54,30 +58,31 @@ extern struct cmd_info cmd_util[];
 extern struct cmd_info cmd_hidden[];
 extern struct command_list cmds_all[];
 
-extern struct keypress *inkey_next;
-extern u32b inkey_scan;
-extern bool inkey_flag;
-extern u16b lazymove_delay;
-extern bool msg_flag;
+void inkey_flush(game_event_type unused, game_event_data *data, void *user);
+struct keypress inkey_only_key(void);
+ui_event inkey_mouse_or_key(void);
+ui_event inkey_simple(void);
+ui_event inkey_wait(int scans);
 
-void flush(game_event_type unused, game_event_data *data, void *user);
+bool auto_more(void);
+
 void anykey(void);
-ui_event inkey_ex(void);
-struct keypress inkey(void);
-ui_event inkey_m(void);
+void pause_line(void);
+
 bool askfor_aux_keypress(char *buf, size_t buflen,
 		size_t *curs, size_t *len, struct keypress keypress, bool firsttime);
 bool askfor_aux(char *buf, size_t len,
 		bool (*keypress_h)(char *, size_t, size_t *, size_t *, struct keypress, bool));
-bool get_character_name(char *buf, size_t buflen);
-char get_char(const char *prompt,
-		const char *options, size_t len, char fallback);
+
 extern bool (*get_file)(const char *suggested_name, char *path, size_t len);
+
+bool get_character_name(char *buf, size_t buflen);
+char get_char(const char *prompt, const char *options, size_t len, char fallback);
 bool get_com_ex(const char *prompt, ui_event *command);
-void pause_line(struct term *term);
-void textui_input_init(void);
-ui_event textui_get_command(int *count);
 bool key_confirm_command(unsigned char c);
 bool textui_process_key(struct keypress kp, unsigned char *c, int count);
+ui_event textui_get_command(int *count);
+
+void textui_input_init(void);
 
 #endif /* UI2_INPUT_H */

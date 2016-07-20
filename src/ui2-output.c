@@ -195,7 +195,7 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 			display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 					line_lengths, n_lines, area, start_line);
 
-			struct keypress ch = inkey();
+			struct keypress ch = inkey_only_key();
 
 			switch (ch.code) {
 				case ARROW_UP:
@@ -225,7 +225,7 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 		c_prt(COLOUR_WHITE, "", n_lines, area.col);
 		c_prt(COLOUR_L_BLUE, "(Press any key to continue.)",
 				n_lines + 1, area.col);
-		inkey();
+		anykey();
 	}
 
 	mem_free(line_starts);

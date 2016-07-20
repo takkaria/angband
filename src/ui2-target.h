@@ -23,16 +23,16 @@
 #include "ui2-event.h"
 
 /**
- * Convert a "key event" into a "location" (Y)
+ * Convert a mouse event into a location (y coordinate)
  */
-#define KEY_GRID_Y(K) \
-  ((int) (((K.mouse.y - ROW_MAP) / tile_height) + Term->offset_y))
+#define EVENT_GRID_Y(e) \
+  ((int) ((e).mouse.y + angband_cave.offset_y))
 
 /**
- * Convert a "key event" into a "location" (X)
+ * Convert a mouse event into a location (x coordinate)
  */
-#define KEY_GRID_X(K) \
-	((int) (((K.mouse.x - COL_MAP) / tile_width) + Term->offset_x))
+#define EVENT_GRID_X(e) \
+	((int) ((e).mouse.x + angband_cave.offset_x))
 
 
 /**

@@ -21,8 +21,7 @@
 /**
  * The various UI events that can occur.
  */
-typedef enum
-{
+typedef enum {
 	EVT_NONE	= 0x0000,
 
 	/* Basic events */
@@ -48,7 +47,6 @@ typedef enum
 #define KC_MOD_ALT      0x04
 #define KC_MOD_META     0x08
 #define KC_MOD_KEYPAD   0x10
-
 
 /**
  * The game assumes that in certain cases, the effect of a modifer key will
@@ -97,6 +95,17 @@ typedef enum
  */
 #define UN_KTRL(X) \
 	((X) + 64)
+
+/**
+ * Mouse button definitions
+ */
+
+enum {
+	/* backwards compat */
+	MOUSE_BUTTON_LEFT = 1,
+	MOUSE_BUTTON_RIGHT = 2,
+	MOUSE_BUTTON_MIDDLE
+};
 
 /**
  * Keyset mappings for various keys.
@@ -224,4 +233,4 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src);
 
 extern bool char_matches_key(wchar_t c, keycode_t key);
 
-#endif /* INCLUDED_UI2_EVENT_H */
+#endif /* UI2_EVENT_H */
