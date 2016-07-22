@@ -696,7 +696,7 @@ void pause_line(void)
 	struct term_hints hints = {
 		.width = sizeof(msg) - 1,
 		.height = 1,
-		.position = TERM_POSITION_CENTERED,
+		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
