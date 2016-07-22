@@ -21,10 +21,11 @@
 
 #include "ui2-term.h"
 #include "ui2-display.h"
+#include "z-type.h"
 
 extern void grid_data_as_point(struct grid_data *g, struct term_point *point);
-extern void move_cursor_relative(struct angband_term *aterm, int y, int x);
-extern void print_rel(struct angband_term *aterm, uint32_t attr, wchar_t ch, int y, int x);
+extern void move_cursor_relative(struct angband_term *aterm, struct loc coords);
+extern void print_rel(struct angband_term *aterm, uint32_t attr, wchar_t ch, struct loc coords);
 extern void print_map(struct angband_term *aterm);
 extern void do_cmd_view_map(void);
 

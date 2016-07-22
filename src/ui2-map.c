@@ -323,12 +323,12 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 	tpf_wipe(point->flags);
 }
 
-void move_cursor_relative(struct angband_term *aterm, int y, int x)
+void move_cursor_relative(struct angband_term *aterm, struct loc coords)
 {
 	Term_push(aterm->term);
 
-	int relx = x - aterm->offset_x;
-	int rely = y - aterm->offset_y;
+	int relx = coords.x - aterm->offset_x;
+	int rely = coords.y - aterm->offset_y;
 
 	if (Term_point_ok(relx, rely)) {
 		Term_cursor_to_xy(relx, rely);
@@ -338,17 +338,18 @@ void move_cursor_relative(struct angband_term *aterm, int y, int x)
 }
 
 void print_rel(struct angband_term *aterm,
-		uint32_t attr, wchar_t ch, int y, int x)
+		uint32_t attr, wchar_t ch, struct loc coords)
 {
 	Term_push(aterm->term);
 
-	int relx = x - aterm->offset_x;
-	int rely = y - aterm->offset_y;
+	int relx = coords.x - aterm->offset_x;
+	int rely = coords.y - aterm->offset_y;
 
 	if (Term_point_ok(relx, rely)) {
 		struct term_point point;
 		Term_get_point(relx, rely, &point);
 
+		/* Use different point to quickly wipe all flags */
 		struct term_point other = {
 			.fg_attr = attr,
 			.fg_char = ch,
@@ -519,7 +520,7 @@ void do_cmd_view_map(void)
 	Term_flush_output();
 	Term_redraw_screen();
 
-	anykey();
+	inkey_any();
 
 	Term_pop();
 }
