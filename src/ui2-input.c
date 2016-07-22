@@ -968,8 +968,7 @@ static void textui_get_command_aux(ui_event *event,
 	}
 
 	if (keymap != NULL) {
-		*keymap = keymap_find(OPT(rogue_like_commands) ?
-				KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG, event->key);
+		*keymap = keymap_find(KEYMAP_MODE_OPT, event->key);
 	}
 }
 
