@@ -696,12 +696,12 @@ void pause_line(void)
 	struct term_hints hints = {
 		.width = sizeof(msg) - 1,
 		.height = 1,
-		.position = TERM_POSITION_CENTER,
+		.position = TERM_POSITION_BOTTOM_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
 
-	put_str(msg, 0, 0);
+	put_str(msg, loc(0, 0));
 	inkey_any();
 
 	Term_pop();
