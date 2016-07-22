@@ -21,6 +21,7 @@
 
 #include "ui2-event.h"
 #include "ui2-display.h"
+#include "z-type.h"
 #include "z-textblock.h"
 
 /**
@@ -43,29 +44,24 @@ struct region {
 };
 
 /**
- * Region that defines the full screen
- */
-static const region SCREEN_REGION = {0, 0, 0, 0};
-
-/**
  * Erase the contents of a region
  */
-void region_erase(const region *loc);
+void region_erase(region reg);
 
 /**
  * Erase the contents of a region + 1 char each way
  */
-void region_erase_bordered(const region *loc);
+void region_erase_bordered(region reg);
 
 /**
  * Given a region with relative values, make them absolute
  */
-region region_calculate(region loc);
+region region_calculate(region reg);
 
 /**
- * Check whether a (mouse) event is inside a region
+ * Check whether a mouse) event is inside a region
  */
-bool region_inside(const region *loc, const ui_event *event);
+bool region_inside(region reg, struct mouseclick mouse);
 
 /**
  * ------------------------------------------------------------------------
@@ -91,10 +87,10 @@ void text_out_e(const char *fmt, ...);
  * ------------------------------------------------------------------------
  * Simple text display
  * ------------------------------------------------------------------------ */
-void c_put_str(uint32_t attr, const char *str, int row, int col);
-void put_str(const char *str, int row, int col);
-void c_prt(uint32_t attr, const char *str, int row, int col);
-void prt(const char *str, int row, int col);
+void c_put_str(uint32_t attr, const char *str, struct loc at);
+void put_str(const char *str, struct loc at);
+void c_prt(uint32_t attr, const char *str, struct loc at);
+void prt(const char *str, struct loc at);
 
 void show_prompt(const char *str);
 void clear_prompt(void);
@@ -103,15 +99,19 @@ void clear_prompt(void);
  * ------------------------------------------------------------------------
  * Miscellaneous things
  * ------------------------------------------------------------------------ */
-bool panel_should_modify(const struct angband_term *aterm, int y, int x);
-bool modify_panel(struct angband_term *aterm, int y, int x);
+bool panel_should_modify(const struct angband_term *aterm, struct loc coords);
+bool modify_panel(struct angband_term *aterm, struct loc coords);
+bool adjust_panel(struct angband_term *aterm, struct loc coords);
 bool change_panel(struct angband_term *aterm, int dir);
 void verify_panel(struct angband_term *aterm);
 void center_panel(struct angband_term *aterm);
+
+void window_make(struct loc start, struct loc end);
+void clear_from(int row);
+
+bool textui_map_is_visible(void);
+
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x);
 bool textui_panel_contains(unsigned int y, unsigned int x);
-bool textui_map_is_visible(void);
-void window_make(int origin_x, int origin_y, int end_x, int end_y);
-void clear_from(int row);
 
 #endif /* UI2_OUTPUT_H */

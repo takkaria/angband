@@ -18,9 +18,9 @@
 #include "angband.h"
 #include "cave.h"
 #include "player-calcs.h"
+#include "z-textblock.h"
 #include "ui2-input.h"
 #include "ui2-output.h"
-#include "z-textblock.h"
 
 /* scroll when player is too close to the edge of a term
  * TODO this should be an option */
@@ -36,30 +36,30 @@
  * mostly (but not exclusively) by the menu functions.
  */
 
-region region_calculate(region loc)
+region region_calculate(region reg)
 {
 	int w, h;
 	Term_get_size(&w, &h);
 
-	if (loc.col < 0) {
-		loc.col += w;
+	if (reg.col < 0) {
+		reg.col += w;
 	}
-	if (loc.row < 0) {
-		loc.row += h;
+	if (reg.row < 0) {
+		reg.row += h;
 	}
-	if (loc.width <= 0) {
-		loc.width += w - loc.col;
+	if (reg.width <= 0) {
+		reg.width += w - reg.col;
 	}
-	if (loc.page_rows <= 0) {
-		loc.page_rows += h - loc.row;
+	if (reg.page_rows <= 0) {
+		reg.page_rows += h - reg.row;
 	}
 
-	return loc;
+	return reg;
 }
 
-void region_erase_bordered(const region *loc)
+void region_erase_bordered(region reg)
 {
-	region calc = region_calculate(*loc);
+	region calc = region_calculate(reg);
 
 	calc.col = MAX(calc.col - 1, 0);
 	calc.row = MAX(calc.row - 1, 0);
@@ -71,21 +71,21 @@ void region_erase_bordered(const region *loc)
 	}
 }
 
-void region_erase(const region *loc)
+void region_erase(region reg)
 {
-	region calc = region_calculate(*loc);
+	region calc = region_calculate(reg);
 
 	for (int y = 0; y < calc.page_rows; y++) {
 		Term_erase(calc.col, calc.row + y, calc.width);
 	}
 }
 
-bool region_inside(const region *loc, const ui_event *event)
+bool region_inside(region reg, struct mouseclick mouse)
 {
-	return loc->col <= event->mouse.x
-		&& loc->col + loc->width > event->mouse.x
-		&& loc->row <= event->mouse.y
-		&& loc->row + loc->page_rows > event->mouse.y;
+	return reg.col <= mouse.x
+		&& reg.col + reg.width > mouse.x
+		&& reg.row <= mouse.y
+		&& reg.row + reg.page_rows > mouse.y;
 }
 
 /**
@@ -137,7 +137,7 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
 
 	if (header != NULL) {
 		area.page_rows--;
-		c_prt(COLOUR_L_BLUE, header, area.row, area.col);
+		c_prt(COLOUR_L_BLUE, header, loc(area.col, area.row));
 		area.row++;
 	}
 
@@ -174,21 +174,21 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	};
 	Term_push_new(&hints);
 	
-	/* make room for the footer */
+	/* Make room for the footer */
 	area.page_rows -= 2;
 
 	if (header != NULL) {
 		area.page_rows--;
-		c_prt(COLOUR_L_BLUE, header, area.row, area.col);
+		c_prt(COLOUR_L_BLUE, header, loc(area.col, area.row));
 		area.row++;
 	}
 
 	if (n_lines > (size_t) area.page_rows) {
 		int start_line = 0;
 
-		c_prt(COLOUR_WHITE, "", area.page_rows, area.col);
+		c_prt(COLOUR_WHITE, "", loc(area.col, area.page_rows));
 		c_prt(COLOUR_L_BLUE, "(Up/down or ESCAPE to exit.)",
-				area.page_rows + 1, area.col);
+				loc(area.col, area.page_rows + 1));
 
 		/* Pager mode */
 		while (true) {
@@ -222,10 +222,10 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 		display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 				line_lengths, n_lines, area, 0);
 
-		c_prt(COLOUR_WHITE, "", n_lines, area.col);
+		c_prt(COLOUR_WHITE, "", loc(area.col, n_lines));
 		c_prt(COLOUR_L_BLUE, "(Press any key to continue.)",
-				n_lines + 1, area.col);
-		anykey();
+				loc(area.col, n_lines + 1));
+		inkey_any();
 	}
 
 	mem_free(line_starts);
@@ -250,31 +250,23 @@ int text_out_indent = 0;
  */
 int text_out_pad = 0;
 
-static void text_out_newline(int *col, int *row)
+static void text_out_newline(struct loc *cursor)
 {
-	int x = text_out_indent;
-	int y = *row;
-
-	y++;
-	Term_erase_from(x, y);
-	x += text_out_pad;
-	Term_cursor_to_xy(x, y);
-
-	*col = x;
-	*row = y;
+	cursor->y++;
+	cursor->x = text_out_indent;
+	Term_erase_from(cursor->x, cursor->y);
+	cursor->x += text_out_pad;
+	Term_cursor_to_xy(cursor->x, cursor->y);
 }
 
-static void text_out_backtrack(int wrap, int *col, int *row)
+static void text_out_backtrack(int wrap, struct loc *cursor)
 {
-	int x = *col;
-	int y = *row;
-
 	assert(wrap > 0);
 	struct term_point points[wrap];
 
 	int split = 0;
 	for (int w = wrap - 1; w > text_out_indent + text_out_pad; w--) {
-		Term_get_point(w, y, &points[w]);
+		Term_get_point(w, cursor->y, &points[w]);
 
 		if (points[w].fg_char == L' ') {
 			split = w + 1;
@@ -285,20 +277,17 @@ static void text_out_backtrack(int wrap, int *col, int *row)
 	/* split == 0 when there are no spaces in this line
 	 * split == wrap when the last char in this line is space */
 	if (split > 0 && split < wrap) {
-		Term_erase_from(split, y);
-		text_out_newline(&x, &y);
+		Term_erase_from(split, cursor->y);
+		text_out_newline(cursor);
 
 		while (split < wrap) {
 			Term_putwc(points[split].fg_attr, points[split].fg_char);
 			split++;
-			x++;
+			cursor->x++;
 		}
 	} else {
-		text_out_newline(&x, &y);
+		text_out_newline(cursor);
 	}
-
-	*col = x;
-	*row = y;
 }
 
 /**
@@ -320,33 +309,32 @@ static void text_out_to_screen(uint32_t attr, const char *str)
 
 	assert(text_out_indent + text_out_pad < wrap);
 
-	int x;
-	int y;
-	Term_get_cursor(&x, &y, NULL, NULL);
+	struct loc cursor;
+	Term_get_cursor(&cursor.x, &cursor.y, NULL, NULL);
 
 	wchar_t buf[1024];
 	text_mbstowcs(buf, str, sizeof(buf));
 	
 	for (const wchar_t *ws = buf; *ws; ws++) {
 		if (*ws == L'\n') {
-			text_out_newline(&x, &y);
+			text_out_newline(&cursor);
 			continue;
 		}
 
 		wchar_t ch = iswprint(*ws) ? *ws : L' ';
 
 		/* Wrap words as needed */
-		if (x >= wrap) {
+		if (cursor.x >= wrap) {
 			if (ch == L' ') {
-				text_out_newline(&x, &y);
+				text_out_newline(&cursor);
 				continue;
 			} else {
-				text_out_backtrack(wrap, &x, &y);
+				text_out_backtrack(wrap, &cursor);
 			}
 		}
 
 		Term_putwc(attr, ch);
-		x++;
+		cursor.x++;
 	}
 }
 
@@ -550,36 +538,35 @@ void clear_prompt(void)
  * add the given string.  Do not clear the line. Ignore strings
  * with invalid coordinates.
  */
-void c_put_str(uint32_t attr, const char *str, int row, int col) {
-	/* Position cursor, Dump the attr/text */
-	if (Term_point_ok(col, row)) {
-		Term_adds(col, row, Term_width(), attr, str);
+void c_put_str(uint32_t attr, const char *str, struct loc at) {
+	if (Term_point_ok(at.x, at.y)) {
+		Term_adds(at.x, at.y, Term_width(), attr, str);
 	}
 }
 
 /**
  * As above, but in white
  */
-void put_str(const char *str, int row, int col) {
-	c_put_str(COLOUR_WHITE, str, row, col);
+void put_str(const char *str, struct loc at) {
+	c_put_str(COLOUR_WHITE, str, at);
 }
 
 /**
  * Display a string on the screen using an attribute, and clear to the
  * end of the line. Ignore strings with invalid coordinates.
  */
-void c_prt(uint32_t attr, const char *str, int row, int col) {
-	if (Term_point_ok(col, row)) {
-		Term_erase_from(col, row);
-		Term_adds(col, row, Term_width(), attr, str);
+void c_prt(uint32_t attr, const char *str, struct loc at) {
+	if (Term_point_ok(at.x, at.y)) {
+		Term_erase_from(at.x, at.y);
+		Term_adds(at.x, at.y, Term_width(), attr, str);
 	}
 }
 
 /**
  * As above, but in white
  */
-void prt(const char *str, int row, int col) {
-	c_prt(COLOUR_WHITE, str, row, col);
+void prt(const char *str, struct loc at) {
+	c_prt(COLOUR_WHITE, str, at);
 }
 
 /**
@@ -590,34 +577,34 @@ void prt(const char *str, int row, int col) {
 /**
  * A Hengband-like 'window' function, that draws a surround box in ASCII art.
  */
-void window_make(int origin_x, int origin_y, int end_x, int end_y)
+void window_make(struct loc start, struct loc end)
 {
 	region to_clear = {
-		.col = origin_x,
-		.row = origin_y,
-		.width = end_x - origin_x,
-		.page_rows = end_y - origin_y
+		.col = start.x,
+		.row = start.y,
+		.width = end.x - start.x,
+		.page_rows = end.y - start.y
 	};
 
-	region_erase(&to_clear);
+	region_erase(to_clear);
 
-	Term_addwc(origin_x, origin_y, COLOUR_WHITE, L'+');
-	Term_addwc(end_x, origin_y, COLOUR_WHITE, L'+');
-	Term_addwc(origin_x, end_y, COLOUR_WHITE, L'+');
-	Term_addwc(end_x, end_y, COLOUR_WHITE, L'+');
+	Term_addwc(start.x, start.y, COLOUR_WHITE, L'+');
+	Term_addwc(end.x, start.y, COLOUR_WHITE, L'+');
+	Term_addwc(start.x, end.y, COLOUR_WHITE, L'+');
+	Term_addwc(end.x, end.y, COLOUR_WHITE, L'+');
 
-	for (int x = origin_x + 1; x < end_x; x++) {
-		Term_addwc(x, origin_y, COLOUR_WHITE, L'-');
-		Term_addwc(x, end_y, COLOUR_WHITE, L'-');
+	for (int x = start.x + 1; x < end.x; x++) {
+		Term_addwc(x, start.y, COLOUR_WHITE, L'-');
+		Term_addwc(x, end.y, COLOUR_WHITE, L'-');
 	}
 
-	for (int y = origin_y + 1; y < end_y; y++) {
-		Term_addwc(origin_x, y, COLOUR_WHITE, L'|');
-		Term_addwc(end_x, y, COLOUR_WHITE, L'|');
+	for (int y = start.y + 1; y < end.y; y++) {
+		Term_addwc(start.x, y, COLOUR_WHITE, L'|');
+		Term_addwc(end.x, y, COLOUR_WHITE, L'|');
 	}
 }
 
-static void panel_fix_coords(const struct angband_term *aterm, int *y, int *x)
+static void panel_fix_coords(const struct angband_term *aterm, struct loc *coords)
 {
 	Term_push(aterm->term);
 
@@ -626,20 +613,20 @@ static void panel_fix_coords(const struct angband_term *aterm, int *y, int *x)
 	Term_get_size(&width, &height);
 	Term_pop();
 
-	int curx = *x;
-	int cury = *y;
-	int maxx = cave->width - width;
-	int maxy = cave->height - height;
+	const int curx = coords->x;
+	const int cury = coords->y;
+	const int maxx = cave->width - width;
+	const int maxy = cave->height - height;
 
-	*x = MAX(0, MIN(curx, maxx));
-	*y = MAX(0, MIN(cury, maxy));
+	coords->x = MAX(0, MIN(curx, maxx));
+	coords->y = MAX(0, MIN(cury, maxy));
 }
 
-bool panel_should_modify(const struct angband_term *aterm, int y, int x)
+bool panel_should_modify(const struct angband_term *aterm, struct loc coords)
 {
-	panel_fix_coords(aterm, &y, &x);
+	panel_fix_coords(aterm, &coords);
 
-	return aterm->offset_y != y || aterm->offset_x != x;
+	return aterm->offset_x != coords.x || aterm->offset_y != coords.y;
 }
 
 /**
@@ -647,19 +634,14 @@ bool panel_should_modify(const struct angband_term *aterm, int y, int x)
  * ensure the coordinates are legal, and return true if anything done.
  *
  * The town should never be scrolled around.
- *
- * Note that monsters are no longer affected in any way by panel changes.
- *
- * As a total hack, whenever the current panel changes, we assume that
- * the "overhead view" window should be updated.
  */
-bool modify_panel(struct angband_term *aterm, int y, int x)
+bool modify_panel(struct angband_term *aterm, struct loc coords)
 {
-	panel_fix_coords(aterm, &y, &x);
+	panel_fix_coords(aterm, &coords);
 
-	if (aterm->offset_x != x || aterm->offset_y != y) {
-		aterm->offset_x = x;
-		aterm->offset_y = y;
+	if (aterm->offset_x != coords.x || aterm->offset_y != coords.y) {
+		aterm->offset_x = coords.x;
+		aterm->offset_y = coords.y;
 
 		player->upkeep->redraw |= PR_MAP;
 
@@ -709,7 +691,7 @@ static void verify_panel_int(struct angband_term *aterm, bool centered)
 		offset_y = player_y - term_height / 2;
 	}
 
-	modify_panel(aterm, offset_y, offset_x);
+	modify_panel(aterm, loc(offset_x, offset_y));
 }
 
 /**
@@ -730,11 +712,7 @@ bool change_panel(struct angband_term *aterm, int dir)
 	int offset_x = aterm->offset_x + ddx[dir] * term_width / 2;
 	int offset_y = aterm->offset_y + ddy[dir] * term_height / 2;
 
-	if (modify_panel(aterm, offset_y, offset_x)) {
-		return true;
-	} else {
-		return false;
-	}
+	return modify_panel(aterm, loc(offset_x, offset_y));
 }
 
 /**
@@ -745,8 +723,7 @@ bool change_panel(struct angband_term *aterm, int dir)
  * is no longer so close to the edge.
  *
  * The "OPT(center_player)" option allows the current panel to always be
- * centered around the player, which is very expensive, and also has some
- * interesting gameplay ramifications.
+ * centered around the player
  */
 void verify_panel(struct angband_term *aterm)
 {
@@ -758,6 +735,39 @@ void center_panel(struct angband_term *aterm)
 	verify_panel_int(aterm, true);
 }
 
+/**
+ * Perform the minimum whole panel adjustment to ensure that the given
+ * location is contained inside the current panel, and return true if any
+ * such adjustment was performed.
+ */
+bool adjust_panel(struct angband_term *aterm, struct loc coords)
+{
+	Term_push(aterm->term);
+	int term_width;
+	int term_height;
+	Term_get_size(&term_width, &term_height);
+	Term_pop();
+
+	int ox = aterm->offset_x;
+	int oy = aterm->offset_y;
+
+	while (coords.x >= ox + term_width) {
+		ox += term_width / 2;
+	}
+	while (coords.x < ox) {
+		ox -= term_width / 2;
+	}
+	while (coords.y >= oy + term_height) {
+		oy += term_height / 2;
+	}
+	while (coords.y < oy) {
+		oy -= term_height / 2;
+	}
+
+	return modify_panel(aterm, loc(ox, oy));
+}
+
+/* TODO use struct loc instead */
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 {
 	struct angband_term *aterm = &angband_cave;
@@ -776,6 +786,7 @@ void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 	*max_x = aterm->offset_x + height;
 }
 
+/* TODO use struct loc instead */
 bool textui_panel_contains(unsigned int y, unsigned int x)
 {
 	struct angband_term *aterm = &angband_cave;
