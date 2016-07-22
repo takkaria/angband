@@ -82,7 +82,9 @@ struct term_create_info;
 enum term_position {
 	TERM_POSITION_NONE,
 	TERM_POSITION_EXACT,
-	TERM_POSITION_CENTERED
+	TERM_POSITION_CENTER,
+	TERM_POSITION_TOP_CENTER,
+	TERM_POSITION_BOTTOM_CENTER
 };
 
 enum term_purpose {
