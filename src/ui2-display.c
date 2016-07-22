@@ -150,7 +150,7 @@ static void message_more(int x)
 		Term_addws(x, 0, MSG_MORE_LEN, COLOUR_L_BLUE, L"-more-");
 		Term_cursor_visible(true);
 
-		anykey();
+		inkey_any();
 
 		Term_cursor_visible(false);
 	}
@@ -232,7 +232,7 @@ static void bell_message(game_event_type type, game_event_data *data, void *user
 }
 
 /**
- * Print the queued messages.
+ * Print the "-more-" prompt
  */
 static void message_flush(game_event_type type, game_event_data *data, void *user)
 {
@@ -270,76 +270,80 @@ void message_skip_more(void)
 /**
  * Print character info at given row, column in a 13 char field
  */
-static void prt_field(const char *info, int row, int col)
+static void prt_field(const char *info, struct loc coords)
 {
-	Term_erase_from(col, row);
+	Term_erase_from(coords.x, coords.y);
 	/* Dump the info itself */
-	c_put_str(COLOUR_L_BLUE, info, row, col);
+	c_put_str(COLOUR_L_BLUE, info, coords);
 }
 
 /**
  * Print character stat in given row, column
  */
-static void prt_stat(int stat, int row, int col)
+static void prt_stat(int stat, struct loc coords)
 {
 	char tmp[32];
 
 	/* Injured or healthy stat */
 	if (player->stat_cur[stat] < player->stat_max[stat]) {
-		put_str(stat_names_reduced[stat], row, col);
+		put_str(stat_names_reduced[stat], coords);
 		cnv_stat(player->state.stat_use[stat], tmp, sizeof(tmp));
-		c_put_str(COLOUR_YELLOW, tmp, row, col + 6);
+		c_put_str(COLOUR_YELLOW, tmp, loc(coords.x + 6, coords.y));
 	} else {
-		put_str(stat_names[stat], row, col);
+		put_str(stat_names[stat], coords);
 		cnv_stat(player->state.stat_use[stat], tmp, sizeof(tmp));
-		c_put_str(COLOUR_L_GREEN, tmp, row, col + 6);
+		c_put_str(COLOUR_L_GREEN, tmp, loc(coords.x + 6, coords.y));
 	}
 
 	/* Indicate natural maximum */
-	if (player->stat_max[stat] == 18+100)
-		put_str("!", row, col + 3);
+	if (player->stat_max[stat] == 18 + 100) {
+		put_str("!", loc(coords.x + 3, coords.y));
+	}
 }
 
 /**
  * Prints "title", including "wizard" or "winner" as needed.
  */
-static void prt_title(int row, int col)
+static void prt_title(struct loc coords)
 {
 	const char *p;
 
 	/* Wizard, winner or neither */
-	if (player->wizard)
+	if (player->wizard) {
 		p = "[=-WIZARD-=]";
-	else if (player->total_winner || (player->lev > PY_MAX_LEVEL))
+	} else if (player->total_winner || (player->lev > PY_MAX_LEVEL)) {
 		p = "***WINNER***";
-	else
+	} else {
 		p = player->class->title[(player->lev - 1) / 5];
+	}
 
-	prt_field(p, row, col);
+	prt_field(p, coords);
 }
 
 /**
  * Prints level
  */
-static void prt_level(int row, int col)
+static void prt_level(struct loc coords)
 {
 	char tmp[32];
 
 	strnfmt(tmp, sizeof(tmp), "%6d", player->lev);
 
 	if (player->lev >= player->max_lev) {
-		put_str("LEVEL ", row, col);
-		c_put_str(COLOUR_L_GREEN, tmp, row, col + 6);
+		put_str("LEVEL ", coords);
+		coords.x += 6;
+		c_put_str(COLOUR_L_GREEN, tmp, coords);
 	} else {
-		put_str("Level ", row, col);
-		c_put_str(COLOUR_YELLOW, tmp, row, col + 6);
+		put_str("Level ", coords);
+		coords.x += 6;
+		c_put_str(COLOUR_YELLOW, tmp, coords);
 	}
 }
 
 /**
  * Display the experience
  */
-static void prt_exp(int row, int col)
+static void prt_exp(struct loc coords)
 {
 	char out_val[32];
 	bool lev50 = player->lev == 50;
@@ -356,33 +360,36 @@ static void prt_exp(int row, int col)
 	strnfmt(out_val, sizeof(out_val), "%8d", xp);
 
 	if (player->exp >= player->max_exp) {
-		put_str((lev50 ? "EXP" : "NXT"), row, col);
-		c_put_str(COLOUR_L_GREEN, out_val, row, col + 4);
+		put_str((lev50 ? "EXP" : "NXT"), coords);
+		coords.x += 4;
+		c_put_str(COLOUR_L_GREEN, out_val, coords);
 	} else {
-		put_str((lev50 ? "Exp" : "Nxt"), row, col);
-		c_put_str(COLOUR_YELLOW, out_val, row, col + 4);
+		put_str((lev50 ? "Exp" : "Nxt"), coords);
+		coords.x += 4;
+		c_put_str(COLOUR_YELLOW, out_val, coords);
 	}
 }
 
 /**
  * Prints current gold
  */
-static void prt_gold(int row, int col)
+static void prt_gold(struct loc coords)
 {
 	char tmp[32];
 
-	put_str("AU ", row, col);
+	put_str("AU ", coords);
+	coords.x += 3;
 	strnfmt(tmp, sizeof(tmp), "%9d", player->au);
-	c_put_str(COLOUR_L_GREEN, tmp, row, col + 3);
+	c_put_str(COLOUR_L_GREEN, tmp, coords);
 }
 
 /**
  * Equippy chars (ASCII representation of gear in equipment slot order)
  */
-static void prt_equippy(int row, int col)
+static void prt_equippy(struct loc coords)
 {
 
-	for (int i = 0; i < player->body.count; i++) {
+	for (int i = 0; i < player->body.count; i++, coords.x++) {
 		wchar_t ch = ' ';
 		uint32_t attr = COLOUR_WHITE;
 
@@ -393,45 +400,51 @@ static void prt_equippy(int row, int col)
 			attr = object_attr(obj);
 		}
 
-		Term_addwc(col + i, row, attr, ch);
+		Term_addwc(coords.x, coords.y, attr, ch);
 	}
 }
 
 /**
  * Prints current AC
  */
-static void prt_ac(int row, int col)
+static void prt_ac(struct loc coords)
 {
 	char tmp[32];
 
-	put_str("Cur AC ", row, col);
+	put_str("Cur AC ", coords);
+	coords.x += 7;
 	strnfmt(tmp, sizeof(tmp), "%5d", 
 			player->known_state.ac + player->known_state.to_a);
-	c_put_str(COLOUR_L_GREEN, tmp, row, col + 7);
+	c_put_str(COLOUR_L_GREEN, tmp, coords);
 }
 
 /**
  * Prints current hitpoints
  */
-static void prt_hp(int row, int col)
+static void prt_hp(struct loc coords)
 {
 	char cur_hp[32], max_hp[32];
 	byte color = player_hp_attr(player);
 
-	put_str("HP ", row, col);
+	put_str("HP ", coords);
+	coords.x += 3;
 
 	strnfmt(max_hp, sizeof(max_hp), "%4d", player->mhp);
 	strnfmt(cur_hp, sizeof(cur_hp), "%4d", player->chp);
-	
-	c_put_str(color, cur_hp, row, col + 3);
-	c_put_str(COLOUR_WHITE, "/", row, col + 7);
-	c_put_str(COLOUR_L_GREEN, max_hp, row, col + 8);
+
+	c_put_str(color, cur_hp, coords);
+	coords.x += 4;
+
+	c_put_str(COLOUR_WHITE, "/", coords);
+	coords.x += 1;
+
+	c_put_str(COLOUR_L_GREEN, max_hp, coords);
 }
 
 /**
  * Prints players max/cur spell points
  */
-static void prt_sp(int row, int col)
+static void prt_sp(struct loc coords)
 {
 	char cur_sp[32], max_sp[32];
 	byte color = player_sp_attr(player);
@@ -441,21 +454,26 @@ static void prt_sp(int row, int col)
 		(player->lev < player->class->magic.spell_first))
 		return;
 
-	put_str("SP ", row, col);
+	put_str("SP ", coords);
+	coords.x += 3;
 
 	strnfmt(max_sp, sizeof(max_sp), "%4d", player->msp);
 	strnfmt(cur_sp, sizeof(cur_sp), "%4d", player->csp);
 
 	/* Show mana */
-	c_put_str(color, cur_sp, row, col + 3);
-	c_put_str(COLOUR_WHITE, "/", row, col + 7);
-	c_put_str(COLOUR_L_GREEN, max_sp, row, col + 8);
+	c_put_str(color, cur_sp, coords);
+	coords.x += 4;
+
+	c_put_str(COLOUR_WHITE, "/", coords);
+	coords.x += 1;
+
+	c_put_str(COLOUR_L_GREEN, max_sp, coords);
 }
 
 /**
  * Calculate the monster bar color separately, for ports.
  */
-uint32_t monster_health_attr(struct monster *mon)
+uint32_t monster_health_attr(const struct monster *mon)
 {
 	/* Default to almost dead */
 	uint32_t attr = COLOUR_RED;
@@ -520,14 +538,14 @@ uint32_t monster_health_attr(struct monster *mon)
  * is being tracked, we clear the health bar.  If the monster being
  * tracked is not currently visible, a special health bar is shown.
  */
-static void prt_health(int row, int col)
+static void prt_health(struct loc coords)
 {
-	struct monster *mon = player->upkeep->health_who;
+	const struct monster *mon = player->upkeep->health_who;
 
 	/* Not tracking */
 	if (!mon) {
 		/* Erase the health bar */
-		Term_erase(col, row, 12);
+		Term_erase(coords.x, coords.y, 12);
 		return;
 	}
 
@@ -535,27 +553,27 @@ static void prt_health(int row, int col)
 
 	/* Tracking an unseen, hallucinatory, or dead monster */
 	if (!mflag_has(mon->mflag, MFLAG_VISIBLE) /* Unseen */
-			|| (player->timed[TMD_IMAGE])     /* Hallucination */
-			|| (mon->hp < 0))                 /* Dead (?) */
+			|| player->timed[TMD_IMAGE]     /* Hallucination */
+			|| mon->hp < 0)                 /* Dead (?) */
 	{
 		/* The monster health is unknown */
-		Term_adds(col, row, 12, attr, "[----------]");
+		Term_adds(coords.x, coords.y, 12, attr, "[----------]");
 	} else {
 		/* Extract the percent of health */
 		int pct = 100L * mon->hp / mon->maxhp;
 		/* Convert percent into health */
 		int len = (pct < 10) ? 1 : (pct < 90) ? (pct / 10 + 1) : 10;
 		/* Default to unknown */
-		Term_adds(col, row, 12, COLOUR_WHITE, "[----------]");
+		Term_adds(coords.x, coords.y, 12, COLOUR_WHITE, "[----------]");
 		/* Dump the current health (use '*' symbols) */
-		Term_adds(col + 1, row, len, attr, "**********");
+		Term_adds(coords.x + 1, coords.y, len, attr, "**********");
 	}
 }
 
 /**
  * Prints the speed of a character.
  */
-static void prt_speed(int row, int col)
+static void prt_speed(struct loc coords)
 {
 	int speed = player->state.speed;
 
@@ -577,13 +595,13 @@ static void prt_speed(int row, int col)
 		strnfmt(buf, sizeof(buf), "%s (%+d)", type, (speed - 110));
 	}
 
-	c_put_str(attr, format("%-10s", buf), row, col);
+	c_put_str(attr, format("%-10s", buf), coords);
 }
 
 /**
  * Prints depth in stat area
  */
-static void prt_depth(int row, int col)
+static void prt_depth(struct loc coords)
 {
 	char depths[32];
 
@@ -595,27 +613,27 @@ static void prt_depth(int row, int col)
 	}
 
 	/* Right-adjust the depth, and clear old values */
-	put_str(format("%-13s", depths), row, col);
+	put_str(format("%-13s", depths), coords);
 }
 
 /**
  * Some simple wrapper functions
  */
-static void prt_str(int row, int col)   { prt_stat(STAT_STR, row, col); }
-static void prt_dex(int row, int col)   { prt_stat(STAT_DEX, row, col); }
-static void prt_wis(int row, int col)   { prt_stat(STAT_WIS, row, col); }
-static void prt_int(int row, int col)   { prt_stat(STAT_INT, row, col); }
-static void prt_con(int row, int col)   { prt_stat(STAT_CON, row, col); }
-static void prt_race(int row, int col)  { prt_field(player->race->name, row, col); } 
-static void prt_class(int row, int col) { prt_field(player->class->name, row, col); }
+static void prt_str(struct loc coords)   { prt_stat(STAT_STR, coords); }
+static void prt_dex(struct loc coords)   { prt_stat(STAT_DEX, coords); }
+static void prt_wis(struct loc coords)   { prt_stat(STAT_WIS, coords); }
+static void prt_int(struct loc coords)   { prt_stat(STAT_INT, coords); }
+static void prt_con(struct loc coords)   { prt_stat(STAT_CON, coords); }
+static void prt_race(struct loc coords)  { prt_field(player->race->name, coords); } 
+static void prt_class(struct loc coords) { prt_field(player->class->name, coords); }
 
 /**
  * Struct of sidebar handlers.
  */
 static const struct side_handler_t {
-	void (*hook)(int ros, int col);
-	unsigned priority;		 /* 0 is most important */
-	game_event_type type;	 /* PR_* flag this corresponds to */
+	void (*hook)(struct loc coords);
+	int priority;         /* 0 is most important */
+	game_event_type type; /* PR_* flag this corresponds to */
 } side_handlers[] = {
 	{ prt_race,    19, EVENT_RACE_CLASS },
 	{ prt_title,   18, EVENT_PLAYERTITLE },
@@ -656,21 +674,18 @@ static void update_sidebar(game_event_type type,
 
 	Term_push(ANGBAND_TERM(user)->term);
 
-	unsigned height = Term_height();
+	int height = Term_height();
+	struct loc coords = {0, 0};
 
-	/* Display list entries */
-	for (size_t i = 0, row = 0;
-			i < N_ELEMENTS(side_handlers) && row < height;
-			i++)
-	{
+	for (size_t i = 0; i < N_ELEMENTS(side_handlers) && coords.y < height; i++) {
 		const struct side_handler_t *handler = &side_handlers[i];
-
+		assert(handler->priority >= 0);
 		/* If this is high enough priority, display it */
 		if (handler->priority < height) {
 			if (handler->type == type && handler->hook != NULL) {
-				handler->hook(row, 0);
+				handler->hook(coords);
 			}
-			row++;
+			coords.y++;
 		}
 	}
 
@@ -690,7 +705,7 @@ static void hp_colour_change(game_event_type type,
 	(void) data;
 	(void) user;
 
-	if ((OPT(hp_changes_color)) && (use_graphics == GRAPHICS_NONE)) {
+	if ((OPT(hp_changes_color)) && use_graphics == GRAPHICS_NONE) {
 		square_light_spot(cave, player->py, player->px);
 	}
 }
@@ -714,13 +729,13 @@ struct state_info {
  * TMD_CUT descriptions
  */
 static const struct state_info cut_data[] = {
-	STATE_INFO(1000, "Mortal wound", COLOUR_L_RED ),
-	STATE_INFO( 200, "Deep gash",    COLOUR_RED ),
-	STATE_INFO( 100, "Severe cut",   COLOUR_RED ),
-	STATE_INFO(  50, "Nasty cut",    COLOUR_ORANGE ),
-	STATE_INFO(  25, "Bad cut",      COLOUR_ORANGE ),
-	STATE_INFO(  10, "Light cut",    COLOUR_YELLOW ),
-	STATE_INFO(   0, "Graze",        COLOUR_YELLOW )
+	STATE_INFO(1000, "Mortal wound", COLOUR_L_RED),
+	STATE_INFO( 200, "Deep gash",    COLOUR_RED),
+	STATE_INFO( 100, "Severe cut",   COLOUR_RED),
+	STATE_INFO(  50, "Nasty cut",    COLOUR_ORANGE),
+	STATE_INFO(  25, "Bad cut",      COLOUR_ORANGE),
+	STATE_INFO(  10, "Light cut",    COLOUR_YELLOW),
+	STATE_INFO(   0, "Graze",        COLOUR_YELLOW)
 };
 
 /**
@@ -780,10 +795,10 @@ static const struct state_info effects[] = {
 /**
  * Print recall status.
  */
-static size_t prt_recall(int row, int col)
+static size_t prt_recall(struct loc coords)
 {
 	if (player->word_recall) {
-		c_put_str(COLOUR_WHITE, "Recall", row, col);
+		c_put_str(COLOUR_WHITE, "Recall", coords);
 		return sizeof("Recall");
 	}
 
@@ -793,20 +808,20 @@ static size_t prt_recall(int row, int col)
 /**
  * Print deep descent status.
  */
-static size_t prt_descent(int row, int col)
+static size_t prt_descent(struct loc coords)
 {
 	if (player->deep_descent) {
-		c_put_str(COLOUR_WHITE, "Descent", row, col);
+		c_put_str(COLOUR_WHITE, "Descent", coords);
 		return sizeof("Descent");
 	}
 
 	return 0;
 }
 
-static size_t prt_data(struct state_info info, int row, int col)
+static size_t prt_data(struct state_info info, struct loc coords)
 {
 	if (info.str[0]) {
-		c_put_str(info.attr, info.str, row, col);
+		c_put_str(info.attr, info.str, coords);
 		return info.len;
 	} else {
 		return 0;
@@ -816,11 +831,11 @@ static size_t prt_data(struct state_info info, int row, int col)
 /**
  * Print cut indicator.
  */
-static size_t prt_cut(int row, int col)
+static size_t prt_cut(struct loc coords)
 {
 	for (size_t i = 0; i < N_ELEMENTS(cut_data); i++) {
 		if (player->timed[TMD_CUT] > cut_data[i].value) {
-			return prt_data(cut_data[i], row, col);
+			return prt_data(cut_data[i], coords);
 		}
 	}
 
@@ -830,11 +845,11 @@ static size_t prt_cut(int row, int col)
 /**
  * Print stun indicator.
  */
-static size_t prt_stun(int row, int col)
+static size_t prt_stun(struct loc coords)
 {
 	for (size_t i = 0; i < N_ELEMENTS(stun_data); i++) {
 		if (player->timed[TMD_STUN] > stun_data[i].value) {
-			return prt_data(stun_data[i], row, col);
+			return prt_data(stun_data[i], coords);
 		}
 	}
 
@@ -844,11 +859,11 @@ static size_t prt_stun(int row, int col)
 /**
  * Prints status of hunger
  */
-static size_t prt_hunger(int row, int col)
+static size_t prt_hunger(struct loc coords)
 {
 	for (size_t i = 0; i <= N_ELEMENTS(hunger_data); i++) {
 		if (player->food <= hunger_data[i].value) {
-			return prt_data(hunger_data[i], row, col);
+			return prt_data(hunger_data[i], coords);
 		}
 	}
 
@@ -862,7 +877,7 @@ static size_t prt_hunger(int row, int col)
  * This function was a major bottleneck when resting, so a lot of
  * the text formatting code was optimized in place below.
  */
-static size_t prt_state(int row, int col)
+static size_t prt_state(struct loc coords)
 {
 	uint32_t attr = COLOUR_WHITE;
 	char text[16] = "Rest      ";
@@ -915,7 +930,7 @@ static size_t prt_state(int row, int col)
 		}
 	}
 
-	c_put_str(attr, text, row, col);
+	c_put_str(attr, text, coords);
 
 	return strlen(text);
 }
@@ -923,16 +938,16 @@ static size_t prt_state(int row, int col)
 /* Colors used to display each obj feeling 	*/
 static const uint32_t obj_feeling_color[] = {
 	COLOUR_WHITE,    /* "Looks like any other level." */
-	COLOUR_L_PURPLE, /* "you sense an item of wondrous power!" */
-	COLOUR_L_RED,    /* "there are superb treasures here." */
-	COLOUR_ORANGE,   /* "there are excellent treasures here." */
-	COLOUR_YELLOW,   /* "there are very good treasures here." */
-	COLOUR_YELLOW,   /* "there are good treasures here." */
-	COLOUR_L_GREEN,  /* "there may be something worthwhile here." */
-	COLOUR_L_GREEN,  /* "there may not be much interesting here." */
-	COLOUR_L_GREEN,  /* "there aren't many treasures here." */
-	COLOUR_L_BLUE,   /* "there are only scraps of junk here." */
-	COLOUR_L_BLUE    /* "there are naught but cobwebs here. */
+	COLOUR_L_PURPLE, /* "You sense an item of wondrous power!" */
+	COLOUR_L_RED,    /* "There are superb treasures here." */
+	COLOUR_ORANGE,   /* "There are excellent treasures here." */
+	COLOUR_YELLOW,   /* "There are very good treasures here." */
+	COLOUR_YELLOW,   /* "There are good treasures here." */
+	COLOUR_L_GREEN,  /* "There may be something worthwhile here." */
+	COLOUR_L_GREEN,  /* "There may not be much interesting here." */
+	COLOUR_L_GREEN,  /* "There aren't many treasures here." */
+	COLOUR_L_BLUE,   /* "There are only scraps of junk here." */
+	COLOUR_L_BLUE    /* "There are naught but cobwebs here." */
 };
 
 /* Colors used to display each monster feeling */
@@ -952,7 +967,7 @@ static const uint32_t mon_feeling_color[] = {
 /**
  * Prints level feelings at status if they are enabled.
  */
-static size_t prt_level_feeling(int row, int col)
+static size_t prt_level_feeling(struct loc coords)
 {
 	/* Don't show feelings for cold-hearted characters
 	 * no useful feelings in town */
@@ -1014,27 +1029,27 @@ static size_t prt_level_feeling(int row, int col)
 
 	/* Display it */
 
-	int old_col = col;
+	const int oldx = coords.x;
 
-	c_put_str(COLOUR_WHITE, "LF:", row, col);
-	col += 3;
+	c_put_str(COLOUR_WHITE, "LF:", coords);
+	coords.x += 3;
 
-	c_put_str(mon_feeling_color[mon_feeling], mon_feeling_str, row, col);
-	col += strlen(mon_feeling_str);
+	c_put_str(mon_feeling_color[mon_feeling], mon_feeling_str, coords);
+	coords.x += strlen(mon_feeling_str);
 
-	c_put_str(COLOUR_WHITE, "-", row, col);
-	col++;
+	c_put_str(COLOUR_WHITE, "-", coords);
+	coords.x++;
 
-	c_put_str(obj_feeling_color_print, obj_feeling_str, row, col);
-	col += strlen(obj_feeling_str) + 1;
+	c_put_str(obj_feeling_color_print, obj_feeling_str, coords);
+	coords.x += strlen(obj_feeling_str) + 1;
 
-	return col - old_col;
+	return coords.x - oldx;
 }
 
 /**
  * Print how many spells the player can study.
  */
-static size_t prt_study(int row, int col)
+static size_t prt_study(struct loc coords)
 {
 	if (player->upkeep->new_spells == 0) {
 		return 0;
@@ -1044,7 +1059,7 @@ static size_t prt_study(int row, int col)
 		COLOUR_WHITE : COLOUR_L_DARK;
 	char *str = format("Study (%d)", player->upkeep->new_spells);
 
-	c_put_str(attr, str, row, col);
+	c_put_str(attr, str, coords);
 
 	return strlen(str) + 1;
 }
@@ -1052,28 +1067,27 @@ static size_t prt_study(int row, int col)
 /**
  * Print all timed effects.
  */
-static size_t prt_tmd(int row, int col)
+static size_t prt_tmd(struct loc coords)
 {
-	size_t len = 0;
+	const int oldx = coords.x;
 
 	for (size_t i = 0; i < N_ELEMENTS(effects); i++)
 		if (player->timed[effects[i].value]) {
-			c_put_str(effects[i].attr, effects[i].str, row, col + len);
-			len += effects[i].len;
+			c_put_str(effects[i].attr, effects[i].str, coords);
+			coords.x += effects[i].len;
 		}
 
-	return len;
+	return coords.x - oldx;
 }
 
 /**
  * Print "unignoring" status
  */
-static size_t prt_unignore(int row, int col)
+static size_t prt_unignore(struct loc coords)
 {
 	if (player->unignoring) {
-		const char str[] = "Unignoring";
-		put_str(str, row, col);
-		return sizeof(str);
+		put_str("Unignoring", coords);
+		return sizeof("Unignoring");
 	}
 
 	return 0;
@@ -1082,7 +1096,7 @@ static size_t prt_unignore(int row, int col)
 /**
  * Descriptive typedef for status handlers
  */
-typedef size_t status_f(int row, int col);
+typedef size_t status_f(struct loc coords);
 
 static status_f *status_handlers[] = {
 	prt_level_feeling,
@@ -1109,8 +1123,9 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 	Term_erase_from(0, 0);
 
-	for (size_t i = 0, col = 0; i < N_ELEMENTS(status_handlers); i++) {
-		col += status_handlers[i](0, col);
+	struct loc coords = {0, 0};
+	for (size_t i = 0; i < N_ELEMENTS(status_handlers); i++) {
+		coords.x += status_handlers[i](coords);
 	}
 
 	Term_flush_output();
@@ -1159,21 +1174,22 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 
 			struct term_point point;
 			grid_data_as_point(&g, &point);
-			Term_add_point(relx, rely, point);
+			Term_set_point(relx, rely, point);
 #ifdef MAP_DEBUG
 			/* Plot 'spot' updates in light green to make them visible */
-			Term_addwchar(relx, rely,
-					COLOUR_L_GREEN, fg_char, bg_attr, bg_char, NULL);
+			point.fg_attr = COLOUR_L_GREEN;
+			Term_set_point(relx, rely, point);
 #endif
 		}
 	}
 
 	/* Refresh the main screen unless the map needs to center */
 	if (player->upkeep->update & PU_PANEL && OPT(center_player)) {
-		int x = player->py - Term_width() / 2;
-		int y = player->px - Term_height() / 2;
-
-		if (panel_should_modify(ANGBAND_TERM(user), y, x)) {
+		struct loc coords = {
+			.x = player->px - Term_width() / 2,
+			.y = player->py - Term_height() / 2
+		};
+		if (panel_should_modify(ANGBAND_TERM(user), coords)) {
 			Term_pop();
 			return;
 		}
@@ -1293,25 +1309,24 @@ void idle_update(void)
 
 /**
  * Find the attr/char pair to use for a spell effect
- *
- * It is moving (or has moved) from (x, y) to (newx, newy); if the distance is not
+ * It is moving (or has moved) from old to new; if the distance is not
  * one, we (may) return "*".
  */
-static void bolt_pict(int y, int x, int newy, int newx,
+static void bolt_pict(struct loc old, struct loc new,
 		int typ, uint32_t *attr, wchar_t *ch)
 {
 	int motion;
 
 	/* Convert co-ordinates into motion */
-	if (newy == y && newx == x) {
+	if (new.y == old.y && new.x == old.x) {
 		motion = BOLT_NO_MOTION;
-	} else if (newx == x) {
+	} else if (new.x == old.x) {
 		motion = BOLT_0;
-	} else if (newy - y == x - newx) {
+	} else if (new.y - old.y == old.x - new.x) {
 		motion = BOLT_45;
-	} else if (newy == y) {
+	} else if (new.y == old.y) {
 		motion = BOLT_90;
-	} else if (newy - y == newx - x) {
+	} else if (new.y - old.y == new.x - old.x) {
 		motion = BOLT_135;
 	} else {
 		motion = BOLT_NO_MOTION;
@@ -1319,7 +1334,6 @@ static void bolt_pict(int y, int x, int newy, int newx,
 
 	/* Decide on output char */
 	if (use_graphics == GRAPHICS_NONE) {
-		/* ASCII is simple */
 		const wchar_t chars[] = L"*|/-\\";
 
 		*attr = gf_color(typ);
@@ -1353,8 +1367,10 @@ static void display_explosion(game_event_type type,
 	/* Draw the blast from inside out */
 	for (int i = 0; i < num_grids; i++) {
 		/* Extract the location */
-		int y = blast_grid[i].y;
-		int x = blast_grid[i].x;
+		struct loc coords = {
+			.x = blast_grid[i].x,
+			.y = blast_grid[i].y
+		};
 
 		/* Only do visuals if the player can see the blast */
 		if (player_sees_grid[i]) {
@@ -1364,10 +1380,10 @@ static void display_explosion(game_event_type type,
 			drawn = true;
 
 			/* Obtain the explosion pict */
-			bolt_pict(y, x, y, x, gf_type, &attr, &ch);
+			bolt_pict(coords, coords, gf_type, &attr, &ch);
 
 			/* Just display the pict, ignoring what was under it */
-			print_rel(ANGBAND_TERM(user), attr, ch, y, x);
+			print_rel(ANGBAND_TERM(user), attr, ch, coords);
 		}
 
 		/* Check for new radius, taking care not to overrun array */
@@ -1425,32 +1441,36 @@ static void display_bolt(game_event_type type,
 	bool drawing = data->bolt.drawing;
 	bool seen = data->bolt.seen;
 	bool beam = data->bolt.beam;
-	int oy = data->bolt.oy;
-	int ox = data->bolt.ox;
-	int y = data->bolt.y;
-	int x = data->bolt.x;
+	struct loc old = {
+		.x = data->bolt.ox,
+		.y = data->bolt.oy
+	};
+	struct loc new = {
+		.x = data->bolt.x,
+		.y = data->bolt.y
+	};
 
 	/* Only do visuals if the player can "see" the bolt */
 	if (seen) {
 		uint32_t attr;
 		wchar_t ch;
-		bolt_pict(oy, ox, y, x, gf_type, &attr, &ch);
+		bolt_pict(old, new, gf_type, &attr, &ch);
 
-		print_rel(ANGBAND_TERM(user), attr, ch, y, x);
+		print_rel(ANGBAND_TERM(user), attr, ch, new);
 
 		Term_flush_output();
 		Term_redraw_screen();
 		Term_delay(op_ptr->delay_factor);
 
-		event_signal_point(EVENT_MAP, x, y);
+		event_signal_point(EVENT_MAP, new.x, new.y);
 
 		Term_flush_output();
 		Term_redraw_screen();
 
 		/* Display "beam" grids */
 		if (beam) {
-			bolt_pict(y, x, y, x, gf_type, &attr, &ch);
-			print_rel(ANGBAND_TERM(user), attr, ch, y, x);
+			bolt_pict(new, new, gf_type, &attr, &ch);
+			print_rel(ANGBAND_TERM(user), attr, ch, new);
 		}
 	} else if (drawing) {
 		/* Delay for consistency */
@@ -1473,18 +1493,20 @@ static void display_missile(game_event_type type,
 
 	struct object *obj = data->missile.obj;
 	bool seen = data->missile.seen;
-	int y = data->missile.y;
-	int x = data->missile.x;
+	struct loc coords = {
+		.x = data->missile.x,
+		.y = data->missile.y
+	};
 
 	/* Only do visuals if the player can "see" the missile */
 	if (seen) {
-		print_rel(ANGBAND_TERM(user), object_attr(obj), object_char(obj), y, x);
+		print_rel(ANGBAND_TERM(user), object_attr(obj), object_char(obj), coords);
 
 		Term_flush_output();
 		Term_redraw_screen();
 		Term_delay(op_ptr->delay_factor);
 
-		event_signal_point(EVENT_MAP, x, y);
+		event_signal_point(EVENT_MAP, coords.x, coords.y);
 
 		Term_flush_output();
 		Term_redraw_screen();
@@ -1722,37 +1744,47 @@ static void update_player_compact_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	int row = 0;
-	int col = 0;
-
 	Term_push(ANGBAND_TERM(user)->term);
 
+	struct loc coords = {0, 0};
+
 	/* Race and Class */
-	prt_field(player->race->name, row++, col);
-	prt_field(player->class->name, row++, col);
+	prt_field(player->race->name, coords);
+	coords.y++;
+	prt_field(player->class->name, coords);
+	coords.y++;
 	/* Title */
-	prt_title(row++, col);
+	prt_title(coords);
+	coords.y++;
 	/* Level/Experience */
-	prt_level(row++, col);
-	prt_exp(row++, col);
+	prt_level(coords);
+	coords.y++;
+	prt_exp(coords);
+	coords.y++;
 	/* Gold */
-	prt_gold(row++, col);
+	prt_gold(coords);
+	coords.y++;
 	/* Equippy chars */
-	prt_equippy(row++, col);
+	prt_equippy(coords);
+	coords.y++;
 	/* All Stats */
 	for (int i = 0; i < STAT_MAX; i++) {
-		prt_stat(i, row++, col);
+		prt_stat(i, coords);
+		coords.y++;
 	}
 	/* Empty row */
-	row++;
+	coords.y++;
 	/* Armor */
-	prt_ac(row++, col);
+	prt_ac(coords);
+	coords.y++;
 	/* Hitpoints */
-	prt_hp(row++, col);
+	prt_hp(coords);
+	coords.y++;
 	/* Spellpoints */
-	prt_sp(row++, col);
+	prt_sp(coords);
+	coords.y++;
 	/* Monster health */
-	prt_health(row++, col);
+	prt_health(coords);
 
 	Term_flush_output();
 	Term_pop();
@@ -1914,16 +1946,15 @@ static void splashscreen_note(game_event_type type,
 	(void) user;
 
 	if (data->message.type == MSG_BIRTH) {
-		static int y = 2;
+		static struct loc coords = {0, 2};
 
-		/* Draw the message */
-		prt(data->message.msg, y, 0);
-		/* TODO UI2 pause_line(ANGBAND_TERM(user)); */
+		prt(data->message.msg, coords);
+		pause_line();
 
 		/* Advance one line (wrap if needed) */
-		y++;
-		if (y >= 24) {
-			y = 2;
+		coords.y++;
+		if (coords.y >= 24) {
+			coords.y = 2;
 		}
 	} else {
 		int width;
@@ -2002,9 +2033,9 @@ static void refresh(game_event_type type, game_event_data *data, void *user)
 
 	/* Place cursor on player/target */
 	if (OPT(show_target) && target_sighted()) {
-		int col, row;
-		target_get(&col, &row);
-		move_cursor_relative(ANGBAND_TERM(user), row, col);
+		struct loc coords;
+		target_get(&coords.x, &coords.y);
+		move_cursor_relative(ANGBAND_TERM(user), coords);
 	}
 
 	Term_flush_output();
@@ -2154,6 +2185,7 @@ static void see_floor_items(game_event_type type,
 		} else if (blind) {
 			p = "feel something on the floor";
 		}
+		show_prompt(format("You %s: ", p));
 
 		/* Display objects on the floor */
 		struct term_hints hints = {
@@ -2163,7 +2195,6 @@ static void see_floor_items(game_event_type type,
 		Term_push_new(&hints);
 
 		show_floor(floor_list, floor_num, OLIST_WEIGHT, NULL);
-		prt(format("You %s: ", p), 0, 0);
 
 		ui_event event = inkey_simple();
 		Term_prepend_events(&event, 1);
@@ -2237,7 +2268,7 @@ static void ui_leave_init(game_event_type type,
 	event_remove_handler(EVENT_INITSTATUS, splashscreen_note, NULL);
 
 	/* Flash a message */
-	prt("Please wait...", 0, 0);
+	prt("Please wait...", loc(0, 0));
 
 	/* Flush the message */
 	Term_flush_output();

@@ -96,7 +96,7 @@ struct angband_terms {
 extern struct angband_terms angband_terms;
 
 void message_skip_more(void);
-uint32_t monster_health_attr(struct monster *mon);
+uint32_t monster_health_attr(const struct monster *mon);
 void cnv_stat(int val, char *out_val, size_t out_len);
 void idle_update(void);
 void toggle_inven_equip(void);
