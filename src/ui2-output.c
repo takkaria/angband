@@ -747,16 +747,16 @@ bool adjust_panel(struct angband_term *aterm, struct loc coords)
 	int ox = aterm->offset_x;
 	int oy = aterm->offset_y;
 
-	while (coords.x >= ox + term_width) {
+	while (ox + term_width <= coords.x) {
 		ox += term_width / 2;
 	}
-	while (coords.x < ox) {
+	while (ox > coords.x) {
 		ox -= term_width / 2;
 	}
-	while (coords.y >= oy + term_height) {
+	while (oy + term_height <= coords.y) {
 		oy += term_height / 2;
 	}
-	while (coords.y < oy) {
+	while (oy > coords.y) {
 		oy -= term_height / 2;
 	}
 
