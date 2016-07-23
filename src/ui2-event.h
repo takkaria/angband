@@ -104,7 +104,7 @@ enum {
 	/* backwards compat */
 	MOUSE_BUTTON_LEFT = 1,
 	MOUSE_BUTTON_RIGHT = 2,
-	MOUSE_BUTTON_MIDDLE
+	MOUSE_BUTTON_MIDDLE = 3
 };
 
 /**
