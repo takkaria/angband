@@ -1,6 +1,6 @@
 /**
- * \file ui-target.h
- * \brief UI for targetting code
+ * \file ui2-target.h
+ * \brief UI for targeting code
  *
  * Copyright (c) 1997-2014 Angband contributors
  *
@@ -16,10 +16,10 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 
-
 #ifndef UI2_TARGET_H
 #define UI2_TARGET_H
 
+#include "z-type.h"
 #include "ui2-event.h"
 
 /**
@@ -34,23 +34,15 @@
 #define EVENT_GRID_X(e) \
 	((int) ((e).mouse.x + angband_cave.offset_x))
 
-
-/**
- * Height of the help screen; any higher than 4 will overlap the health
- * bar which we want to keep in targeting mode.
+/*
+ * Time to pause (in milliseconds) after targeting a monster with "'" command
  */
-#define HELP_HEIGHT 3
+#define TARGET_CLOSEST_DELAY 150
 
-/**
- * Size of the array that is used for object names during targeting.
- */
-#define TARGET_OUT_VAL_SIZE 256
-
-int target_dir(struct keypress ch);
-int target_dir_allow(struct keypress ch, bool allow_5);
-void target_display_help(bool monster, bool free);
+int target_dir(struct keypress key);
+int target_dir_allow(struct keypress key, bool allow_5);
 void textui_target(void);
 void textui_target_closest(void);
-bool target_set_interactive(int mode, int x, int y);
+bool target_set_interactive(int mode, struct loc coords);
 
 #endif /* UI2_TARGET_H */
