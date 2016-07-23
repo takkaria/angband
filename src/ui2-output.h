@@ -24,6 +24,10 @@
 #include "z-type.h"
 #include "z-textblock.h"
 
+/* scroll when player is too close to the edge of a term
+ * TODO this should be an option */
+#define SCROLL_DISTANCE 3
+
 /**
  * ------------------------------------------------------------------------
  * Regions

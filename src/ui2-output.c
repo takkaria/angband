@@ -22,10 +22,6 @@
 #include "ui2-input.h"
 #include "ui2-output.h"
 
-/* scroll when player is too close to the edge of a term
- * TODO this should be an option */
-#define SCROLL_DISTANCE 3
-
 /**
  * ------------------------------------------------------------------------
  * Regions
