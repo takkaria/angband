@@ -250,7 +250,7 @@ static void text_out_newline(struct loc *cursor)
 {
 	cursor->y++;
 	cursor->x = text_out_indent;
-	Term_erase_from(cursor->x, cursor->y);
+	Term_erase_line(cursor->x, cursor->y);
 	cursor->x += text_out_pad;
 	Term_cursor_to_xy(cursor->x, cursor->y);
 }
@@ -273,7 +273,7 @@ static void text_out_backtrack(int wrap, struct loc *cursor)
 	/* split == 0 when there are no spaces in this line
 	 * split == wrap when the last char in this line is space */
 	if (split > 0 && split < wrap) {
-		Term_erase_from(split, cursor->y);
+		Term_erase_line(split, cursor->y);
 		text_out_newline(cursor);
 
 		while (split < wrap) {
@@ -553,7 +553,7 @@ void put_str(const char *str, struct loc at) {
  */
 void c_prt(uint32_t attr, const char *str, struct loc at) {
 	if (Term_point_ok(at.x, at.y)) {
-		Term_erase_from(at.x, at.y);
+		Term_erase_line(at.x, at.y);
 		Term_adds(at.x, at.y, Term_width(), attr, str);
 	}
 }
@@ -814,6 +814,6 @@ void clear_from(int row)
 	int height = Term_height();
 
 	for (int y = row; y < height; y++) {
-		Term_erase_from(0, y);
+		Term_erase_line(0, y);
 	}
 }

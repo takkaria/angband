@@ -671,7 +671,7 @@ void Term_erase(int x, int y, int len)
 	term_wipe_line(x, y, len);
 }
 
-void Term_erase_from(int x, int y)
+void Term_erase_line(int x, int y)
 {
 	STACK_OK();
 

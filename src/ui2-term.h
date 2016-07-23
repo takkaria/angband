@@ -173,7 +173,7 @@ void Term_dirty_all(void);
 /* erase len characters starting at x, y; this function does not move the cursor */
 void Term_erase(int x, int y, int len);
 /* as above, but erase all characters starting at x, y */
-void Term_erase_from(int x, int y);
+void Term_erase_line(int x, int y);
 /* wipe the whole window */
 void Term_clear(void);
 

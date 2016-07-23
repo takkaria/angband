@@ -155,7 +155,7 @@ static void message_more(int x)
 		Term_cursor_visible(false);
 	}
 
-	Term_erase_from(0, 0);
+	Term_erase_line(0, 0);
 }
 
 /**
@@ -272,7 +272,7 @@ void message_skip_more(void)
  */
 static void prt_field(const char *info, struct loc coords)
 {
-	Term_erase_from(coords.x, coords.y);
+	Term_erase_line(coords.x, coords.y);
 	/* Dump the info itself */
 	c_put_str(COLOUR_L_BLUE, info, coords);
 }
@@ -1121,7 +1121,7 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 	Term_push(ANGBAND_TERM(user)->term);
 
-	Term_erase_from(0, 0);
+	Term_erase_line(0, 0);
 
 	struct loc coords = {0, 0};
 	for (size_t i = 0; i < N_ELEMENTS(status_handlers); i++) {
@@ -1693,7 +1693,7 @@ static void update_messages_subwindow(game_event_type type,
 			msg = format("%s <%dx>", str, count);
 		}
 
-		Term_erase_from(0, height - 1 - i);
+		Term_erase_line(0, height - 1 - i);
 		Term_adds(0, height - 1 - i, width, color, msg);
 	}
 
@@ -1962,7 +1962,7 @@ static void splashscreen_note(game_event_type type,
 		Term_get_size(&width, &height);
 
 		char *s = format("[%s]", data->message.msg);
-		Term_erase_from(0, (height - 23) / 5 + 23);
+		Term_erase_line(0, (height - 23) / 5 + 23);
 		Term_adds((width - strlen(s)) / 2, (height - 23) / 5 + 23,
 				width, COLOUR_WHITE, s);
 	}
