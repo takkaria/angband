@@ -76,12 +76,12 @@ void region_erase(region reg)
 	}
 }
 
-bool region_inside(region reg, struct mouseclick mouse)
+bool region_inside(const region *reg, const struct mouseclick *mouse)
 {
-	return reg.col <= mouse.x
-		&& reg.col + reg.width > mouse.x
-		&& reg.row <= mouse.y
-		&& reg.row + reg.page_rows > mouse.y;
+	return reg->col <= mouse->x
+		&& reg->col + reg->width > mouse->x
+		&& reg->row <= mouse->y
+		&& reg->row + reg->page_rows > mouse->y;
 }
 
 /**
