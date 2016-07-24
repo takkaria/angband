@@ -37,14 +37,14 @@
  */
 typedef struct region region;
 
-/* non-positive values of col, row, width or height
+/* non-positive values of x, y, width or height
  * are relative, to, respectively,
- * left, top, right and bottom of the screen */
+ * left, top, right and bottom of the subwindow */
 struct region {
-	int col;
-	int row;
-	int width;
-	int page_rows;
+	int x;
+	int y;
+	int w;
+	int h;
 };
 
 /**

@@ -34,20 +34,21 @@
 
 region region_calculate(region reg)
 {
-	int w, h;
-	Term_get_size(&w, &h);
+	int width;
+	int height;
+	Term_get_size(&width, &height);
 
-	if (reg.col < 0) {
-		reg.col += w;
+	if (reg.x < 0) {
+		reg.x += width;
 	}
-	if (reg.row < 0) {
-		reg.row += h;
+	if (reg.y < 0) {
+		reg.y += height;
 	}
-	if (reg.width <= 0) {
-		reg.width += w - reg.col;
+	if (reg.w <= 0) {
+		reg.w += width - reg.x;
 	}
-	if (reg.page_rows <= 0) {
-		reg.page_rows += h - reg.row;
+	if (reg.h <= 0) {
+		reg.h += height - reg.y;
 	}
 
 	return reg;
@@ -57,13 +58,13 @@ void region_erase_bordered(region reg)
 {
 	region calc = region_calculate(reg);
 
-	calc.col = MAX(calc.col - 1, 0);
-	calc.row = MAX(calc.row - 1, 0);
-	calc.width += 2;
-	calc.page_rows += 2;
+	calc.x = MAX(calc.x - 1, 0);
+	calc.y = MAX(calc.y - 1, 0);
+	calc.w += 2;
+	calc.h += 2;
 
-	for (int y = 0; y < calc.page_rows; y++) {
-		Term_erase(calc.col, calc.row + y, calc.width);
+	for (int y = 0; y < calc.h; y++) {
+		Term_erase(calc.x, calc.x + y, calc.w);
 	}
 }
 
@@ -71,17 +72,17 @@ void region_erase(region reg)
 {
 	region calc = region_calculate(reg);
 
-	for (int y = 0; y < calc.page_rows; y++) {
-		Term_erase(calc.col, calc.row + y, calc.width);
+	for (int y = 0; y < calc.h; y++) {
+		Term_erase(calc.x, calc.y + y, calc.w);
 	}
 }
 
 bool region_inside(const region *reg, const struct mouseclick *mouse)
 {
-	return reg->col <= mouse->x
-		&& reg->col + reg->width > mouse->x
-		&& reg->row <= mouse->y
-		&& reg->row + reg->page_rows > mouse->y;
+	return reg->x <= mouse->x
+		&& reg->x + reg->w > mouse->x
+		&& reg->y <= mouse->y
+		&& reg->y + reg->h > mouse->y;
 }
 
 /**
@@ -104,15 +105,15 @@ static void display_area(const wchar_t *text, const byte *attrs,
 		const region area,
 		size_t cur_line)
 {
-	n_lines = MIN(n_lines, (size_t) area.page_rows);
+	n_lines = MIN(n_lines, (size_t) area.h);
 
 	for (size_t y = 0; y < n_lines; y++, cur_line++) {
-		Term_erase(area.col, area.row + y, area.width);
+		Term_erase(area.x, area.y + y, area.w);
 
 		for (size_t x = 0; x < line_lengths[cur_line]; x++) {
 			size_t position = line_starts[cur_line] + x;
 
-			Term_addwc(area.col + x, area.row + y,
+			Term_addwc(area.x + x, area.y + y,
 					attrs[position], text[position]);
 		}
 	}
@@ -129,16 +130,16 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
 	size_t *line_lengths = NULL;
 
 	size_t n_lines = textblock_calculate_lines(tb,
-			&line_starts, &line_lengths, area.width);
+			&line_starts, &line_lengths, area.w);
 
 	if (header != NULL) {
-		area.page_rows--;
-		c_prt(COLOUR_L_BLUE, header, loc(area.col, area.row));
-		area.row++;
+		area.h--;
+		c_prt(COLOUR_L_BLUE, header, loc(area.x, area.y));
+		area.y++;
 	}
 
-	if (n_lines > (size_t) area.page_rows) {
-		n_lines = area.page_rows;
+	if (n_lines > (size_t) area.h) {
+		n_lines = area.h;
 	}
 
 	display_area(textblock_text(tb), textblock_attrs(tb),
@@ -158,33 +159,33 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
 	size_t n_lines = textblock_calculate_lines(tb,
-			&line_starts, &line_lengths, area.width);
+			&line_starts, &line_lengths, area.w);
 
 	struct term_hints hints = {
-		.row = area.row,
-		.col = area.col,
-		.width = area.width,
-		.height = area.page_rows,
+		.x = area.x,
+		.y = area.y,
+		.width = area.w,
+		.height = area.h,
 		.position = TERM_POSITION_EXACT,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
 	
 	/* Make room for the footer */
-	area.page_rows -= 2;
+	area.h -= 2;
 
 	if (header != NULL) {
-		area.page_rows--;
-		c_prt(COLOUR_L_BLUE, header, loc(area.col, area.row));
-		area.row++;
+		area.h--;
+		c_prt(COLOUR_L_BLUE, header, loc(area.x, area.y));
+		area.y++;
 	}
 
-	if (n_lines > (size_t) area.page_rows) {
+	if (n_lines > (size_t) area.h) {
 		int start_line = 0;
 
-		c_prt(COLOUR_WHITE, "", loc(area.col, area.page_rows));
+		c_prt(COLOUR_WHITE, "", loc(area.x, area.h));
 		c_prt(COLOUR_L_BLUE, "(Up/down or ESCAPE to exit.)",
-				loc(area.col, area.page_rows + 1));
+				loc(area.x, area.h + 1));
 
 		/* Pager mode */
 		while (true) {
@@ -201,7 +202,7 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 					start_line++;
 					break;
 				case ' ':
-					start_line += area.page_rows;
+					start_line += area.h;
 					break;
 				case ESCAPE: /* fallthru */
 				case 'q':
@@ -210,17 +211,17 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 
 			if (start_line < 0) {
 				start_line = 0;
-			} else if ((size_t) (start_line + area.page_rows) > n_lines) {
-				start_line = n_lines - area.page_rows;
+			} else if ((size_t) (start_line + area.h) > n_lines) {
+				start_line = n_lines - area.h;
 			}
 		}
 	} else {
 		display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 				line_lengths, n_lines, area, 0);
 
-		c_prt(COLOUR_WHITE, "", loc(area.col, n_lines));
+		c_prt(COLOUR_WHITE, "", loc(area.x, n_lines));
 		c_prt(COLOUR_L_BLUE, "(Press any key to continue.)",
-				loc(area.col, n_lines + 1));
+				loc(area.x, n_lines + 1));
 		inkey_any();
 	}
 
@@ -576,10 +577,10 @@ void prt(const char *str, struct loc at) {
 void window_make(struct loc start, struct loc end)
 {
 	region to_clear = {
-		.col = start.x,
-		.row = start.y,
-		.width = end.x - start.x,
-		.page_rows = end.y - start.y
+		.x = start.x,
+		.y = start.y,
+		.w = end.x - start.x,
+		.h = end.y - start.y
 	};
 
 	region_erase(to_clear);
