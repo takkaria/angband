@@ -829,7 +829,7 @@ bool textui_get_aim_dir(int *dp)
 		if (event.type == EVT_MOUSE) {
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 				dir = target_set_interactive(TARGET_KILL,
-							EVENT_GRID_X(event), EVENT_GRID_Y(event)) ? 5 : 0;
+							loc(EVENT_GRID_X(event), EVENT_GRID_Y(event))) ? 5 : 0;
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 				break;
 			}
@@ -838,7 +838,7 @@ bool textui_get_aim_dir(int *dp)
 
 			switch (event.key.code) {
 				case '*':
-					dir = target_set_interactive(TARGET_KILL, -1, -1) ? 5 : 0;
+					dir = target_set_interactive(TARGET_KILL, loc(-1, -1)) ? 5 : 0;
 					break;
 
 				case '\'':
