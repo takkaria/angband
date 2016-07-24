@@ -96,8 +96,8 @@ enum term_purpose {
 };
 
 struct term_hints {
-	int row;
-	int col;
+	int x;
+	int y;
 	int width;
 	int height;
 	enum term_position position;
