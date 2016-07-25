@@ -683,7 +683,7 @@ void menu_handle_keypress(struct menu *menu,
 		/* Try directional movement */
 		int dir = target_dir(key);
 
-		if (has_valid_row(menu, count) && dir != 0) {
+		if (dir != 0 && has_valid_row(menu, count)) {
 			*out = menu->skin->process_dir(menu, dir);
 
 			if (out->type == EVT_MOVE) {
