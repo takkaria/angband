@@ -26,32 +26,6 @@
 
 /*** Constants ***/
 
-/* Colors for interactive menus */
-enum {
-	CURS_UNKNOWN = 0, /* Use gray / dark blue for cursor */
-	CURS_KNOWN = 1    /* Use white / light blue for cursor */
-};
-
-/**
- * Type wrapper for row validity.
- */
-typedef enum _menu_row_validity_t {
-	MN_ROW_INVALID = 0,
-	MN_ROW_VALID   = 1,
-	MN_ROW_HIDDEN  = 2,
-} menu_row_validity_t;
-
-/**
- * Type wrapper for various row styles.
- */
-typedef enum _menu_row_style_t {
-	MN_ROW_STYLE_DISABLED = CURS_UNKNOWN,
-	MN_ROW_STYLE_ENABLED  = CURS_KNOWN,
-} menu_row_style_t;
-
-/* Cursor colors for different states */
-extern uint32_t menu_row_style(menu_row_style_t style, bool selected);
-
 /* Standard menu orderings */
 extern const char lower_case[];  /* abc..z */
 extern const char upper_case[];  /* ABC..Z */
@@ -114,7 +88,7 @@ typedef struct {
 	char (*get_tag)(struct menu *menu, int index);
 
 	/* Validity checker (optional - all rows are assumed valid if not present) */
-	menu_row_validity_t (*valid_row)(struct menu *menu, int index);
+	bool (*valid_row)(struct menu *menu, int index);
 
 	/* Displays a menu row */
 	void (*display_row)(struct menu *menu,
@@ -292,9 +266,14 @@ void menu_layout(struct menu *menu, region reg);
 
 /**
  * Display a menu.
- * If clear is true, it will clear the menu
+ * If clear is true, it will clear the whole term
  */
 void menu_refresh(struct menu *menu, bool clear);
+
+/*
+ * Cursor colors for different states
+ */
+uint32_t menu_row_style(bool valid, bool selected);
 
 /**
  * Run a menu.
@@ -341,12 +320,12 @@ void menu_set_cursor_x_offset(struct menu *menu, int offset);
 struct menu *menu_dynamic_new(void);
 void menu_dynamic_add(struct menu *menu, const char *text, int value);
 void menu_dynamic_add_valid(struct menu *menu,
-		const char *text, int value, menu_row_validity_t valid);
+		const char *text, int value, bool valid);
 void menu_dynamic_add_label(struct menu *menu,
 		const char *text, const char label, int value, char *label_list);
 void menu_dynamic_add_label_valid(struct menu *menu,
 		const char *text, const char label,
-		int value, char *label_list, menu_row_validity_t valid);
+		int value, char *label_list, bool valid);
 size_t menu_dynamic_longest_entry(struct menu *menu);
 void menu_dynamic_calc_location(struct menu *menu);
 int menu_dynamic_select(struct menu *menu);

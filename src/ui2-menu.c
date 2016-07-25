@@ -49,9 +49,9 @@ static bool has_valid_row(struct menu *menu, int count);
 /*
  * Helper function for accessing curs_attrs[]
  */
-uint32_t menu_row_style(menu_row_style_t style, bool selected)
+uint32_t menu_row_style(bool valid, bool selected)
 {
-	return curs_attrs[style == MN_ROW_STYLE_DISABLED ? 0 : 1][selected ? 1 : 0];
+	return curs_attrs[valid ? 1 : 0][selected ? 1 : 0];
 }
 
 /**
@@ -106,16 +106,16 @@ static char menu_action_tag(struct menu *menu, int index)
 	return acts[index].tag;
 }
 
-static menu_row_validity_t menu_action_valid(struct menu *menu, int index)
+static bool menu_action_valid(struct menu *menu, int index)
 {
 	menu_action *acts = menu_priv(menu);
 
-	if (acts[index].flags & MN_ACT_HIDDEN) {
-		return MN_ROW_HIDDEN;
-	} else if (acts[index].name == NULL) {
-		return MN_ROW_INVALID;
+	if (acts[index].flags & MN_ACT_HIDDEN
+			|| acts[index].name == NULL)
+	{
+		return false;
 	} else {
-		return MN_ROW_VALID;
+		return true;
 	}
 }
 
@@ -124,10 +124,9 @@ static void menu_action_display(struct menu *menu,
 {
 	menu_action *acts = menu_priv(menu);
 
-	menu_row_style_t style = (acts[index].flags & MN_ACT_GRAYED)
-		? MN_ROW_STYLE_DISABLED : MN_ROW_STYLE_ENABLED;
+	bool valid = (acts[index].flags & MN_ACT_GRAYED) ? false : true;
 
-	display_action_aux(&acts[index], menu_row_style(style, cursor), loc, width);
+	display_action_aux(&acts[index], menu_row_style(valid, cursor), loc, width);
 }
 
 static bool menu_action_handle(struct menu *menu, const ui_event *event, int index)
@@ -167,8 +166,7 @@ static void display_string(struct menu *menu,
 {
 	const char **items = menu_priv(menu);
 
-	Term_adds(loc.x, loc.y, width,
-			menu_row_style(MN_ROW_STYLE_ENABLED, cursor), items[index]);
+	Term_adds(loc.x, loc.y, width, menu_row_style(true, cursor), items[index]);
 }
 
 /* Virtual function table for displaying arrays of strings */
@@ -399,13 +397,11 @@ static bool is_valid_row(struct menu *menu, int index)
 		return false;
 	}
 
-	menu_row_validity_t valid = MN_ROW_VALID;
-
 	if (menu->iter->valid_row) {
-		valid = menu->iter->valid_row(menu, menu_index(menu, index));
+		return menu->iter->valid_row(menu, menu_index(menu, index));
+	} else {
+		return true;
 	}
-
-	return valid == MN_ROW_VALID;
 }
 
 static bool has_valid_row(struct menu *menu, int count)
@@ -475,24 +471,6 @@ static int get_cursor_key(struct menu *menu, struct keypress key)
 	return -1;
 }
 
-static menu_row_style_t menu_row_style_for_validity(menu_row_validity_t row_valid)
-{
-	menu_row_style_t style;
-
-	switch (row_valid) {
-		case MN_ROW_INVALID:
-		case MN_ROW_HIDDEN:
-			style = MN_ROW_STYLE_DISABLED;
-			break;
-		case MN_ROW_VALID:
-		default:
-			style = MN_ROW_STYLE_ENABLED;
-			break;
-	}
-
-	return style;
-}
-
 /**
  * Modal display of menu
  */
@@ -501,13 +479,9 @@ static void display_menu_row(struct menu *menu,
 {
 	index = menu_index(menu, index);
 
-	menu_row_validity_t valid = MN_ROW_VALID;
-
-	if (menu->iter->valid_row) {
-		valid = menu->iter->valid_row(menu, index);
-	}
-
-	if (valid == MN_ROW_HIDDEN) {
+	if (menu->iter->valid_row
+			&& !menu->iter->valid_row(menu, index))
+	{
 		return;
 	}
 
@@ -521,10 +495,8 @@ static void display_menu_row(struct menu *menu,
 		}
 
 		if (sel != 0) {
-			menu_row_style_t style = menu_row_style_for_validity(valid);
-
 			Term_adds(loc.x, loc.y, 3,
-					menu_row_style(style, cursor), format("%c) ", sel));
+					menu_row_style(true, cursor), format("%c) ", sel));
 			loc.x += 3;
 			width -= 3;
 		}
@@ -916,12 +888,12 @@ void menu_set_cursor_x_offset(struct menu *menu, int offset)
 struct menu_entry {
 	char *text;
 	int value;
-	menu_row_validity_t valid;
+	bool valid;
 
 	struct menu_entry *next;
 };
 
-static menu_row_validity_t dynamic_valid(struct menu *menu, int index)
+static bool dynamic_valid(struct menu *menu, int index)
 {
 	struct menu_entry *entry;
 
@@ -937,14 +909,7 @@ static void dynamic_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
 	struct menu_entry *entry;
-	uint32_t color = menu_row_style(MN_ROW_STYLE_ENABLED, cursor);
-
-	/* Hack? While iter is private, we need to be consistent with what the menu will do. */
-	if (menu->iter->valid_row) {
-		menu_row_validity_t row_valid = menu->iter->valid_row(menu, index);
-		menu_row_style_t style = menu_row_style_for_validity(row_valid);
-		color = menu_row_style(style, cursor);
-	}
+	uint32_t color = menu_row_style(true, cursor);
 
 	for (entry = menu_priv(menu); index; index--) {
 		entry = entry->next;
@@ -955,10 +920,8 @@ static void dynamic_display(struct menu *menu,
 }
 
 static const menu_iter dynamic_iter = {
-	NULL,
-	dynamic_valid,
-	dynamic_display,
-	NULL
+	.valid_row = dynamic_valid,
+	.display_row = dynamic_display
 };
 
 struct menu *menu_dynamic_new(void)
@@ -970,7 +933,7 @@ struct menu *menu_dynamic_new(void)
 }
 
 void menu_dynamic_add_valid(struct menu *menu,
-		const char *text, int value, menu_row_validity_t valid)
+		const char *text, int value, bool valid)
 {
 	struct menu_entry *head = menu_priv(menu);
 	struct menu_entry *new = mem_zalloc(sizeof(*new));
@@ -1000,12 +963,11 @@ void menu_dynamic_add_valid(struct menu *menu,
 
 void menu_dynamic_add(struct menu *menu, const char *text, int value)
 {
-	menu_dynamic_add_valid(menu, text, value, MN_ROW_VALID);
+	menu_dynamic_add_valid(menu, text, value, true);
 }
 
 void menu_dynamic_add_label_valid(struct menu *menu,
-		const char *text, const char label, int value, char *label_list,
-		menu_row_validity_t valid)
+		const char *text, const char label, int value, char *label_list, bool valid)
 {
 	if (label && menu->selections && (menu->selections == label_list)) {
 		label_list[menu->count] = label;
@@ -1016,7 +978,7 @@ void menu_dynamic_add_label_valid(struct menu *menu,
 void menu_dynamic_add_label(struct menu *menu,
 		const char *text, const char label, int value, char *label_list)
 {
-	menu_dynamic_add_label_valid(menu, text, label, value, label_list, MN_ROW_VALID);
+	menu_dynamic_add_label_valid(menu, text, label, value, label_list, true);
 }
 
 size_t menu_dynamic_longest_entry(struct menu *menu)
