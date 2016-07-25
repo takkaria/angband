@@ -479,7 +479,7 @@ static void display_menu_row(struct menu *menu,
 {
 	index = menu_index(menu, index);
 
-	if (menu->iter->valid_row
+	if (menu->iter->valid_row != NULL
 			&& !menu->iter->valid_row(menu, index))
 	{
 		return;
@@ -840,22 +840,31 @@ void *menu_priv(struct menu *menu)
 void menu_init(struct menu *menu, skin_id skin_id, const menu_iter *iter)
 {
 	const menu_skin *skin = menu_find_skin(skin_id);
-	assert(skin && "menu skin not found!");
-	assert(iter && "menu iter not found!");
+	assert(skin != NULL);
+	assert(iter != NULL);
 
 	/* Wipe the struct */
 	memset(menu, 0, sizeof(*menu));
 
+	/* Pedantry */
+	menu->header       = NULL;
+	menu->title        = NULL;
+	menu->prompt       = NULL;
+	menu->selections   = NULL;
+	menu->inscriptions = NULL;
+	menu->command_keys = NULL;
+	menu->stop_keys    = NULL;
+	menu->browse_hook  = NULL;
+	menu->filter_list  = NULL;
+
 	/* Menu-specific initialisation */
 	menu->skin = skin;
 	menu->iter = iter;
-	menu->cursor = 0;
-	menu->cursor_x_offset = 0;
 }
 
 struct menu *menu_new(skin_id skin_id, const menu_iter *iter)
 {
-	struct menu *menu = mem_alloc(sizeof *menu);
+	struct menu *menu = mem_alloc(sizeof(*menu));
 	menu_init(menu, skin_id, iter);
 
 	return menu;
