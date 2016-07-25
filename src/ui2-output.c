@@ -101,9 +101,7 @@ bool region_inside(const region *reg, const struct mouseclick *mouse)
  */
 static void display_area(const wchar_t *text, const byte *attrs,
 		size_t *line_starts, size_t *line_lengths,
-		size_t n_lines,
-		const region area,
-		size_t cur_line)
+		size_t n_lines, size_t cur_line, region area)
 {
 	n_lines = MIN(n_lines, (size_t) area.h);
 
@@ -143,7 +141,7 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
 	}
 
 	display_area(textblock_text(tb), textblock_attrs(tb),
-			line_starts, line_lengths, n_lines, area, 0);
+			line_starts, line_lengths, n_lines, 0, area);
 
 	mem_free(line_starts);
 	mem_free(line_lengths);
@@ -190,7 +188,7 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 		/* Pager mode */
 		while (true) {
 			display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
-					line_lengths, n_lines, area, start_line);
+					line_lengths, n_lines, start_line, area);
 
 			struct keypress ch = inkey_only_key();
 
@@ -217,7 +215,7 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 		}
 	} else {
 		display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
-				line_lengths, n_lines, area, 0);
+				line_lengths, n_lines, 0, area);
 
 		c_prt(COLOUR_WHITE, "", loc(area.x, n_lines));
 		c_prt(COLOUR_L_BLUE, "(Press any key to continue.)",
