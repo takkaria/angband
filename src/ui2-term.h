@@ -84,7 +84,8 @@ enum term_position {
 	TERM_POSITION_EXACT,
 	TERM_POSITION_CENTER,
 	TERM_POSITION_TOP_CENTER,
-	TERM_POSITION_BOTTOM_CENTER
+	TERM_POSITION_BOTTOM_CENTER,
+	TERM_POSITION_MOUSE
 };
 
 enum term_purpose {
@@ -105,7 +106,7 @@ struct term_hints {
 
 /* NOTE THAT ALL HOOKS ARE MANDATORY */
 
-typedef void (*push_new_hook)(struct term_hints hints,
+typedef void (*push_new_hook)(const struct term_hints *hints,
 		struct term_create_info *info);
 typedef void (*pop_new_hook)(void *user);
 

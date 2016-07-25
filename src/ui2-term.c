@@ -571,7 +571,7 @@ void Term_push_new(struct term_hints *hints)
 
 	struct term_create_info info = {0};
 
-	TOP->callbacks.push_new(*hints, &info);
+	TOP->callbacks.push_new(hints, &info);
 
 	if (info.width == 0) {
 		info.width = hints->width;
