@@ -266,9 +266,8 @@ void menu_layout(struct menu *menu, region reg);
 
 /**
  * Display a menu.
- * If clear is true, it will clear the whole term
  */
-void menu_refresh(struct menu *menu, bool clear);
+void menu_refresh(struct menu *menu);
 
 /*
  * Cursor colors for different states
@@ -293,11 +292,8 @@ uint32_t menu_row_style(bool valid, bool selected);
  *   EVT_KBRD:   unhandled keyboard events
  *   EVT_MOUSE:  unhandled mouse events  
  *   EVT_RESIZE: resize events
- * 
- * If clear is true, the subwindow background is cleared before each redraw.
- * This allows variably-sized information at the bottom of the menu.
  */
-ui_event menu_select(struct menu *menu, bool clear);
+ui_event menu_select(struct menu *menu);
 
 /**
  * Set the menu cursor to the next valid row.

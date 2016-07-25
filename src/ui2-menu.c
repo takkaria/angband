@@ -505,10 +505,11 @@ static void display_menu_row(struct menu *menu,
 	menu->iter->display_row(menu, index, cursor, loc, width);
 }
 
-void menu_refresh(struct menu *menu, bool clear)
+void menu_refresh(struct menu *menu)
 {
-	if (clear) {
-		Term_clear();
+	if (menu->browse_hook) {
+		menu->browse_hook(menu_index(menu, menu->cursor),
+				menu->menu_data, menu->active);
 	}
 
 	if (menu->title) {
@@ -527,11 +528,6 @@ void menu_refresh(struct menu *menu, bool clear)
 		int y = menu->active.y + menu->active.h;
 		Term_adds(menu->boundary.x, y, menu->boundary.w,
 				COLOUR_WHITE, menu->prompt);
-	}
-
-	if (menu->browse_hook) {
-		menu->browse_hook(menu_index(menu, menu->cursor),
-				menu->menu_data, menu->active);
 	}
 
 	menu->skin->display_list(menu, menu->cursor, menu->active);
@@ -659,7 +655,7 @@ void menu_handle_keypress(struct menu *menu,
  *
  * If clear is true, the term is cleared before the menu is drawn
  */
-ui_event menu_select(struct menu *menu, bool clear)
+ui_event menu_select(struct menu *menu)
 {
 	assert(menu->active.w != 0);
 	assert(menu->active.h != 0);
@@ -672,7 +668,7 @@ ui_event menu_select(struct menu *menu, bool clear)
 	while ((in.type & stop_flags) == 0) {
 		ui_event out = EVENT_EMPTY;
 
-		menu_refresh(menu, clear);
+		menu_refresh(menu);
 		in = inkey_simple();
 
 		/* Handle mouse and keyboard commands */
@@ -1012,7 +1008,7 @@ void menu_dynamic_calc_location(struct menu *menu)
 
 int menu_dynamic_select(struct menu *menu)
 {
-	ui_event e = menu_select(menu, true);
+	ui_event e = menu_select(menu);
 
 	if (e.type == EVT_ESCAPE) {
 		return -1;
