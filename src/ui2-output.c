@@ -152,22 +152,25 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
  */
 void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 {
-	region area = region_calculate(orig_area);
-
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
 	size_t n_lines = textblock_calculate_lines(tb,
-			&line_starts, &line_lengths, area.w);
+			&line_starts, &line_lengths, width);
+
+	/* 80 characters is traditional for Angband,
+	 * and is reasonable typography in general */
+	size_t width = orig_area.w > 0 ? orig_area.w : 80;
+	size_t height = orig.area.h > 0 ? orig_area.h : n_lines;
 
 	struct term_hints hints = {
-		.x = area.x,
-		.y = area.y,
-		.width = area.w,
-		.height = area.h,
-		.position = TERM_POSITION_EXACT,
+		.width = width,
+		.height = height,
+		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
+
+	region area = region_calculate(orig_area);
 	
 	/* Make room for the footer */
 	area.h -= 2;
