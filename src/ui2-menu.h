@@ -265,6 +265,11 @@ void menu_release_filter(struct menu *menu);
 void menu_layout(struct menu *menu, region reg);
 
 /**
+ * Ready a menu for display with the whole term as region
+ */
+void menu_layout_term(struct menu *menu);
+
+/**
  * Display a menu.
  */
 void menu_refresh(struct menu *menu);

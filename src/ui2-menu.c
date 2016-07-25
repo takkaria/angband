@@ -824,6 +824,14 @@ void menu_layout(struct menu *menu, region reg)
 	assert(menu->active.h > 0);
 }
 
+void menu_layout_term(struct menu *menu)
+{
+	region full = {0};
+
+	/* Make menu as big as the whole term */
+	menu_layout(menu, full);
+}
+
 void menu_setpriv(struct menu *menu, int count, void *data)
 {
 	menu->count = count;
