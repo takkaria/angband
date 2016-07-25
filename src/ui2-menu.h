@@ -328,7 +328,7 @@ void menu_dynamic_add_label_valid(struct menu *menu,
 		const char *text, const char label,
 		int value, char *label_list, bool valid);
 size_t menu_dynamic_longest_entry(struct menu *menu);
-void menu_dynamic_calc_location(struct menu *menu);
+region menu_dynamic_calc_location(struct menu *menu);
 int menu_dynamic_select(struct menu *menu);
 void menu_dynamic_free(struct menu *menu);
 

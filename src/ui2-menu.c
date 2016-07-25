@@ -1011,7 +1011,7 @@ size_t menu_dynamic_longest_entry(struct menu *menu)
 	return biggest;
 }
 
-void menu_dynamic_calc_location(struct menu *menu)
+region menu_dynamic_calc_location(struct menu *menu)
 {
 	region reg = {
 		.x = 0,
@@ -1020,7 +1020,7 @@ void menu_dynamic_calc_location(struct menu *menu)
 		.h = menu->count
 	};
 
-	menu_layout(menu, reg);
+	return region;
 }
 
 int menu_dynamic_select(struct menu *menu)
