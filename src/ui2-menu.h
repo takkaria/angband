@@ -143,9 +143,6 @@ typedef struct {
 	/* Displays the current list of visible menu items */
 	void (*display_list)(struct menu *menu, int cursor, region reg);
 
-	/* Specifies the relative menu item given the state of the menu */
-	char (*get_tag)(struct menu *menu, int pos);
-
 	/* Process a direction */
 	ui_event (*process_dir)(struct menu *menu, int dir);
 } menu_skin;

@@ -173,10 +173,7 @@ static void display_string(struct menu *menu,
 
 /* Virtual function table for displaying arrays of strings */
 static const menu_iter menu_iter_strings = { 
-	.get_tag     = NULL,
-	.valid_row   = NULL,
 	.display_row = display_string,
-	.row_handler = NULL,
 };
 
 /* ================== SKINS ============== */
@@ -235,15 +232,6 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 	}
 }
 
-static char generic_skin_get_tag(struct menu *menu, int index)
-{
-	if (menu->selections) {
-		return menu->selections[index - menu->top];
-	}
-
-	return 0;
-}
-
 /*** Scrolling menu skin ***/
 
 static ui_event scroll_skin_process_direction(struct menu *menu, int dir)
@@ -271,7 +259,6 @@ static ui_event scroll_skin_process_direction(struct menu *menu, int dir)
 static const menu_skin menu_skin_scroll = {
 	.get_cursor   = generic_skin_get_cursor,
 	.display_list = generic_skin_display,
-	.get_tag      = generic_skin_get_tag,
 	.process_dir  = scroll_skin_process_direction
 };
 
@@ -303,7 +290,6 @@ static ui_event object_skin_process_direction(struct menu *menu, int dir)
 static const menu_skin menu_skin_object = {
 	.get_cursor   = generic_skin_get_cursor,
 	.display_list = generic_skin_display,
-	.get_tag      = generic_skin_get_tag,
 	.process_dir  = object_skin_process_direction
 };
 
@@ -369,15 +355,6 @@ static void column_skin_display(struct menu *menu, int cursor, region reg)
 	}
 }
 
-static char column_skin_get_tag(struct menu *menu, int index)
-{
-	if (menu->selections) {
-		return menu->selections[index];
-	}
-
-	return 0;
-}
-
 static ui_event column_skin_process_direction(struct menu *menu, int dir)
 {
 	int count = menu_count(menu);
@@ -411,7 +388,6 @@ static ui_event column_skin_process_direction(struct menu *menu, int dir)
 static const menu_skin menu_skin_columns = {
 	.get_cursor   = column_skin_get_cursor,
 	.display_list = column_skin_display,
-	.get_tag      = column_skin_get_tag,
 	.process_dir  = column_skin_process_direction
 };
 
@@ -419,19 +395,17 @@ static const menu_skin menu_skin_columns = {
 
 static bool is_valid_row(struct menu *menu, int index)
 {
-	int count = menu_count(menu);
-
-	if (index < 0 || index >= count) {
+	if (index < 0 || index >= menu_count(menu)) {
 		return false;
 	}
 
-	index = menu_index(menu, index);
+	menu_row_validity_t valid = MN_ROW_VALID;
 
 	if (menu->iter->valid_row) {
-		return menu->iter->valid_row(menu, index);
-	} else {
-		return true;
+		valid = menu->iter->valid_row(menu, menu_index(menu, index));
 	}
+
+	return valid == MN_ROW_VALID;
 }
 
 static bool has_valid_row(struct menu *menu, int count)
@@ -445,13 +419,30 @@ static bool has_valid_row(struct menu *menu, int count)
 	return false;
 }
 
-static bool tag_eq_key(char tag, struct keypress key, bool caseless)
+static char code_from_key(const struct menu *menu,
+		struct keypress key, bool caseless)
+{
+	char code = (char) key.code;
+
+	if (mnflag_has(menu->flags, MN_INSCRIP_TAGS)
+			&& isdigit((unsigned char) key.code)
+			&& menu->inscriptions[D2I(key.code)])
+	{
+		code = menu->inscriptions[D2I(key.code)];
+	} else if (caseless) {
+		code = toupper((unsigned char) key.code);
+	}
+
+	return code;
+}
+
+static bool tag_eq_code(char tag, char code, bool caseless)
 {
 	if (caseless) {
 		tag = toupper((unsigned char) tag);
 	}
 
-	return tag != 0 && tag == (char) key.code;
+	return tag != 0 && tag == code;
 }
 
 /* 
@@ -460,33 +451,22 @@ static bool tag_eq_key(char tag, struct keypress key, bool caseless)
  */
 static int get_cursor_key(struct menu *menu, struct keypress key)
 {
-	int count = menu_count(menu);
-	bool caseless = mnflag_has(menu->flags, MN_CASELESS_TAGS);
-
-	if (caseless) {
-		key.code = toupper((unsigned char) key.code);
-	}
-
-	if (mnflag_has(menu->flags, MN_INSCRIP_TAGS)
-			&& isdigit((unsigned char) key.code)
-			&& menu->inscriptions[D2I(key.code)])
-	{
-		key.code = menu->inscriptions[D2I(key.code)];
-	}
+	const int count = menu_count(menu);
+	const bool caseless = mnflag_has(menu->flags, MN_CASELESS_TAGS);
+	const char code = code_from_key(menu, key, caseless);
 
 	if (mnflag_has(menu->flags, MN_NO_TAGS)) {
 		return -1;
 	} else if (menu->selections && !mnflag_has(menu->flags, MN_PVT_TAGS)) {
 		for (int i = 0; menu->selections[i]; i++) {
-			if (tag_eq_key(menu->selections[i], key, caseless)) {
+			if (tag_eq_code(menu->selections[i], code, caseless)) {
 				return i;
 			}
 		}
 	} else if (menu->iter->get_tag) {
 		for (int i = 0; i < count; i++) {
-			int index = menu_index(menu, i);
-			char tag = menu->iter->get_tag(menu, index);
-			if (tag_eq_key(tag, key, caseless)) {
+			char tag = menu->iter->get_tag(menu, menu_index(menu, i));
+			if (tag_eq_code(tag, code, caseless)) {
 				return i;
 			}
 		}
@@ -521,13 +501,13 @@ static void display_menu_row(struct menu *menu,
 {
 	index = menu_index(menu, index);
 
-	menu_row_validity_t row_valid = MN_ROW_VALID;
+	menu_row_validity_t valid = MN_ROW_VALID;
 
 	if (menu->iter->valid_row) {
-		row_valid = menu->iter->valid_row(menu, index);
+		valid = menu->iter->valid_row(menu, index);
 	}
 
-	if (row_valid == MN_ROW_HIDDEN) {
+	if (valid == MN_ROW_HIDDEN) {
 		return;
 	}
 
@@ -541,7 +521,7 @@ static void display_menu_row(struct menu *menu,
 		}
 
 		if (sel != 0) {
-			menu_row_style_t style = menu_row_style_for_validity(row_valid);
+			menu_row_style_t style = menu_row_style_for_validity(valid);
 
 			Term_adds(loc.x, loc.y, 3,
 					menu_row_style(style, cursor), format("%c) ", sel));
@@ -606,10 +586,8 @@ void menu_handle_mouse(struct menu *menu,
 			out->type = EVT_ESCAPE;
 		}
 	} else {
-		int count = menu_count(menu);
-
 		int new_cursor = menu->skin->get_cursor(loc(mouse.x, mouse.y),
-				count, menu->top, menu->active);
+				menu_count(menu), menu->top, menu->active);
 	
 		if (is_valid_row(menu, new_cursor)) {
 			if (!mnflag_has(menu->flags, MN_DBL_TAP)
@@ -645,14 +623,14 @@ static bool menu_handle_action(struct menu *menu, const ui_event *in)
 void menu_handle_keypress(struct menu *menu,
 		struct keypress key, ui_event *out)
 {
-	int count = menu_count(menu);
+	const int count = menu_count(menu);
 	if (count <= 0) {
 		return;
 	}
 
 	/* Get the new cursor position from the menu item tags */
 	int new_cursor = get_cursor_key(menu, key);
-	if (new_cursor >= 0 && is_valid_row(menu, new_cursor)) {
+	if (is_valid_row(menu, new_cursor)) {
 		if (!mnflag_has(menu->flags, MN_DBL_TAP)
 				|| new_cursor == menu->cursor)
 		{
@@ -666,7 +644,6 @@ void menu_handle_keypress(struct menu *menu,
 		/* Escape stops us here */
 		out->type = EVT_ESCAPE;
 	} else if (key.code == ' ') {
-		/* Try existing, known keys */
 		if (menu->active.h < count) {
 			/* Go to start of next page */
 			menu->cursor += menu->active.h;
