@@ -92,7 +92,6 @@ enum term_purpose {
 	TERM_PURPOSE_TEXT,
 	TERM_PURPOSE_MENU,
 	TERM_PURPOSE_BIG_MAP,
-	TERM_PURPOSE_SHOW_OBJECTS
 };
 
 struct term_hints {

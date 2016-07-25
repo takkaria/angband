@@ -2189,8 +2189,9 @@ static void see_floor_items(game_event_type type,
 
 		/* Display objects on the floor */
 		struct term_hints hints = {
+			.width = 80,
 			.height = floor_num,
-			.purpose = TERM_PURPOSE_SHOW_OBJECTS
+			.purpose = TERM_PURPOSE_TEXT
 		};
 		Term_push_new(&hints);
 
