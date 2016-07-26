@@ -568,6 +568,13 @@ void prt(const char *str, struct loc at) {
 	c_prt(COLOUR_WHITE, str, at);
 }
 
+void erase_line(struct loc at)
+{
+	if (Term_point_ok(at.x, at.y)) {
+		Term_erase_line(at.x, at.y);
+	}
+}
+
 /**
  * ------------------------------------------------------------------------
  * Miscellaneous things
