@@ -253,8 +253,9 @@ void Term_redraw_screen(void);
  * returns false if queue is full and event cannot be added */
 bool Term_keypress(keycode_t key, byte mods);
 /* append a mousepress to ui_event queue
- * returns false if queue is full and event cannot be added */
-bool Term_mousepress(int x, int y, int button, byte mods);
+ * returns false if queue is full and event cannot be added
+ * see ui2-event.c for the explanation of index */
+bool Term_mousepress(int x, int y, int button, byte mods, int index);
 
 /* get the first event from the event queue
  * returns false if there are no events */

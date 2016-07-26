@@ -1,5 +1,5 @@
 /**
- * \file ui-event.h
+ * \file ui2-event.h
  * \brief Utility functions relating to UI events
  *
  * Copyright (c) 2011 Andi Sidwell
@@ -37,7 +37,6 @@ typedef enum {
 	EVT_SELECT	= 0x0040,	/* Menu selection */
 	EVT_SWITCH	= 0x0080	/* Menu switch */
 } ui_event_type;
-
 
 /**
  * Key modifiers.
@@ -101,7 +100,7 @@ typedef enum {
  */
 
 enum {
-	/* backwards compat */
+	/* Backwards compat */
 	MOUSE_BUTTON_LEFT = 1,
 	MOUSE_BUTTON_RIGHT = 2,
 	MOUSE_BUTTON_MIDDLE = 3
@@ -186,6 +185,12 @@ struct mouseclick {
 	byte y;
 	byte button;
 	byte mods;
+
+	/* Non-negative index is an index of an angband_term
+	 * (that presumably was clicked)
+	 * Negative index is an index of a temporary term
+	 * (just make it -1) */
+	int index;
 };
 
 /**
@@ -200,7 +205,7 @@ typedef union {
 /**
  * Easy way to initialise a ui_event without seeing the gory bits.
  */
-#define EVENT_EMPTY		{ 0 }
+#define EVENT_EMPTY {0}
 
 /*** Functions ***/
 
@@ -217,8 +222,8 @@ const char *keycode_find_desc(keycode_t kc);
 /**
  * Convert a string of keypresses into their textual representation
  */
-void keypress_to_text(char *buf, size_t len, const struct keypress *src,
-	bool expand_backslash);
+void keypress_to_text(char *buf, size_t len,
+		const struct keypress *src, bool expand_backslash);
 
 /**
  * Convert a textual representation of keypresses into actual keypresses
@@ -226,8 +231,7 @@ void keypress_to_text(char *buf, size_t len, const struct keypress *src,
 void keypress_from_text(struct keypress *buf, size_t len, const char *str);
 
 /**
- * Convert a keypress into something the user can read (not designed to be used
- * internally
+ * Convert a keypress into something the user can read
  */
 void keypress_to_readable(char *buf, size_t len, struct keypress src);
 

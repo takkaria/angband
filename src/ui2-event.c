@@ -1,5 +1,5 @@
 /**
- * \file ui-event.c
+ * \file ui2-event.c
  * \brief Utility functions relating to UI events
  *
  * Copyright (c) 2011 Andi Sidwell
@@ -16,7 +16,7 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 #include "angband.h"
-#include "ui-event.h"
+#include "ui2-event.h"
 
 /**
  * Map keycodes to their textual equivalent.
@@ -60,43 +60,47 @@ static const struct {
 	{ KC_BEGIN, "Begin" },
 };
 
-
 /**
  * Given a string, try and find it in "mappings".
  */
 keycode_t keycode_find_code(const char *str, size_t len)
 {
-	size_t i;
-	for (i = 0; i < N_ELEMENTS(mappings); i++) {
-		if (strncmp(str, mappings[i].desc, len) == 0)
+	for (size_t i = 0; i < N_ELEMENTS(mappings); i++) {
+		if (strncmp(str, mappings[i].desc, len) == 0) {
 			return mappings[i].code;
+		}
 	}
+
 	return 0;
 }
-
 
 /**
  * Given a keycode, return its textual mapping.
  */
 const char *keycode_find_desc(keycode_t kc)
 {
-	size_t i;
-	for (i = 0; i < N_ELEMENTS(mappings); i++) {
-		if (mappings[i].code == kc)
+	for (size_t i = 0; i < N_ELEMENTS(mappings); i++) {
+		if (mappings[i].code == kc) {
 			return mappings[i].desc;
+		}
 	}
+
 	return NULL;
 }
-
 
 /**
  * Convert a hexidecimal-digit into a decimal
  */
 static int dehex(char c)
 {
-	if (isdigit((unsigned char)c)) return (D2I(c));
-	if (isalpha((unsigned char)c)) return (A2I(tolower((unsigned char)c)) + 10);
-	return (0);
+	if (isdigit((unsigned char) c)) {
+		return D2I(c);
+	}
+	if (isalpha((unsigned char) c)) {
+		return A2I(tolower((unsigned char) c)) + 10;
+	}
+
+	return 0;
 }
 
 /**
@@ -107,36 +111,37 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 	size_t cur = 0;
 	byte mods = 0;
 
-	memset(buf, 0, len * sizeof *buf);
+	memset(buf, 0, len * sizeof(*buf));
 
-#define STORE(buffer, pos, mod, cod) \
-	{ \
-		int p = (pos); \
-		keycode_t c = (cod); \
-		byte m = (mod); \
+#define STORE(buffer, pos, mod, cod) do { \
+	int p = (pos); \
+	byte m = (mod); \
+	keycode_t c = (cod); \
 \
-		if ((m & KC_MOD_CONTROL) && ENCODE_KTRL(c)) { \
-			m &= ~KC_MOD_CONTROL; \
-			c = KTRL(c); \
-		} \
+	if ((m & KC_MOD_CONTROL) && ENCODE_KTRL(c)) { \
+		m &= ~KC_MOD_CONTROL; \
+		c = KTRL(c); \
+	} \
 \
-		buffer[p].mods = m; \
-		buffer[p].code = c; \
-	}
+	buffer[p].mods = m; \
+	buffer[p].code = c; \
+} while (0)
 
 	/* Analyze the "ascii" string */
 	while (*str && cur < len) {
 		buf[cur].type = EVT_KBRD;
 
 		if (*str == '\\') {
-			str++;
-			if (*str == '\0') break;
+			if (*++str == '\0') {
+				break;
+			}
 
 			switch (*str) {
 				/* Hex-mode */
 				case 'x': {
-					if (isxdigit((unsigned char)(*(str + 1))) &&
-							isxdigit((unsigned char)(*(str + 2)))) {
+					if (isxdigit((unsigned char) (*(str + 1)))
+							&& isxdigit((unsigned char) (*(str + 2))))
+					{
 						int v1 = dehex(*++str) * 16;
 						int v2 = dehex(*++str);
 						/* store a nice hex digit */
@@ -149,10 +154,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 				}
 
 				case 'a': STORE(buf, cur++, mods, '\a'); break;
-				case '\\': STORE(buf, cur++, mods, '\\'); break;
-				case '^': STORE(buf, cur++, mods, '^'); break;
-				case '[': STORE(buf, cur++, mods, '['); break;
-				default: STORE(buf, cur++, mods, *str); break;
+				default:  STORE(buf, cur++, mods, *str); break;
 			}
 
 			mods = 0;
@@ -161,16 +163,17 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			str++;
 		} else if (*str == '[') {
 			/* parse non-ascii keycodes */
-			char *end;
-			keycode_t kc;
+			str++;
 
-			if (*str++ == 0) return;
+			char *end = strchr(str, (unsigned char) ']');
+			if (!end) {
+				return;
+			}
 
-			end = strchr(str, (unsigned char) ']');
-			if (!end) return;
-
-			kc = keycode_find_code(str, (size_t) (end - str));
-			if (!kc) return;
+			keycode_t kc = keycode_find_code(str, (size_t) (end - str));
+			if (!kc) {
+				return;
+			}
 
 			STORE(buf, cur++, mods, kc);
 			mods = 0;
@@ -178,21 +181,21 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 		} else if (*str == '{') {
 			/* Specify modifier for next character */
 			str++;
-			if (*str == '\0' || !strchr(str, (unsigned char) '}'))
+			if (!strchr(str, (unsigned char) '}')) {
 				return;
+			}
 
 			/* analyze modifier chars */
 			while (*str != '}') {
 				switch (*str) {
 					case '^': mods |= KC_MOD_CONTROL; break;
-					case 'S': mods |= KC_MOD_SHIFT; break;
-					case 'A': mods |= KC_MOD_ALT; break;
-					case 'M': mods |= KC_MOD_META; break;
-					case 'K': mods |= KC_MOD_KEYPAD; break;
+					case 'S': mods |= KC_MOD_SHIFT;   break;
+					case 'A': mods |= KC_MOD_ALT;     break;
+					case 'M': mods |= KC_MOD_META;    break;
+					case 'K': mods |= KC_MOD_KEYPAD;  break;
 					default:
 						return;
 				}
-
 				str++;
 			}
 
@@ -216,8 +219,8 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 /**
  * Convert a string of keypresses into their textual equivalent.
  */
-void keypress_to_text(char *buf, size_t len, const struct keypress *src,
-	bool expand_backslash)
+void keypress_to_text(char *buf, size_t len,
+		const struct keypress *src, bool expand_backslash)
 {
 	size_t cur = 0;
 	size_t end = 0;
@@ -241,10 +244,10 @@ void keypress_to_text(char *buf, size_t len, const struct keypress *src,
 			} else {
 				strnfcat(buf, len, &end, "{");
 				if (mods & KC_MOD_CONTROL) strnfcat(buf, len, &end, "^");
-				if (mods & KC_MOD_SHIFT) strnfcat(buf, len, &end, "S");
-				if (mods & KC_MOD_ALT) strnfcat(buf, len, &end, "A");
-				if (mods & KC_MOD_META) strnfcat(buf, len, &end, "M");
-				if (mods & KC_MOD_KEYPAD) strnfcat(buf, len, &end, "K");
+				if (mods & KC_MOD_SHIFT)   strnfcat(buf, len, &end, "S");
+				if (mods & KC_MOD_ALT)     strnfcat(buf, len, &end, "A");
+				if (mods & KC_MOD_META)    strnfcat(buf, len, &end, "M");
+				if (mods & KC_MOD_KEYPAD)  strnfcat(buf, len, &end, "K");
 				strnfcat(buf, len, &end, "}");
 			}
 		}
@@ -254,22 +257,23 @@ void keypress_to_text(char *buf, size_t len, const struct keypress *src,
 		} else {
 			switch (i) {
 				case '\a': strnfcat(buf, len, &end, "\a"); break;
-				case '\\': {
-					if (expand_backslash)
+				case '\\':
+					if (expand_backslash) {
 						strnfcat(buf, len, &end, "\\\\");
-					else
+					} else {
 						strnfcat(buf, len, &end, "\\");
+					}
 					break;
-				}
+
 				case '^': strnfcat(buf, len, &end, "\\^"); break;
 				case '[': strnfcat(buf, len, &end, "\\["); break;
-				default: {
-					if (i < 127)
+				default:
+					if (i < 127) {
 						strnfcat(buf, len, &end, "%c", i);
-					else
-						strnfcat(buf, len, &end, "\\x%02x", (int)i);
+					} else {
+						strnfcat(buf, len, &end, "\\x%02x", (int) i);
+					}
 					break;
-				}
 			}
 		}
 
@@ -279,7 +283,6 @@ void keypress_to_text(char *buf, size_t len, const struct keypress *src,
 	/* Terminate */
 	buf[end] = '\0';
 }
-
 
 /**
  * Convert a keypress into something readable.
@@ -300,15 +303,17 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src)
 	}
 
 	if (mods) {
-		if (mods & KC_MOD_CONTROL && !(mods & ~KC_MOD_CONTROL) &&
-				i != '^') {
+		if (mods & KC_MOD_CONTROL
+				&& !(mods & ~KC_MOD_CONTROL)
+				&& i != '^')
+		{
 			strnfcat(buf, len, &end, "^");
 		} else {
 			if (mods & KC_MOD_CONTROL) strnfcat(buf, len, &end, "Control-");
-			if (mods & KC_MOD_SHIFT) strnfcat(buf, len, &end, "Shift-");
-			if (mods & KC_MOD_ALT) strnfcat(buf, len, &end, "Alt-");
-			if (mods & KC_MOD_META) strnfcat(buf, len, &end, "Meta-");
-			if (mods & KC_MOD_KEYPAD) strnfcat(buf, len, &end, "Keypad-");
+			if (mods & KC_MOD_SHIFT)   strnfcat(buf, len, &end, "Shift-");
+			if (mods & KC_MOD_ALT)     strnfcat(buf, len, &end, "Alt-");
+			if (mods & KC_MOD_META)    strnfcat(buf, len, &end, "Meta-");
+			if (mods & KC_MOD_KEYPAD)  strnfcat(buf, len, &end, "Keypad-");
 		}
 	}
 
@@ -322,18 +327,39 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src)
 	buf[end] = '\0';
 }
 
-
 /**
  * Return whether the given display char matches an entered symbol
- *
- * Horrible hack. TODO UTF-8 find some way of entering mb chars
  */
-bool char_matches_key(wchar_t c, keycode_t key)
+bool char_matches_key(wchar_t wc, keycode_t key)
 {
-	wchar_t keychar[2];
-	char k[2] = {'\0', '\0'};
+	char utf8[5];
 
-	k[0] = (char)key;
-	text_mbstowcs(keychar, k, 1);
-	return (c == keychar[0]);
+	/* Assuming that key is a Unicode codepoint */
+
+	if (key < 0x80) {
+		utf8[0] = (char) key;
+		utf8[1] = 0;
+	} else if (key < 0x800) {
+		utf8[0] = (char) (( key >>  6)         | 0xC0);
+		utf8[1] = (char) (( key        & 0x3F) | 0x80);
+		utf8[2] = 0;
+    } else if (key < 0x10000) {
+		utf8[0] = (char) (( key >> 12)         | 0xE0);
+		utf8[1] = (char) (((key >>  6) & 0x3F) | 0x80);
+		utf8[2] = (char) (( key        & 0x3F) | 0x80);
+		utf8[3] = 0;
+    } else if (key < 0x10FFFF) {
+		utf8[0] = (char) (( key >> 18)         | 0xF0);
+		utf8[1] = (char) (((key >> 12) & 0x3F) | 0x80);
+		utf8[2] = (char) (((key >>  6) & 0x3F) | 0x80);
+		utf8[3] = (char) (( key        & 0x3F) | 0x80);
+		utf8[4] = 0;
+	} else {
+		return false;
+	}
+
+	wchar_t wchar;
+	text_mbstowcs(&wchar, utf8, 1);
+
+	return wc == wchar;
 }

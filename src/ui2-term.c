@@ -852,7 +852,7 @@ bool Term_keypress(keycode_t key, byte mods)
 	return term_append_events(&event, 1);
 }
 
-bool Term_mousepress(int x, int y, int button, byte mods)
+bool Term_mousepress(int x, int y, int button, byte mods, int index)
 {
 	STACK_OK();
 
@@ -862,7 +862,8 @@ bool Term_mousepress(int x, int y, int button, byte mods)
 			.x = x,
 			.y = y,
 			.button = button,
-			.mods = mods
+			.mods = mods,
+			.index = index
 		}
 	};
 

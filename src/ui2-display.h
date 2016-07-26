@@ -64,6 +64,10 @@ struct angband_term {
 	int offset_x;
 	int offset_y;
 
+	/* All permanent terms MUST have unique, non-negative indexes;
+	 * negative indexes are reserved for temporary terms */
+	int index;
+
 	bitflag flags[ATF_SIZE];
 };
 
