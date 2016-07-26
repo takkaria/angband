@@ -157,15 +157,14 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 
 	/* 80 characters is traditional for Angband,
 	 * and is reasonable typography in general */
-	size_t width = orig_area.w > 0 ? orig_area.w : 80;
+	int width = orig_area.w > 0 ? orig_area.w : 80;
+
 	size_t n_lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, width);
-	size_t height = orig_area.h > 0 ? (size_t) orig_area.h : n_lines;
-
 
 	struct term_hints hints = {
 		.width = width,
-		.height = height,
+		.height = orig_area.h > 0 ? orig_area.h : (int) n_lines,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
