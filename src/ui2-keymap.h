@@ -1,5 +1,5 @@
 /**
- * \file ui-keymap.h
+ * \file ui2-keymap.h
  * \brief Keymap handling
  *
  * Copyright (c) 2011 Andi Sidwell
@@ -47,7 +47,8 @@ const struct keypress *keymap_find(int keymap, struct keypress kc);
 /**
  * Given a keymap mode, a trigger, and an action, store it in the keymap list.
  */
-void keymap_add(int keymap, struct keypress trigger, struct keypress *actions, bool user);
+void keymap_add(int keymap,
+		struct keypress trigger, struct keypress *actions, bool user);
 
 /**
  * Given a keypress, remove any keymap that would trigger on that key.

@@ -1,5 +1,5 @@
 /**
- * \file ui-keymap.c
+ * \file ui2-keymap.c
  * \brief Keymap handling
  *
  * Copyright (c) 2011 Andi Sidwell
@@ -16,8 +16,8 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 #include "angband.h"
-#include "ui-keymap.h"
-#include "ui-term.h"
+#include "ui2-keymap.h"
+#include "ui2-term.h"
 
 /**
  * Keymap implementation.
@@ -34,7 +34,6 @@
  * game ones and messing up everyone's pref files with a load of junk.
  */
 
-
 /**
  * Struct for a keymap.
  */
@@ -42,66 +41,63 @@ struct keymap {
 	struct keypress key;
 	struct keypress *actions;
 
-	bool user;		/* User-defined keymap */
+	/* User-defined keymap */
+	bool user;
 
 	struct keymap *next;
 };
-
 
 /**
  * List of keymaps.
  */
 static struct keymap *keymaps[KEYMAP_MODE_MAX];
 
-
 /**
  * Find a keymap, given a keypress.
  */
-const struct keypress *keymap_find(int keymap, struct keypress kc)
+const struct keypress *keymap_find(int keymap, struct keypress key)
 {
-	struct keymap *k;
 	assert(keymap >= 0 && keymap < KEYMAP_MODE_MAX);
-	for (k = keymaps[keymap]; k; k = k->next) {
-		if (k->key.code == kc.code && k->key.mods == kc.mods)
+
+	for (struct keymap *k = keymaps[keymap]; k; k = k->next) {
+		if (k->key.code == key.code && k->key.mods == key.mods) {
 			return k->actions;
+		}
 	}
 
 	return NULL;
 }
-
 
 /**
  * Duplicate a given keypress string and return the duplicate.
  */
 static struct keypress *keymap_make(const struct keypress *actions)
 {
-	struct keypress *new;
 	size_t n = 0;
-	while (actions[n].type) {
+	while (actions[n].type != EVT_NONE) {
 		n++;
 	}
 
 	/* Make room for the terminator */
-	n += 1;
+	n++;
 
-	new = mem_zalloc(sizeof *new * n);
-	memcpy(new, actions, sizeof *new * n);
-
-	new[n - 1].type = EVT_NONE;
+	struct keypress *new = mem_zalloc(n * sizeof(*new));
+	memcpy(new, actions, n * sizeof(*new));
 
 	return new;
 }
 
-
 /**
  * Add a keymap to the mappings table.
  */
-void keymap_add(int keymap, struct keypress trigger, struct keypress *actions, bool user)
+void keymap_add(int keymap,
+		struct keypress trigger, struct keypress *actions, bool user)
 {
-	struct keymap *k = mem_zalloc(sizeof *k);
 	assert(keymap >= 0 && keymap < KEYMAP_MODE_MAX);
 
 	keymap_remove(keymap, trigger);
+
+	struct keymap *k = mem_zalloc(sizeof(*k));
 
 	k->key = trigger;
 	k->actions = keymap_make(actions);
@@ -109,28 +105,26 @@ void keymap_add(int keymap, struct keypress trigger, struct keypress *actions, b
 
 	k->next = keymaps[keymap];
 	keymaps[keymap] = k;
-
-	return;
 }
-
 
 /**
  * Remove a keymap.  Return true if one was removed.
  */
 bool keymap_remove(int keymap, struct keypress trigger)
 {
-	struct keymap *k;
-	struct keymap *prev = NULL;
 	assert(keymap >= 0 && keymap < KEYMAP_MODE_MAX);
 
-	for (k = keymaps[keymap]; k; k = k->next) {
+	for (struct keymap *k = keymaps[keymap], *prev = NULL; k; k = k->next) {
 		if (k->key.code == trigger.code && k->key.mods == trigger.mods) {
-			mem_free(k->actions);
-			if (prev)
+			if (prev) {
 				prev->next = k->next;
-			else
+			} else {
 				keymaps[keymap] = k->next;
+			}
+
+			mem_free(k->actions);
 			mem_free(k);
+
 			return true;
 		}
 
@@ -140,16 +134,13 @@ bool keymap_remove(int keymap, struct keypress trigger)
 	return false;
 }
 
-
 /**
  * Forget and free all keymaps.
  */
 void keymap_free(void)
 {
-	size_t i;
-	struct keymap *k;
-	for (i = 0; i < N_ELEMENTS(keymaps); i++) {
-		k = keymaps[i];
+	for (size_t i = 0; i < N_ELEMENTS(keymaps); i++) {
+		struct keymap *k = keymaps[i];
 		while (k) {
 			struct keymap *next = k->next;
 			mem_free(k->actions);
@@ -159,35 +150,29 @@ void keymap_free(void)
 	}
 }
 
-
 /**
  * Append active keymaps to a given file.
  */
-void keymap_dump(ang_file *fff)
+void keymap_dump(ang_file *file)
 {
-	int mode;
-	struct keymap *k;
+	const int mode = KEYMAP_MODE_OPT;
 
-	if (OPT(rogue_like_commands))
-		mode = KEYMAP_MODE_ROGUE;
-	else
-		mode = KEYMAP_MODE_ORIG;
+	for (struct keymap *k = keymaps[mode]; k; k = k->next) {
+		if (!k->user) {
+			continue;
+		}
 
-	for (k = keymaps[mode]; k; k = k->next) {
 		char buf[1024];
-		struct keypress key[2] = { KEYPRESS_NULL, KEYPRESS_NULL };
-
-		if (!k->user) continue;
 
 		/* Encode the action */
 		keypress_to_text(buf, sizeof(buf), k->actions, false);
-		file_putf(fff, "keymap-act:%s\n", buf);
+		file_putf(file, "keymap-act:%s\n", buf);
 
 		/* Convert the key into a string */
-		key[0] = k->key;
+		struct keypress key[2] = {k->key, KEYPRESS_NULL};
 		keypress_to_text(buf, sizeof(buf), key, true);
-		file_putf(fff, "keymap-input:%d:%s\n", mode, buf);
+		file_putf(file, "keymap-input:%d:%s\n", mode, buf);
 
-		file_putf(fff, "\n");
+		file_putf(file, "\n");
 	}
 }
