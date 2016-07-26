@@ -154,13 +154,14 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 {
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
-	size_t n_lines = textblock_calculate_lines(tb,
-			&line_starts, &line_lengths, width);
 
 	/* 80 characters is traditional for Angband,
 	 * and is reasonable typography in general */
 	size_t width = orig_area.w > 0 ? orig_area.w : 80;
-	size_t height = orig.area.h > 0 ? orig_area.h : n_lines;
+	size_t n_lines = textblock_calculate_lines(tb,
+			&line_starts, &line_lengths, width);
+	size_t height = orig_area.h > 0 ? (size_t) orig_area.h : n_lines;
+
 
 	struct term_hints hints = {
 		.width = width,
