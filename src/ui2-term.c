@@ -420,13 +420,13 @@ static bool term_prepend_events(const ui_event *events, size_t num_events)
 		return false;
 	}
 
-	for (size_t i = 0; i < num_events; i++) {
+	for (size_t i = num_events; i > 0; i--) {
 		if (event_queue.tail == 0) {
-			event_queue.tail = event_queue.size - 1;
+			event_queue.tail = event_queue.size;
 		}
 		event_queue.tail--;
 
-		event_queue.queue[event_queue.tail] = events[i];
+		event_queue.queue[event_queue.tail] = events[i - 1];
 		event_queue.number++;
 	}
 
