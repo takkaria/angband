@@ -98,7 +98,7 @@ static struct term_hints context_term_hints(struct menu *m, struct loc mloc)
 
 static void context_menu_player_2(struct loc mloc)
 {
-	const int mode = OPT(rogue_like_commands) ? KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG;
+	const int mode = KEYMAP_MODE_OPT;
 
 	char *labels = string_make(lower_case);
 	unsigned char cmdkey = 0;
@@ -242,8 +242,7 @@ static void context_menu_player_display_floor(void)
 
 void context_menu_player(struct loc mloc)
 {
-	const int mode = OPT(rogue_like_commands) ?
-		KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG;
+	const int mode = KEYMAP_MODE_OPT;
 
 	char *labels = string_make(lower_case);
 	unsigned char cmdkey = 0;
@@ -407,8 +406,7 @@ void context_menu_player(struct loc mloc)
 void context_menu_cave(struct chunk *c,
 		struct loc loc, bool adjacent, struct loc mloc)
 {
-	const int mode = OPT(rogue_like_commands) ?
-		KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG;
+	const int mode = KEYMAP_MODE_OPT;
 
 	struct object *square_obj = square_object(c, loc.y, loc.x);
 
@@ -627,8 +625,7 @@ void context_menu_cave(struct chunk *c,
  */
 void context_menu_object(struct object *obj)
 {
-	const int mode = OPT(rogue_like_commands) ?
-		KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG;
+	const int mode = KEYMAP_MODE_OPT;
 
 	char *labels = string_make(lower_case);
 	unsigned char cmdkey = 0;
@@ -851,8 +848,7 @@ void context_menu_object(struct object *obj)
 static void show_command_list(struct cmd_info *cmd_list,
 		int size, struct loc mloc)
 {
-	const int mode = OPT(rogue_like_commands) ?
-		KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG;
+	const int mode = KEYMAP_MODE_OPT;
 
 	struct menu *m = menu_dynamic_new();
 
@@ -1058,8 +1054,7 @@ void textui_process_click(ui_event event)
 static void cmd_sub_entry(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
-	const int mode = OPT(rogue_like_commands) ?
-		KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG;
+	const int mode = KEYMAP_MODE_OPT;
 
 	struct cmd_info *commands = menu_priv(menu);
 
