@@ -9,7 +9,7 @@ include Makefile.src.ui2
 BASEOBJS := $(ANGFILES) $(ZFILES)
 
 depgen:
-	head -n 19 Makefile.inc > Makefile.new
+	head -n 18 Makefile.inc > Makefile.new
 	@for i in $(BASEOBJS:.o=.c); do \
 		DIR=$$(echo "./$$i" | sed 's|/[^/]*$$||'); \
 		gcc -MM -I. "$$i" | sed "s|^\\([^ ]\\)|$$DIR/\\1|" >> Makefile.new; \
