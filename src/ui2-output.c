@@ -232,38 +232,22 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	Term_pop();
 }
 
-/**
- * Hack -- Where to wrap the text when using text_out().  Use the default
- * value (for example the screen width) when 'text_out_wrap' is 0.
- */
-int text_out_wrap = 0;
-
-/**
- * Hack -- Indentation for the text when using text_out().
- */
-int text_out_indent = 0;
-
-/**
- * Hack -- Padding after wrapping
- */
-int text_out_pad = 0;
-
-static void text_out_newline(struct loc *cursor)
+static void text_out_newline(struct text_out_info info, struct loc *cursor)
 {
 	cursor->y++;
-	cursor->x = text_out_indent;
+	cursor->x = info.indent;
 	Term_erase_line(cursor->x, cursor->y);
-	cursor->x += text_out_pad;
+	cursor->x += info.pad;
 	Term_cursor_to_xy(cursor->x, cursor->y);
 }
 
-static void text_out_backtrack(int wrap, struct loc *cursor)
+static void text_out_backtrack(struct text_out_info info, int wrap, struct loc *cursor)
 {
 	assert(wrap > 0);
 	struct term_point points[wrap];
 
 	int split = 0;
-	for (int w = wrap - 1; w > text_out_indent + text_out_pad; w--) {
+	for (int w = wrap - 1; w > info.indent + info.pad; w--) {
 		Term_get_point(w, cursor->y, &points[w]);
 
 		if (points[w].fg_char == L' ') {
@@ -276,7 +260,7 @@ static void text_out_backtrack(int wrap, struct loc *cursor)
 	 * split == wrap when the last char in this line is space */
 	if (split > 0 && split < wrap) {
 		Term_erase_line(split, cursor->y);
-		text_out_newline(cursor);
+		text_out_newline(info, cursor);
 
 		while (split < wrap) {
 			Term_putwc(points[split].fg_attr, points[split].fg_char);
@@ -284,7 +268,7 @@ static void text_out_backtrack(int wrap, struct loc *cursor)
 			cursor->x++;
 		}
 	} else {
-		text_out_newline(cursor);
+		text_out_newline(info, cursor);
 	}
 }
 
@@ -299,13 +283,13 @@ static void text_out_backtrack(int wrap, struct loc *cursor)
  * Once this function has been called, the cursor should not be moved
  * until all the related "text_out()" calls to the window are complete.
  */
-static void text_out_to_screen(uint32_t attr, const char *str)
+static void text_out_to_screen(struct text_out_info info, uint32_t attr, const char *str)
 {
 	const int width = Term_width();
-	const int wrap = text_out_wrap > 0 && text_out_wrap < width ?
-		text_out_wrap - 1 : width - 1;
+	const int wrap = info.wrap > 0 && info.wrap < width ?
+		info.wrap - 1 : width - 1;
 
-	assert(text_out_indent + text_out_pad < wrap);
+	assert(info.indent + info.pad < wrap);
 
 	struct loc cursor;
 	Term_get_cursor(&cursor.x, &cursor.y, NULL, NULL);
@@ -315,7 +299,7 @@ static void text_out_to_screen(uint32_t attr, const char *str)
 	
 	for (const wchar_t *ws = buf; *ws; ws++) {
 		if (*ws == L'\n') {
-			text_out_newline(&cursor);
+			text_out_newline(info, &cursor);
 			continue;
 		}
 
@@ -324,10 +308,10 @@ static void text_out_to_screen(uint32_t attr, const char *str)
 		/* Wrap words as needed */
 		if (cursor.x >= wrap) {
 			if (ch == L' ') {
-				text_out_newline(&cursor);
+				text_out_newline(info, &cursor);
 				continue;
 			} else {
-				text_out_backtrack(wrap, &cursor);
+				text_out_backtrack(info, wrap, &cursor);
 			}
 		}
 
@@ -339,7 +323,7 @@ static void text_out_to_screen(uint32_t attr, const char *str)
 /**
  * Output text to the screen
  */
-void text_out(const char *fmt, ...)
+void text_out(struct text_out_info info, const char *fmt, ...)
 {
 	char buf[1024];
 	va_list vp;
@@ -348,13 +332,13 @@ void text_out(const char *fmt, ...)
 	(void) vstrnfmt(buf, sizeof(buf), fmt, vp);
 	va_end(vp);
 
-	text_out_to_screen(COLOUR_WHITE, buf);
+	text_out_to_screen(info, COLOUR_WHITE, buf);
 }
 
 /**
  * Output text to the screen (in color)
  */
-void text_out_c(byte a, const char *fmt, ...)
+void text_out_c(struct text_out_info info, uint32_t attr, const char *fmt, ...)
 {
 	char buf[1024];
 	va_list vp;
@@ -363,7 +347,7 @@ void text_out_c(byte a, const char *fmt, ...)
 	(void) vstrnfmt(buf, sizeof(buf), fmt, vp);
 	va_end(vp);
 
-	text_out_to_screen(a, buf);
+	text_out_to_screen(info, attr, buf);
 }
 
 /**
@@ -460,7 +444,7 @@ static bool next_section(const char *source, size_t init,
  * for the printing, so if used within words may lead to part of the
  * word being moved to the next line.
  */
-void text_out_e(const char *fmt, ...)
+void text_out_e(struct text_out_info info, const char *fmt, ...)
 {
 	char buf[1024];
 	char smallbuf[1024];
@@ -497,7 +481,7 @@ void text_out_e(const char *fmt, ...)
 		}
 
 		/* Output now */
-		text_out_to_screen(a, smallbuf);
+		text_out_to_screen(info, a, smallbuf);
 
 		start = next;
 	}

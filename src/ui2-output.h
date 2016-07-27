@@ -79,13 +79,15 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
  * ------------------------------------------------------------------------
  * text_out
  * ------------------------------------------------------------------------ */
-int text_out_wrap;
-int text_out_indent;
-int text_out_pad;
+struct text_out_info {
+	int wrap;
+	int indent;
+	int pad;
+};
 
-void text_out(const char *fmt, ...);
-void text_out_c(byte a, const char *fmt, ...);
-void text_out_e(const char *fmt, ...);
+void text_out(struct text_out_info info, const char *fmt, ...);
+void text_out_c(struct text_out_info info, uint32_t attr, const char *fmt, ...);
+void text_out_e(struct text_out_info info, const char *fmt, ...);
 
 /**
  * ------------------------------------------------------------------------
