@@ -76,7 +76,7 @@ typedef struct {
  * Flags for menu_actions.
  */
 enum {
-	MN_ACT_GRAYED = 1 << 0, /* Allows selection but no action */
+	MN_ACT_GRAYED = 1 /* Allows selection but no action */
 };
 
 /**

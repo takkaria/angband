@@ -1,5 +1,5 @@
 /**
- * \file ui-term.c
+ * \file ui2-term.c
  * \brief A generic, efficient, terminal window package
  *
  * Copyright (c) 1997 Ben Harrison and others
