@@ -1020,7 +1020,7 @@ region menu_dynamic_calc_location(struct menu *menu)
 		.h = menu->count
 	};
 
-	return region;
+	return reg;
 }
 
 int menu_dynamic_select(struct menu *menu)
