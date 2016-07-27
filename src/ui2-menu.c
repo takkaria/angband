@@ -110,13 +110,7 @@ static bool menu_action_valid(struct menu *menu, int index)
 {
 	menu_action *acts = menu_priv(menu);
 
-	if (acts[index].flags & MN_ACT_HIDDEN
-			|| acts[index].name == NULL)
-	{
-		return false;
-	} else {
-		return true;
-	}
+	return acts[index].name != NULL;
 }
 
 static void menu_action_display(struct menu *menu,

@@ -77,7 +77,6 @@ typedef struct {
  */
 enum {
 	MN_ACT_GRAYED = 1 << 0, /* Allows selection but no action */
-	MN_ACT_HIDDEN = 1 << 1  /* Row is hidden, but may be selected via tag */
 };
 
 /**
