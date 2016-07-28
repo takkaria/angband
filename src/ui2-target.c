@@ -95,42 +95,42 @@ static void target_display_help_aux(bool monster, bool free)
 	};
 	Term_push_new(&hints);
 
-	text_out_indent = 1;
+	struct text_out_info info = {
+		.indent = 1
+	};
 
 	/* Display help */
-	text_out_c(COLOUR_L_GREEN, "<dir>");
-	text_out(" and ");
-	text_out_c(COLOUR_L_GREEN, "<click>");
-	text_out(" look around. ");
-	text_out_c(COLOUR_L_GREEN, "g");
-	text_out(" moves to the selection. ");
-	text_out_c(COLOUR_L_GREEN, "p");
-	text_out(" selects the player. ");
-	text_out_c(COLOUR_L_GREEN, "q");
-	text_out(" exits. ");
-	text_out_c(COLOUR_L_GREEN, "r");
-	text_out(" displays details. ");
+	text_out_c(info, COLOUR_L_GREEN, "<dir>");
+	text_out(info, " and ");
+	text_out_c(info, COLOUR_L_GREEN, "<click>");
+	text_out(info, " look around. ");
+	text_out_c(info, COLOUR_L_GREEN, "g");
+	text_out(info, " moves to the selection. ");
+	text_out_c(info, COLOUR_L_GREEN, "p");
+	text_out(info, " selects the player. ");
+	text_out_c(info, COLOUR_L_GREEN, "q");
+	text_out(info, " exits. ");
+	text_out_c(info, COLOUR_L_GREEN, "r");
+	text_out(info, " displays details. ");
 
 	if (free) {
-		text_out_c(COLOUR_L_GREEN, "m");
-		text_out(" restricts to interesting places. ");
+		text_out_c(info, COLOUR_L_GREEN, "m");
+		text_out(info, " restricts to interesting places. ");
 	}
 	else {
-		text_out_c(COLOUR_L_GREEN, "+");
-		text_out(" and ");
-		text_out_c(COLOUR_L_GREEN, "-");
-		text_out(" cycle through interesting places. ");
-		text_out_c(COLOUR_L_GREEN, "o");
-		text_out(" allows free selection. ");
+		text_out_c(info, COLOUR_L_GREEN, "+");
+		text_out(info, " and ");
+		text_out_c(info, COLOUR_L_GREEN, "-");
+		text_out(info, " cycle through interesting places. ");
+		text_out_c(info, COLOUR_L_GREEN, "o");
+		text_out(info, " allows free selection. ");
 	}
 	
 	if (monster || free) {
-		text_out("");
-		text_out_c(COLOUR_L_GREEN, "t");
-		text_out(" targets the current selection.");
+		text_out(info, "");
+		text_out_c(info, COLOUR_L_GREEN, "t");
+		text_out(info, " targets the current selection.");
 	}
-
-	text_out_indent = 0;
 
 	inkey_any();
 
@@ -484,7 +484,7 @@ static bool target_interactive_aux_objects(ui_event *event,
 
 		struct term_hints hints = {
 			.height = floor_num,
-			.purpose = TERM_PURPOSE_SHOW_OBJECTS
+			.purpose = TERM_PURPOSE_TEXT
 		};
 		Term_push_new(&hints);
 		show_floor(floor_list, floor_num,
