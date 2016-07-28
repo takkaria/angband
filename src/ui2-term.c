@@ -613,14 +613,14 @@ bool Term_putwc(uint32_t fga, wchar_t fgc)
 
 bool Term_putws(int len, uint32_t fga, const wchar_t *fgc)
 {
-	assert(len > 0);
+	assert(len >= 0);
 
 	return term_put_ws_at_cursor(len, fga, fgc);
 }
 
 bool Term_puts(int len, uint32_t fga, const char *fgc)
 {
-	assert(len > 0);
+	assert(len >= 0);
 
 	wchar_t ws[WIDESTRING_MAX];
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
@@ -645,7 +645,7 @@ bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
 
 bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
 {
-	assert(len > 0);
+	assert(len >= 0);
 
 	term_move_cursor(x, y);
 
@@ -654,7 +654,7 @@ bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
 
 bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
 {
-	assert(len > 0);
+	assert(len >= 0);
 
 	term_move_cursor(x, y);
 

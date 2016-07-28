@@ -520,37 +520,67 @@ void clear_prompt(void)
  * add the given string.  Do not clear the line. Ignore strings
  * with invalid coordinates.
  */
-void c_put_str(uint32_t attr, const char *str, struct loc at) {
+
+void c_put_str_len(uint32_t attr, const char *str, struct loc at, int len) {
+	assert(len >= 0);
+
 	if (Term_point_ok(at.x, at.y)) {
-		Term_adds(at.x, at.y, Term_width(), attr, str);
+		Term_adds(at.x, at.y, len, attr, str);
 	}
 }
 
 /**
  * As above, but in white
  */
-void put_str(const char *str, struct loc at) {
-	c_put_str(COLOUR_WHITE, str, at);
+void put_str_len(const char *str, struct loc at, int len) {
+	assert(len >= 0);
+
+	c_put_str_len(COLOUR_WHITE, str, at, len);
 }
 
 /**
  * Display a string on the screen using an attribute, and clear to the
  * end of the line. Ignore strings with invalid coordinates.
  */
-void c_prt(uint32_t attr, const char *str, struct loc at) {
+void c_prt_len(uint32_t attr, const char *str, struct loc at, int len) {
+	assert(len >= 0);
+
 	if (Term_point_ok(at.x, at.y)) {
 		Term_erase_line(at.x, at.y);
-		Term_adds(at.x, at.y, Term_width(), attr, str);
+		Term_adds(at.x, at.y, len, attr, str);
 	}
 }
 
 /**
  * As above, but in white
  */
-void prt(const char *str, struct loc at) {
-	c_prt(COLOUR_WHITE, str, at);
+void prt_len(const char *str, struct loc at, int len) {
+	c_prt_len(COLOUR_WHITE, str, at, len);
 }
 
+/*
+ * Simplified interfaces to the above
+ */
+
+void c_put_str(uint32_t attr, const char *str, struct loc at) {
+	c_put_str_len(attr, str, at, Term_width());
+}
+
+void put_str(const char *str, struct loc at) {
+	c_put_str_len(COLOUR_WHITE, str, at, Term_width());
+}
+
+void c_prt(uint32_t attr, const char *str, struct loc at) {
+	c_prt_len(attr, str, at, Term_width());
+}
+
+void prt(const char *str, struct loc at) {
+	c_prt_len(COLOUR_WHITE, str, at, Term_width());
+}
+
+/*
+ * Wipe line at some point if it has valid coordinates
+ */
 void erase_line(struct loc at)
 {
 	if (Term_point_ok(at.x, at.y)) {

@@ -94,6 +94,12 @@ void text_out_e(struct text_out_info info, const char *fmt, ...);
  * Simple text display
  * ------------------------------------------------------------------------ */
 void erase_line(struct loc at);
+
+void c_put_str_len(uint32_t attr, const char *str, struct loc at, int len);
+void put_str_len(const char *str, struct loc at, int len);
+void c_prt_len(uint32_t attr, const char *str, struct loc at, int len);
+void prt_len(const char *str, struct loc at, int len);
+
 void c_put_str(uint32_t attr, const char *str, struct loc at);
 void put_str(const char *str, struct loc at);
 void c_prt(uint32_t attr, const char *str, struct loc at);
