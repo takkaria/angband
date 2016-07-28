@@ -1,5 +1,5 @@
 /**
- * \file ui-obj.h
+ * \file ui2-obj.h
  * \brief lists of objects and object pictures
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
@@ -28,31 +28,33 @@
  * show_floor()
  */
 typedef enum {
-	OLIST_NONE   = 0x00,	/* No options */
-	OLIST_WINDOW = 0x01,	/* Display list in a sub-term (left-align) */
-	OLIST_QUIVER = 0x02,	/* Display quiver lines */
-	OLIST_GOLD   = 0x04,	/* Include gold in the list */
-	OLIST_WEIGHT = 0x08,	/* Show item weight */
-	OLIST_PRICE  = 0x10,	/* Show item price */
-	OLIST_FAIL   = 0x20,	/* Show device failure */
-	OLIST_SEMPTY = 0x40,
-	OLIST_DEATH  = 0x80
+	OLIST_NONE           = 0,      /* No options */
+	OLIST_WINDOW         = 1 << 0, /* Display list in a sub-term (as opposed to a menu) */
+	OLIST_GOLD           = 1 << 1, /* Include gold in the list */
+	OLIST_WEIGHT         = 1 << 2, /* Show item weight */
+	OLIST_PRICE          = 1 << 3, /* Show item price */
+	OLIST_FAIL           = 1 << 4, /* Show device failure */
+	OLIST_TERSE          = 1 << 5, /* Terse object descriptions (without flavor etc) */
+	OLIST_DEATH          = 1 << 6, /* RIP screen */
+	OLIST_SHOW_EMPTY     = 1 << 7, /* Show empty slots */
+	OLIST_QUIVER_COMPACT = 1 << 8, /* Compact view of quiver (just missile count) */
+	OLIST_QUIVER_FULL    = 1 << 9, /* Full quiver slots */
 } olist_detail_t;
 
-
-byte object_kind_attr(const struct object_kind *kind);
+uint32_t object_kind_attr(const struct object_kind *kind);
 wchar_t object_kind_char(const struct object_kind *kind);
-byte object_attr(const struct object *obj);
+uint32_t object_attr(const struct object *obj);
 wchar_t object_char(const struct object *obj);
 void show_inven(int mode, item_tester tester);
 void show_equip(int mode, item_tester tester);
 void show_quiver(int mode, item_tester tester);
-void show_floor(struct object **floor_list, int floor_num, int mode,
-				item_tester tester);
-bool textui_get_item(struct object **choice, const char *pmt, const char *str,
-					 cmd_code cmd, item_tester tester, int mode);
-bool get_item_allow(const struct object *obj, unsigned char ch, cmd_code cmd,
-					bool is_harmless);
+void show_floor(struct object **floor_list, int floor_num,
+		int mode, item_tester tester);
+bool textui_get_item(struct object **choice,
+		const char *prompt, const char *reject,
+		cmd_code cmd, item_tester tester, int mode);
+bool get_item_allow(const struct object *obj,
+		unsigned char ch, cmd_code cmd, bool harmless);
 
 void display_object_recall(struct object *obj);
 void display_object_kind_recall(struct object_kind *kind);
