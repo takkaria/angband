@@ -30,6 +30,7 @@
 extern const char lower_case[];  /* abc..z */
 extern const char upper_case[];  /* ABC..Z */
 extern const char all_letters[]; /* abc..zABC..Z */
+extern const char all_digits[];  /* 0..9 */
 
 /*
  * Together, these classes define the constant properties of

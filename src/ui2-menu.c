@@ -34,9 +34,10 @@ static const uint32_t curs_attrs[2][2] = {
 /**
  * Some useful constants
  */
-const char lower_case[] = "abcdefghijklmnopqrstuvwxyz";
-const char upper_case[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const char lower_case[]  = "abcdefghijklmnopqrstuvwxyz";
+const char upper_case[]  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const char all_letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const char all_digits[]  = "0123456789";
 
 /**
  * Forward declarations
