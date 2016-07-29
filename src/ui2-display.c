@@ -1535,7 +1535,7 @@ static void update_inven_subwindow(game_event_type type,
 	Term_push(ANGBAND_TERM(user)->term);
 
 	if (!flip_inven) {
-		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
+		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 	} else {
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 	}
@@ -1555,7 +1555,7 @@ static void update_equip_subwindow(game_event_type type,
 	if (!flip_inven) {
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 	} else {
-		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
+		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 	}
 
 	Term_flush_output();
@@ -1578,7 +1578,7 @@ void toggle_inven_equip(void)
 			Term_push(aterm->term);
 
 			if (!flip_inven) {
-				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
+				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 			} else {
 				show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 			}
@@ -1591,7 +1591,7 @@ void toggle_inven_equip(void)
 			if (!flip_inven) {
 				show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 			} else {
-				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
+				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 			}
 
 			Term_flush_output();
@@ -1997,7 +1997,10 @@ static void show_splashscreen(game_event_type type,
 
 	if (fp) {
 		/* Centre the splashscreen - assume news.txt has width 80, height 23 */
-		text_out_indent = (Term_width() - 80) / 2;
+		struct text_out_info info = {
+			.indent = (Term_width() - 80) / 2
+		};
+
 		Term_cursor_to_xy(0, (Term_height() - 23) / 5);
 
 		/* Dump the file to the screen */
@@ -2008,11 +2011,10 @@ static void show_splashscreen(game_event_type type,
 				strnfmt(version_marker, sizeof(buf) - pos, "%-8s", buildver);
 			}
 
-			text_out_e("%s", buf);
-			text_out("\n");
+			text_out_e(info, "%s", buf);
+			text_out(info, "\n");
 		}
 
-		text_out_indent = 0;
 		file_close(fp);
 	}
 
