@@ -1387,10 +1387,10 @@ void display_object_recall(struct object *obj)
 	char header[80];
 	region area = {0};
 
+	Term_clear();
+
 	textblock *tb = object_info(obj, OINFO_NONE);
 	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_FULL);
-
-	Term_clear();
 	textui_textblock_place(tb, area, header);
 	textblock_free(tb);
 }
@@ -1401,7 +1401,9 @@ void display_object_recall(struct object *obj)
  */
 void display_object_kind_recall(struct object_kind *kind)
 {
-	struct object object = OBJECT_NULL, known_obj = OBJECT_NULL;
+	struct object object = OBJECT_NULL;
+	struct object known_obj = OBJECT_NULL;
+
 	object_prep(&object, kind, 0, EXTREMIFY);
 	object.known = &known_obj;
 
@@ -1410,9 +1412,7 @@ void display_object_kind_recall(struct object_kind *kind)
 
 /**
  * Display object recall modally and wait for a keypress.
- *
  * This is set up for use in look mode (see target_set_interactive_aux()).
- *
  * \param obj is the object to be described.
  */
 void display_object_recall_interactive(struct object *obj)
@@ -1445,7 +1445,6 @@ void textui_obj_examine(void)
 		textblock *tb = object_info(obj, OINFO_NONE);
 		object_desc(header, sizeof(header), obj,
 				ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL);
-
 		textui_textblock_show(tb, area, header);
 		textblock_free(tb);
 	}
@@ -1475,13 +1474,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 
 	char out_val[160];
 
-	struct menu *menu;
-	region r;
-	int selected;
-	uint32_t value;
-	int type;
-
-	menu = menu_dynamic_new();
+	struct menu *menu = menu_dynamic_new();
 	menu->selections = lower_case;
 
 	/* Basic ignore option */
@@ -1492,14 +1485,16 @@ void textui_cmd_ignore_menu(struct object *obj)
 	}
 
 	/* Flavour-aware ignore */
-	if (ignore_tval(obj->tval) &&
-			(!obj->artifact || !object_flavor_is_aware(obj))) {
-		bool ignored = kind_is_ignored_aware(obj->kind) ||
-				kind_is_ignored_unaware(obj->kind);
+	if (ignore_tval(obj->tval)
+			&& (!obj->artifact || !object_flavor_is_aware(obj)))
+	{
+		bool ignored =
+			kind_is_ignored_aware(obj->kind) || kind_is_ignored_unaware(obj->kind);
 
 		char tmp[70];
 		object_desc(tmp, sizeof(tmp), obj,
 					ODESC_NOEGO | ODESC_BASE | ODESC_PLURAL);
+
 		if (!ignored) {
 			strnfmt(out_val, sizeof out_val, "All %s", tmp);
 			menu_dynamic_add(menu, out_val, IGNORE_THIS_FLAVOR);
@@ -1513,12 +1508,14 @@ void textui_cmd_ignore_menu(struct object *obj)
 	if (obj->known->ego) {
 		struct ego_desc choice;
 		struct ego_item *ego = obj->ego;
-		char tmp[80] = "";
 
 		choice.e_idx = ego->eidx;
 		choice.itype = ignore_type_of(obj);
 		choice.short_name = "";
-		(void) ego_item_name(tmp, sizeof(tmp), &choice);
+
+		char tmp[80];
+		ego_item_name(tmp, sizeof(tmp), &choice);
+
 		if (!ego_is_ignored(choice.e_idx, choice.itype)) {
 			strnfmt(out_val, sizeof out_val, "All %s", tmp + 4);
 			menu_dynamic_add(menu, out_val, IGNORE_THIS_EGO);
@@ -1529,33 +1526,35 @@ void textui_cmd_ignore_menu(struct object *obj)
 	}
 
 	/* Quality ignoring */
-	value = ignore_level_of(obj);
-	type = ignore_type_of(obj);
+	uint32_t value = ignore_level_of(obj);
+	int type = ignore_type_of(obj);
 
-	if (tval_is_jewelry(obj) &&	ignore_level_of(obj) != IGNORE_BAD)
+	if (tval_is_jewelry(obj) &&	ignore_level_of(obj) != IGNORE_BAD) {
 		value = IGNORE_MAX;
+	}
 
 	if (value != IGNORE_MAX && type != ITYPE_MAX) {
-		strnfmt(out_val, sizeof out_val, "All %s %s",
+		strnfmt(out_val, sizeof(out_val), "All %s %s",
 				quality_values[value].name, ignore_name_for_type(type));
-
 		menu_dynamic_add(menu, out_val, IGNORE_THIS_QUALITY);
 	}
 
 	/* Work out display region */
-	r.width = menu_dynamic_longest_entry(menu) + 3; /* +3 for tag */
-	r.col = 80 - r.width;
-	r.row = 1;
-	r.page_rows = menu->count;
+	struct term_hints hints = {
+		.width = menu_dynamic_longest_entry(menu) + 3, /* + 3 for tag */
+		.height = menu->count,
+		.position = TERM_POSITION_TOP_CENTER,
+		.purpose = TERM_PURPOSE_MENU
+	};
 
-	screen_save();
-	menu_layout(menu, &r);
-	region_erase_bordered(&r);
+	Term_push_new(&hints);
+	menu_layout_term(menu);
 
-	prt("(Enter to select, ESC) Ignore:", 0, 0);
-	selected = menu_dynamic_select(menu);
+	show_prompt("(Enter to select, ESC) Ignore:");
+	int selected = menu_dynamic_select(menu);
 
-	screen_load();
+	Term_pop();
+	menu_dynamic_free(menu);
 
 	if (selected == IGNORE_THIS_ITEM) {
 		obj->known->notice |= OBJ_NOTICE_IGNORE;
@@ -1570,15 +1569,13 @@ void textui_cmd_ignore_menu(struct object *obj)
 	} else if (selected == UNIGNORE_THIS_EGO) {
 		ego_ignore_clear(obj);
 	} else if (selected == IGNORE_THIS_QUALITY) {
-		byte ignore_value = ignore_level_of(obj);
 		int ignore_type = ignore_type_of(obj);
+		byte ignore_value = ignore_level_of(obj);
 
 		ignore_level[ignore_type] = ignore_value;
 	}
 
 	player->upkeep->notice |= PN_IGNORE;
-
-	menu_dynamic_free(menu);
 }
 
 void textui_cmd_ignore(void)
