@@ -1105,6 +1105,12 @@ static void show_menu_prompt(const struct object_menu_data *data,
 
 static void build_menu_list(struct object_menu_data *data, item_tester tester)
 {
+	if (data->list != NULL) {
+		free_obj_list(data->list);
+	}
+
+	data->list = get_obj_list();
+
 	if (player->upkeep->command_wrk == USE_INVEN) {
 		build_obj_list(data->list, player->upkeep->inven, data->i2,
 				lower_case, tester, data->olist_mode);
@@ -1141,8 +1147,8 @@ static bool init_menu_data(struct object_menu_data *data,
 	memset(data, 0, sizeof(*data));
 
 	data->retval.object = NULL;
+	data->list          = NULL;
 
-	data->list       = get_obj_list();
 	data->floor_list = mem_zalloc(z_info->floor_size * sizeof(*data->floor_list));
 	data->allow_all  = allow_all;
 	data->item_cmd   = cmd;
@@ -1275,7 +1281,10 @@ static bool init_menu_data(struct object_menu_data *data,
 static void cleanup_menu_data(struct object_menu_data *data)
 {
 	mem_free(data->floor_list);
-	free_obj_list(data->list);
+
+	if (data->list != NULL) {
+		free_obj_list(data->list);
+	}
 }
 
 static int item_menu_max_height(void)
