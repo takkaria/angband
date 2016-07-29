@@ -229,8 +229,10 @@ static void show_obj(struct object_menu_item *item,
 		loc.x += label_len;
 	}
 
-	c_put_str_len(attr, item->equip.str, loc, equip_len);
-	loc.x += equip_len;
+	if (equip_len > 0) {
+		c_put_str_len(attr, item->equip.str, loc, equip_len);
+		loc.x += equip_len;
+	}
 
 	/* Truncate the name if it's too long */
 	if (label_len + equip_len + name_len > extra_fields_offset) {
@@ -294,8 +296,6 @@ static void quiver_based_max_len(struct object_menu_list *olist)
 
 static void set_extra_fields(struct object_menu_list *olist, int *mode)
 {
-	assert(olist->line_max_len > 0);
-
 	const size_t term_width = Term_width();
 
 	if ((*mode & OLIST_WINDOW) && term_width < 40) {
@@ -372,7 +372,7 @@ static void build_obj_list(struct object_menu_list *olist,
 
 		if (object_test(tester, obj) || (obj && gold && tval_is_money(obj))) {
 			/* Acceptable items get a label */
-			key = keys[i];
+			key = *keys++;
 			assert(key != 0);
 
 			item->label.len =
@@ -411,7 +411,7 @@ static void build_obj_list(struct object_menu_list *olist,
 }
 
 /* Returns coords of the next row (after the ones shown) */
-static struct loc show_quiver_compact(int label, struct loc loc)
+static struct loc show_quiver_compact(const char *keys, struct loc loc)
 {
 	char buf[80];
 
@@ -420,11 +420,11 @@ static struct loc show_quiver_compact(int label, struct loc loc)
 	int last_slot = slots - 1;
 
 	uint32_t attr = menu_row_style(false, false);
-	const char *fmt = "in Quiver: %d missile%s";
 
 	/* Quiver may take multiple lines */
-	for (int slot = 0; slot < slots; slot++, label++, loc.y++) {
-		char key = I2A(label);
+	for (int slot = 0; slot < slots; slot++, loc.y++) {
+		char key = *keys++;
+		assert(key != 0);
 
 		if (slot == last_slot) {
 			/* Last slot has less than the full number of missiles */
@@ -439,7 +439,7 @@ static struct loc show_quiver_compact(int label, struct loc loc)
 		loc.x += 3;
 
 		/* Print the count */
-		strnfmt(buf, sizeof(buf), fmt, stack, stack == 1 ? "" : "s");
+		strnfmt(buf, sizeof(buf), "in Quiver: %d missile%s", stack, stack == 1 ? "" : "s");
 		c_put_str(COLOUR_L_UMBER, buf, loc);
 		loc.x -= 3;
 	}
@@ -471,7 +471,8 @@ static struct loc show_obj_list(struct object_menu_list *olist,
 	}
 
 	if (mode & OLIST_QUIVER_COMPACT) {
-		loc = show_quiver_compact(olist->len, loc);
+		assert(olist->len < 26);
+		loc = show_quiver_compact(all_letters + olist->len, loc);
 	}
 
 	return loc;
@@ -485,7 +486,7 @@ static struct loc show_obj_list(struct object_menu_list *olist,
 void show_inven(int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
-	struct loc loc = {0};
+	struct loc loc = {0, 0};
 
 	if (mode & OLIST_WINDOW) {
 		/* Inven windows start with a burden header */
@@ -526,6 +527,7 @@ void show_inven(int mode, item_tester tester)
 void show_quiver(int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
+	struct loc loc = {0, 0};
 
 	/* Find the last occupied quiver slot */
 	int last = -1;
@@ -539,7 +541,7 @@ void show_quiver(int mode, item_tester tester)
 
 	build_obj_list(olist, player->upkeep->quiver, last,
 			all_digits, tester, mode);
-	show_obj_list(olist, mode, loc(0, 0));
+	show_obj_list(olist, mode, loc);
 	free_obj_list(olist);
 }
 
@@ -551,7 +553,7 @@ void show_quiver(int mode, item_tester tester)
 void show_equip(int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
-	struct loc loc = {0};
+	struct loc loc = {0, 0};
 
 	build_obj_list(olist, NULL, player->body.count - 1,
 			all_letters, tester, mode);
@@ -588,6 +590,7 @@ void show_floor(struct object **floor_list, int floor_num,
 		int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
+	struct loc loc = {0, 0};
 
 	if (floor_num > z_info->floor_size) {
 		floor_num = z_info->floor_size;
@@ -595,7 +598,7 @@ void show_floor(struct object **floor_list, int floor_num,
 
 	build_obj_list(olist, floor_list, floor_num - 1,
 			all_letters, tester, mode);
-	show_obj_list(olist, mode, loc(0, 0));
+	show_obj_list(olist, mode, loc);
 	free_obj_list(olist);
 }
 
@@ -743,7 +746,7 @@ static void cat_menu_header(char *buf, size_t bufsize,
 		my_strcat(buf, tmp_buf, bufsize);
 	}
 
-	/* Only one of those is allowed, and inven takes precedence */
+	/* Only one of those is allowed, and inventory takes precedence */
 	if (inven) {
 		my_strcat(buf, " / for Inven,", bufsize);
 	} else if (equip) {
@@ -946,7 +949,8 @@ static void quiver_browser(int index, void *menu_data, region active)
 			.y = active.y + active.h
 		};
 
-		show_quiver_compact(data->list->len, loc);
+		assert(data->list->len < 26);
+		show_quiver_compact(all_letters + data->list->len, loc);
 	}
 }
 
@@ -1119,7 +1123,7 @@ static void build_menu_list(struct object_menu_data *data, item_tester tester)
 	}
 }
 
-static bool init_object_data(struct object_menu_data *data,
+static bool init_menu_data(struct object_menu_data *data,
 		bool allow_all, cmd_code cmd, item_tester tester, int mode)
 {
 	const bool use_inven  = (mode & USE_INVEN)  ? true : false;
@@ -1268,7 +1272,7 @@ static bool init_object_data(struct object_menu_data *data,
 	return true;
 }
 
-static void cleanup_object_data(struct object_menu_data *data)
+static void cleanup_menu_data(struct object_menu_data *data)
 {
 	mem_free(data->floor_list);
 	free_obj_list(data->list);
@@ -1334,7 +1338,7 @@ bool textui_get_item(struct object **choice,
 {
 	struct object_menu_data data;
 
-	bool menu_ok = init_object_data(&data,
+	bool menu_ok = init_menu_data(&data,
 			reject == NULL ? true : false,
 			cmd, tester, mode);
 
@@ -1370,7 +1374,7 @@ bool textui_get_item(struct object **choice,
 	*choice = data.retval.object;
 
 	player->upkeep->command_wrk = 0;
-	cleanup_object_data(&data);
+	cleanup_menu_data(&data);
 
 	return *choice != NULL;
 }
@@ -1475,7 +1479,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 		return;
 	}
 
-	char out_val[160];
+	char out_val[80];
 
 	struct menu *menu = menu_dynamic_new();
 	menu->selections = lower_case;
@@ -1491,18 +1495,18 @@ void textui_cmd_ignore_menu(struct object *obj)
 	if (ignore_tval(obj->tval)
 			&& (!obj->artifact || !object_flavor_is_aware(obj)))
 	{
-		bool ignored =
-			kind_is_ignored_aware(obj->kind) || kind_is_ignored_unaware(obj->kind);
-
-		char tmp[70];
+		char tmp[80];
 		object_desc(tmp, sizeof(tmp), obj,
 					ODESC_NOEGO | ODESC_BASE | ODESC_PLURAL);
 
+		bool ignored =
+			kind_is_ignored_aware(obj->kind) || kind_is_ignored_unaware(obj->kind);
+
 		if (!ignored) {
-			strnfmt(out_val, sizeof out_val, "All %s", tmp);
+			strnfmt(out_val, sizeof(out_val), "All %s", tmp);
 			menu_dynamic_add(menu, out_val, IGNORE_THIS_FLAVOR);
 		} else {
-			strnfmt(out_val, sizeof out_val, "Unignore all %s", tmp);
+			strnfmt(out_val, sizeof(out_val), "Unignore all %s", tmp);
 			menu_dynamic_add(menu, out_val, UNIGNORE_THIS_FLAVOR);
 		}
 	}
@@ -1520,10 +1524,10 @@ void textui_cmd_ignore_menu(struct object *obj)
 		ego_item_name(tmp, sizeof(tmp), &choice);
 
 		if (!ego_is_ignored(choice.e_idx, choice.itype)) {
-			strnfmt(out_val, sizeof out_val, "All %s", tmp + 4);
+			strnfmt(out_val, sizeof(out_val), "All %s", tmp + 4);
 			menu_dynamic_add(menu, out_val, IGNORE_THIS_EGO);
 		} else {
-			strnfmt(out_val, sizeof out_val, "Unignore all %s", tmp + 4);
+			strnfmt(out_val, sizeof(out_val), "Unignore all %s", tmp + 4);
 			menu_dynamic_add(menu, out_val, UNIGNORE_THIS_EGO);
 		}
 	}
