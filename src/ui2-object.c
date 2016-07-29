@@ -821,13 +821,13 @@ static void menu_header(const struct object_menu_data *data,
 static void handle_menu_key_action(struct object_menu_data *data,
 		struct keypress key)
 {
-	const bool inven  = ((data->item_mode & USE_INVEN) || data->allow_all)
+	const bool inven  = ((data->item_mode & USE_INVEN)  || data->allow_all)
 		? true : false;
-	const bool equip  = ((data->item_mode & USE_EQUIP) || data->allow_all)
+	const bool equip  = ((data->item_mode & USE_EQUIP)  || data->allow_all)
 		? true : false;
-	const bool quiver = ((data->q1 <= data->q2)        || data->allow_all)
+	const bool quiver = ((data->item_mode & USE_QUIVER) || data->allow_all)
 		? true : false;
-	const bool floor  = ((data->f1 <= data->f2)        || data->allow_all)
+	const bool floor  = ((data->item_mode & USE_FLOOR)  || data->allow_all)
 		? true : false;
 
 	switch (key.code) {
@@ -1248,6 +1248,7 @@ static bool init_menu_data(struct object_menu_data *data,
 		return false;
 	}
 
+	/* Start where requested if possible */
 	if (player->upkeep->command_wrk == USE_EQUIP && allow_equip) {
 		player->upkeep->command_wrk = USE_EQUIP;
 	} else if (player->upkeep->command_wrk == USE_INVEN && allow_inven) {
