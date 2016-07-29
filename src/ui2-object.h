@@ -27,7 +27,7 @@
  * Modes for item lists in show_inven(), show_equip(), show_quiver() and
  * show_floor()
  */
-typedef enum {
+enum olist_detail {
 	OLIST_NONE           = 0,      /* No options */
 	OLIST_WINDOW         = 1 << 0, /* Display list in a sub-term (as opposed to a menu) */
 	OLIST_GOLD           = 1 << 1, /* Include gold in the list */
@@ -38,8 +38,8 @@ typedef enum {
 	OLIST_DEATH          = 1 << 6, /* RIP screen */
 	OLIST_SHOW_EMPTY     = 1 << 7, /* Show empty slots */
 	OLIST_QUIVER_COMPACT = 1 << 8, /* Compact view of quiver (just missile count) */
-	OLIST_QUIVER_FULL    = 1 << 9, /* Full quiver slots */
-} olist_detail_t;
+	OLIST_QUIVER_FULL    = 1 << 9  /* Full quiver slots */
+};
 
 uint32_t object_kind_attr(const struct object_kind *kind);
 wchar_t object_kind_char(const struct object_kind *kind);
