@@ -58,7 +58,6 @@
  */
 #define MAX_ITEMS 64
 
-
 /**
  * Info about a particular object
  */
@@ -298,6 +297,10 @@ static void set_extra_fields(struct object_menu_list *olist, int *mode)
 	assert(olist->line_max_len > 0);
 
 	const size_t term_width = Term_width();
+
+	if ((*mode & OLIST_WINDOW) && term_width < 40) {
+		*mode &= ~OLIST_WEIGHT;
+	}
 
 	size_t extra_fields_width = 0;
 	if (*mode & OLIST_WEIGHT) extra_fields_width += EXTRA_FIELD_WEIGHT_WIDTH;
