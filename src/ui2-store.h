@@ -20,7 +20,7 @@
 #ifndef UI2_STORE_H
 #define UI2_STORE_H
 
-void textui_store_knowledge(int n);
+void textui_store_knowledge(int store);
 void enter_store(game_event_type type, game_event_data *data, void *user);
 void use_store(game_event_type type, game_event_data *data, void *user);
 void leave_store(game_event_type type, game_event_data *data, void *user);

@@ -93,6 +93,13 @@ enum {
 	LOC_MAX
 };
 
+static const region store_menu_region = {
+	.x =  1,
+	.y =  4,
+	.w = -1,
+	.h = -2
+};
+
 /* State flags */
 #define STORE_GOLD_CHANGE  (1 << 0)
 #define STORE_FRAME_CHANGE (1 << 1)
@@ -217,14 +224,14 @@ static void store_display_recalc(struct store_context *ctx)
 	/* Clip the text_out function at two smaller than the screen width */
 	ctx->text_out.wrap = width - 2;
 
-	/* X co-ords first */
+	/* X coords first */
 	ctx->scr_places_x[LOC_PRICE]  = width - 14;
 	ctx->scr_places_x[LOC_AU]     = width - 26;
 	ctx->scr_places_x[LOC_OWNER]  = width - 2;
 	ctx->scr_places_x[LOC_WEIGHT] = width - 14;
 
-	/* Add space for for prices */
 	if (store->sidx != STORE_HOME) {
+		/* Add space for for prices */
 		ctx->scr_places_x[LOC_WEIGHT] -= 10;
 	}
 
@@ -240,7 +247,7 @@ static void store_display_recalc(struct store_context *ctx)
 	ctx->scr_places_y[LOC_MORE] = height - 3;
 	ctx->scr_places_y[LOC_AU]   = height - 1;
 
-	region reg = {0, 0, width, height};
+	region reg = store_menu_region;
 
 	/* If we're displaying the help, then put it with a line of padding */
 	if (ctx->flags & STORE_SHOW_HELP) {
@@ -317,14 +324,13 @@ static void store_display_entry(struct menu *menu,
  */
 static void store_display_frame(struct store_context *ctx)
 {
-	char buf[80];
 	struct store *store = ctx->store;
 	struct owner *proprietor = store->owner;
 
 	Term_clear();
 
-	/* The "Home" is special */
 	if (store->sidx == STORE_HOME) {
+		/* The "Home" is special */
 		struct loc loc;
 
 		loc.x = 1;
@@ -343,6 +349,7 @@ static void store_display_frame(struct store_context *ctx)
 		put_str("Weight", loc);
 	} else {
 		/* Normal stores */
+		char buf[80];
 		const char *store_name = store->name;
 		const char *owner_name = proprietor->name;
 		struct loc loc;
@@ -430,12 +437,11 @@ static void store_display_help(struct store_context *ctx)
 }
 
 /**
- * Decides what parts of the store display to redraw.  Called on terminal
- * resizings and the redraw command.
+ * Decides what parts of the store display to redraw.
  */
 static void store_redraw(struct store_context *ctx)
 {
-	if (ctx->flags & (STORE_FRAME_CHANGE)) {
+	if (ctx->flags & STORE_FRAME_CHANGE) {
 		store_display_frame(ctx);
 
 		if (ctx->flags & STORE_SHOW_HELP) {
@@ -448,16 +454,16 @@ static void store_redraw(struct store_context *ctx)
 			prt("Press '?' for help.", loc);
 		}
 
-		ctx->flags &= ~(STORE_FRAME_CHANGE);
+		ctx->flags &= ~STORE_FRAME_CHANGE;
 	}
 
-	if (ctx->flags & (STORE_GOLD_CHANGE)) {
+	if (ctx->flags & STORE_GOLD_CHANGE) {
 		struct loc loc = {
 			.x = ctx->scr_places_x[LOC_AU],
 			.y = ctx->scr_places_y[LOC_AU]
 		};
 		prt(format("Gold Remaining: %9d", (int) player->au), loc);
-		ctx->flags &= ~(STORE_GOLD_CHANGE);
+		ctx->flags &= ~STORE_GOLD_CHANGE;
 	}
 }
 
@@ -493,7 +499,8 @@ static bool store_sell(struct store_context *ctx)
 	item_tester tester = NULL;
 
 	const char *reject = "You have nothing that I want. ";
-	const char *prompt = OPT(birth_no_selling) ? "Give which item? " : "Sell which item? ";
+	const char *prompt = OPT(birth_no_selling) ?
+		"Give which item? " : "Sell which item? ";
 
 	assert(store);
 
@@ -541,12 +548,13 @@ static bool store_sell(struct store_context *ctx)
 		return false;
 	}
 
-	/* Get a full description */
-	char o_name[80];
-	object_desc(o_name, sizeof(o_name), temp_obj, ODESC_PREFIX | ODESC_FULL);
-
 	/* Real store */
 	if (store->sidx != STORE_HOME) {
+		/* Get a full description */
+		char o_name[80];
+		object_desc(o_name, sizeof(o_name), temp_obj,
+				ODESC_PREFIX | ODESC_FULL);
+
 		/* Extract the value of the items */
 		int price = price_item(store, temp_obj, true, amt);
 
@@ -583,13 +591,12 @@ static bool store_sell(struct store_context *ctx)
 static bool store_purchase(struct store_context *ctx, int item, bool single)
 {
 	struct store *store = ctx->store;
-
 	struct object *obj = ctx->list[item];
 
 	clear_prompt();
 
 	/* Get an amount if we weren't given one */
-	int amt;
+	int amt = 0;
 	if (single) {
 		amt = 1;
 		/* Check if the player can afford any at all */
@@ -628,6 +635,7 @@ static bool store_purchase(struct store_context *ctx, int item, bool single)
 		int carry_num = inven_carry_num(obj, false);
 		amt = MIN(amt, carry_num);
 
+		/* XXX ? */
 		bool aware = object_flavor_is_aware(obj);
 
 		/* Fail if there is no room */
@@ -996,8 +1004,8 @@ static bool store_menu_handle(struct menu *menu,
 		/* In future, maybe we want a display a list of what you can do. */
 	} else if (event->type == EVT_MOUSE) {
 		if (event->mouse.button == MOUSE_BUTTON_RIGHT) {
-			/* Exit the store? what already does this? menu_handle_mouse
-			 * so exit this so that menu_handle_mouse will be called */
+			/* Exit the store? What already does this? menu_handle_mouse(),
+			 * so exit this so that menu_handle_mouse() will be called */
 			return false;
 		} else if (event->mouse.button == MOUSE_BUTTON_LEFT) {
 			bool action = false;
@@ -1075,7 +1083,7 @@ static bool store_menu_handle(struct menu *menu,
 			case '?': {
 				/* Toggle help */
 				if (ctx->flags & STORE_SHOW_HELP) {
-					ctx->flags &= ~(STORE_SHOW_HELP);
+					ctx->flags &= ~STORE_SHOW_HELP;
 				} else {
 					ctx->flags |= STORE_SHOW_HELP;
 				}
@@ -1117,12 +1125,6 @@ static bool store_menu_handle(struct menu *menu,
 	return false;
 }
 
-static region store_menu_region = {
-	.x =  1,
-	.y =  4,
-	.w = -1,
-	.h = -2
-};
 static const menu_iter store_menu = {
 	.display_row = store_display_entry,
 	.row_handler = store_menu_handle
@@ -1160,7 +1162,7 @@ static void store_menu_init(struct store_context *ctx,
  *
  * The only allowed actions are 'I' to inspect an item
  */
-void textui_store_knowledge(int n)
+void textui_store_knowledge(int store)
 {
 	struct store_context ctx;
 
@@ -1172,7 +1174,7 @@ void textui_store_knowledge(int n)
 	};
 	Term_push_new(&hints);
 
-	store_menu_init(&ctx, &stores[n], true);
+	store_menu_init(&ctx, &stores[store], true);
 	menu_select(&ctx.menu);
 
 	Term_pop();
@@ -1228,15 +1230,13 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	(void) user;
 
 	struct store *store = store_at(cave, player->py, player->px);
-	struct store_context ctx;
 
 	/* Check that we're on a store */
-	if (!store) {
+	if (store == NULL) {
 		return;
 	}
 
 	/*** Display ***/
-
 	struct term_hints hints = {
 		.width = 80,
 		.height = 24,
@@ -1246,6 +1246,7 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	Term_push_new(&hints);
 
 	/* Get a array version of the store stock, register handler for changes */
+	struct store_context ctx;
 	event_add_handler(EVENT_STORECHANGED, refresh_stock, &ctx);
 	store_menu_init(&ctx, store, false);
 
@@ -1288,6 +1289,6 @@ void leave_store(game_event_type type, game_event_data *data, void *user)
 	/* Redraw entire screen */
 	player->upkeep->redraw |= (PR_BASIC | PR_EXTRA);
 
-	/* Redraw map */
+	/* Redraw whole map */
 	player->upkeep->redraw |= (PR_MAP);
 }
