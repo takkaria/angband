@@ -1557,9 +1557,10 @@ void textui_cmd_ignore_menu(struct object *obj)
 	}
 
 	/* Work out display region */
+	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
-		.width = menu_dynamic_longest_entry(menu) + 3, /* + 3 for tag */
-		.height = menu->count,
+		.width = reg.w,
+		.height = reg.h,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
