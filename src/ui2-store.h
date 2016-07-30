@@ -1,5 +1,5 @@
 /**
- * \file ui-store.h
+ * \file ui2-store.h
  * \brief Store UI
  *
  * Copyright (c) 1997 Robert A. Koeneke, James E. Wilson, Ben Harrison
