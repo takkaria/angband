@@ -821,14 +821,14 @@ static void menu_header(const struct object_menu_data *data,
 static void handle_menu_key_action(struct object_menu_data *data,
 		struct keypress key)
 {
-	const bool inven  = ((data->item_mode & USE_INVEN)  || data->allow_all)
-		? true : false;
-	const bool equip  = ((data->item_mode & USE_EQUIP)  || data->allow_all)
-		? true : false;
-	const bool quiver = ((data->item_mode & USE_QUIVER) || data->allow_all)
-		? true : false;
-	const bool floor  = ((data->item_mode & USE_FLOOR)  || data->allow_all)
-		? true : false;
+	const bool inven  = ((data->item_mode & USE_INVEN)  || data->allow_all) ?
+		true : false;
+	const bool equip  = ((data->item_mode & USE_EQUIP)  || data->allow_all) ?
+		true : false;
+	const bool quiver = ((data->item_mode & USE_QUIVER) || data->allow_all) ?
+		true : false;
+	const bool floor  = ((data->item_mode & USE_FLOOR)  || data->allow_all) ?
+		true : false;
 
 	switch (key.code) {
 		case '/':
