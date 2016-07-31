@@ -934,10 +934,10 @@ static void textui_get_command_aux(ui_event *event,
 {
 	assert(event->type == EVT_KBRD);
 
-	switch (event->key.code) {
-		char ch;
-		int cnt;
+	char ch = 0;
+	int cnt = 0;
 
+	switch (event->key.code) {
 		case '0':
 			/* Allow repeat count to be entered */
 			cnt = textui_get_count();
