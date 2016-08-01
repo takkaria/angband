@@ -77,10 +77,10 @@ typedef struct {
 
 	/* Summary function for the "object" information. */
 	void (*summary)(int group, const int *item_list, int n_items,
-			int top, struct loc loc);
+			int offset, struct loc loc);
 
-	/* Maximum possible item count for this class */
-	int maxnum;
+	/* Maximum possible number of groups for this class */
+	int max_groups;
 
 	/* Items don't need to be IDed to recognize membership */
 	bool easy_know;
@@ -164,7 +164,7 @@ static int feat_order(int feat)
 static void display_group_member(struct menu *menu, int index,
 		bool cursor, struct loc loc, int width)
 {
-	const member_funcs *o_funcs = menu->menu_data;
+	const member_funcs *o_funcs = menu_priv(menu);
 
 	o_funcs->display_member(index, cursor, loc, width);
 }
@@ -209,15 +209,16 @@ static void knowledge_screen_recall(member_funcs o_funcs, int index)
 
 static void knowledge_screen_prompt(member_funcs o_funcs, int index)
 {
-	if (o_funcs.xtra_prompt) {
-		struct loc loc = {0, Term_height() - 1};
+	struct loc loc = {0, Term_height() - 1};
 
-		prt(format("<dir>%s", o_funcs.xtra_prompt(index)), loc);
-	}
+	const char *xtra = o_funcs.xtra_prompt ?
+		o_funcs.xtra_prompt(index) : "";
+
+	prt(format("<dir>%s, ESC", xtra), loc);
 }
 
 static void knowledge_screen_summary(group_funcs g_funcs,
-		int g_cur, int *o_list, int g_o_count, int top, region reg)
+		int g_cur, int *o_list, int g_o_count, int offset, region reg)
 {
 	if (g_funcs.summary) {
 		struct loc loc = {
@@ -225,7 +226,7 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 			.y = reg.y + reg.h
 		};
 
-		g_funcs.summary(g_cur, o_list, g_o_count, top, loc);
+		g_funcs.summary(g_cur, o_list, g_o_count, offset, loc);
 	}
 }
 
@@ -284,11 +285,11 @@ static int set_g_lists(int *o_list, int o_count,
 {
 	int g_count = 0;
 
-	for (int i = 0, prev_g = -1; i < o_count; i++) {
-		int g = g_funcs.group(o_list[i]);
+	for (int o = 0, prev_g = -1; o < o_count; o++) {
+		int g = g_funcs.group(o_list[o]);
 
 		if (prev_g != g) {
-			g_offset[g_count] = i;
+			g_offset[g_count] = o;
 			g_list[g_count] = g;
 			prev_g = g;
 			g_count++;
@@ -325,7 +326,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		group_funcs g_funcs, member_funcs o_funcs,
 		const char *other_fields)
 {
-	const int max_groups = MIN(g_funcs.maxnum, o_count);
+	const int g_max = MIN(g_funcs.max_groups, o_count);
 	const int omode = OPT(rogue_like_commands);
 
 	/* Disable the roguelike commands for the duration */
@@ -336,14 +337,16 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	}
 
 	/* Sort everything into group order */
-	int *g_list = mem_zalloc((max_groups + 1) * sizeof(*g_list));
-	int *g_offset = mem_zalloc((max_groups + 1) * sizeof(*g_offset));
+	int *g_list = mem_zalloc((g_max + 1) * sizeof(*g_list));
+	int *g_offset = mem_zalloc((g_max + 1) * sizeof(*g_offset));
 	int g_count = set_g_lists(o_list, o_count, g_list, g_offset, g_funcs);
 
 	/* The compact set of group names, in display order */
 	const char **g_names = mem_zalloc(g_count * sizeof(*g_names));
 	int g_name_max_len = set_g_names(g_list, g_count, g_names, g_funcs);
 	g_name_max_len = MIN(g_name_max_len, 20);
+
+	mem_free(g_list);
 
 	struct term_hints hints = {
 		.width = 80,
@@ -377,18 +380,17 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	menu_layout(&object_menu, object_region);
 	mnflag_on(object_menu.flags, MN_DBL_TAP);
 
-	/* Currenly selected panel */
+	/* Currenly selected panel; 0 is groups panel, 1 is objects panel */
 	int panel = 0;
 
 	bool swap = false;
 	bool stop = false;
 
 	int g_old = -1;    /* old group list position */
-	int g_cur = 0;     /* group list position */
-	int o_cur = 0;     /* object list position */
-	int g_o_count = 0; /* object count for group */
+	int g_cur = 0;     /* current group list position */
+	int o_cur = 0;     /* current object list position */
+	int g_o_count = 0; /* number of objects in current group */
 
-	/* Panel state */
 	/* These are swapped in parallel whenever
 	 * the actively browsing changes */
 	int *active_cursor = &g_cur;
@@ -455,7 +457,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			case EVT_SELECT:
 				if (panel == 0) {
 					swap = true;
-				} else if (panel == 1 && index >= 0 && o_cur == active_menu->cursor) {
+				} else if (panel == 1) {
 					knowledge_screen_recall(o_funcs, index);
 				}
 				break;
@@ -480,7 +482,6 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 
 	mem_free(g_names);
 	mem_free(g_offset);
-	mem_free(g_list);
 
 	Term_pop();
 }
@@ -646,34 +647,37 @@ static void mon_lore(int index)
 }
 
 static void mon_summary(int group, const int *item_list,
-		int n_items, int top, struct loc loc)
+		int n_items, int offset, struct loc loc)
 {
 	int kills = 0;
 
 	/* Access the race */
-	for (int i = top, end = top + n_items; i < end; i++) {
-		int index = default_join[item_list[i]].index;
+	for (int i = offset, end = offset + n_items; i < end; i++) {
+		int r = default_join[item_list[i]].index;
 
-		kills += l_list[index].pkills;
+		kills += l_list[r].pkills;
 	}
 
 	/* Different display for the first item if we've got uniques to show */
-	if (group == 0
-			&& rf_has((r_info[default_join[item_list[top]].index]).flags,
-				RF_UNIQUE))
-	{
-		c_prt(COLOUR_L_BLUE, format("%d known uniques, %d slain.", n_items, kills), loc);
-	} else {
-		int tkills = 0;
-
-		for (int i = 0; i < z_info->r_max; i++) {
-			tkills += l_list[i].pkills;
+	if (group == 0) {
+		int r = default_join[item_list[offset]].index;
+		if (rf_has(r_info[r].flags, RF_UNIQUE)) {
+			c_prt(COLOUR_L_BLUE,
+					format("%d known uniques, %d slain.", n_items, kills),
+					loc);
+			return;
 		}
-
-		c_prt(COLOUR_L_BLUE,
-				format("Creatures slain: %d/%d (in group/in total)", kills, tkills),
-				loc);
 	}
+
+	int tkills = 0;
+
+	for (int r = 0; r < z_info->r_max; r++) {
+		tkills += l_list[r].pkills;
+	}
+
+	c_prt(COLOUR_L_BLUE,
+			format("Creatures slain: %d/%d (in group/in total)", kills, tkills),
+			loc);
 }
 
 static int count_known_monsters(void)
@@ -716,7 +720,7 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 		.gcomp = m_cmp_race, 
 		.group = default_group_id,
 		.summary = mon_summary,
-		.maxnum = N_ELEMENTS(monster_group),
+		.max_groups = N_ELEMENTS(monster_group),
 		.easy_know = false
 	};
 
@@ -762,8 +766,7 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 		}
 	}
 
-	display_knowledge("monsters", monsters, m_count,
-			r_funcs, m_funcs,
+	display_knowledge("monsters", monsters, m_count, r_funcs, m_funcs,
 			"                   Sym  Kills");
 
 	mem_free(default_join);
@@ -1045,7 +1048,7 @@ static void do_cmd_knowledge_artifacts(const char *name, int row)
 		.gcomp = a_cmp_tval, 
 		.group = art2gid, 
 		.summary = NULL, 
-		.maxnum = TV_MAX, 
+		.max_groups = TV_MAX, 
 		.easy_know = false
 	};
 
@@ -1141,7 +1144,7 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 		.gcomp = e_cmp_tval, 
 		.group = default_group_id, 
 		.summary = NULL, 
-		.maxnum = TV_MAX, 
+		.max_groups = TV_MAX, 
 		.easy_know = false
 	};
 
@@ -1492,7 +1495,7 @@ void textui_browse_object_knowledge(const char *name, int row)
 		.gcomp = o_cmp_tval,
 		.group = obj2gid,
 		.summary = NULL,
-		.maxnum = TV_MAX,
+		.max_groups = TV_MAX,
 		.easy_know = false
 	};
 
@@ -1661,7 +1664,7 @@ static void do_cmd_knowledge_runes(const char *name, int row)
 		.gcomp = NULL,
 		.group = rune_var,
 		.summary = NULL,
-		.maxnum = N_ELEMENTS(rune_group_text),
+		.max_groups = N_ELEMENTS(rune_group_text),
 		.easy_know = false
 	};
 
@@ -1846,7 +1849,7 @@ static void do_cmd_knowledge_features(const char *name, int row)
 		.gcomp = f_cmp_fkind,
 		.group = feat_order,
 		.summary = NULL,
-		.maxnum = N_ELEMENTS(feature_group_text),
+		.max_groups = N_ELEMENTS(feature_group_text),
 		.easy_know = false
 	};
 
@@ -1883,7 +1886,8 @@ static void do_cmd_knowledge_features(const char *name, int row)
 /**
  * ------------------------------------------------------------------------
  * TRAPS
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
 
 /**
  * Description of each feature group.
@@ -1960,17 +1964,15 @@ static int t_cmp_tkind(const void *a, const void *b)
 	}
 
 	/* Order by name */
-	if (ta->name) {
-		if (tb->name) {
-			return strcmp(ta->name, tb->name);
-		} else {
-			return 1;
-		}
+	if (ta->name && tb->name) {
+		return strcmp(ta->name, tb->name);
+	} else if (ta->name) {
+		return  1;
 	} else if (tb->name) {
 		return -1;
+	} else {
+		return 0;
 	}
-
-	return 0;
 }
 
 static const char *tkind_name(int group)
@@ -1996,21 +1998,23 @@ static wchar_t *t_xchar(int index)
 static void trap_lore(int index)
 {
 	struct trap_kind *trap = &trap_info[index];
-	textblock *tb = textblock_new();
-	char *title = string_make(trap->desc);
 
 	if (trap->text) {
+		textblock *tb = textblock_new();
+		char *title = string_make(trap->desc);
+
 		my_strcap(title);
 		textblock_append_c(tb, COLOUR_L_BLUE, title);
 		textblock_append(tb, "\n");
 		textblock_append(tb, trap->text);
 		textblock_append(tb, "\n");
+
 		region reg = {0, 0, 0, 0};
 		textui_textblock_show(tb, reg, NULL);
-	}
 
-	textblock_free(tb);
-	string_free(title);
+		textblock_free(tb);
+		string_free(title);
+	}
 }
 
 static const char *trap_prompt(int index)
@@ -2056,7 +2060,7 @@ static void do_cmd_knowledge_traps(const char *name, int row)
 		.gcomp = t_cmp_tkind,
 		.group = trap_order,
 		.summary = NULL,
-		.maxnum = N_ELEMENTS(trap_group_text),
+		.max_groups = N_ELEMENTS(trap_group_text),
 		.easy_know = false
 	};
 
