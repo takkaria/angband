@@ -1,5 +1,5 @@
 /**
- * \file ui-knowledge.h
+ * \file ui2-knowledge.h
  * \brief Player knowledge functions
  *
  * Copyright (c) 2000-2007 Eytan Zweig, Andrew Doull, Pete Mack.
