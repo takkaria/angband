@@ -40,15 +40,15 @@ int arg_graphics;			/* Command arg -- Request graphics mode */
 bool arg_graphics_nice;		/* Command arg -- Request nice graphics mode */
 int use_graphics;			/* The "graphics" mode is enabled */
 
-byte *monster_x_attr;
+uint32_t *monster_x_attr;
 wchar_t *monster_x_char;
-byte *kind_x_attr;
+uint32_t *kind_x_attr;
 wchar_t *kind_x_char;
-byte *feat_x_attr[LIGHTING_MAX];
+uint32_t *feat_x_attr[LIGHTING_MAX];
 wchar_t *feat_x_char[LIGHTING_MAX];
-byte *trap_x_attr[LIGHTING_MAX];
+uint32_t *trap_x_attr[LIGHTING_MAX];
 wchar_t *trap_x_char[LIGHTING_MAX];
-byte *flavor_x_attr;
+uint32_t *flavor_x_attr;
 wchar_t *flavor_x_char;
 static size_t flavor_max = 0;
 
