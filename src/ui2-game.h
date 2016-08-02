@@ -1,5 +1,5 @@
 /**
- * \file ui-game.h
+ * \file ui2-game.h
  * \brief Game management for the traditional text UI
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
@@ -32,8 +32,7 @@ unsigned char cmd_lookup_key_unktrl(cmd_code lookup_cmd, int mode);
 cmd_code cmd_lookup(unsigned char key, int mode);
 void textui_process_command(void);
 errr textui_get_cmd(cmd_context context);
-void check_for_player_interrupt(game_event_type type, game_event_data *data,
-								void *user);
+void check_for_player_interrupt(game_event_type type, game_event_data *data, void *user);
 void play_game(bool new_game);
 void savefile_set_name(const char *fname);
 void save_game(void);

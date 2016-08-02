@@ -1,5 +1,5 @@
 /**
- * \file ui-game.c
+ * \file ui2-game.c
  * \brief Game management for the traditional text UI
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
@@ -30,35 +30,36 @@
 #include "player-path.h"
 #include "player-util.h"
 #include "savefile.h"
-#include "ui-birth.h"
-#include "ui-command.h"
-#include "ui-context.h"
-#include "ui-death.h"
-#include "ui-display.h"
-#include "ui-game.h"
-#include "ui-help.h"
-#include "ui-input.h"
-#include "ui-keymap.h"
-#include "ui-knowledge.h"
-#include "ui-map.h"
-#include "ui-object.h"
-#include "ui-output.h"
-#include "ui-player.h"
-#include "ui-prefs.h"
-#include "ui-spell.h"
-#include "ui-score.h"
-#include "ui-signals.h"
-#include "ui-store.h"
-#include "ui-target.h"
+#include "ui2-birth.h"
+#include "ui2-command.h"
+#include "ui2-context.h"
+#include "ui2-death.h"
+#include "ui2-display.h"
+#include "ui2-game.h"
+#include "ui2-help.h"
+#include "ui2-input.h"
+#include "ui2-keymap.h"
+#include "ui2-knowledge.h"
+#include "ui2-map.h"
+#include "ui2-object.h"
+#include "ui2-output.h"
+#include "ui2-player.h"
+#include "ui2-prefs.h"
+#include "ui2-spell.h"
+#include "ui2-score.h"
+#include "ui2-signals.h"
+#include "ui2-store.h"
+#include "ui2-target.h"
 
-
-bool arg_wizard;			/* Command arg -- Request wizard mode */
+/* 
+ * Command arg -- Request wizard mode
+ */
+bool arg_wizard;
 
 /**
  * Buffer to hold the current savefile name
  */
 char savefile[1024];
-
 
 /**
  * Here are lists of commands, stored in this format so that they can be
@@ -195,15 +196,12 @@ struct command_list cmds_all[] =
 	{ NULL,              NULL,            0 }
 };
 
-
-
 /*** Exported functions ***/
 
 #define KEYMAP_MAX 2
 
 /* List indexed by char */
 static struct cmd_info *converted_list[KEYMAP_MAX][UCHAR_MAX+1];
-
 
 /**
  * Initialise the command list.
@@ -267,7 +265,6 @@ cmd_code cmd_lookup(unsigned char key, int mode)
 	return converted_list[mode][key]->cmd;
 }
 
-
 /**
  * Parse and execute the current command
  * Give "Warning" on illegal commands.
@@ -326,7 +323,6 @@ errr textui_get_cmd(cmd_context context)
 	/* If we've reached here, we haven't got a command. */
 	return 1;
 }
-
 
 /**
  * Allow for user abort during repeated commands, running and resting.
