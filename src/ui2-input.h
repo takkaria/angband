@@ -21,6 +21,7 @@
 
 #include "cmd-core.h"
 #include "game-event.h"
+#include "ui2-keymap.h"
 #include "ui2-event.h"
 #include "ui2-term.h"
 
@@ -35,7 +36,7 @@
  */
 struct cmd_info {
 	const char *desc;
-	keycode_t key[2];
+	keycode_t key[KEYMAP_MODE_MAX];
 	cmd_code cmd;
 	void (*hook)(void);
 	bool (*prereq)(void);
