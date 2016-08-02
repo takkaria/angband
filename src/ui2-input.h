@@ -1,5 +1,5 @@
 /**
- * \file ui-input.h
+ * \file ui2-input.h
  * \brief Some high-level UI functions, inkey()
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
