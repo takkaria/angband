@@ -782,38 +782,38 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
  * These are used for all the object sections
  */
 static const grouper object_text_order[] = {
-	{TV_RING,			"Ring"			},
-	{TV_AMULET,			"Amulet"		},
-	{TV_POTION,			"Potion"		},
-	{TV_SCROLL,			"Scroll"		},
-	{TV_WAND,			"Wand"			},
-	{TV_STAFF,			"Staff"			},
-	{TV_ROD,			"Rod"			},
- 	{TV_FOOD,			"Food"			},
- 	{TV_MUSHROOM,		"Mushroom"		},
-	{TV_PRAYER_BOOK,	"Priest Book"	},
-	{TV_MAGIC_BOOK,		"Magic Book"	},
-	{TV_LIGHT,			"Light"			},
-	{TV_FLASK,			"Flask"			},
-	{TV_SWORD,			"Sword"			},
-	{TV_POLEARM,		"Polearm"		},
-	{TV_HAFTED,			"Hafted Weapon" },
-	{TV_BOW,			"Bow"			},
-	{TV_ARROW,			"Ammunition"	},
-	{TV_BOLT,			NULL			},
-	{TV_SHOT,			NULL			},
-	{TV_SHIELD,			"Shield"		},
-	{TV_CROWN,			"Crown"			},
-	{TV_HELM,			"Helm"			},
-	{TV_GLOVES,			"Gloves"		},
-	{TV_BOOTS,			"Boots"			},
-	{TV_CLOAK,			"Cloak"			},
-	{TV_DRAG_ARMOR,		"Dragon Scale Mail" },
-	{TV_HARD_ARMOR,		"Hard Armor"	},
-	{TV_SOFT_ARMOR,		"Soft Armor"	},
-	{TV_DIGGING,		"Digger"		},
-	{TV_GOLD,			"Money"			},
-	{0,					NULL			}
+	{TV_RING,           "Ring"              },
+	{TV_AMULET,         "Amulet"            },
+	{TV_POTION,         "Potion"            },
+	{TV_SCROLL,         "Scroll"            },
+	{TV_WAND,           "Wand"              },
+	{TV_STAFF,          "Staff"             },
+	{TV_ROD,            "Rod"               },
+	{TV_FOOD,           "Food"              },
+	{TV_MUSHROOM,       "Mushroom"          },
+	{TV_PRAYER_BOOK,    "Priest Book"       },
+	{TV_MAGIC_BOOK,     "Magic Book"        },
+	{TV_LIGHT,          "Light"             },
+	{TV_FLASK,          "Flask"             },
+	{TV_SWORD,          "Sword"             },
+	{TV_POLEARM,        "Polearm"           },
+	{TV_HAFTED,         "Hafted Weapon"     },
+	{TV_BOW,            "Bow"               },
+	{TV_ARROW,          "Ammunition"        },
+	{TV_BOLT,            NULL               },
+	{TV_SHOT,            NULL               },
+	{TV_SHIELD,         "Shield"            },
+	{TV_CROWN,          "Crown"             },
+	{TV_HELM,           "Helm"              },
+	{TV_GLOVES,         "Gloves"            },
+	{TV_BOOTS,          "Boots"             },
+	{TV_CLOAK,          "Cloak"             },
+	{TV_DRAG_ARMOR,     "Dragon Scale Mail" },
+	{TV_HARD_ARMOR,     "Hard Armor"        },
+	{TV_SOFT_ARMOR,     "Soft Armor"        },
+	{TV_DIGGING,        "Digger"            },
+	{TV_GOLD,           "Money"             },
+	{0,                  NULL               }
 };
 
 static int *obj_group_order = NULL;
@@ -2100,16 +2100,24 @@ static void do_cmd_knowledge_traps(const char *name, int row)
 
 static void do_cmd_knowledge_store(const char *name, int row)
 {
+	(void) name;
+
 	textui_store_knowledge(row - STORE_KNOWLEDGE_ROW);
 }
 
 static void do_cmd_knowledge_scores(const char *name, int row)
 {
+	(void) name;
+	(void) row;
+
 	show_scores();
 }
 
 static void do_cmd_knowledge_history(const char *name, int row)
 {
+	(void) name;
+	(void) row;
+
 	history_display();
 }
 
@@ -2117,12 +2125,12 @@ static void do_cmd_knowledge_history(const char *name, int row)
  * Definition of the "player knowledge" menu.
  */
 static menu_action knowledge_actions[] = {
-	{ 0, 0, "Display object knowledge",   	     textui_browse_object_knowledge },
-	{ 0, 0, "Display rune knowledge",   	     do_cmd_knowledge_runes },
-	{ 0, 0, "Display artifact knowledge", 	     do_cmd_knowledge_artifacts },
-	{ 0, 0, "Display ego item knowledge", 	     do_cmd_knowledge_ego_items },
-	{ 0, 0, "Display monster knowledge",  	     do_cmd_knowledge_monsters  },
-	{ 0, 0, "Display feature knowledge",  	     do_cmd_knowledge_features  },
+	{ 0, 0, "Display object knowledge",          textui_browse_object_knowledge },
+	{ 0, 0, "Display rune knowledge",            do_cmd_knowledge_runes },
+	{ 0, 0, "Display artifact knowledge",        do_cmd_knowledge_artifacts },
+	{ 0, 0, "Display ego item knowledge",        do_cmd_knowledge_ego_items },
+	{ 0, 0, "Display monster knowledge",         do_cmd_knowledge_monsters  },
+	{ 0, 0, "Display feature knowledge",         do_cmd_knowledge_features  },
 	{ 0, 0, "Display trap knowledge",            do_cmd_knowledge_traps  },
 	{ 0, 0, "Display contents of general store", do_cmd_knowledge_store     },
 	{ 0, 0, "Display contents of armourer",      do_cmd_knowledge_store     },
@@ -2131,9 +2139,9 @@ static menu_action knowledge_actions[] = {
 	{ 0, 0, "Display contents of alchemist",     do_cmd_knowledge_store     },
 	{ 0, 0, "Display contents of magic shop",    do_cmd_knowledge_store     },
 	{ 0, 0, "Display contents of black market",  do_cmd_knowledge_store     },
-	{ 0, 0, "Display contents of home",   	     do_cmd_knowledge_store     },
-	{ 0, 0, "Display hall of fame",       	     do_cmd_knowledge_scores    },
-	{ 0, 0, "Display character history",  	     do_cmd_knowledge_history   },
+	{ 0, 0, "Display contents of home",          do_cmd_knowledge_store     },
+	{ 0, 0, "Display hall of fame",              do_cmd_knowledge_scores    },
+	{ 0, 0, "Display character history",         do_cmd_knowledge_history   },
 };
 
 static struct menu knowledge_menu;
@@ -2158,18 +2166,18 @@ void textui_knowledge_init(void)
 
 	/* initialize other static variables */
 	if (!obj_group_order) {
-		int i;
-		int group = -1;
-
-		obj_group_order = mem_zalloc((TV_MAX + 1) * sizeof(int));
+		obj_group_order = mem_zalloc((TV_MAX + 1) * sizeof(*obj_group_order));
 		atexit(cleanup_cmds);
 
 		/* Allow for missing values */
-		for (i = 0; i < TV_MAX; i++)
+		for (int i = 0; i < TV_MAX; i++) {
 			obj_group_order[i] = -1;
+		}
 
-		for (i = 0; 0 != object_text_order[i].tval; i++) {
-			if (object_text_order[i].name) group = i;
+		for (int i = 0, group = -1; object_text_order[i].tval != 0; i++) {
+			if (object_text_order[i].name) {
+				group = i;
+			}
 			obj_group_order[object_text_order[i].tval] = group;
 		}
 	}
@@ -2181,12 +2189,9 @@ void textui_knowledge_init(void)
  */
 void textui_browse_knowledge(void)
 {
-	int i, rune_max = max_runes();
-	region knowledge_region = { 0, 0, -1, 19 };
-
 	/* Runes */
 	knowledge_actions[1].flags = MN_ACT_GRAYED;
-	for (i = 0; i < rune_max; i++) {
+	for (int i = 0, rune_max = max_runes(); i < rune_max; i++) {
 		if (player_knows_rune(player, i) || OPT(cheat_xtra)) {
 			knowledge_actions[1].flags = 0;
 		    break;
@@ -2194,14 +2199,15 @@ void textui_browse_knowledge(void)
 	}
 		
 	/* Artifacts */
-	if (collect_known_artifacts(NULL, 0) > 0)
+	if (collect_known_artifacts(NULL, 0) > 0) {
 		knowledge_actions[2].flags = 0;
-	else
+	} else {
 		knowledge_actions[2].flags = MN_ACT_GRAYED;
+	}
 
 	/* Ego items */
 	knowledge_actions[3].flags = MN_ACT_GRAYED;
-	for (i = 0; i < z_info->e_max; i++) {
+	for (int i = 0; i < z_info->e_max; i++) {
 		if (e_info[i].everseen || OPT(cheat_xtra)) {
 			knowledge_actions[3].flags = 0;
 			break;
@@ -2209,18 +2215,26 @@ void textui_browse_knowledge(void)
 	}
 
 	/* Monsters */
-	if (count_known_monsters() > 0)
+	if (count_known_monsters() > 0) {
 		knowledge_actions[4].flags = 0;
-	else
+	} else {
 		knowledge_actions[4].flags = MN_ACT_GRAYED;
+	}
 
-	screen_save();
-	menu_layout(&knowledge_menu, &knowledge_region);
+	struct term_hints hints = {
+		.width = 80,
+		.height = 24,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_MENU
+	};
+	Term_push_new(&hints);
 
-	clear_from(0);
-	menu_select(&knowledge_menu, 0, false);
+	region reg = {0, 0, -1, 19};
+	menu_layout(&knowledge_menu, reg);
 
-	screen_load();
+	menu_select(&knowledge_menu);
+
+	Term_pop();
 }
 
 /**
@@ -2233,8 +2247,8 @@ void textui_browse_knowledge(void)
  */
 void do_cmd_message_one(void)
 {
-	/* Recall one message XXX XXX XXX */
-	c_prt(message_color(0), format( "> %s", message_str(0)), 0, 0);
+	/* Recall one message */
+	show_prompt(format("> %s", message_str(0)));
 }
 
 /**
@@ -2254,97 +2268,85 @@ void do_cmd_message_one(void)
  */
 void do_cmd_messages(void)
 {
-	ui_event event;
+	const int term_width = 80;
+	const int term_height = 24;
+
+	struct term_hints hints = {
+		.width = term_width,
+		.height = term_height,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+
+	const int last_msg_pos = term_height - 3;
+	const struct loc help_loc = {0, term_height - 1};
+
+	char search[80] = {0};
+
+	/* Total messages */
+	int n_messages = messages_num();
+	/* Start on first message */
+	int current = 0;
+	/* Start at leftmost edge */
+	int offset = 0;
 
 	bool more = true;
 
-	int i, j, n, q;
-	int wid, hgt;
-
-	char shower[80] = "";
-
-	/* Total messages */
-	n = messages_num();
-
-	/* Start on first message */
-	i = 0;
-
-	/* Start at leftmost edge */
-	q = 0;
-
-	/* Get size */
-	Term_get_size(&wid, &hgt);
-
-	/* Save screen */
-	screen_save();
-
-	/* Process requests until done */
 	while (more) {
-		/* Clear screen */
+		int m;
 		Term_clear();
 
 		/* Dump messages */
-		for (j = 0; (j < hgt - 4) && (i + j < n); j++) {
-			const char *msg;
-			const char *str = message_str(i + j);
-			byte attr = message_color(i + j);
-			u16b count = message_count(i + j);
+		for (m = 0; m <= last_msg_pos && current + m < n_messages; m++) {
+			const char *str = message_str(current + m);
+			uint32_t attr = message_color(current + m);
+			int count = message_count(current + m);
 
-			if (count == 1)
-				msg = str;
-			else
-				msg = format("%s <%dx>", str, count);
+			const char *msg = count == 1 ?
+				str : format("%s <%dx>", str, count);
 
 			/* Apply horizontal scroll */
-			msg = ((int)strlen(msg) >= q) ? (msg + q) : "";
+			msg = (int) strlen(msg) >= offset ? msg + offset : "";
 
 			/* Dump the messages, bottom to top */
-			Term_putstr(0, hgt - 3 - j, -1, attr, msg);
+			Term_adds(0, last_msg_pos - m, term_width, attr, msg);
 
-			/* Highlight "shower" */
-			if (shower[0]) {
-				str = msg;
-
-				/* Display matches */
-				while ((str = my_stristr(str, shower)) != NULL) {
-					int len = strlen(shower);
-
-					/* Display the match */
-					Term_putstr(str-msg, hgt - 3 - j, len, COLOUR_YELLOW, str);
-
-					/* Advance */
-					str += len;
+			if (search[0]) {
+				/* Highlight search */
+				size_t len = strlen(search);
+				for (const char *s = msg; s; s = my_stristr(s + len, search)) {
+					Term_adds(s - msg, last_msg_pos - m, len, COLOUR_YELLOW, s);
 				}
 			}
 		}
 
-		/* Display header */
-		prt(format("Message recall (%d-%d of %d), offset %d",
-				   i, i + j - 1, n, q), 0, 0);
+		show_prompt(format("Message recall (%d-%d of %d), offset %d",
+					current, current + m - 1, n_messages, offset));
 
-		/* Display prompt (not very informative) */
-		if (shower[0])
-			prt("[Movement keys to navigate, '-' for next, '=' to find]",
-				hgt - 1, 0);
-		else
-			prt("[Movement keys to navigate, '=' to find, or ESCAPE to exit]",
-				hgt - 1, 0);
+		/* Display help (not very informative) */
+		if (search[0]) {
+			prt("[Movement keys to navigate, '-' for next, '=' to find]", help_loc);
+		}
+		else {
+			prt("[Movement keys to navigate, '=' to find, or ESCAPE to exit]", help_loc);
+		}
 			
-		/* Get a command */
-		event = inkey_ex();
+		ui_event event = inkey_simple();
 
 		/* Scroll forwards or backwards using mouse clicks */
 		if (event.type == EVT_MOUSE) {
-			if (event.mouse.button == 1) {
-				if (event.mouse.y <= hgt / 2) {
+			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
+				if (event.mouse.y <= term_height / 2) {
 					/* Go older if legal */
-					if (i + 20 < n)
-						i += 20;
+					if (current + 20 < n_messages) {
+						current += 20;
+					}
 				} else {
 					/* Go newer */
-					i = (i >= 20) ? (i - 20) : 0;
+					current = current >= 20 ? current - 20 : 0;
 				}
-			} else if (event.mouse.button == 2) {
+			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 				more = false;
 			}
 		} else if (event.type == EVT_KBRD) {
@@ -2355,112 +2357,95 @@ void do_cmd_messages(void)
 
 				case '=':
 					/* Get the string to find */
-					prt("Find: ", hgt - 1, 0);
-					if (!askfor_aux(shower, sizeof shower, NULL)) continue;
+					show_prompt("Find: ");
+					if (!askfor_aux(search, sizeof(search), NULL)) {
+						continue;
+					}
 		
 					/* Set to find */
 					event.key.code = '-';
 					break;
 
-				case ARROW_LEFT:
-				case '4':
-					q = (q >= wid / 2) ? (q - wid / 2) : 0;
+				case ARROW_LEFT: case '4':
+					offset = offset >= term_width / 2 ? offset - term_width / 2 : 0;
 					break;
 
-				case ARROW_RIGHT:
-				case '6':
-					q = q + wid / 2;
+				case ARROW_RIGHT: case '6':
+					offset = offset + term_width / 2;
 					break;
 
-				case ARROW_UP:
-				case '8':
-					if (i + 1 < n) i += 1;
+				case ARROW_UP: case '8':
+					if (current + 1 < n_messages) {
+						current += 1;
+					}
 					break;
 
-				case ARROW_DOWN:
-				case '2':
-				case KC_ENTER:
-					i = (i >= 1) ? (i - 1) : 0;
+				case ARROW_DOWN: case '2': case KC_ENTER:
+					if (current >= 1) {
+						current -= 1;
+					}
 					break;
 
-				case KC_PGUP:
-				case 'p':
-				case ' ':
-					if (i + 20 < n) i += 20;
+				case KC_PGUP: case 'p': case ' ':
+					if (current + 20 < n_messages) {
+						current += 20;
+					}
 					break;
 
-				case KC_PGDOWN:
-				case 'n':
-					i = (i >= 20) ? (i - 20) : 0;
+				case KC_PGDOWN: case 'n':
+					if (current >= 20) {
+						current -= 20;
+					} else {
+						current = 0;
+					}
 					break;
 			}
 		}
 
 		/* Find the next item */
-		if (event.key.code == '-' && shower[0]) {
-			s16b z;
-
+		if (event.key.code == '-' && search[0]) {
 			/* Scan messages */
-			for (z = i + 1; z < n; z++) {
-				/* Search for it */
-				if (my_stristr(message_str(z), shower)) {
-					/* New location */
-					i = z;
-
-					/* Done */
+			for (int i = current + 1; i < n_messages; i++) {
+				if (my_stristr(message_str(i), search)) {
+					current = i;
 					break;
 				}
 			}
 		}
 	}
 
-	/* Load screen */
-	screen_load();
+	Term_pop();
 }
 
 #define GET_ITEM_PARAMS \
  	(USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR | SHOW_QUIVER | SHOW_EMPTY | IS_HARMLESS)
  
+void do_cmd_item(int wrk)
+{
+	player->upkeep->command_wrk = wrk;
+
+	struct object *obj = NULL;
+
+	do {
+		get_item(&obj, "Select Item:", NULL, CMD_NULL, NULL, GET_ITEM_PARAMS);
+
+		if (obj && obj->kind) {
+			track_object(player->upkeep, obj);
+			context_menu_object(obj);
+		}
+	} while (obj);
+}
 /**
  * Display inventory
  */
 void do_cmd_inven(void)
 {
-	struct object *obj = NULL;
-	int ret = 3;
-
 	if (player->upkeep->inven[0] == NULL) {
 		msg("You have nothing in your inventory.");
 		return;
 	}
 
-	/* Start in "inventory" mode */
-	player->upkeep->command_wrk = (USE_INVEN);
-
-	/* Loop this menu until an object context menu says differently */
-	while (ret == 3) {
-		/* Save screen */
-		screen_save();
-
-		/* Get an item to use a context command on (Display the inventory) */
-		if (get_item(&obj, "Select Item:", NULL, CMD_NULL, NULL,
-					 GET_ITEM_PARAMS)) {
-			/* Load screen */
-			screen_load();
-
-			if (obj && obj->kind) {
-				/* Track the object */
-				track_object(player->upkeep, obj);
-
-				while ((ret = context_menu_object(obj)) == 2);
-			}
-		} else {
-			/* Load screen */
-			screen_load();
-
-			ret = -1;
-		}
-	}
+	do_cmd_item(USE_INVEN);
 }
 
 /**
@@ -2468,44 +2453,12 @@ void do_cmd_inven(void)
  */
 void do_cmd_equip(void)
 {
-	struct object *obj = NULL;
-	int ret = 3;
-
 	if (!player->upkeep->equip_cnt) {
 		msg("You are not wielding or wearing anything.");
 		return;
 	}
 
-	/* Start in "equipment" mode */
-	player->upkeep->command_wrk = (USE_EQUIP);
-
-	/* Loop this menu until an object context menu says differently */
-	while (ret == 3) {
-		/* Save screen */
-		screen_save();
-
-		/* Get an item to use a context command on (Display the equipment) */
-		if (get_item(&obj, "Select Item:", NULL, CMD_NULL, NULL,
-					 GET_ITEM_PARAMS)) {
-			/* Load screen */
-			screen_load();
-
-			if (obj && obj->kind) {
-				/* Track the object */
-				track_object(player->upkeep, obj);
-
-				while ((ret = context_menu_object(obj)) == 2);
-
-				/* Stay in "equipment" mode */
-				player->upkeep->command_wrk = (USE_EQUIP);
-			}
-		} else {
-			/* Load screen */
-			screen_load();
-
-			ret = -1;
-		}
-	}
+	do_cmd_item(USE_EQUIP);
 }
 
 /**
@@ -2513,44 +2466,12 @@ void do_cmd_equip(void)
  */
 void do_cmd_quiver(void)
 {
-	struct object *obj = NULL;
-	int ret = 3;
-
 	if (player->upkeep->quiver_cnt == 0) {
 		msg("You have nothing in your quiver.");
 		return;
 	}
 
-	/* Start in "quiver" mode */
-	player->upkeep->command_wrk = (USE_QUIVER);
-
-	/* Loop this menu until an object context menu says differently */
-	while (ret == 3) {
-		/* Save screen */
-		screen_save();
-
-		/* Get an item to use a context command on (Display the quiver) */
-		if (get_item(&obj, "Select Item:", NULL, CMD_NULL, NULL,
-					 GET_ITEM_PARAMS)) {
-			/* Load screen */
-			screen_load();
-
-			if (obj && obj->kind) {
-				/* Track the object */
-				track_object(player->upkeep, obj);
-
-				while ((ret = context_menu_object(obj)) == 2);
-
-				/* Stay in "quiver" mode */
-				player->upkeep->command_wrk = (USE_QUIVER);
-			}
-		} else {
-			/* Load screen */
-			screen_load();
-
-			ret = -1;
-		}
-	}
+	do_cmd_item(USE_QUIVER);
 }
 
 /**
@@ -2558,8 +2479,9 @@ void do_cmd_quiver(void)
  */
 void do_cmd_look(void)
 {
-	/* Look around */
-	if (target_set_interactive(TARGET_LOOK, -1, -1)) {
+	const struct loc loc = {-1, -1};
+
+	if (target_set_interactive(TARGET_LOOK, loc)) {
 		msg("Target Selected.");
 	}
 }
@@ -2574,76 +2496,51 @@ void do_cmd_look(void)
  */
 void do_cmd_locate(void)
 {
-	int y1, x1;
+	int startx = angband_cave.offset_x;
+	int starty = angband_cave.offset_y;
 
-	/* Start at current panel */
-	y1 = Term->offset_y;
-	x1 = Term->offset_x;
-
-	/* Show panels until done */
-	while (1) {
-		char tmp_val[80];
-		char out_val[160];
-
-		/* Assume no direction */
-		int dir = 0;
-
-		/* Get the current panel */
-		int y2 = Term->offset_y;
-		int x2 = Term->offset_x;
+	while (true) {
+		int cury = angband_cave.offset_x;
+		int curx = angband_cave.offset_y;
 		
-		/* Adjust for tiles */
-		int panel_hgt = (int)(PANEL_SIZE / tile_height);
-		int panel_wid = (int)(PANEL_SIZE / tile_width);
-
-		/* Describe the location */
-		if ((y2 == y1) && (x2 == x1)) {
-			tmp_val[0] = '\0';
+		char sector[80];
+		if (startx == curx && starty == cury) {
+			sector[0] = 0;
 		} else {
-			strnfmt(tmp_val, sizeof(tmp_val), "%s%s of",
-			        ((y2 < y1) ? " north" : (y2 > y1) ? " south" : ""),
-			        ((x2 < x1) ? " west" : (x2 > x1) ? " east" : ""));
+			strnfmt(sector, sizeof(sector), "%s%s of",
+					((cury < starty) ? " north" : (cury > starty) ? " south" : ""),
+					((curx < startx) ? " west"  : (curx > startx) ? " east"  : ""));
 		}
 
-		/* Prepare to ask which way to look */
-		strnfmt(out_val, sizeof(out_val),
-		        "Map sector [%d,%d], which is%s your sector.  Direction?",
-		        (y2 / panel_hgt), (x2 / panel_wid), tmp_val);
-
-		/* More detail */
+		char prompt[80];
 		if (OPT(center_player)) {
-			strnfmt(out_val, sizeof(out_val),
-		        	"Map sector [%d(%02d),%d(%02d)], which is%s your sector.  Direction?",
-					(y2 / panel_hgt), (y2 % panel_hgt),
-					(x2 / panel_wid), (x2 % panel_wid), tmp_val);
+			strnfmt(prompt, sizeof(prompt),
+		        	"Map sector [%d(%02d), %d(%02d)], which is%s your sector.  Direction?",
+					curx / PANEL_SIZE, curx % PANEL_SIZE,
+					cury / PANEL_SIZE, cury % PANEL_SIZE,
+					sector);
+		} else {
+			strnfmt(prompt, sizeof(prompt),
+					"Map sector [%d,%d], which is%s your sector.  Direction?",
+					curx / PANEL_SIZE, cury / PANEL_SIZE, sector);
 		}
 
-		/* Get a direction */
-		while (!dir) {
-			struct keypress command = KEYPRESS_NULL;
+		struct keypress command = KEYPRESS_NULL;
 
-			/* Get a command (or Cancel) */
-			if (!get_com(out_val, (char *)&command.code)) break;
-
-			/* Extract direction */
-			dir = target_dir(command);
-
-			/* Error */
-			if (!dir) bell("Illegal direction for locate!");
+		if (get_com(prompt, (char *) &command.code)) {
+			int dir = target_dir(command);
+			if (dir) {
+				change_panel(&angband_cave, dir);
+				handle_stuff(player);
+			} else {
+				bell("Illegal direction for locate!");
+			}
+		} else {
+			break;
 		}
+	};
 
-		/* No direction */
-		if (!dir) break;
-
-		/* Apply the motion */
-		change_panel(dir);
-
-		/* Handle stuff */
-		handle_stuff(player);
-	}
-
-	/* Verify panel */
-	verify_panel();
+	verify_panel(&angband_cave);
 }
 
 static int cmp_mexp(const void *a, const void *b)
@@ -2651,11 +2548,17 @@ static int cmp_mexp(const void *a, const void *b)
 	u16b ia = *(const u16b *) a;
 	u16b ib = *(const u16b *) b;
 
-	if (r_info[ia].mexp < r_info[ib].mexp)
+	if (r_info[ia].mexp < r_info[ib].mexp) {
 		return -1;
-	if (r_info[ia].mexp > r_info[ib].mexp)
+	}
+
+	if (r_info[ia].mexp > r_info[ib].mexp) {
 		return 1;
-	return (a < b ? -1 : (a > b ? 1 : 0));
+	}
+
+	return
+		a < b ? -1 :
+		a > b ?  1 : 0;
 }
 
 static int cmp_level(const void *a, const void *b)
@@ -2663,22 +2566,37 @@ static int cmp_level(const void *a, const void *b)
 	u16b ia = *(const u16b *) a;
 	u16b ib = *(const u16b *) b;
 
-	if (r_info[ia].level < r_info[ib].level)
+	if (r_info[ia].level < r_info[ib].level) {
 		return -1;
-	if (r_info[ia].level > r_info[ib].level)
+	}
+
+	if (r_info[ia].level > r_info[ib].level) {
 		return 1;
+	}
+
 	return cmp_mexp(a, b);
 }
+
+#if 0
+
+/*
+ * Maybe that will be useful for something later?
+ * it was used in do_cmd_query_symbol() (rip)
+ */
 
 static int cmp_tkill(const void *a, const void *b)
 {
 	u16b ia = *(const u16b *) a;
 	u16b ib = *(const u16b *) b;
 
-	if (l_list[ia].tkills < l_list[ib].tkills)
+	if (l_list[ia].tkills < l_list[ib].tkills) {
 		return -1;
-	if (l_list[ia].tkills > l_list[ib].tkills)
+	}
+
+	if (l_list[ia].tkills > l_list[ib].tkills) {
 		return 1;
+	}
+
 	return cmp_level(a, b);
 }
 
@@ -2687,12 +2605,18 @@ static int cmp_pkill(const void *a, const void *b)
 	u16b ia = *(const u16b *) a;
 	u16b ib = *(const u16b *) b;
 
-	if (l_list[ia].pkills < l_list[ib].pkills)
+	if (l_list[ia].pkills < l_list[ib].pkills) {
 		return -1;
-	if (l_list[ia].pkills > l_list[ib].pkills)
+	}
+
+	if (l_list[ia].pkills > l_list[ib].pkills) {
 		return 1;
+	}
+
 	return cmp_tkill(a, b);
 }
+
+#endif
 
 int cmp_monsters(const void *a, const void *b)
 {
@@ -2700,235 +2624,11 @@ int cmp_monsters(const void *a, const void *b)
 }
 
 /**
- * Search the monster, item, and feature types to find the
- * meaning for the given symbol.
- *
- * Note: We currently search items first, then features, then
- * monsters, and we return the first hit for a symbol.
- * This is to prevent mimics and lurkers from matching
- * a symbol instead of the item or feature it is mimicking.
- *
- * Todo: concatenate all matches into buf. This will be much
- * easier once we can loop through item tvals instead of items
- * (see note below.)
- *
- * Todo: Should this take the user's pref files into account?
- */
-static void lookup_symbol(char sym, char *buf, size_t max)
-{
-	int i;
-	struct monster_base *race;
-
-	/* Look through items */
-	/* Note: We currently look through all items, and grab the tval when we
-	 * find a match.
-	 * It would make more sense to loop through tvals, but then we need to
-	 * associate a display character with each tval. */
-	for (i = 1; i < z_info->k_max; i++) {
-		if (char_matches_key(k_info[i].d_char, sym)) {
-			strnfmt(buf, max, "%c - %s.", sym, tval_find_name(k_info[i].tval));
-			return;
-		}
-	}
-
-	/* Look through features */
-	/* Note: We need a better way of doing this. Currently '#' matches secret
-	 * door, and '^' matches trap door (instead of the more generic "trap"). */
-	for (i = 1; i < z_info->f_max; i++) {
-		if (char_matches_key(f_info[i].d_char, sym)) {
-			strnfmt(buf, max, "%c - %s.", sym, f_info[i].name);
-			return;
-		}
-	}
-	
-	/* Look through monster templates */
-	for (race = rb_info; race; race = race->next) {
-		/* Slight hack - P appears twice */
-		if (streq(race->name, "Morgoth")) continue;
-		if (char_matches_key(race->d_char, sym)) {
-			strnfmt(buf, max, "%c - %s.", sym, race->text);
-			return;
-		}
-	}
-
-	/* No matches */
-	if (isprint(sym)) {
-		strnfmt(buf, max, "%c - Unknown Symbol.", sym);
-	} else {
-		strnfmt(buf, max, "? - Unknown Symbol.");
-	}
-
-	return;
-}
-
-/**
- * Identify a character, allow recall of monsters
- *
- * Several "special" responses recall "multiple" monsters:
- *   ^A (all monsters)
- *   ^U (all unique monsters)
- *   ^N (all non-unique monsters)
- *
- * The responses may be sorted in several ways, see below.
- *
- * Note that the player ghosts are ignored, since they do not exist.
- */
-void do_cmd_query_symbol(void)
-{
-	int i, n;
-	char buf[128];
-
-	char sym;
-	struct keypress query;
-
-	bool all = false;
-	bool uniq = false;
-	bool norm = false;
-
-	bool recall = false;
-
-	u16b *who;
-
-	/* Get a character, or abort */
-	if (!get_com("Enter character to be identified, or control+[ANU]: ", &sym))
-		return;
-
-	/* Describe */
-	if (sym == KTRL('A')) {
-		all = true;
-		my_strcpy(buf, "Full monster list.", sizeof(buf));
-	} else if (sym == KTRL('U')) {
-		all = uniq = true;
-		my_strcpy(buf, "Unique monster list.", sizeof(buf));
-	} else if (sym == KTRL('N')) {
-		all = norm = true;
-		my_strcpy(buf, "Non-unique monster list.", sizeof(buf));
-	} else {
-		lookup_symbol(sym, buf, sizeof(buf));
-	}
-
-	/* Display the result */
-	prt(buf, 0, 0);
-
-	/* Allocate the "who" array */
-	who = mem_zalloc(z_info->r_max * sizeof(u16b));
-
-	/* Collect matching monsters */
-	for (n = 0, i = 1; i < z_info->r_max - 1; i++) {
-		struct monster_race *race = &r_info[i];
-		struct monster_lore *lore = &l_list[i];
-
-		/* Nothing to recall */
-		if (!OPT(cheat_know) && !lore->all_known && !lore->sights) continue;
-
-		/* Require non-unique monsters if needed */
-		if (norm && rf_has(race->flags, RF_UNIQUE)) continue;
-
-		/* Require unique monsters if needed */
-		if (uniq && !rf_has(race->flags, RF_UNIQUE)) continue;
-
-		/* Collect "appropriate" monsters */
-		if (all || char_matches_key(race->d_char, sym)) who[n++] = i;
-	}
-
-	/* Nothing to recall */
-	if (!n) {
-		/* XXX XXX Free the "who" array */
-		mem_free(who);
-
-		return;
-	}
-
-	/* Prompt */
-	put_str("Recall details? (y/k/n): ", 0, 40);
-
-	/* Query */
-	query = inkey();
-
-	/* Restore */
-	prt(buf, 0, 0);
-
-	/* Interpret the response */
-	if (query.code == 'k') {
-		/* Sort by kills (and level) */
-		sort(who, n, sizeof(*who), cmp_pkill);
-	} else if (query.code == 'y' || query.code == 'p') {
-		/* Sort by level; accept 'p' as legacy */
-		sort(who, n, sizeof(*who), cmp_level);
-	} else {
-		/* Any unsupported response is "nope, no history please" */
-		/* XXX XXX Free the "who" array */
-		mem_free(who);
-		return;
-	}
-
-	/* Start at the end */
-	i = n - 1;
-
-	/* Scan the monster memory */
-	while (1) {
-		textblock *tb;
-
-		/* Extract a race */
-		int r_idx = who[i];
-		struct monster_race *race = &r_info[r_idx];
-		struct monster_lore *lore = &l_list[r_idx];
-
-		/* Hack -- Auto-recall */
-		monster_race_track(player->upkeep, race);
-
-		/* Hack -- Handle stuff */
-		handle_stuff(player);
-
-		tb = textblock_new();
-		lore_title(tb, race);
-
-		textblock_append(tb, " [(r)ecall, ESC]");
-		textui_textblock_place(tb, SCREEN_REGION, NULL);
-		textblock_free(tb);
-
-		/* Interact */
-		while (1) {
-			/* Ignore keys during recall presentation, otherwise, the 'r' key
-			 * acts like a toggle and instead of a one-off command */
-			if (recall)
-				lore_show_interactive(race, lore);
-			else
-				query = inkey();
-
-			/* Normal commands */
-			if (query.code != 'r') break;
-
-			/* Toggle recall */
-			recall = !recall;
-		}
-
-		/* Stop scanning */
-		if (query.code == ESCAPE) break;
-
-		/* Move to "prev" or "next" monster */
-		if (query.code == '-') {
-			if (++i == n)
-				i = 0;
-		} else {
-			if (i-- == 0)
-				i = n - 1;
-		}
-	}
-
-	/* Re-display the identity */
-	prt(buf, 0, 0);
-
-	/* Free the "who" array */
-	mem_free(who);
-}
-
-/**
  * Centers the map on the player
  */
 void do_cmd_center_map(void)
 {
-	center_panel();
+	center_panel(&angband_cave);
 }
 
 /**
@@ -2936,9 +2636,7 @@ void do_cmd_center_map(void)
  */
 void do_cmd_monlist(void)
 {
-	screen_save();
-    monster_list_show_interactive(Term->hgt, Term->wid);
-	screen_load();
+    monster_list_show_interactive(80, 24);
 }
 
 /**
@@ -2946,7 +2644,5 @@ void do_cmd_monlist(void)
  */
 void do_cmd_itemlist(void)
 {
-	screen_save();
-    object_list_show_interactive(Term->hgt, Term->wid);
-	screen_load();
+    object_list_show_interactive(80, 24);
 }
