@@ -293,7 +293,7 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 				} else {
 					*cmd = converted_list[KEYMAP_MODE_OPT][*key];
 				}
-				return true;
+				return *cmd != NULL;
 
 			} else {
 				return false;
