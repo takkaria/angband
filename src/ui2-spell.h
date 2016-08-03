@@ -25,7 +25,7 @@ int textui_get_spell_from_book(const char *verb,
 		struct object *book, const char *error,
 		bool (*spell_filter)(int spell_index));
 int textui_get_spell(const char *verb,
-		item_tester book_filter, cmd_code cmd,
-		const char *error, bool (*spell_filter)(int spell_index));
+		item_tester book_filter, cmd_code cmd, const char *error,
+		bool (*spell_filter)(int spell_index));
 
 #endif /* UI2_SPELL_H */

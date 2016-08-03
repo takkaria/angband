@@ -25,10 +25,10 @@
 #include "object.h"
 #include "player-calcs.h"
 #include "player-spell.h"
-#include "ui-menu.h"
-#include "ui-output.h"
+#include "ui2-menu.h"
+#include "ui2-output.h"
 
-
+#define SPELL_DESC_ROWS 2
 /**
  * Spell menu data struct
  */
@@ -38,51 +38,50 @@ struct spell_menu_data {
 
 	bool browse;
 	bool (*is_valid)(int spell_index);
-	bool show_description;
 
 	int selected_spell;
 };
 
-
 /**
  * Is item oid valid?
  */
-static int spell_menu_valid(struct menu *m, int oid)
+static bool spell_menu_valid(struct menu *menu, int index)
 {
-	struct spell_menu_data *d = menu_priv(m);
-	int *spells = d->spells;
+	struct spell_menu_data *data = menu_priv(menu);
 
-	return d->is_valid(spells[oid]);
+	return data->is_valid(data->spells[index]);
 }
 
 /**
  * Display a row of the spell menu
  */
-static void spell_menu_display(struct menu *m, int oid, bool cursor,
-		int row, int col, int wid)
+static void spell_menu_display(struct menu *menu,
+		int index, bool cursor, struct loc loc, int width)
 {
-	struct spell_menu_data *d = menu_priv(m);
-	int spell_index = d->spells[oid];
+	(void) cursor;
+	(void) width;
+
+	struct spell_menu_data *data = menu_priv(menu);
+	int spell_index = data->spells[index];
 	const struct class_spell *spell = spell_by_index(spell_index);
 
-	char help[30];
-	char out[80];
+	if (spell->slevel >= 99) {
+		c_prt(COLOUR_L_DARK, "(illegible)", loc);
+		return;
+	}
 
-	int attr;
-	const char *illegible = NULL;
+	char aux[30];
+	uint32_t attr = 0;
 	const char *comment = NULL;
 
-	if (spell->slevel >= 99) {
-		illegible = "(illegible)";
-		attr = COLOUR_L_DARK;
-	} else if (player->spell_flags[spell_index] & PY_SPELL_FORGOTTEN) {
+	if (player->spell_flags[spell_index] & PY_SPELL_FORGOTTEN) {
 		comment = " forgotten";
 		attr = COLOUR_YELLOW;
 	} else if (player->spell_flags[spell_index] & PY_SPELL_LEARNED) {
 		if (player->spell_flags[spell_index] & PY_SPELL_WORKED) {
 			/* Get extra info */
-			get_spell_info(spell_index, help, sizeof(help));
-			comment = help;
+			get_spell_info(spell_index, aux, sizeof(aux));
+			comment = aux;
 			attr = COLOUR_WHITE;
 		} else {
 			comment = " untried";
@@ -97,152 +96,143 @@ static void spell_menu_display(struct menu *m, int oid, bool cursor,
 	}
 
 	/* Dump the spell --(-- */
-	strnfmt(out, sizeof(out), "%-30s%2d %4d %3d%%%s", spell->name,
-			spell->slevel, spell->smana, spell_chance(spell_index), comment);
-	c_prt(attr, illegible ? illegible : out, row, col);
+	char out[80];
+	strnfmt(out, sizeof(out), "%-30s%2d %4d %3d%%%s",
+			spell->name, spell->slevel, spell->smana, spell_chance(spell_index), comment);
+	c_prt(attr, out, loc);
 }
 
 /**
  * Handle an event on a menu row.
  */
-static bool spell_menu_handler(struct menu *m, const ui_event *e, int oid)
+static bool spell_menu_handler(struct menu *menu, const ui_event *event, int index)
 {
-	struct spell_menu_data *d = menu_priv(m);
+	struct spell_menu_data *data = menu_priv(menu);
 
-	if (e->type == EVT_SELECT) {
-		d->selected_spell = d->spells[oid];
-		return d->browse ? true : false;
-	}
-	else if (e->type == EVT_KBRD) {
-		if (e->key.code == '?') {
-			d->show_description = !d->show_description;
+	if (data->browse) {
+		return true;
+	} else {
+		if (event->type == EVT_SELECT) {
+			data->selected_spell = data->spells[index];
 		}
+		return false;
 	}
-
-	return false;
 }
 
 /**
  * Show spell long description when browsing
  */
-static void spell_menu_browser(int oid, void *data, const region *loc)
+static void spell_menu_browser(int index, void *data, const region reg)
 {
 	struct spell_menu_data *d = data;
-	int spell_index = d->spells[oid];
 
-	if (d->show_description) {
-		/* Redirect output to the screen */
-		text_out_wrap = 0;
-		text_out_indent = loc->col - 1;
-		text_out_pad = 1;
-
-		Term_gotoxy(loc->col, loc->row + loc->page_rows);
-		text_out("\n%s\n", spell_by_index(spell_index)->text);
-
-		/* XXX */
-		text_out_pad = 0;
-		text_out_indent = 0;
-	}
+	const struct class_spell *spell = spell_by_index(d->spells[index]);
+	struct text_out_info info = {0};
+	Term_cursor_to_xy(reg.x, reg.y + reg.h - SPELL_DESC_ROWS);
+	text_out(info, "\n%s\n", spell->text);
 }
 
 static const menu_iter spell_menu_iter = {
-	NULL,	/* get_tag = NULL, just use lowercase selections */
-	spell_menu_valid,
-	spell_menu_display,
-	spell_menu_handler,
-	NULL	/* no resize hook */
+	.valid_row   = spell_menu_valid,
+	.display_row = spell_menu_display,
+	.row_handler = spell_menu_handler
 };
 
 /**
  * Create and initialise a spell menu, given an object and a validity hook
  */
 static struct menu *spell_menu_new(const struct object *obj,
-								   bool (*is_valid)(int spell_index))
+		bool (*is_valid)(int spell_index))
 {
-	struct menu *m = menu_new(MN_SKIN_SCROLL, &spell_menu_iter);
-	struct spell_menu_data *d = mem_alloc(sizeof *d);
-
-	region loc = { -60, 1, 60, -99 };
+	struct menu *menu = menu_new(MN_SKIN_SCROLL, &spell_menu_iter);
+	struct spell_menu_data *data = mem_alloc(sizeof(*data));
 
 	/* collect spells from object */
-	d->n_spells = spell_collect_from_book(obj, &d->spells);
-	if (d->n_spells == 0 || !spell_okay_list(is_valid, d->spells, d->n_spells)){
-		mem_free(m);
-		mem_free(d);
+	data->n_spells = spell_collect_from_book(obj, &data->spells);
+	if (data->n_spells == 0 || !spell_okay_list(is_valid, data->spells, data->n_spells)) {
+		menu_free(menu);
+		mem_free(data);
 		return NULL;
 	}
 
 	/* Copy across private data */
-	d->is_valid = is_valid;
-	d->selected_spell = -1;
-	d->browse = false;
-	d->show_description = false;
+	data->selected_spell = -1;
+	data->is_valid = is_valid;
+	data->browse = false;
 
-	menu_setpriv(m, d->n_spells, d);
+	menu_setpriv(menu, data->n_spells, data);
 
 	/* Set flags */
-	m->header = "Name                             Lv Mana Fail Info";
-	m->flags = MN_CASELESS_TAGS;
-	m->selections = lower_case;
-	m->browse_hook = spell_menu_browser;
-	m->cmd_keys = "?";
+	menu->header = "Name                             Lv Mana Fail Info";
+	menu->selections = lower_case;
+	menu->browse_hook = spell_menu_browser;
 
-	/* Set size */
-	loc.page_rows = d->n_spells + 1;
-	menu_layout(m, &loc);
+	mnflag_on(menu->flags, MN_CASELESS_TAGS);
 
-	return m;
+	return menu;
 }
 
 /**
  * Clean up a spell menu instance
  */
-static void spell_menu_destroy(struct menu *m)
+static void spell_menu_destroy(struct menu *menu)
 {
-	struct spell_menu_data *d = menu_priv(m);
-	mem_free(d);
-	mem_free(m);
+	struct spell_menu_data *data = menu_priv(menu);
+	menu_free(menu);
+	mem_free(data);
 }
 
 /**
  * Run the spell menu to select a spell.
  */
-static int spell_menu_select(struct menu *m, const char *noun, const char *verb)
+static int spell_menu_select(struct menu *menu, const char *noun, const char *verb)
 {
-	struct spell_menu_data *d = menu_priv(m);
-	char buf[80];
+	struct spell_menu_data *data = menu_priv(menu);
 
-	screen_save();
-	region_erase_bordered(&m->active);
+	struct term_hints hints = {
+		.width = 60,
+		.height = data->n_spells + 1 + SPELL_DESC_ROWS,
+		.position = TERM_POSITION_TOP_CENTER,
+		.purpose = TERM_PURPOSE_MENU
+	};
+	Term_push_new(&hints);
+	menu_layout_term(menu);
 
 	/* Format, capitalise and display */
-	strnfmt(buf, sizeof buf, "%s which %s? ('?' to toggle description)",
-			verb, noun);
+	char buf[80];
+	strnfmt(buf, sizeof(buf), "%s which %s?", verb, noun);
 	my_strcap(buf);
-	prt(buf, 0, 0);
+	show_prompt(buf);
 
-	menu_select(m, 0, true);
-	screen_load();
+	menu_select(menu);
 
-	return d->selected_spell;
+	Term_pop();
+
+	return data->selected_spell;
 }
 
 /**
  * Run the spell menu, without selections.
  */
-static void spell_menu_browse(struct menu *m, const char *noun)
+static void spell_menu_browse(struct menu *menu, const char *noun)
 {
-	struct spell_menu_data *d = menu_priv(m);
+	struct spell_menu_data *data = menu_priv(menu);
 
-	screen_save();
+	struct term_hints hints = {
+		.width = 60,
+		.height = data->n_spells + 1 + SPELL_DESC_ROWS,
+		.purpose = TERM_PURPOSE_MENU,
+		.position = TERM_POSITION_TOP_CENTER
+	};
+	Term_push_new(&hints);
+	menu_layout_term(menu);
 
-	region_erase_bordered(&m->active);
-	prt(format("Browsing %ss. ('?' to toggle description)", noun), 0, 0);
+	show_prompt(format("Browsing %ss.", noun));
 
-	d->browse = true;
-	menu_select(m, 0, true);
+	data->browse = true;
+	menu_select(menu);
 
-	screen_load();
+	Term_pop();
 }
 
 /**
@@ -250,13 +240,11 @@ static void spell_menu_browse(struct menu *m, const char *noun)
  */
 void textui_book_browse(const struct object *obj)
 {
-	struct menu *m;
-	const char *noun = player->class->magic.spell_realm->spell_noun;
-
-	m = spell_menu_new(obj, spell_okay_to_browse);
-	if (m) {
-		spell_menu_browse(m, noun);
-		spell_menu_destroy(m);
+	struct menu *menu = spell_menu_new(obj, spell_okay_to_browse);
+	if (menu) {
+		const char *noun = player->class->magic.spell_realm->spell_noun;
+		spell_menu_browse(menu, noun);
+		spell_menu_destroy(menu);
 	} else {
 		msg("You cannot browse that.");
 	}
@@ -267,39 +255,35 @@ void textui_book_browse(const struct object *obj)
  */
 void textui_spell_browse(void)
 {
-	struct object *obj;
+	struct object *obj = NULL;
 
-	if (!get_item(&obj, "Browse which book? ",
-				  "You have no books that you can read.",
-				  CMD_BROWSE_SPELL, obj_can_browse,
-				  (USE_INVEN | USE_FLOOR | IS_HARMLESS)))
-		return;
+	if (get_item(&obj, "Browse which book? ", "You have no books that you can read.",
+				  CMD_BROWSE_SPELL, obj_can_browse, (USE_INVEN | USE_FLOOR | IS_HARMLESS)))
+	{
+		/* Track the object kind */
+		track_object(player->upkeep, obj);
+		handle_stuff(player);
 
-	/* Track the object kind */
-	track_object(player->upkeep, obj);
-	handle_stuff(player);
-
-	textui_book_browse(obj);
+		textui_book_browse(obj);
+	}
 }
 
 /**
  * Get a spell from specified book.
  */
-int textui_get_spell_from_book(const char *verb, struct object *book,
-							   const char *error,
-							   bool (*spell_filter)(int spell_index))
+int textui_get_spell_from_book(const char *verb,
+		struct object *book, const char *error, bool (*spell_filter)(int spell_index))
 {
-	const char *noun = player->class->magic.spell_realm->spell_noun;
-
-	struct menu *m;
+	(void) error;
 
 	track_object(player->upkeep, book);
 	handle_stuff(player);
 
-	m = spell_menu_new(book, spell_filter);
-	if (m) {
-		int spell_index = spell_menu_select(m, noun, verb);
-		spell_menu_destroy(m);
+	struct menu *menu = spell_menu_new(book, spell_filter);
+	if (menu) {
+		const char *noun = player->class->magic.spell_realm->spell_noun;
+		int spell_index = spell_menu_select(menu, noun, verb);
+		spell_menu_destroy(menu);
 		return spell_index;
 	}
 
@@ -309,9 +293,9 @@ int textui_get_spell_from_book(const char *verb, struct object *book,
 /**
  * Get a spell from the player.
  */
-int textui_get_spell(const char *verb, item_tester book_filter,
-					 cmd_code cmd, const char *error,
-					 bool (*spell_filter)(int spell_index))
+int textui_get_spell(const char *verb,
+		item_tester book_filter, cmd_code cmd, const char *error,
+		bool (*spell_filter)(int spell_index))
 {
 	char prompt[1024];
 	struct object *book;
@@ -320,9 +304,9 @@ int textui_get_spell(const char *verb, item_tester book_filter,
 	strnfmt(prompt, sizeof prompt, "%s which book?", verb);
 	my_strcap(prompt);
 
-	if (!get_item(&book, prompt, error,
-				  cmd, book_filter, (USE_INVEN | USE_FLOOR)))
+	if (!get_item(&book, prompt, error, cmd, book_filter, (USE_INVEN | USE_FLOOR))) {
 		return -1;
+	}
 
 	return textui_get_spell_from_book(verb, book, error, spell_filter);
 }
