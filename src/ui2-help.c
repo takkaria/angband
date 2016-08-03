@@ -1,8 +1,6 @@
 /**
- * \file ui-help.c
+ * \file ui2-help.c
  * \brief In-game help
- *
- * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -18,470 +16,418 @@
 #include "angband.h"
 #include "buildid.h"
 #include "init.h"
-#include "ui-input.h"
-#include "ui-output.h"
-#include "ui-term.h"
+#include "ui2-help.h"
+#include "ui2-input.h"
+#include "ui2-output.h"
+#include "ui2-term.h"
 
-/**
- * Make a string lower case.
- */
+void show_file(const char *name);
+
+#define HELP_LINE_SIZE 80
+#define HELP_N_LINES 1024
+
+struct help_line {
+	char line[HELP_LINE_SIZE];
+	char line_lc[HELP_LINE_SIZE];
+};
+
+struct help_file {
+	struct help_line *lines;
+
+	int line; /* current line */
+	int next; /* one past the last line */
+	int size; /* total number of allocated lines */
+
+	struct help_line search;
+	bool highlight;
+	bool caseless;
+
+	char *menu_files[26];
+	bool menu;
+
+	char *caption;
+	char *name;
+	char *tag;
+
+	ang_file *file;
+};
+
 static void string_lower(char *buf)
 {
-	char *s;
-
-	/* Lowercase the string */
-	for (s = buf; *s != 0; s++) *s = tolower((unsigned char)*s);
+	for (char *s = buf; *s != 0; s++) {
+		*s = tolower((unsigned char) *s);
+	}
 }
 
-
-/**
- * Recursive file perusal.
- *
- * Return false on "?", otherwise true.
- *
- * This function could be made much more efficient with the use of "seek"
- * functionality, especially when moving backwards through a file, or
- * forwards through a file by less than a page at a time.  XXX XXX XXX
- */
-bool show_file(const char *name, const char *what, int line, int mode)
+static struct help_file *get_help_file(void)
 {
-	int i, k, n;
+	struct help_file *help = mem_zalloc(sizeof(*help));
 
-	struct keypress ch;
-
-	/* Number of "real" lines passed by */
-	int next = 0;
-
-	/* Number of "real" lines in the file */
-	int size;
-
-	/* Backup value for "line" */
-	int back = 0;
-
-	/* This screen has sub-screens */
-	bool menu = false;
-
-	/* Case sensitive search */
-	bool case_sensitive = false;
-
-	/* Current help file */
-	ang_file *fff = NULL;
-
-	/* Find this string (if any) */
-	char *find = NULL;
-
-	/* Jump to this tag */
-	const char *tag = NULL;
-
-	/* Hold a string to find */
-	char finder[80] = "";
-
-	/* Hold a string to show */
-	char shower[80] = "";
-
-	/* Filename */
-	char filename[1024];
-
-	/* Describe this thing */
-	char caption[128] = "";
-
-	/* Path buffer */
-	char path[1024];
-
-	/* General buffer */
-	char buf[1024];
-
-	/* Lower case version of the buffer, for searching */
-	char lc_buf[1024];
-
-	/* Sub-menu information */
-	char hook[26][32];
-
-	int wid, hgt;
+	help->size = HELP_N_LINES;
+	help->lines = mem_zalloc(help->size * sizeof(*help->lines));
 	
-	/* true if we are inside a RST block that should be skipped */
-	bool skip_lines = false;
+	/* Pedantry */
+	help->caption = NULL;
+	help->name    = NULL;
+	help->tag     = NULL;
+	help->file    = NULL;
 
+	for (size_t i = 0; i < N_ELEMENTS(help->menu_files); i++) {
+		help->menu_files[i] = NULL;
+	}
 
+	return help;
+}
 
-	/* Wipe the hooks */
-	for (i = 0; i < 26; i++) hook[i][0] = '\0';
+static void free_help_file(struct help_file *help)
+{
+	if (help->caption != NULL) {
+		mem_free(help->caption);
+	}
+	if (help->tag != NULL) {
+		mem_free(help->tag);
+	}
+	if (help->name != NULL) {
+		mem_free(help->name);
+	}
+	for (size_t i = 0; i < N_ELEMENTS(help->menu_files); i++) {
+		if (help->menu_files[i] != NULL) {
+			mem_free(help->menu_files[i]);
+		}
+	}
+	mem_free(help->lines);
+	mem_free(help);
+}
 
-	/* Get size */
-	Term_get_size(&wid, &hgt);
+static bool parse_help_line(struct help_file *help, const char *line)
+{
+	if (!prefix(line, ".. ")) {
+		return false;
+	}
 
-	/* Copy the filename */
-	my_strcpy(filename, name, sizeof(filename));
+	char buf[1024];
+	char key;
 
-	n = strlen(filename);
+	if (sscanf(line, ".. menu:: [%c] %1023s", &key, buf) == 2) {
+		int index = A2I(key);
+		if (index >= 0 && index < (int) N_ELEMENTS(help->menu_files)) {
+			assert(help->menu_files[index] == NULL);
 
-	/* Extract the tag from the filename */
-	for (i = 0; i < n; i++) {
-		if (filename[i] == '#') {
-			filename[i] = '\0';
-			tag = filename + i + 1;
-			break;
+			help->menu_files[index] = string_make(buf);
+			help->menu = true;
+		}
+	} else if (help->tag && sscanf(line, ".. _%1023[^:]%c", buf, &key) == 2) {
+		if (key == ':' && streq(buf, help->tag)) {
+			help->line = help->next; /* start with the tagged line (the next one) */
 		}
 	}
 
-	/* Redirect the name */
-	name = filename;
+	do {
+		file_getl(help->file, buf, sizeof(buf));
+	} while (!contains_only_spaces(buf));
 
-	/* Currently unused facility to show and describe arbitrary files */
-	if (what) {
-		my_strcpy(caption, what, sizeof(caption));
+	return true;
+}
 
-		my_strcpy(path, name, sizeof(path));
-		fff = file_open(path, MODE_READ, FTYPE_TEXT);
-	}
+static void slurp_help_file(struct help_file *help)
+{
+	assert(help->size > 0);
+	assert(help->next >= 0);
+	assert(help->next < help->size);
 
-	/* Look in "help" */
-	if (!fff) {
-		strnfmt(caption, sizeof(caption), "Help file '%s'", name);
+	char buf[HELP_LINE_SIZE];
 
-		path_build(path, sizeof(path), ANGBAND_DIR_HELP, name);
-		fff = file_open(path, MODE_READ, FTYPE_TEXT);
-	}
+	while (file_getl(help->file, buf, sizeof(buf))) {
+		if (!parse_help_line(help, buf)) {
 
-	/* Look in "info" */
-	if (!fff) {
-		strnfmt(caption, sizeof(caption), "User info file '%s'", name);
-
-		path_build(path, sizeof(path), ANGBAND_DIR_INFO, name);
-		fff = file_open(path, MODE_READ, FTYPE_TEXT);
-	}
-
-	/* Oops */
-	if (!fff) {
-		/* Message */
-		msg("Cannot open '%s'.", name);
-		event_signal(EVENT_MESSAGE_FLUSH);
-
-		/* Oops */
-		return (true);
-	}
-
-
-	/* Pre-Parse the file */
-	while (true) {
-		/* Read a line or stop */
-		if (!file_getl(fff, buf, sizeof(buf))) break;
-
-		/* Skip lines if we are inside a RST directive */
-		if (skip_lines){
-			if (contains_only_spaces(buf))
-				skip_lines = false;
-			continue;
-		}
-
-		/* Parse a very small subset of RST */
-		/* TODO: should be more flexible */
-		if (prefix(buf, ".. ")) {
-			/* parse ".. menu:: [x] filename.txt" (with exact spacing)*/
-			if (prefix(buf+strlen(".. "), "menu:: [") && 
-                           buf[strlen(".. menu:: [x")]==']') {
-				/* This is a menu file */
-				menu = true;
-
-				/* Extract the menu item */
-				k = A2I(buf[strlen(".. menu:: [")]);
-
-				/* Store the menu item (if valid) */
-				if ((k >= 0) && (k < 26))
-					my_strcpy(hook[k], buf + strlen(".. menu:: [x] "),
-							  sizeof(hook[0]));
-			} else if (buf[strlen(".. ")] == '_') {
-				/* parse ".. _some_hyperlink_target:" */
-				if (tag) {
-					/* Remove the closing '>' of the tag */
-					buf[strlen(buf) - 1] = '\0';
-
-					/* Compare with the requested tag */
-					if (streq(buf + strlen(".. _"), tag)) {
-						/* Remember the tagged line */
-						line = next;
-					}
-				}
+			if (help->next == help->size) {
+				help->size *= 2;
+				help->lines = mem_realloc(help->lines, help->size * sizeof(*help->lines));
 			}
 
-			/* Skip this and enter skip mode*/
-			skip_lines = true;
-			continue;
-		}
+			strskip(buf, '|', '\\');
+			strescape(buf, '\\');
 
-		/* Count the "real" lines */
-		next++;
+			char *line = help->lines[help->next].line;
+			size_t size = sizeof(help->lines[help->next].line);
+
+			my_strcpy(line, buf, size);
+
+			char *line_lc = help->lines[help->next].line_lc;
+			size_t size_fc = sizeof(help->lines[help->next].line_lc);
+
+			my_strcpy(line_lc, buf, size_fc);
+			string_lower(line_lc);
+
+			help->next++;
+		}
+	}
+}
+
+static void split_help_file_name(struct help_file *help, const char *name)
+{
+	assert(help->name == NULL);
+	assert(help->tag == NULL);
+
+	help->name = string_make(name);
+
+	char *hash = strchr(help->name, '#');
+	if (hash != NULL) {
+		*hash = 0;
+		help->tag = string_make(hash + 1);
+	}
+}
+
+static struct help_file *open_help_file(const char *name)
+{
+	struct {const char *dir; const char *fmt;} dirs[] = {
+		{ANGBAND_DIR_HELP, "Help file \"%s\""},
+		{ANGBAND_DIR_INFO, "User info file \"%s\""}
+	};
+
+	struct help_file *help = get_help_file();
+
+	split_help_file_name(help, name);
+
+	for (size_t i = 0; i < N_ELEMENTS(dirs) && help->file == NULL; i++) {
+		char path[4096];
+		path_build(path, sizeof(path), dirs[i].dir, help->name);
+
+		help->file = file_open(path, MODE_READ, FTYPE_TEXT);
+		if (help->file != NULL) {
+			strnfmt(help->caption, sizeof(help->caption), dirs[i].fmt, help->name);
+		}
 	}
 
-	/* Save the number of "real" lines */
-	size = next;
+	if (help->file == NULL) {
+		msg("Cannot open \"%s\".", name);
+		event_signal(EVENT_MESSAGE_FLUSH);
+		free_help_file(help);
+		return NULL;
+	} else {
+		slurp_help_file(help);
+		return help;
+	}
+}
 
+static void close_help_file(struct help_file *help)
+{
+	file_close(help->file);
+	free_help_file(help);
+}
 
-	/* Display the file */
-	while (true) {
-		/* Clear screen */
+static void help_goto_file(const struct help_file *help)
+{
+	char name[HELP_LINE_SIZE];
+	my_strcpy(name, help->name, sizeof(name));
+
+	show_prompt("File:");
+	if (askfor_aux(name, sizeof(name), NULL)) {
+		show_file(name);
+	}
+}
+
+static void try_show_file(const struct help_file *help, char key)
+{
+	if (help->menu && isalpha((unsigned char) key)) {
+		int index = A2I(key);
+		if (index >= 0
+				&& index < (int) N_ELEMENTS(help->menu_files)
+				&& help->menu_files[index] != NULL)
+		{
+			show_file(help->menu_files[index]);
+		}
+	}
+}
+
+static void help_goto_line(struct help_file *help)
+{
+	char line[HELP_LINE_SIZE];
+	my_strcpy(line, format("%zu", help->line), sizeof(line));
+
+	show_prompt("Line:");
+
+	if (askfor_aux(line, sizeof(line), NULL)) {
+		help->line = strtol(line, NULL, 10);
+	}
+}
+
+static void help_set_regions(region *term_reg, region *text_reg)
+{
+	term_reg->x = 0;
+	term_reg->y = 0;
+	Term_get_size(&term_reg->w, &term_reg->h);
+
+	text_reg->x = 0;
+	text_reg->y = 2;
+	text_reg->w = term_reg->w;
+	text_reg->h = term_reg->h - 4;
+
+	assert(text_reg->h > 0);
+}
+
+static void help_display_rest(const struct help_file *help,
+		region term_reg, region text_reg)
+{
+	struct loc loc;
+
+	const char *prompt =
+		format("[%s, %s, line %d-%d/%d]",
+				buildid, help->caption, help->line, help->line + text_reg.h, help->next);
+
+	loc.x = term_reg.x;
+	loc.y = term_reg.y;
+	prt(prompt, loc);
+
+	loc.x = term_reg.x;
+	loc.y = term_reg.y + term_reg.h - 1;
+	if (help->menu) {
+		prt("[Press a letter to view other files, or ESC to exit.]", loc);
+	} else if (help->next < text_reg.h) {
+		prt("[Press ESC to exit.]", loc);
+	} else {
+		prt("[Press ESC to exit.]", loc);
+	}
+}
+
+static void help_find_line(struct help_file *help)
+{
+	show_prompt("Find:");
+
+	if (askfor_aux(help->search.line, sizeof(help->search.line), NULL)) {
+
+		my_strcpy(help->search.line_lc, help->search.line, sizeof(help->search.line_lc));
+		string_lower(help->search.line_lc);
+
+		const char *needle = help->caseless ? help->search.line_lc : help->search.line;
+
+		for (int n = 0, l = help->line; n < help->next; n++, l++) {
+			if (l == help->next) {
+				l = 0;
+			}
+
+			const char *haystack = help->caseless ?
+				help->lines[l].line_lc : help->lines[l].line;
+
+			if (strstr(haystack, needle)) {
+				help->line = l;
+				help->highlight = true;
+				return;
+			}
+		}
+
+		bell("Search string not found!");
+		memset(&help->search, 0, sizeof(help->search));
+	}
+}
+
+static void help_display_page(struct help_file *help, region reg)
+{
+	if (help->line > help->next - reg.h) {
+		help->line = help->next - reg.h;
+	}
+	if (help->line < 0) {
+		help->line = 0;
+	}
+
+	for (int l = help->line, y = reg.y, endy = reg.y + reg.h; y < endy; l++, y++) {
+		assert(l < help->next);
+
+		const struct help_line *hline = &help->lines[l];
+
+		Term_adds(reg.x, y, reg.w, COLOUR_WHITE, hline->line);
+
+		if (help->highlight) {
+			const char *haystack = help->caseless ? hline->line_lc : hline->line;
+			const char *needle = help->caseless ? help->search.line_lc : help->search.line;
+
+			size_t nlen = strlen(needle);
+
+			for (const char *h = strstr(haystack, needle); h; h = strstr(h + nlen, needle)) {
+				ptrdiff_t pos = h - haystack;
+				Term_adds(reg.x + pos, y, nlen, COLOUR_YELLOW, hline->line + pos);
+			}
+		}
+	}
+}
+
+void show_file(const char *name)
+{
+	struct help_file *help = open_help_file(name);
+
+	if (help == NULL) {
+		return;
+	}
+
+	region term_reg;
+	region text_reg;
+	help_set_regions(&term_reg, &text_reg);
+
+	bool done = false;
+
+	while (!done) {
 		Term_clear();
 
+		help_display_page(help, text_reg);
+		help_display_rest(help, term_reg, text_reg);
 
-		/* Restrict the visible range */
-		if (line > (size - (hgt - 4))) line = size - (hgt - 4);
-		if (line < 0) line = 0;
+		struct keypress key = inkey_only_key();
 
-		skip_lines = false;
-
-		/* Re-open the file if needed */
-		if (next > line) {
-			/* Close it */
-			file_close(fff);
-
-			/* Hack -- Re-Open the file */
-			fff = file_open(path, MODE_READ, FTYPE_TEXT);
-			if (!fff) return (true);
-
-			/* File has been restarted */
-			next = 0;
+		switch (key.code) {
+			case '?': case ESCAPE:
+				done = true;
+				break;
+			case '!':
+				help->caseless = !help->caseless;
+				break;
+			case '&':
+				help->highlight = !help->highlight;
+				break;
+			case '/':
+				help_find_line(help);
+				break;
+			case '#':
+				help_goto_line(help);
+				break;
+			case '%':
+				help_goto_file(help);
+				break;
+			case ARROW_UP: case '8':
+				help->line--;
+				break;
+			case ARROW_DOWN: case '2':
+				help->line++;
+				break;
+			case KC_PGUP: case '-':
+				help->line -= text_reg.h;
+				break;
+			case KC_PGDOWN: case ' ':
+				help->line += text_reg.h;
+				break;
+			default:
+				try_show_file(help, key.code);
+				break;
 		}
 
-
-		/* Goto the selected line */
-		while (next < line) {
-			/* Get a line */
-			if (!file_getl(fff, buf, sizeof(buf))) break;
-
-			/* Skip lines if we are inside a RST directive*/
-			if (skip_lines) {
-				if (contains_only_spaces(buf))
-					skip_lines=false;
-				continue;
-			}
-
-			/* Skip RST directives */
-			if (prefix(buf, ".. ")) {
-				skip_lines=true;
-				continue;
-			}
-
-			/* Count the lines */
-			next++;
-		}
-
-
-		/* Dump the next lines of the file */
-		for (i = 0; i < hgt - 4; ) {
-			/* Hack -- track the "first" line */
-			if (!i) line = next;
-
-			/* Get a line of the file or stop */
-			if (!file_getl(fff, buf, sizeof(buf))) break;
-
-			/* Skip lines if we are inside a RST directive */
-			if (skip_lines) {
-				if (contains_only_spaces(buf))
-					skip_lines = false;
-				continue;
-			}
-
-			/* Skip RST directives */
-			if (prefix(buf, ".. ")) {
-				skip_lines=true;
-				continue;
-			}
-
-			/* skip | characters */
-			strskip(buf,'|','\\');
-
-			/* escape backslashes */
-			strescape(buf,'\\');
-
-			/* Count the "real" lines */
-			next++;
-
-			/* Make a copy of the current line for searching */
-			my_strcpy(lc_buf, buf, sizeof(lc_buf));
-
-			/* Make the line lower case */
-			if (!case_sensitive) string_lower(lc_buf);
-
-			/* Hack -- keep searching */
-			if (find && !i && !strstr(lc_buf, find)) continue;
-
-			/* Hack -- stop searching */
-			find = NULL;
-
-			/* Dump the line */
-			Term_putstr(0, i+2, -1, COLOUR_WHITE, buf);
-
-			/* Highlight "shower" */
-			if (shower[0]) {
-				const char *str = lc_buf;
-
-				/* Display matches */
-				while ((str = strstr(str, shower)) != NULL) {
-					int len = strlen(shower);
-
-					/* Display the match */
-					Term_putstr(str-lc_buf, i+2, len, COLOUR_YELLOW,
-								&buf[str-lc_buf]);
-
-					/* Advance */
-					str += len;
-				}
-			}
-
-			/* Count the printed lines */
-			i++;
-		}
-
-		/* Hack -- failed search */
-		if (find) {
-			bell("Search string not found!");
-			line = back;
-			find = NULL;
-			continue;
-		}
-
-
-		/* Show a general "title" */
-		prt(format("[%s, %s, Line %d-%d/%d]", buildid,
-		           caption, line, line + hgt - 4, size), 0, 0);
-
-
-		/* Prompt */
-		if (menu) {
-			/* Menu screen */
-			prt("[Press a Letter, or ESC to exit.]", hgt - 1, 0);
-		} else if (size <= hgt - 4) {
-			/* Small files */
-			prt("[Press ESC to exit.]", hgt - 1, 0);
-		} else {
-			/* Large files */
-			prt("[Press Space to advance, or ESC to exit.]", hgt - 1, 0);
-		}
-
-		/* Get a keypress */
-		ch = inkey();
-
-		/* Exit the help */
-		if (ch.code == '?') break;
-
-		/* Toggle case sensitive on/off */
-		if (ch.code == '!')
-			case_sensitive = !case_sensitive;
-
-		/* Try showing */
-		if (ch.code == '&') {
-			/* Get "shower" */
-			prt("Show: ", hgt - 1, 0);
-			(void)askfor_aux(shower, sizeof(shower), NULL);
-
-			/* Make the "shower" lowercase */
-			if (!case_sensitive) string_lower(shower);
-		}
-
-		/* Try finding */
-		if (ch.code == '/') {
-			/* Get "finder" */
-			prt("Find: ", hgt - 1, 0);
-			if (askfor_aux(finder, sizeof(finder), NULL)) {
-				/* Find it */
-				find = finder;
-				back = line;
-				line = line + 1;
-
-				/* Make the "finder" lowercase */
-				if (!case_sensitive) string_lower(finder);
-
-				/* Show it */
-				my_strcpy(shower, finder, sizeof(shower));
-			}
-		}
-
-		/* Go to a specific line */
-		if (ch.code == '#') {
-			char tmp[80] = "0";
-
-			prt("Goto Line: ", hgt - 1, 0);
-			if (askfor_aux(tmp, sizeof(tmp), NULL))
-				line = atoi(tmp);
-		}
-
-		/* Go to a specific file */
-		if (ch.code == '%') {
-			char ftmp[80] = "help.hlp";
-
-			prt("Goto File: ", hgt - 1, 0);
-			if (askfor_aux(ftmp, sizeof(ftmp), NULL)) {
-				if (!show_file(ftmp, NULL, 0, mode))
-					ch.code = ESCAPE;
-			}
-		}
-
-		switch (ch.code) {
-			/* up a line */
-			case ARROW_UP:
-			case '8': line--; break;
-
-			/* up a page */
-			case KC_PGUP:
-			case '9':
-			case '-': line -= (hgt - 4); break;
-
-			/* home */
-			case KC_HOME:
-			case '7': line = 0; break;
-
-			/* down a line */
-			case ARROW_DOWN:
-			case '2':
-			case KC_ENTER: line++; break;
-
-			/* down a page */
-			case KC_PGDOWN:
-			case '3':
-			case ' ': line += hgt - 4; break;
-
-			/* end */
-			case KC_END:
-			case '1': line = size; break;
-		}
-
-		/* Recurse on letters */
-		if (menu && isalpha((unsigned char)ch.code)) {
-			/* Extract the requested menu item */
-			k = A2I(ch.code);
-
-			/* Verify the menu item */
-			if ((k >= 0) && (k <= 25) && hook[k][0]) {
-				/* Recurse on that file */
-				if (!show_file(hook[k], NULL, 0, mode)) ch.code = ESCAPE;
-			}
-		}
-
-		/* Exit on escape */
-		if (ch.code == ESCAPE) break;
 	}
 
-	/* Close the file */
-	file_close(fff);
-
-	/* Done */
-	return (ch.code != '?');
+	close_help_file(help);
 }
 
-
 /**
- * Peruse the On-Line-Help
+ * Peruse the on-line help
  */
 void do_cmd_help(void)
 {
-	/* Save screen */
-	screen_save();
+	struct term_hints hints = {
+		.width = 80,
+		.height = 24,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
 
-	/* Peruse the main help file */
-	(void)show_file("help.hlp", NULL, 0, 0);
+	show_file("help.hlp");
 
-	/* Load screen */
-	screen_load();
+	Term_pop();
 }
-
-
