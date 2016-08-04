@@ -1,5 +1,5 @@
 /**
- * \file ui-history.h
+ * \file ui2-history.h
  * \brief Character auto-history display
  *
  * Copyright (c) 2007 J.D. White
