@@ -1,5 +1,5 @@
 /**
- * \file ui-command.h
+ * \file ui2-command.h
  * \brief Deal with UI only command processing.
  *
  * Copyright (c) 1997-2014 Angband developers
@@ -20,14 +20,11 @@
 #define UI2_COMMAND_H
 
 void do_cmd_redraw(void);
-void do_cmd_xxx_options(void);
+void do_cmd_options_and_redraw(void);
 void do_cmd_unknown(void);
 void do_cmd_version(void);
 void textui_cmd_suicide(void);
 void textui_cmd_debug(void);
-void do_cmd_load_screen(void);
-void html_screenshot(const char *path, int mode);
-void do_cmd_save_screen(void);
 void textui_cmd_rest(void);
 void textui_quit(void);
 
