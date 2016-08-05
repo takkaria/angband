@@ -146,7 +146,7 @@ struct cmd_info cmd_info[] = {
  * Utility/assorted commands
  */
 struct cmd_info cmd_util[] = {
-	{"Interact with options", {'='},       CMD_NULL, do_cmd_xxx_options, NULL},
+	{"Interact with options", {'='},       CMD_NULL, do_cmd_options_and_redraw, NULL},
 	{"Save and don't quit",   {KTRL('S')}, CMD_NULL, save_game, NULL},
 	{"Save and quit",         {KTRL('X')}, CMD_NULL, textui_quit, NULL},
 	{"Quit (commit suicide)", {'Q'},       CMD_NULL, textui_cmd_suicide, NULL},
