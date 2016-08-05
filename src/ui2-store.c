@@ -832,9 +832,6 @@ static bool store_process_command_key(struct keypress kp)
 		case KTRL('P'):
 			do_cmd_messages();
 			break;
-		case ')':
-			do_cmd_save_screen();
-			break;
 		default:
 			return false;
 	}
