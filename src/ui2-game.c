@@ -471,8 +471,6 @@ void savefile_set_name(const char *fname)
  */
 void save_game(void)
 {
-	char path[1024];
-
 	/* Disturb the player */
 	disturb(player, 1);
 
@@ -496,12 +494,6 @@ void save_game(void)
 		show_prompt("Saving game... done.");
 	} else {
 		show_prompt("Saving game... failed!");
-	}
-
-	/* Save the window prefs */
-	path_build(path, sizeof(path), ANGBAND_DIR_USER, "window.prf");
-	if (!prefs_save(path, option_dump, "Dump window settings")) {
-		show_prompt("Failed to save subwindow preferences");
 	}
 
 	/* Save monster memory to user directory */
