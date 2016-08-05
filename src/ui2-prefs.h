@@ -1,5 +1,5 @@
 /**
- * \file ui-prefs.h
+ * \file ui2-prefs.h
  * \brief Pref file handling code
  *
  * Copyright (c) 2003 Takeshi Mogami, Robert Ruehlmann
@@ -22,6 +22,7 @@
 #define UI2_PREFS_H
 
 #include "cave.h"
+#include "ui2-display.h"
 #include "ui2-keymap.h"
 #include "ui2-term.h"
 #include "parser.h"
@@ -45,26 +46,20 @@ extern wchar_t *flavor_x_char;
 /**
  * Private data for pref file parsing.
  */
-/* TODO UI2 */
-#define ANGBAND_TERM_MAX 1
-struct prefs_data
-{
+struct prefs_data {
 	bool bypass;
 	struct keypress keymap_buffer[KEYMAP_ACTION_MAX];
 	bool user;
-	bool loaded_window_flag[ANGBAND_TERM_MAX];
-	u32b window_flags[ANGBAND_TERM_MAX];
 };
 
 enum parser_error parse_prefs_dummy(struct parser *p);
 
-void dump_monsters(ang_file *fff);
-void dump_objects(ang_file *fff);
-void dump_autoinscriptions(ang_file *f);
-void dump_features(ang_file *fff);
-void dump_flavors(ang_file *fff);
-void dump_colors(ang_file *fff);
-void option_dump(ang_file *fff);
+void dump_monsters(ang_file *file);
+void dump_objects(ang_file *file);
+void dump_autoinscriptions(ang_file *file);
+void dump_features(ang_file *file);
+void dump_flavors(ang_file *file);
+void dump_colors(ang_file *file);
 bool prefs_save(const char *path, void (*dump)(ang_file *), const char *title);
 errr process_pref_file_command(const char *buf);
 bool process_pref_file(const char *name, bool quiet, bool user);
