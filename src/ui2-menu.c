@@ -93,12 +93,12 @@ static int menu_count(const struct menu *menu)
 	}
 }
 
-/* ------------------------------------------------------------------------
+/*
  * MN_ACTIONS HELPER FUNCTIONS
  *
- * MN_ACTIONS is the type of menu iterator that displays a simple list of
- * menu_actions.
- * ------------------------------------------------------------------------ */
+ * MN_ACTIONS is the type of menu iterator that displays
+ * a simple list of menu_actions.
+ */
 
 static char menu_action_tag(struct menu *menu, int index)
 {
@@ -150,12 +150,13 @@ static const menu_iter menu_iter_actions = {
 	.row_handler = menu_action_handle
 };
 
-/* ------------------------------------------------------------------------
+/*
  * MN_STRINGS HELPER FUNCTIONS
  *
  * MN_STRINGS is the type of menu iterator that displays a simple list of 
  * strings - no action is associated, as selection will just return the index.
- * ------------------------------------------------------------------------ */
+ */
+
 static void display_string(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
