@@ -712,8 +712,8 @@ static enum parser_error parse_prefs_feat(struct parser *p)
 		return PARSE_ERROR_NONE;
 	}
 
-	int idx = parser_getint(p, "idx");
-	if (idx < 0 || idx >= z_info->f_max) {
+	unsigned idx = parser_getuint(p, "idx");
+	if (idx >= z_info->f_max) {
 		return PARSE_ERROR_OUT_OF_BOUNDS;
 	}
 
@@ -812,7 +812,7 @@ static enum parser_error parse_prefs_flavor(struct parser *p)
 		return PARSE_ERROR_NONE;
 	}
 
-	unsigned int idx = parser_getuint(p, "idx");
+	unsigned idx = parser_getuint(p, "idx");
 	for (flavor = flavors; flavor; flavor = flavor->next) {
 		if (flavor->fidx == idx) {
 			flavor_x_attr[idx] = parser_getuint(p, "attr");
