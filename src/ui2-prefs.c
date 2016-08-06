@@ -271,10 +271,10 @@ void dump_flavors(ang_file *file)
 void dump_colors(ang_file *file)
 {
 	for (int i = 0; i < MAX_COLORS; i++) {
-		int a = angband_color_table[i][0];
-		int r = angband_color_table[i][1];
-		int g = angband_color_table[i][2];
-		int b = angband_color_table[i][3];
+		unsigned a = angband_color_table[i][0];
+		unsigned r = angband_color_table[i][1];
+		unsigned g = angband_color_table[i][2];
+		unsigned b = angband_color_table[i][3];
 
 		/* Skip non-entries (transparent black colors) */
 		if (a || r || g || b) {
@@ -282,7 +282,7 @@ void dump_colors(ang_file *file)
 				i < BASIC_COLORS ? color_table[i].name : "unknown";
 
 			file_putf(file, "# Color: %s\n", name);
-			file_putf(file, "color:%d:%d:%d:%d:%d\n\n", i, a, r, g, b);
+			file_putf(file, "color:%d:%u:%u:%u:%u\n\n", i, a, r, g, b);
 		}
 	}
 }
@@ -940,10 +940,10 @@ static enum parser_error parse_prefs_color(struct parser *p)
 		return PARSE_ERROR_OUT_OF_BOUNDS;
 	}
 
-	angband_color_table[idx][0] = parser_getint(p, "a");
-	angband_color_table[idx][1] = parser_getint(p, "r");
-	angband_color_table[idx][2] = parser_getint(p, "g");
-	angband_color_table[idx][3] = parser_getint(p, "b");
+	angband_color_table[idx][0] = parser_getuint(p, "a");
+	angband_color_table[idx][1] = parser_getuint(p, "r");
+	angband_color_table[idx][2] = parser_getuint(p, "g");
+	angband_color_table[idx][3] = parser_getuint(p, "b");
 
 	return PARSE_ERROR_NONE;
 }
@@ -976,7 +976,7 @@ static struct parser *init_parse_prefs(bool user)
 	parser_reg(p, "keymap-act ?str act", parse_prefs_keymap_action);
 	parser_reg(p, "keymap-input int mode str key", parse_prefs_keymap_input);
 	parser_reg(p, "message sym type sym attr", parse_prefs_message);
-	parser_reg(p, "color uint idx int a int r int g int b", parse_prefs_color);
+	parser_reg(p, "color uint idx uint a uint r uint g uint b", parse_prefs_color);
 	register_sound_pref_parser(p);
 
 	return p;
