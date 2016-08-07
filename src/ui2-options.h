@@ -1,5 +1,5 @@
 /**
- * \file ui-options.h
+ * \file ui2-options.h
  * \brief Text UI options handling code (everything accessible from '=')
  *
  * Copyright (c) 1997-2000 Robert A. Koeneke, James E. Wilson, Ben Harrison
