@@ -1,5 +1,5 @@
 /**
- * \file ui-mon-lore.h
+ * \file ui2-mon-lore.h
  * \brief Monster memory UI
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
@@ -21,10 +21,10 @@
 
 void lore_title(textblock *tb, const struct monster_race *race);
 void lore_description(textblock *tb, const struct monster_race *race,
-					  const struct monster_lore *original_lore, bool spoilers);
+		const struct monster_lore *original_lore, bool spoilers);
 void lore_show_interactive(const struct monster_race *race,
-						   const struct monster_lore *lore);
+		const struct monster_lore *lore);
 void lore_show_subwindow(const struct monster_race *race,
-						 const struct monster_lore *lore);
+		const struct monster_lore *lore);
 
 #endif /* UI2_MONSTER_LORE_H */

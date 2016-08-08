@@ -1,5 +1,5 @@
 /**
- * \file ui-mon-lore.c
+ * \file ui2-mon-lore.c
  * \brief Monster memory UI
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
@@ -18,10 +18,10 @@
 
 #include "angband.h"
 #include "mon-lore.h"
-#include "ui-mon-lore.h"
-#include "ui-output.h"
-#include "ui-prefs.h"
-#include "ui-term.h"
+#include "ui2-mon-lore.h"
+#include "ui2-output.h"
+#include "ui2-prefs.h"
+#include "ui2-term.h"
 #include "z-textblock.h"
 
 /**
@@ -36,26 +36,20 @@
  */
 void lore_title(textblock *tb, const struct monster_race *race)
 {
-	byte standard_attr, optional_attr;
-	wchar_t standard_char, optional_char;
-
 	assert(race);
 
-	/* Get the chars */
-	standard_char = race->d_char;
-	optional_char = monster_x_char[race->ridx];
+	wchar_t standard_char = race->d_char;
+	wchar_t optional_char = monster_x_char[race->ridx];
 
-	/* Get the attrs */
-	standard_attr = race->d_attr;
-	optional_attr = monster_x_attr[race->ridx];
+	uint32_t standard_attr = race->d_attr;
+	uint32_t optional_attr = monster_x_attr[race->ridx];
 
 	/* A title (use "The" for non-uniques) */
-	if (!rf_has(race->flags, RF_UNIQUE))
+	if (!rf_has(race->flags, RF_UNIQUE)) {
 		textblock_append(tb, "The ");
-	else if (OPT(purple_uniques)) {
+	} else if (OPT(purple_uniques)) {
 		standard_attr = COLOUR_VIOLET;
-		if (!(optional_attr & 0x80))
-			optional_attr = COLOUR_VIOLET;
+		optional_attr = COLOUR_VIOLET;
 	}
 
 	/* Dump the name and then append standard attr/char info */
@@ -65,8 +59,7 @@ void lore_title(textblock *tb, const struct monster_race *race)
 	textblock_append_pict(tb, standard_attr, standard_char);
 	textblock_append(tb, "')");
 
-	if (((optional_attr != standard_attr) || (optional_char != standard_char))
-		&& (tile_width == 1) && (tile_height == 1)) {
+	if (optional_attr != standard_attr || optional_char != standard_char) {
 		/* Append the "optional" attr/char info */
 		textblock_append(tb, " ('");
 		textblock_append_pict(tb, optional_attr, optional_char);
@@ -86,27 +79,29 @@ void lore_title(textblock *tb, const struct monster_race *race)
  *        while `false` only shows what the player knows.
  */
 void lore_description(textblock *tb, const struct monster_race *race,
-					  const struct monster_lore *original_lore, bool spoilers)
+		const struct monster_lore *original_lore, bool spoilers)
 {
 	struct monster_lore mutable_lore;
 	struct monster_lore *lore = &mutable_lore;
 	bitflag known_flags[RF_SIZE];
-	int melee_colors[RBE_MAX], spell_colors[RSF_MAX];
+	int melee_colors[RBE_MAX];
+	int spell_colors[RSF_MAX];
 
 	assert(tb && race && original_lore);
 
 	/* Determine the special attack colors */
 	get_attack_colors(melee_colors, spell_colors);
 
-	/* Hack -- create a copy of the monster-memory that we can modify */
+	/* Create a copy of the monster memory that we can modify */
 	memcpy(lore, original_lore, sizeof(struct monster_lore));
 
 	/* Now get the known monster flags */
 	monster_flags_known(race, lore, known_flags);
 
-	/* Cheat -- know everything */
-	if (OPT(cheat_know) || spoilers)
+	/* Cheat - know everything */
+	if (OPT(cheat_know) || spoilers) {
 		cheat_monster_lore(race, lore);
+	}
 
 	/* Appending the title here simplifies code in the callers. It also causes
 	 * a crash when generating spoilers (we don't need titles for them anwyay)*/
@@ -116,8 +111,9 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	}
 
 	/* Show kills of monster vs. player(s) */
-	if (!spoilers)
+	if (!spoilers) {
 		lore_append_kills(tb, race, lore, known_flags);
+	}
 
 	/* If we are generating spoilers, we want to output as UTF-8. As of 3.5,
 	 * the values in race->name and race->text remain unconverted from the
@@ -127,12 +123,14 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	/* Describe the monster type, speed, life, and armor */
 	lore_append_movement(tb, race, lore, known_flags);
 
-	if (!spoilers)
+	if (!spoilers) {
 		lore_append_toughness(tb, race, lore, known_flags);
+	}
 
 	/* Describe the experience and item reward when killed */
-	if (!spoilers)
+	if (!spoilers) {
 		lore_append_exp(tb, race, lore, known_flags);
+	}
 
 	lore_append_drop(tb, race, lore, known_flags);
 
@@ -146,12 +144,14 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	lore_append_attack(tb, race, lore, known_flags, melee_colors);
 	
 	/* Do we know everything */
-	if (lore_is_fully_known(race))
+	if (lore_is_fully_known(race)) {
 		textblock_append(tb, "You know everything about this monster.");
+	}
 	
-	/* Notice "Quest" monsters */
-	if (rf_has(race->flags, RF_QUESTOR))
+	/* Notice quest monsters */
+	if (rf_has(race->flags, RF_QUESTOR)) {
 		textblock_append(tb, "You feel an intense desire to kill this monster...  ");
+	}
 
 	textblock_append(tb, "\n");
 }
@@ -159,23 +159,17 @@ void lore_description(textblock *tb, const struct monster_race *race,
 /**
  * Display monster recall modally and wait for a keypress.
  *
- * This is intended to be called when the main window is active (hence the
- * message flushing).
- *
  * \param race is the monster race we are describing.
  * \param lore is the known information about the monster race.
  */
-void lore_show_interactive(const struct monster_race *race,
-						   const struct monster_lore *lore)
+void lore_show_interactive(const struct monster_race *race, const struct monster_lore *lore)
 {
-	textblock *tb;
 	assert(race && lore);
 
-	event_signal(EVENT_MESSAGE_FLUSH);
-
-	tb = textblock_new();
+	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);
-	textui_textblock_show(tb, SCREEN_REGION, NULL);
+	region reg = {0, 0, 0, 0};
+	textui_textblock_show(tb, reg, NULL);
 	textblock_free(tb);
 }
 
@@ -188,22 +182,16 @@ void lore_show_interactive(const struct monster_race *race,
  * \param race is the monster race we are describing.
  * \param lore is the known information about the monster race.
  */
-void lore_show_subwindow(const struct monster_race *race,
-						 const struct monster_lore *lore)
+void lore_show_subwindow(const struct monster_race *race, const struct monster_lore *lore)
 {
-	int y;
-	textblock *tb;
-
 	assert(race && lore);
 
-	/* Erase the window, since textui_textblock_place() only clears what it
-	 * needs */
-	for (y = 0; y < Term->hgt; y++)
-		Term_erase(0, y, 255);
+	/* Erase the window, since textui_textblock_place() only clears what it needs */
+	Term_clear();
 
-	tb = textblock_new();
+	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);
-	textui_textblock_place(tb, SCREEN_REGION, NULL);
+	region reg = {0, 0, 0, 0};
+	textui_textblock_place(tb, reg, NULL);
 	textblock_free(tb);
 }
-
