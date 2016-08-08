@@ -1,5 +1,5 @@
 /**
- * \file ui-birth.h
+ * \file ui2-birth.h
  * \brief Text-based user interface for character creation
  *
  * Copyright (c) 1987 - 2015 Angband contributors
@@ -22,7 +22,7 @@
 void ui_init_birthstate_handlers(void);
 int textui_do_birth(void);
 
-//phantom
+/* phantom */
 extern bool arg_force_name;
 
 #endif /* UI2_BIRTH_H */
