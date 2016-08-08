@@ -2276,7 +2276,7 @@ static void ui_enter_init(game_event_type type,
 	struct term_hints hints = {
 		.width = 80,
 		.height = 24,
-		.purpose = TERM_PURPOSE_TEXT
+		.purpose = TERM_PURPOSE_INIT
 	};
 	Term_push_new(&hints);
 
