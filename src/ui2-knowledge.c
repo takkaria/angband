@@ -2636,7 +2636,7 @@ void do_cmd_center_map(void)
  */
 void do_cmd_monlist(void)
 {
-    monster_list_show_interactive(80, 24);
+    monster_list_show_interactive();
 }
 
 /**

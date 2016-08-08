@@ -1,5 +1,5 @@
 /**
- * \file ui-mon-list.c
+ * \file ui2-mon-list.c
  * \brief Monster list UI.
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
@@ -22,9 +22,10 @@
 #include "mon-lore.h"
 #include "mon-util.h"
 #include "player-timed.h"
-#include "ui-output.h"
-#include "ui-prefs.h"
-#include "ui-term.h"
+#include "ui2-mon-list.h"
+#include "ui2-output.h"
+#include "ui2-prefs.h"
+#include "ui2-term.h"
 
 /**
  * Format a section of the monster list: a header followed by monster list
@@ -53,113 +54,117 @@
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
-static void monster_list_format_section(const monster_list_t *list, textblock *tb, monster_list_section_t section, int lines_to_display, int max_width, const char *prefix, bool show_others, size_t *max_width_result)
+static void monster_list_format_section(const monster_list_t *list, textblock *tb,
+		monster_list_section_t section, int lines_to_display, int max_width,
+		const char *prefix, bool show_others, size_t *max_width_result)
 {
-	int remaining_monster_total = 0;
-	int line_count = 0;
-	int index;
-	int total;
+	const char *punctuation = lines_to_display == 0 ? "." : ":";
+	const char *others = show_others ? "other " : "";
+
 	char line_buffer[200];
-	const char *punctuation = (lines_to_display == 0) ? "." : ":";
-	const char *others = (show_others) ? "other " : "";
-	size_t max_line_length = 0;
 
-	if (list == NULL || list->entries == NULL)
+	if (list == NULL || list->entries == NULL) {
 		return;
-
-	total = list->distinct_entries;
+	}
 
 	if (list->total_monsters[section] == 0) {
-		max_line_length = strnfmt(line_buffer, sizeof(line_buffer),
-								  "%s no monsters.\n", prefix);
+		size_t max_line_length = strnfmt(line_buffer, sizeof(line_buffer),
+				"%s no monsters.\n", prefix);
 
-		if (tb != NULL)
+		if (tb != NULL) {
 			textblock_append(tb, "%s", line_buffer);
+		}
 
 		/* Force a minimum width so that the prompt doesn't get cut off. */
-		if (max_width_result != NULL)
+		if (max_width_result != NULL) {
 			*max_width_result = MAX(max_line_length, 40);
+		}
 
 		return;
 	}
 
-	max_line_length = strnfmt(line_buffer, sizeof(line_buffer),
-							  "%s %d %smonster%s%s\n",
-							  prefix,
-							  list->total_monsters[section],
-							  others,
-							  PLURAL(list->total_monsters[section]),
-							  punctuation);
+	size_t max_line_length = strnfmt(line_buffer, sizeof(line_buffer),
+			"%s %d %smonster%s%s\n",
+			prefix,
+			list->total_monsters[section],
+			others,
+			PLURAL(list->total_monsters[section]),
+			punctuation);
 
-	if (tb != NULL)
+	if (tb != NULL) {
 		textblock_append(tb, "%s", line_buffer);
+	}
 
-	for (index = 0; index < total && line_count < lines_to_display; index++) {
-		char asleep[20] = { '\0' };
-		char location[20] = { '\0' };
-		byte line_attr;
-		size_t full_width;
-		size_t name_width;
-		u16b count_in_section = 0;
-		u16b asleep_in_section = 0;
+	int entry;
+	int line_count;
 
-		line_buffer[0] = '\0';
+	for (entry = 0, line_count = 0;
+			entry < list->distinct_entries && line_count < lines_to_display;
+			entry++)
+	{
+		char asleep[20] = {0};
+		char location[20] = {0};
 
-		if (list->entries[index].count[section] == 0)
+		line_buffer[0] = 0;
+
+		if (list->entries[entry].count[section] == 0) {
 			continue;
+		}
 
 		/* Only display directions for the case of a single monster. */
-		if (list->entries[index].count[section] == 1) {
-			const char *direction1 = (list->entries[index].dy <= 0) ? "N" : "S";
-			const char *direction2 = (list->entries[index].dx <= 0) ? "W" : "E";
-			strnfmt(location, sizeof(location), " %d %s %d %s",
-					abs(list->entries[index].dy), direction1,
-					abs(list->entries[index].dx), direction2);
+		if (list->entries[entry].count[section] == 1) {
+			const char *n_or_s = list->entries[entry].dy <= 0 ? "N" : "S";
+			const char *w_or_e = list->entries[entry].dx <= 0 ? "W" : "E";
+			strnfmt(location, sizeof(location),
+					" %d %s %d %s",
+					abs(list->entries[entry].dy), n_or_s,
+					abs(list->entries[entry].dx), w_or_e);
 		}
 
 		/* Get width available for monster name and sleep tag: 2 for char and
 		 * space; location includes padding; last -1 for some reason? */
-		full_width = max_width - 2 - utf8_strlen(location) - 1;
+		size_t full_width = max_width - 2 - utf8_strlen(location) - 1;
 
-		asleep_in_section = list->entries[index].asleep[section];
-		count_in_section = list->entries[index].count[section];
+		u16b asleep_in_section = list->entries[entry].asleep[section];
+		u16b count_in_section = list->entries[entry].count[section];
 
-		if (asleep_in_section > 0 && count_in_section > 1)
+		if (asleep_in_section > 0 && count_in_section > 1) {
 			strnfmt(asleep, sizeof(asleep), " (%d asleep)", asleep_in_section);
-		else if (asleep_in_section == 1 && count_in_section == 1)
+		} else if (asleep_in_section == 1 && count_in_section == 1) {
 			strnfmt(asleep, sizeof(asleep), " (asleep)");
+		}
 
 		/* Clip the monster name to fit, and append the sleep tag. */
-		name_width = MIN(full_width - utf8_strlen(asleep), sizeof(line_buffer));
+		size_t name_width = MIN(full_width - utf8_strlen(asleep), sizeof(line_buffer));
 		get_mon_name(line_buffer, sizeof(line_buffer),
-					 list->entries[index].race,
-					 list->entries[index].count[section]);
+				list->entries[entry].race,
+				list->entries[entry].count[section]);
 		utf8_clipto(line_buffer, name_width);
 		my_strcat(line_buffer, asleep, sizeof(line_buffer));
 
 		/* Calculate the width of the line for dynamic sizing; use a fixed max
 		 * width for location and monster char. */
-		max_line_length = MAX(max_line_length,
-							  utf8_strlen(line_buffer) + 12 + 2);
+		max_line_length = MAX(max_line_length, utf8_strlen(line_buffer) + 12 + 2);
 
-		/* textblock_append_pict will safely add the monster symbol,
-		 * regardless of ASCII/graphics mode. */
-		if (tb != NULL && tile_width == 1 && tile_height == 1) {
-			textblock_append_pict(tb, list->entries[index].attr, monster_x_char[list->entries[index].race->ridx]);
+		/* Append monster symbol in text mode
+		 * (it's called textblock_append_pict() for legacy reasons :) */
+		if (tb != NULL && !use_graphics) {
+			textblock_append_pict(tb,
+					list->entries[entry].attr,
+					monster_x_char[list->entries[entry].race->ridx]);
 			textblock_append(tb, " ");
 		}
 
 		/* Add the left-aligned and padded monster name which will align the
 		 * location to the right. */
 		if (tb != NULL) {
-			/* Hack - Because monster race strings are UTF8, we have to add
+			uint32_t line_attr = monster_list_entry_line_color(&list->entries[entry]);
+			/* Because monster race strings are UTF8, we have to add
 			 * additional padding for any raw bytes that might be consolidated
 			 * into one displayed character. */
 			full_width += strlen(line_buffer) - utf8_strlen(line_buffer);
-			line_attr = monster_list_entry_line_color(&list->entries[index]);
-			textblock_append_c(tb, line_attr, "%-*s%s\n",
-							   full_width,
-							   line_buffer, location);
+			textblock_append_c(tb, line_attr,
+					"%-*s%s\n", full_width, line_buffer, location);
 		}
 
 		line_count++;
@@ -167,24 +172,30 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 
 	/* Don't worry about the "...others" line, since it's probably shorter
 	 * than what's already printed. */
-	if (max_width_result != NULL)
+	if (max_width_result != NULL) {
 		*max_width_result = max_line_length;
+	}
 
 	/* Bail since we don't have enough room to display the remaining count or
 	 * since we've displayed them all. */
-	if (lines_to_display <= 0 ||
-		lines_to_display >= list->total_entries[section])
+	if (lines_to_display <= 0
+			|| lines_to_display >= list->total_entries[section])
+	{
 		return;
-
-	/* Sum the remaining monsters; start where we left off in the above loop. */
-	while (index < total) {
-		remaining_monster_total += list->entries[index].count[section];
-		index++;
 	}
 
-	if (tb != NULL)
+	/* Sum the remaining monsters; start where we left off in the above loop. */
+	int remaining_monster_total = 0;
+
+	while (entry < list->distinct_entries) {
+		remaining_monster_total += list->entries[entry].count[section];
+		entry++;
+	}
+
+	if (tb != NULL) {
 		textblock_append(tb, "%6s...and %d others.\n", " ",
 						 remaining_monster_total);
+	}
 }
 
 /**
@@ -204,25 +215,31 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
  * without truncation.
  * \return true if further formatting should be bypassed.
  */
-static bool monster_list_format_special(const monster_list_t *list, textblock *tb, int max_lines, int max_width, size_t *max_height_result, size_t *max_width_result)
+static bool monster_list_format_special(const monster_list_t *list,
+		textblock *tb, int max_lines, int max_width, size_t *max_height_result, size_t *max_width_result)
 {
+	(void) list;
+	(void) max_lines;
+	(void) max_width;
+
 	if (player->timed[TMD_IMAGE] > 0) {
 		/* Hack - message needs newline to calculate width properly. */
 		const char *message = "Your hallucinations are too wild to see things clearly.\n";
 
-		if (max_height_result != NULL)
+		if (max_height_result != NULL) {
 			*max_height_result = 1;
-
-		if (max_width_result != NULL)
+		}
+		if (max_width_result != NULL) {
 			*max_width_result = strlen(message);
-
-		if (tb != NULL)
+		}
+		if (tb != NULL) {
 			textblock_append_c(tb, COLOUR_ORANGE, "%s", message);
+		}
 
 		return true;
+	} else {
+		return false;
 	}
-
-	return false;
 }
 
 /**
@@ -244,44 +261,46 @@ static bool monster_list_format_special(const monster_list_t *list, textblock *t
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
-static void monster_list_format_textblock(const monster_list_t *list, textblock *tb, int max_lines, int max_width, size_t *max_height_result, size_t *max_width_result)
+static void monster_list_format_textblock(const monster_list_t *list,
+		textblock *tb, int max_lines, int max_width, size_t *max_height_result, size_t *max_width_result)
 {
+	if (list == NULL || list->entries == NULL) {
+		return;
+	}
+
+	if (monster_list_format_special(list, tb,
+				max_lines, max_width, max_height_result, max_width_result))
+	{
+		return;
+	}
+
+	int los_lines_to_display = list->total_entries[MONSTER_LIST_SECTION_LOS];
+	int esp_lines_to_display = list->total_entries[MONSTER_LIST_SECTION_ESP];
 	int header_lines = 1;
-	int lines_remaining;
-	int los_lines_to_display;
-	int esp_lines_to_display;
-	size_t max_los_line = 0;
-	size_t max_esp_line = 0;
 
-	if (list == NULL || list->entries == NULL)
-		return;
-
-	if (monster_list_format_special(list, tb, max_lines, max_width,
-									max_height_result, max_width_result))
-		return;
-
-	los_lines_to_display = list->total_entries[MONSTER_LIST_SECTION_LOS];
-	esp_lines_to_display = list->total_entries[MONSTER_LIST_SECTION_ESP];
-
-	if (list->total_entries[MONSTER_LIST_SECTION_ESP] > 0)
+	if (list->total_entries[MONSTER_LIST_SECTION_ESP] > 0) {
 		header_lines += 2;
+	}
 
-	if (max_height_result != NULL)
-		*max_height_result = header_lines + los_lines_to_display +
-			esp_lines_to_display;
+	if (max_height_result != NULL) {
+		*max_height_result =
+			header_lines + los_lines_to_display + esp_lines_to_display;
+	}
 
-	lines_remaining = max_lines - header_lines -
-		list->total_entries[MONSTER_LIST_SECTION_LOS];
+	int lines_remaining =
+		max_lines - header_lines - list->total_entries[MONSTER_LIST_SECTION_LOS];
 
 	/* Remove ESP lines as needed. */
-	if (lines_remaining < list->total_entries[MONSTER_LIST_SECTION_ESP])
+	if (lines_remaining < list->total_entries[MONSTER_LIST_SECTION_ESP]) {
 		esp_lines_to_display = MAX(lines_remaining - 1, 0);
+	}
 
 	/* If we don't even have enough room for the ESP header, start removing
 	 * LOS lines, leaving one for the "...others". */
-	if (lines_remaining < 0)
-		los_lines_to_display = list->total_entries[MONSTER_LIST_SECTION_LOS] -
-			abs(lines_remaining) - 1;
+	if (lines_remaining < 0) {
+		los_lines_to_display =
+			list->total_entries[MONSTER_LIST_SECTION_LOS] - abs(lines_remaining) - 1;
+	}
 
 	/* Display only headers if we don't have enough space. */
 	if (header_lines >= max_lines) {
@@ -289,24 +308,28 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 		esp_lines_to_display = 0;
 	}
 
-	monster_list_format_section(list, tb, MONSTER_LIST_SECTION_LOS,
-								los_lines_to_display, max_width,
-								"You can see", false, &max_los_line);
+	size_t max_los_line = 0;
+	size_t max_esp_line = 0;
+
+	monster_list_format_section(list, tb,
+			MONSTER_LIST_SECTION_LOS, los_lines_to_display, max_width,
+			"You can see", false, &max_los_line);
 
 	if (list->total_entries[MONSTER_LIST_SECTION_ESP] > 0) {
 		bool show_others = list->total_monsters[MONSTER_LIST_SECTION_LOS] > 0;
 
-		if (tb != NULL)
+		if (tb != NULL) {
 			textblock_append(tb, "\n");
+		}
 
-		monster_list_format_section(list, tb, MONSTER_LIST_SECTION_ESP,
-									esp_lines_to_display, max_width,
-									"You are aware of", show_others,
-									&max_esp_line);
+		monster_list_format_section(list, tb,
+				MONSTER_LIST_SECTION_ESP, esp_lines_to_display, max_width,
+				"You are aware of", show_others, &max_esp_line);
 	}
 
-	if (max_width_result != NULL)
+	if (max_width_result != NULL) {
 		*max_width_result = MAX(max_los_line, max_esp_line);
+	}
 }
 
 /**
@@ -314,17 +337,17 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
  */
 void monster_list_get_glyphs(monster_list_t *list)
 {
-	int i;
-
 	/* Run through all monsters in the list. */
-	for (i = 0; i < (int)list->entries_size; i++) {
+	for (int i = 0; i < (int) list->entries_size; i++) {
 		monster_list_entry_t *entry = &list->entries[i];
-		if (entry->race == NULL)
+		if (entry->race == NULL) {
 			continue;
+		}
 
 		/* If no monster attribute use the standard UI picture. */
-		if (!entry->attr)
+		if (!entry->attr) {
 			entry->attr = monster_x_attr[entry->race->ridx];
+		}
 	}
 }
 
@@ -339,20 +362,17 @@ void monster_list_get_glyphs(monster_list_t *list)
  * \param height is the height of the list.
  * \param width is the width of the list.
  */
-void monster_list_show_subwindow(int height, int width)
+void monster_list_show_subwindow(void)
 {
-	textblock *tb;
-	monster_list_t *list;
-	int i;
+	int width;
+	int height;
+	Term_get_size(&width, &height);
 
-	if (height < 1 || width < 1)
-		return;
-
-	tb = textblock_new();
-	list = monster_list_shared_instance();
+	textblock *tb = textblock_new();
+	monster_list_t *list = monster_list_shared_instance();
 
 	/* Force an update if detected monsters */
-	for (i = 1; i < cave_monster_max(cave); i++) {
+	for (int i = 1, end = cave_monster_max(cave); i < end; i++) {
 		if (mflag_has(cave_monster(cave, i)->mflag, MFLAG_MARK)) {
 			list->creation_turn = -1;
 			break;
@@ -366,63 +386,44 @@ void monster_list_show_subwindow(int height, int width)
 
 	/* Draw the list to exactly fit the subwindow. */
 	monster_list_format_textblock(list, tb, height, width, NULL, NULL);
-	textui_textblock_place(tb, SCREEN_REGION, NULL);
+
+	region reg = {0, 0, 0, 0};
+	textui_textblock_place(tb, reg, NULL);
 
 	textblock_free(tb);
 }
 
 /**
  * Display the monster list interactively. This will dynamically size the list
- * for the best appearance. This should only be used in the main term.
+ * for the best appearance.
  *
  * \param height is the height limit for the list.
  * \param width is the width limit for the list.
  */
-void monster_list_show_interactive(int height, int width)
+void monster_list_show_interactive(void)
 {
-	textblock *tb;
-	monster_list_t *list;
-	size_t max_width = 0, max_height = 0;
-	int safe_height, safe_width;
-	region r;
-
-	if (height < 1 || width < 1)
-		return;
-
-	tb = textblock_new();
-	list = monster_list_new();
+	textblock *tb = textblock_new();
+	monster_list_t *list = monster_list_new();
 
 	monster_list_collect(list);
 	monster_list_get_glyphs(list);
 	monster_list_sort(list, monster_list_standard_compare);
 
-	/* Figure out optimal display rect. Large numbers are passed as the height
-	 * and width limit so that we can calculate the maximum number of rows and
-	 * columns to display the list nicely. We then adjust those values as
-	 * needed to fit in the main term. Height is adjusted to account for the
-	 * texblock prompt. The list is positioned on the right side of the term
-	 * underneath the status line.
-	 */
-	monster_list_format_textblock(list, NULL, 1000, 1000, &max_height,
-								  &max_width);
-	safe_height = MIN(height - 2, (int)max_height + 2);
-	safe_width = MIN(width - 13, (int)max_width);
-	r.col = -safe_width;
-	r.row = 1;
-	r.width = safe_width;
-	r.page_rows = safe_height;
-
 	/*
-	 * Actually draw the list. We pass in max_height to the format function so
-	 * that all lines will be appended to the textblock. The textblock itself
-	 * will handle fitting it into the region. However, we have to pass
-	 * safe_width so that the format function will pad the lines properly so
-	 * that the location string is aligned to the right edge of the list.
+	 * Large numbers are passed as the height and width limit so that we can
+	 * calculate the maximum number of rows and columns to display the list
+	 * nicely. Height is adjusted to account for the texblock footer.
 	 */
-	monster_list_format_textblock(list, tb, (int)max_height, safe_width, NULL,
-								  NULL);
-	region_erase_bordered(&r);
-	textui_textblock_show(tb, r, NULL);
+	size_t max_width = 0;
+	size_t max_height = 0;
+	monster_list_format_textblock(list, tb, 1000, 1000, &max_height, &max_width);
+
+	region reg = {
+		.w = max_width,
+		.h = max_height + 2
+	};
+
+	textui_textblock_show(tb, reg, NULL);
 
 	textblock_free(tb);
 	monster_list_free(list);

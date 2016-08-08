@@ -1653,7 +1653,7 @@ static void update_monlist_subwindow(game_event_type type,
 	Term_push(ANGBAND_TERM(user)->term);
 	Term_clear();
 
-	monster_list_show_subwindow(Term_height(), Term_width());
+	monster_list_show_subwindow();
 
 	Term_flush_output();
 	Term_pop();

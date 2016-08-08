@@ -1,5 +1,5 @@
 /**
- * \file ui-mon-list.h
+ * \file ui2-mon-list.h
  * \brief Monster list UI.
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
@@ -22,8 +22,8 @@
 
 #include "angband.h"
 
-void monster_list_show_subwindow(int height, int width);
-void monster_list_show_interactive(int height, int width);
+void monster_list_show_subwindow(void);
+void monster_list_show_interactive(void);
 void monster_list_force_subwindow_update(void);
 
 #endif /* UI2_MONSTER_LIST_H */
