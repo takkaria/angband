@@ -1243,8 +1243,16 @@ static void ui_enter_birthscreen(game_event_type type,
 {
 	(void) type;
 	(void) user;
+
 	/* Set the ugly static global that tells us if quickstart's available. */
 	quickstart_allowed = data->flag;
+
+	struct term_hints hints = {
+		.width = 80,
+		.height = 24,
+		.purpose = TERM_PURPOSE_BIRTH
+	};
+	Term_push_new(&hints);
 
 	setup_menus();
 }
@@ -1262,6 +1270,8 @@ static void ui_leave_birthscreen(game_event_type type,
 	}
 
 	free_birth_menus();
+
+	Term_pop();
 }
 
 
