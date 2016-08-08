@@ -89,6 +89,7 @@ enum term_position {
 
 enum term_purpose {
 	TERM_PURPOSE_NONE,
+	TERM_PURPOSE_INIT,
 	TERM_PURPOSE_TEXT,
 	TERM_PURPOSE_MENU,
 	TERM_PURPOSE_BIG_MAP,
