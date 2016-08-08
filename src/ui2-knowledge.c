@@ -2644,5 +2644,5 @@ void do_cmd_monlist(void)
  */
 void do_cmd_itemlist(void)
 {
-    object_list_show_interactive(80, 24);
+    object_list_show_interactive();
 }

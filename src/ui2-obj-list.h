@@ -1,5 +1,5 @@
 /**
- * \file ui-obj-list.h
+ * \file ui2-obj-list.h
  * \brief Object list UI.
  *
  * Copyright (c) 2013 Ben Semmler
@@ -19,7 +19,7 @@
 #ifndef UI2_OBJECT_LIST_H
 #define UI2_OBJECT_LIST_H
 
-void object_list_show_subwindow(int height, int width);
-void object_list_show_interactive(int height, int width);
+void object_list_show_subwindow(void);
+void object_list_show_interactive(void);
 
 #endif /* UI2_OBJECT_LIST_H */

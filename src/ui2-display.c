@@ -1638,7 +1638,7 @@ static void update_itemlist_subwindow(game_event_type type,
 	Term_push(ANGBAND_TERM(user)->term);
 	Term_clear();
 
-	object_list_show_subwindow(Term_height(), Term_width());
+	object_list_show_subwindow();
 
 	Term_flush_output();
 	Term_pop();
