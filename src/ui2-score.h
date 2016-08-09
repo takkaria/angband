@@ -1,5 +1,5 @@
 /**
- * \file ui-score.h
+ * \file ui2-score.h
  * \brief Highscore display for Angband
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
