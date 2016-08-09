@@ -19,7 +19,7 @@
 #include "init.h"
 #include "sound.h"
 #include "main.h"
-#include "ui-prefs.h"
+#include "ui2-prefs.h"
 #ifdef SOUND_SDL
 #include "snd-sdl.h"
 #endif

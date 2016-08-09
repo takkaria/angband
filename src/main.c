@@ -20,13 +20,12 @@
 #include "init.h"
 #include "mon-power.h"
 #include "savefile.h"
-#include "ui-command.h"
-#include "ui-display.h"
-#include "ui-game.h"
-#include "ui-init.h"
-#include "ui-input.h"
-#include "ui-prefs.h"
-#include "ui-signals.h"
+#include "ui2-command.h"
+#include "ui2-display.h"
+#include "ui2-game.h"
+#include "ui2-init.h"
+#include "ui2-input.h"
+#include "ui2-prefs.h"
 
 #ifdef SOUND
 #include "sound.h"
@@ -87,14 +86,7 @@ static const struct module modules[] =
 static void quit_hook(const char *s)
 {
 	/* Unused parameter */
-	(void)s;
-
-	/* TODO UI2
-	for (size_t j = ANGBAND_TERM_MAX - 1; j >= 0; j--) {
-		if (!angband_term[j]) continue;
-		term_nuke(angband_term[j]);
-	}
-	*/
+	(void) s;
 }
 
 /**
@@ -359,11 +351,9 @@ int main(int argc, char *argv[])
 				new_game = true;
 				break;
 
-				/* TODO UI2
 			case 'w':
 				arg_wizard = true;
 				break;
-				*/
 
 			case 'p':
 				arg_power = true;
@@ -386,19 +376,17 @@ int main(int argc, char *argv[])
 				 * But if the player is running with per-user saves, they
 				 * can do whatever the hell they want.
 				 */
-				/* TODO UI2
 #ifdef SETGID
 				savefile_set_name(player_safe_name(player, false));
 #else
 				savefile_set_name(arg);
 #endif
-				*/
 
 				continue;
 			}
 
 			case 'f':
-				/* TODO UI2 arg_force_name = true; */
+				arg_force_name = true;
 				break;
 
 			case 'm':
@@ -502,7 +490,7 @@ int main(int argc, char *argv[])
 		user_name(op_ptr->full_name, sizeof(op_ptr->full_name), player_uid);
 
 		/* Set the savefile to load */
-		/* TODO UI2 savefile_set_name(player_safe_name(player, false)); */
+		savefile_set_name(player_safe_name(player, false));
 	}
 
 	/* Create any missing directories */
@@ -510,11 +498,8 @@ int main(int argc, char *argv[])
 
 #endif /* UNIX */
 
-	/* Catch nasty signals */
-	/* TODO UI2 signals_init(); */
-
 	/* Set up the command hook */
-	/* TODO UI2 cmd_get_hook = textui_get_cmd; */
+	cmd_get_hook = textui_get_cmd;
 
 #ifdef SOUND
 	/* Initialise sound */
@@ -522,18 +507,15 @@ int main(int argc, char *argv[])
 #endif
 
 	/* Set up the display handlers and things. */
-	/* TODO UI2 init_display(); */
+	init_display();
 	init_angband();
-	/* TODO UI2 textui_init(); */
-
-	/* Wait for response */
-	/* TODO UI2 pause_line(Term); */
+	textui_init();
 
 	/* Play the game */
-	/* TODO UI2 play_game(new_game); */
+	play_game(new_game);
 
 	/* Free resources */
-	/* TODO UI2 textui_cleanup(); */
+	textui_cleanup();
 	cleanup_angband();
 
 	/* Quit */

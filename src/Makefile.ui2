@@ -155,6 +155,7 @@ args:
 	@echo LDFLAGS = $(LDFLAGS)
 	@echo LIBS = $(LIBS)
 	@echo MAINOBJS = $(MAINOBJS)
+	@echo OBJS = $(OBJS)
 
 # Generate dependencies automatically
 depend:

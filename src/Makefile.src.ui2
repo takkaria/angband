@@ -157,39 +157,38 @@ ANGFILES = \
 	score.o \
 	save.o \
 	savefile.o \
+	sound-core.o \
 	store.o \
 	target.o \
 	trap.o \
-	#sound-core.o \
-	#ui-birth.o \
-	#ui-command.o \
-	#ui-context.o \
-	#ui-death.o \
-	#ui-display.o \
-	#ui-event.o \
-	#ui-game.o \
-	#ui-help.o \
-	#ui-history.o \
-	#ui-init.o \
-	#ui-input.o \
-	#ui-keymap.o \
-	#ui-knowledge.o \
-	#ui-map.o \
-	#ui-menu.o \
-	#ui-mon-list.o \
-	#ui-mon-lore.o \
-	#ui-obj-list.o \
-	#ui-object.o \
-	#ui-options.o \
-	#ui-output.o \
-	#ui-player.o \
-	#ui-prefs.o \
-	#ui-score.o \
-	#ui-signals.o \
-	#ui-spell.o \
-	#ui-store.o \
-	#ui-target.o \
-	#ui-term.o \
+	ui2-birth.o \
+	ui2-command.o \
+	ui2-context.o \
+	ui2-death.o \
+	ui2-display.o \
+	ui2-event.o \
+	ui2-game.o \
+	ui2-help.o \
+	ui2-history.o \
+	ui2-init.o \
+	ui2-input.o \
+	ui2-keymap.o \
+	ui2-knowledge.o \
+	ui2-map.o \
+	ui2-menu.o \
+	ui2-mon-list.o \
+	ui2-mon-lore.o \
+	ui2-obj-list.o \
+	ui2-object.o \
+	ui2-options.o \
+	ui2-output.o \
+	ui2-player.o \
+	ui2-prefs.o \
+	ui2-score.o \
+	ui2-spell.o \
+	ui2-store.o \
+	ui2-target.o \
+	ui2-term.o \
 	#wiz-debug.o \
 	#wiz-spoil.o \
 	#wiz-stats.o \

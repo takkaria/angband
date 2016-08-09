@@ -21,7 +21,7 @@
 #define INCLUDED_MAIN_H
 
 #include "angband.h"
-#include "ui-term.h"
+#include "ui2-term.h"
 
 extern errr init_lfb(int argc, char **argv);
 extern errr init_x11(int argc, char **argv);
