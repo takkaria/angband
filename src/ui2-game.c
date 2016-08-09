@@ -486,9 +486,6 @@ void save_game(void)
 	/* The player is not dead */
 	my_strcpy(player->died_from, "(saved)", sizeof(player->died_from));
 
-	/* Forbid suspend */
-	signals_ignore_tstp();
-
 	/* Save the player */
 	if (savefile_save(savefile)) {
 		show_prompt("Saving game... done.");
@@ -501,9 +498,6 @@ void save_game(void)
 		msg("lore save failed!");
 		event_signal(EVENT_MESSAGE_FLUSH);
 	}
-
-	/* Allow suspend again */
-	signals_handle_tstp();
 
 	/* Note that the player is not dead */
 	my_strcpy(player->died_from, "(alive and well)", sizeof(player->died_from));
@@ -531,9 +525,6 @@ void close_game(void)
 	/* Flush the input */
 	event_signal(EVENT_INPUT_FLUSH);
 
-	/* No suspending now */
-	signals_ignore_tstp();
-
 	/* Handle death or life */
 	if (player->is_dead) {
 		death_knowledge();
@@ -554,7 +545,4 @@ void close_game(void)
 
 	/* Tell the UI we're done with the game state */
 	event_signal(EVENT_LEAVE_GAME);
-
-	/* Allow suspending now */
-	signals_handle_tstp();
 }
