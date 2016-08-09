@@ -18,7 +18,7 @@
 
 #include "ui2-term.h"
 #include "z-virt.h"
-#include "z-util.c"
+#include "z-util.h"
 
 /* Local declarations */
 
