@@ -54,7 +54,8 @@
 #include "ui2-prefs.h"
 #include "ui2-store.h"
 #include "ui2-term.h"
-#include "wizard.h"
+
+/* TODO UI2 #include "wizard.h" */
 
 struct angband_term angband_cave;
 struct angband_term angband_message_line;

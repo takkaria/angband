@@ -53,7 +53,6 @@
 #include "ui2-score.h"
 #include "ui2-store.h"
 #include "ui2-target.h"
-#include "wizard.h"
 
 /**
  * The first part of this file contains the knowledge menus. Generic display

@@ -32,7 +32,8 @@
 #include "ui2-object.h"
 #include "ui2-player.h"
 #include "ui2-score.h"
-#include "wizard.h"
+
+/* TODO UI2 #include "wizard.h" */
 
 /**
  * Write formatted string fmt on line loc.y,
@@ -349,7 +350,7 @@ static void death_spoilers(const char *title, int index)
 	(void) title;
 	(void) index;
 
-	do_cmd_spoilers();
+	/* TODO UI2 do_cmd_spoilers(); */
 }
 
 /* Menu command: toggle birth_keep_randarts option. */

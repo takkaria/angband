@@ -48,7 +48,6 @@
 #include "ui2-spell.h"
 #include "ui2-store.h"
 #include "ui2-target.h"
-#include "wizard.h"
 
 #define ADD_LABEL(text, cmd, valid) do { \
 	cmdkey = cmd_lookup_key_unktrl((cmd), mode); \
