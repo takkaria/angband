@@ -73,7 +73,7 @@ static void display_scores_aux(const high_score *scores,
 	}
 
 	/* Show 5 per page, until done */
-	for (int page = from, cur = from, place = from + 1; page < count; page += 5) {
+	for (int page = from, pos = from, place = from + 1; page < count; page += 5) {
 		char out_val[160];
 		char tmp_val[160];
 
@@ -83,11 +83,11 @@ static void display_scores_aux(const high_score *scores,
 
 		struct loc loc = {0, 2};
 
-		/* Dump 5 entries */
-		for (int entry = 0; cur < count && entry < 5; place++, cur++, entry++) {
-			const high_score *score = &scores[cur];
+		/* Dump 5 entries on this page */
+		for (int entry = 0; entry < 5 && pos < count; entry++, pos++, place++) {
+			const high_score *score = &scores[pos];
 
-			uint32_t attr = cur == highlight ? COLOUR_L_GREEN : COLOUR_WHITE;
+			uint32_t attr = pos == highlight ? COLOUR_L_GREEN : COLOUR_WHITE;
 
 			struct player_race *race = player_id2race(atoi(score->p_r));
 			struct player_class *class = player_id2class(atoi(score->p_c));
@@ -189,7 +189,8 @@ void predict_score(void)
 		pos = highscore_add(&the_score, scores, N_ELEMENTS(scores));
 	}
 
-	/* Top fifteen scores if on the top ten, otherwise ten surrounding */
+	/* Top fifteen scores if on the top ten,
+	 * otherwise top five and ten surrounding */
 	if (pos < 10) {
 		display_scores_aux(scores, 0, 15, pos);
 	} else {
