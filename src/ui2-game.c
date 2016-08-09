@@ -331,11 +331,13 @@ void textui_process_command(void)
 	}
 }
 
-void textui_get_cmd(cmd_context context)
+errr textui_get_cmd(cmd_context context)
 {
 	if (context == CMD_GAME) {
 		textui_process_command();
 	}
+
+	return 0;
 }
 
 /**

@@ -31,7 +31,7 @@ unsigned char cmd_lookup_key(cmd_code lookup_cmd, int mode);
 unsigned char cmd_lookup_key_unktrl(cmd_code lookup_cmd, int mode);
 cmd_code cmd_lookup(unsigned char key, int mode);
 void textui_process_command(void);
-void textui_get_cmd(cmd_context context);
+errr textui_get_cmd(cmd_context context);
 void check_for_player_interrupt(game_event_type type, game_event_data *data, void *user);
 void play_game(bool new_game);
 void savefile_set_name(const char *fname);
