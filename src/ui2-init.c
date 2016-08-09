@@ -26,26 +26,25 @@
 #include "angband.h"
 #include "game-input.h"
 #include "game-event.h"
-#include "ui-display.h"
-#include "ui-game.h"
-#include "ui-input.h"
-#include "ui-keymap.h"
-#include "ui-knowledge.h"
-#include "ui-options.h"
-#include "ui-output.h"
-#include "ui-prefs.h"
-#include "ui-term.h"
+#include "ui2-display.h"
+#include "ui2-game.h"
+#include "ui2-input.h"
+#include "ui2-keymap.h"
+#include "ui2-knowledge.h"
+#include "ui2-options.h"
+#include "ui2-output.h"
+#include "ui2-prefs.h"
+#include "ui2-term.h"
 
 /**
  * Initialise the UI
  */
 void textui_init(void)
 {
-	u32b default_window_flag[ANGBAND_TERM_MAX];
+	event_signal_message(EVENT_INITSTATUS, 0, "Loading basic pref file...");
 
 	/* Initialize graphics info and basic pref data */
-	event_signal_message(EVENT_INITSTATUS, 0, "Loading basic pref file...");
-	(void)process_pref_file("pref.prf", false, false);
+	process_pref_file("pref.prf", false, false);
 
 	/* Sneakily init command list */
 	cmd_init();
@@ -59,41 +58,8 @@ void textui_init(void)
 	/* Initialize visual prefs */
 	textui_prefs_init();
 
-	/* Hack -- Increase "icky" depth */
-	screen_save_depth++;
-
-	/* Verify main term */
-	if (!term_screen)
-		quit("Main window does not exist");
-
-	/* Make sure main term is active */
-	Term_activate(term_screen);
-
-	/* Verify minimum size */
-	if ((Term->hgt < 24) || (Term->wid < 80))
-		plog("Main window is too small - please make it bigger.");
-
-	/* Hack -- Turn off the cursor */
-	(void)Term_set_cursor(false);
-
-	/* initialize window options that will be overridden by the savefile */
-	memset(window_flag, 0, sizeof(u32b)*ANGBAND_TERM_MAX);
-	memset(default_window_flag, 0, sizeof default_window_flag);
-	if (ANGBAND_TERM_MAX > 1) default_window_flag[1] = (PW_MESSAGE);
-	if (ANGBAND_TERM_MAX > 2) default_window_flag[2] = (PW_INVEN);
-	if (ANGBAND_TERM_MAX > 3) default_window_flag[3] = (PW_MONLIST);
-	if (ANGBAND_TERM_MAX > 4) default_window_flag[4] = (PW_ITEMLIST);
-	if (ANGBAND_TERM_MAX > 5) default_window_flag[5] = (PW_MONSTER | PW_OBJECT);
-	if (ANGBAND_TERM_MAX > 6) default_window_flag[6] = (PW_OVERHEAD);
-	if (ANGBAND_TERM_MAX > 7) default_window_flag[7] = (PW_PLAYER_2);
-
-	/* Set up the subwindows */
-	subwindows_set_flags(default_window_flag, ANGBAND_TERM_MAX);
-
-	/* Done */
 	event_signal_message(EVENT_INITSTATUS, 0, "Initialization complete");
 }
-
 
 /**
  * Clean up UI
