@@ -1,5 +1,5 @@
 /**
- * \file ui-death.h
+ * \file ui2-death.h
  * \brief Handle the UI bits that happen after the character dies.
  *
  * Copyright (c) 1987 - 2007 Angband contributors
@@ -19,6 +19,6 @@
 #ifndef UI2_DEATH_H
 #define UI2_DEATH_H
 
-extern void death_screen(void);
+void death_screen(void);
 
 #endif /* UI2_DEATH_H */
