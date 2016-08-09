@@ -35,22 +35,20 @@
 #include "wizard.h"
 
 /**
- * Write formatted string fmt on line y, centred between points startx and endx.
+ * Write formatted string fmt on line loc.y,
+ * centred between points loc.x and loc.x + width
  */
-static void put_str_centred(int startx, int endx, int y, const char *fmt, ...)
+static void put_str_centred(struct loc loc, int width, const char *fmt, ...)
 {
-	assert(startx < endx);
+	va_list vp;
 
 	/* Format into the (growable) tmp */
-	va_list vp;
 	va_start(vp, fmt);
-	char *tmp = vformat(fmt, vp);
+	const char *tmp = vformat(fmt, vp);
 	va_end(vp);
 
-	struct loc loc = {
-		.x = startx + ((endx - startx) / 2 - strlen(tmp) / 2),
-		.y = y
-	};
+	/* Center the string */
+	loc.x += width / 2 - (int) strlen(tmp) / 2;
 
 	put_str(tmp, loc);
 }
@@ -81,31 +79,46 @@ static void print_tomb(void)
 		file_close(fp);
 	}
 
-	int line = 7;
+	const int width = 31;
+	struct loc loc = {8, 7};
 
-	put_str_centred(8, 8 + 31, line++, "%s", op_ptr->full_name);
-	put_str_centred(8, 8 + 31, line++, "the");
+	put_str_centred(loc, width, "%s", op_ptr->full_name);
+	loc.y++;
+
+	put_str_centred(loc, width, "the");
+	loc.y++;
 
 	if (player->total_winner) {
-		put_str_centred(8, 8 + 31, line++,
-				"Magnificent");
+		put_str_centred(loc, width, "Magnificent");
+		loc.y++;
 	} else {
-		put_str_centred(8, 8 + 31, line++,
-				"%s", player->class->title[(player->lev - 1) / 5]);
+		put_str_centred(loc, width, "%s", player->class->title[(player->lev - 1) / 5]);
+		loc.y++;
 	}
 
-	line++;
+	loc.y++;
 
-	put_str_centred(8, 8 + 31, line++, "%s", player->class->name);
-	put_str_centred(8, 8 + 31, line++, "Level: %d", (int)player->lev);
-	put_str_centred(8, 8 + 31, line++, "Exp: %d", (int)player->exp);
-	put_str_centred(8, 8 + 31, line++, "AU: %d", (int)player->au);
-	put_str_centred(8, 8 + 31, line++, "Killed on Level %d", player->depth);
-	put_str_centred(8, 8 + 31, line++, "by %s.", player->died_from);
+	put_str_centred(loc, width, "%s", player->class->name);
+	loc.y++;
 
-	line++;
+	put_str_centred(loc, width, "Level: %d", (int)player->lev);
+	loc.y++;
 
-	put_str_centred(8, 8 + 31, line++, "on %-.24s", ctime(&death_time));
+	put_str_centred(loc, width, "Exp: %d", (int)player->exp);
+	loc.y++;
+
+	put_str_centred(loc, width, "AU: %d", (int)player->au);
+	loc.y++;
+
+	put_str_centred(loc, width, "Killed on Level %d", player->depth);
+	loc.y++;
+
+	put_str_centred(loc, width, "by %s.", player->died_from);
+	loc.y++;
+
+	loc.y++;
+
+	put_str_centred(loc, width, "on %-.24s", ctime(&death_time));
 }
 
 /**
@@ -148,7 +161,7 @@ static void display_winner(void)
 		file_close(fp);
 	}
 
-	put_str_centred(loc.x, term_width, loc.y, "All Hail the Mighty Champion!");
+	put_str_centred(loc, term_width, "All Hail the Mighty Champion!");
 
 	event_signal(EVENT_INPUT_FLUSH);
 
