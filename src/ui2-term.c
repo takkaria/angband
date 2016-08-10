@@ -179,13 +179,13 @@ static term term_new(const struct term_create_info *info)
 	t->callbacks = info->callbacks;
 
 	assert(t->callbacks.flush_events != NULL);
-	assert(t->callbacks.push_new != NULL);
-	assert(t->callbacks.pop_new != NULL);
-	assert(t->callbacks.redraw != NULL);
-	assert(t->callbacks.cursor != NULL);
-	assert(t->callbacks.event != NULL);
-	assert(t->callbacks.delay != NULL);
-	assert(t->callbacks.draw != NULL);
+	assert(t->callbacks.push_new     != NULL);
+	assert(t->callbacks.pop_new      != NULL);
+	assert(t->callbacks.redraw       != NULL);
+	assert(t->callbacks.cursor       != NULL);
+	assert(t->callbacks.event        != NULL);
+	assert(t->callbacks.delay        != NULL);
+	assert(t->callbacks.draw         != NULL);
 
 	term_make_dirty(t);
 

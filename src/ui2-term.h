@@ -128,14 +128,14 @@ typedef void (*flush_events_hook)(void *user);
 typedef void (*delay_hook)(void *user, int msecs);
 
 struct term_callbacks {
-	push_new_hook push_new;
-	pop_new_hook pop_new;
-	draw_hook draw;
-	event_hook event;
-	delay_hook delay;
-	cursor_hook cursor;
-	redraw_hook redraw;
 	flush_events_hook flush_events;
+	push_new_hook     push_new;
+	pop_new_hook      pop_new;
+	cursor_hook       cursor;
+	redraw_hook       redraw;
+	event_hook        event;
+	delay_hook        delay;
+	draw_hook         draw;
 };
 
 struct term_create_info {
