@@ -22,6 +22,9 @@
 #include "z-bitflag.h"
 #include "ui2-event.h"
 
+#define TERM_STACK_MAX \
+	128
+
 typedef struct term *term;
 
 enum term_point_flags {

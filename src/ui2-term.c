@@ -57,9 +57,6 @@ struct term {
 	struct term_point blank;
 };
 
-#define TERM_STACK_MAX \
-	128
-
 #define TERM_EVENT_QUEUE_MAX \
 	1024
 
