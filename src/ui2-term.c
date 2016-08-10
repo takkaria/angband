@@ -226,10 +226,10 @@ static void term_mark_line_dirty(int x, int y, int len)
 	COORDS_OK(x, y);
 	assert(len > 0);
 
-	int z = MIN(x + len, TOP->width);
+	int z = MIN(x + len, TOP->width) - 1;
 
 	term_mark_point_dirty(x, y);
-	term_mark_point_dirty(z - 1, y);
+	term_mark_point_dirty(z, y);
 }
 
 static struct term_point term_make_point(uint32_t fga, wchar_t fgc,
