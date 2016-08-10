@@ -487,12 +487,11 @@ term Term_create(const struct term_create_info *info)
 	return term_new(info);
 }
 
-void Term_destroy(term *t)
+void Term_destroy(term t)
 {
-	assert((*t)->temporary == false);
+	assert(t->temporary == false);
 
-	term_free(*t);
-	*t = NULL;
+	term_free(t);
 }
 
 void Term_setpriv(term t, void *user)
