@@ -50,8 +50,6 @@ enum term_point_flags {
 #define tpf_diff(f1, f2)        flag_diff(f1, f2, TPF_SIZE)
 
 struct term_point {
-	bool dirty;
-
 	/* foreground character and attribute */
 	uint32_t fg_attr;
 	wchar_t fg_char;

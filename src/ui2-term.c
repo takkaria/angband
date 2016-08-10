@@ -125,13 +125,10 @@ static void term_make_dirty(term t)
 {
 	t->dirty.top = 0;
 	t->dirty.bottom = t->height - 1;
+
 	for (int y = t->dirty.top; y <= t->dirty.bottom; y++) {
 		t->dirty.rows[y].left = 0;
 		t->dirty.rows[y].right = t->width - 1;
-	}
-
-	for (int i = 0; i < t->size; i++) {
-		t->points[i].dirty = true;
 	}
 }
 
@@ -212,8 +209,6 @@ static void term_mark_point_dirty(int x, int y)
 	STACK_OK();
 	COORDS_OK(x, y);
 
-	POINT(x, y).dirty = true;
-
 	if (y < TOP->dirty.top) {
 		TOP->dirty.top = y;
 	}
@@ -238,32 +233,13 @@ static void term_mark_line_dirty(int x, int y, int len)
 	int z = MIN(x + len, TOP->width);
 
 	term_mark_point_dirty(x, y);
-	while (x < z) {
-		POINT(x, y).dirty = true;
-		x++;
-	}
 	term_mark_point_dirty(z - 1, y);
-}
-
-static void term_mark_row_flushed(int y)
-{
-	STACK_OK();
-	COORDS_OK(TOP->dirty.rows[y].left, y);
-	COORDS_OK(TOP->dirty.rows[y].right, y);
-
-	for (int x = TOP->dirty.rows[y].left; x <= TOP->dirty.rows[y].right; x++) {
-		POINT(x, y).dirty = false;
-	}
-
-	TOP->dirty.rows[y].left = TOP->width;
-	TOP->dirty.rows[y].right = 0;
 }
 
 static struct term_point term_make_point(uint32_t fga, wchar_t fgc,
 		uint32_t bga, wchar_t bgc, bitflag *flags)
 {
 	struct term_point point = {
-		.dirty = true,
 		.fg_char = fgc,
 		.fg_attr = fga,
 		.bg_char = bgc,
@@ -293,6 +269,7 @@ static void term_set_fg(int x, int y, uint32_t fga, wchar_t fgc)
 
 	POINT(x, y).fg_attr = fga;
 	POINT(x, y).fg_char = fgc;
+
 	term_mark_point_dirty(x, y);
 }
 
@@ -484,33 +461,21 @@ static void term_draw_cursor(struct term_cursor cursor)
 static void term_flush_row(int y)
 {
 	STACK_OK();
-	COORDS_OK(TOP->dirty.rows[y].left, y);
-	COORDS_OK(TOP->dirty.rows[y].right, y);
 
-	int len = 0;
-	int drawx = 0;
-
-	for (int x = TOP->dirty.rows[y].left; x <= TOP->dirty.rows[y].right; x++) {
-		if (POINT(x, y).dirty) {
-			if (len == 0) {
-				drawx = x;
-			}
-			len++;
-		} else if (len > 0) {
-			term_draw(drawx, y, len);
-			len = 0;
-		}
-	}
+	int len = TOP->dirty.rows[y].right - TOP->dirty.rows[y].left + 1;
 
 	if (len > 0) {
-		term_draw(drawx, y, len);
-	}
+		term_draw(TOP->dirty.rows[y].left, y, len);
 
-	term_mark_row_flushed(y);
+		TOP->dirty.rows[y].left = TOP->width;
+		TOP->dirty.rows[y].right = 0;
+	}
 }
 
 static void term_flush_out(void)
 {
+	STACK_OK();
+
 	for (int y = TOP->dirty.top; y <= TOP->dirty.bottom; y++) {
 		term_flush_row(y);
 	}
