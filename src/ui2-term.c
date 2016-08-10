@@ -179,7 +179,6 @@ static term term_new(const struct term_create_info *info)
 	t->callbacks = info->callbacks;
 
 	assert(t->callbacks.flush_events != NULL);
-	assert(t->callbacks.max_size != NULL);
 	assert(t->callbacks.push_new != NULL);
 	assert(t->callbacks.pop_new != NULL);
 	assert(t->callbacks.redraw != NULL);
@@ -900,14 +899,4 @@ void Term_delay(int msecs)
 	assert(msecs > 0);
 
 	TOP->callbacks.delay(TOP->user, msecs);
-}
-
-void Term_max_size(int *w, int *h)
-{
-	STACK_OK();
-
-	TOP->callbacks.max_size(TOP->user, w, h);
-
-	assert(*w > 0);
-	assert(*h > 0);
 }

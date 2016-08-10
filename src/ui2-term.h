@@ -113,9 +113,6 @@ typedef void (*pop_new_hook)(void *user);
 /* draw_hook should draw num_points points starting at position x, y */
 typedef void (*draw_hook)(void *user,
 		int x, int y, int num_points, struct term_point *points);
-/* max_size_hook should return the maximum width and height
- * of a term that can be created */
-typedef void (*max_size_hook)(void *user, int *w, int *h);
 /* cursor_hook should draw a cursor at position x, y */
 typedef void (*cursor_hook)(void *user, int x, int y);
 /* redraw_hook should make sure that all that was drawn previously
@@ -138,7 +135,6 @@ struct term_callbacks {
 	delay_hook delay;
 	cursor_hook cursor;
 	redraw_hook redraw;
-	max_size_hook max_size;
 	flush_events_hook flush_events;
 };
 
@@ -235,8 +231,6 @@ void Term_get_size(int *w, int *h);
 /* simplified interface to the above */
 int Term_width(void);
 int Term_height(void);
-/* returns the maximum width and height that a term can have */
-void Term_max_size(int *w, int *h);
 /* make the top term bigger or smaller */
 void Term_resize(int w, int h);
 
