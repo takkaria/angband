@@ -500,7 +500,7 @@ void Term_setpriv(term t, void *user)
 	t->user = user;
 }
 
-void *Term_getpriv(term t)
+void *Term_priv(term t)
 {
 	return t->user;
 }

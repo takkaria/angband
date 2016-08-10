@@ -152,7 +152,7 @@ struct term_create_info {
 term Term_create(const struct term_create_info *info);
 void Term_destroy(term *t);
 
-void *Term_getpriv(term t);
+void *Term_priv(term t);
 void Term_setpriv(term t, void *user);
 
 term Term_top(void);
