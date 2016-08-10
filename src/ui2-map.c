@@ -134,11 +134,10 @@ static void grid_get_attr(const struct grid_data *g, uint32_t *attr)
 
 	/* Hybrid or block walls */
 	if (use_graphics == GRAPHICS_NONE && feat_is_wall(g->f_idx)) {
-		/* TODO UI2 rework */
 		if (OPT(hybrid_walls)) {
-			*attr = *attr + (MAX_COLORS * BG_DARK);
+			*attr = BG_DARK;
 		} else if (OPT(solid_walls)) {
-			*attr = *attr + (MAX_COLORS * BG_SAME);
+			*attr = BG_SAME;
 		}
 	}
 }
