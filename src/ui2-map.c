@@ -417,7 +417,7 @@ static void free_priority_grid(byte **priority_grid)
  * If "py" and "px" are not NULL, then returns the screen location at which
  * the player was displayed, so the cursor can be moved to that location,
  */
-static void view_map_aux(int *py, int *px)
+static void view_map_aux(int *px, int *py)
 {
 	/* Desired map height */
 	int width;
@@ -511,9 +511,9 @@ void do_cmd_view_map(void)
 	};
 	Term_push_new(&hints);
 
-	int py;
 	int px;
-	view_map_aux(&py, &px);
+	int py;
+	view_map_aux(&px, &py);
 
 	Term_cursor_to_xy(px, py);
 	Term_flush_output();
