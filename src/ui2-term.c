@@ -566,6 +566,8 @@ void Term_push(term t)
 
 void Term_push_new(struct term_hints *hints)
 {
+	STACK_OK();
+
 	assert(hints->width > 0);
 	assert(hints->height > 0);
 
