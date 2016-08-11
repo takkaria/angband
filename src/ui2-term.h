@@ -160,6 +160,7 @@ term Term_top(void);
 void Term_push(term t);
 void Term_push_new(struct term_hints *hints);
 void Term_pop(void);
+void Term_pop_all(void);
 
 /* make a point "dirty" - it will be passed to draw_hook()
  * at the time of flushing output */

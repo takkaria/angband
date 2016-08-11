@@ -480,6 +480,19 @@ static void term_flush_out(void)
 	TOP->dirty.bottom = 0;
 }
 
+static void term_pop_stack(void)
+{
+	STACK_OK();
+
+	if (TOP->temporary) {
+		TOP->callbacks.pop_new(TOP->user);
+		term_free(TOP);
+	}
+
+	TOP = NULL;
+	term_stack.top--;
+}
+
 /* External functions */
 
 term Term_create(const struct term_create_info *info)
@@ -549,15 +562,14 @@ void Term_push_new(struct term_hints *hints)
 
 void Term_pop(void)
 {
-	STACK_OK();
+	term_pop_stack();
+}
 
-	if (TOP->temporary) {
-		TOP->callbacks.pop_new(TOP->user);
-		term_free(TOP);
+void Term_pop_all(void)
+{
+	while (term_stack.top > NOTOP) {
+		term_pop_stack();
 	}
-
-	TOP = NULL;
-	term_stack.top--;
 }
 
 bool Term_putwchar(uint32_t fga, wchar_t fgc,
