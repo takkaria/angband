@@ -2511,6 +2511,9 @@ static void ui_leave_game(game_event_type type,
 
 void init_display(void)
 {
+	/* and never pop it */
+	Term_push(angband_cave.term);
+
 	event_add_handler(EVENT_ENTER_INIT, ui_enter_init, NULL);
 	event_add_handler(EVENT_LEAVE_INIT, ui_leave_init, NULL);
 

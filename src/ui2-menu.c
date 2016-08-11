@@ -73,7 +73,7 @@ static void display_action_aux(menu_action *act,
  */
 static int menu_index(const struct menu *menu, int index)
 {
-	assert(index > 0);
+	assert(index >= 0);
 
 	if (menu->filter_list) {
 		assert(index < menu->filter_count);
