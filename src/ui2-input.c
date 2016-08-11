@@ -990,7 +990,7 @@ ui_event textui_get_command(int *count)
 	while (event.type == EVT_NONE) {
 		const struct keypress *keymap = NULL;
 
-		ui_event event = inkey_simple();
+		event = inkey_simple();
 
 		if (event.type == EVT_KBRD) {
 			/* Don't apply keymap if inside a keymap already */
