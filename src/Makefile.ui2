@@ -47,7 +47,7 @@ SYS_sdl2 := -DUSE_SDL2 \
 CC := gcc
 WARNINGS := -Wall -Wextra -Wno-unused-parameter -pedantic
 CFLAGS := -std=c99 -g \
-	-Og \
+	-O0 \
 	$(WARNINGS) \
 	-DHAVE_CONFIG_H \
 	#-fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined
