@@ -208,16 +208,13 @@
 		assert((button)->info.type  == (data_type));  \
 	} while (0)
 
-enum main_subwindows {
-	SUBWINDOW_CAVE = 0,
+enum {
+	SUBWINDOW_CAVE,
 	SUBWINDOW_MESSAGES,
 	SUBWINDOW_STATUS,
 	SUBWINDOW_SIDEBAR,
-	SUBWINDOW_MAIN_MAX
-};
 
-enum other_subwindows {
-	SUBWINDOW_OTHER_0 = SUBWINDOW_MAIN_MAX,
+	SUBWINDOW_OTHER_0,
 	SUBWINDOW_OTHER_1,
 	SUBWINDOW_OTHER_2,
 	SUBWINDOW_OTHER_3,
@@ -225,11 +222,9 @@ enum other_subwindows {
 	SUBWINDOW_OTHER_5,
 	SUBWINDOW_OTHER_6,
 	SUBWINDOW_OTHER_7,
-	SUBWINDOW_OTHER_MAX
-};
 
-#define SUBWINDOW_PERMANENT_MAX \
-	SUBWINDOW_OTHER_MAX
+	SUBWINDOW_PERMANENT_MAX
+};
 
 #define SUBWINDOW_TEMPORARY_MAX \
 	TERM_STACK_MAX
@@ -623,11 +618,36 @@ struct font_info {
 	bool loaded;
 };
 
+struct term_info {
+	char *name;
+	struct angband_term *aterm;
+};
+
 /* there are also global arrays of subwindows and windows
  * those are at the end of the file */
 const char help_sdl2[] = "SDL2 frontend";
+
 static SDL_Color g_colors[MAX_COLORS];
+
 static struct font_info g_font_info[MAX_FONTS];
+
+static struct term_info g_term_info[SUBWINDOW_PERMANENT_MAX] = {
+	/* main terms */
+	[SUBWINDOW_CAVE]     = {"Main",    &angband_cave},
+	[SUBWINDOW_MESSAGES] = {"Prompt",  &angband_message_line},
+	[SUBWINDOW_STATUS]   = {"Status",  &angband_status_line},
+	[SUBWINDOW_SIDEBAR]  = {"Sidebar", &angband_sidebar},
+
+	/* other terms */
+	[SUBWINDOW_OTHER_0]  = {"Term-1", NULL},
+	[SUBWINDOW_OTHER_1]  = {"Term-2", NULL},
+	[SUBWINDOW_OTHER_2]  = {"Term-3", NULL},
+	[SUBWINDOW_OTHER_3]  = {"Term-4", NULL},
+	[SUBWINDOW_OTHER_4]  = {"Term-5", NULL},
+	[SUBWINDOW_OTHER_5]  = {"Term-6", NULL},
+	[SUBWINDOW_OTHER_6]  = {"Term-7", NULL},
+	[SUBWINDOW_OTHER_7]  = {"Term-8", NULL}
+};
 
 /* Forward declarations */
 
@@ -681,14 +701,13 @@ static void reload_graphics(struct window *window, graphics_mode *mode);
 static void free_graphics(struct graphics *graphics);
 static void load_terms(void);
 static void load_term(struct subwindow *subwindow);
-static struct term_create_info get_create_info(struct subwindow *subwindow);
 static bool adjust_subwindow_geometry(const struct window *window,
 		struct subwindow *subwindow, bool force);
 static void position_temporary_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints);
 static bool is_ok_col_row(const struct subwindow *subwindow,
 		const SDL_Rect *rect, int cell_w, int cell_h);
-static void get_min_col_row(const struct subwindow *subwindow,
+static void get_min_cols_rows(const struct subwindow *subwindow,
 		int *min_cols, int *min_rows);
 static void resize_rect(SDL_Rect *rect,
 		int left, int top, int right, int bottom);
@@ -703,6 +722,37 @@ static struct menu_panel *get_menu_panel_by_xy(struct menu_panel *menu_panel,
 static void refresh_angband_terms(void);
 static void handle_quit(void);
 static void wait_anykey(void);
+
+static void term_flush_events(void *user);
+static void term_cursor(void *user, int col, int row);
+static void term_redraw(void *user);
+static void term_event(void *user, bool wait);
+static void term_draw(void *user,
+		int col, int row, int n_points, struct term_point *points);
+static void term_delay(void *user, int msecs);
+static void term_push_new(const struct term_hints *hints,
+		struct term_create_info *info);
+static void term_pop_new(void *user);
+
+/* Defaults for term creations */
+
+static const struct term_callbacks default_callbacks = {
+	.flush_events = term_flush_events,
+	.cursor       = term_cursor,
+	.redraw       = term_redraw,
+	.event        = term_event,
+	.draw         = term_draw,
+	.delay        = term_delay,
+	.push_new     = term_push_new,
+	.pop_new      = term_pop_new
+};
+
+static const struct term_point default_blank = {
+	.fg_char = 0,
+	.fg_attr = 0,
+	.bg_char = 0,
+	.bg_attr = 0
+};
 
 /* Functions */
 
@@ -3408,7 +3458,11 @@ static void term_push_new(const struct term_hints *hints,
 	load_subwindow(window, subwindow);
 	position_temporary_subwindow(subwindow, hints);
 
-	*info = get_create_info(subwindow);
+	info->width = subwindow->cols;
+	info->height = subwindow->rows;
+	info->user   = subwindow;
+	info->callbacks = default_callbacks;
+	info->blank     = default_blank;
 }
 
 static void term_cursor(void *user, int col, int row)
@@ -3720,7 +3774,7 @@ static bool reload_font(struct subwindow *subwindow,
 	{
 		int min_cols;
 		int min_rows;
-		get_min_col_row(subwindow, &min_cols, &min_rows);
+		get_min_cols_rows(subwindow, &min_cols, &min_rows);
 
 		subwindow->sizing_rect.w = SUBWINDOW_WIDTH(min_cols, new_font->ttf.glyph.w);
 		subwindow->sizing_rect.h = SUBWINDOW_HEIGHT(min_rows, new_font->ttf.glyph.h);
@@ -3790,13 +3844,15 @@ static void free_font(struct font *font)
 	mem_free(font);
 }
 
-static void get_min_col_row(const struct subwindow *subwindow,
+static void get_min_cols_rows(const struct subwindow *subwindow,
 		int *min_cols, int *min_rows)
 {
+	int mcols = 0;
+	int mrows = 0;
 #define MIN_COLROW_CASE(sym) \
 	case SUBWINDOW_ ##sym: \
-		*min_cols = MIN_COLS_ ##sym; \
-		*min_rows = MIN_ROWS_ ##sym; \
+		mcols = MIN_COLS_ ##sym; \
+		mrows = MIN_ROWS_ ##sym; \
 
 	switch (subwindow->index) {
 		MIN_COLROW_CASE(CAVE);     break;
@@ -3806,17 +3862,20 @@ static void get_min_col_row(const struct subwindow *subwindow,
 
 		default:
 			if (subwindow->is_temporary) {
-				*min_cols = MIN_COLS_TEMPORARY;
-				*min_rows = MIN_ROWS_TEMPORARY;
+				mcols = MIN_COLS_TEMPORARY;
+				mrows = MIN_ROWS_TEMPORARY;
 			} else {
-				*min_cols = MIN_COLS_OTHER;
-				*min_rows = MIN_ROWS_OTHER;
+				mcols = MIN_COLS_OTHER;
+				mrows = MIN_ROWS_OTHER;
 			}
 			break;
 	}
 
-	assert(*min_cols > 0);
-	assert(*min_rows > 0);
+	assert(mcols > 0);
+	assert(mrows > 0);
+
+	*min_cols = mcols;
+	*min_rows = mrows;
 
 #undef MIN_COLROW_CASE
 }
@@ -3826,7 +3885,7 @@ static bool is_ok_col_row(const struct subwindow *subwindow,
 {
 	int min_cols;
 	int min_rows;
-	get_min_col_row(subwindow, &min_cols, &min_rows);
+	get_min_cols_rows(subwindow, &min_cols, &min_rows);
 
 	if (SUBWINDOW_WIDTH(min_cols, cell_w) > rect->w) {
 		return false;
@@ -3920,6 +3979,20 @@ static void adjust_subwindow_other_default(const struct window *window,
 	subwindow->full_rect = rect;
 }
 
+static void adjust_subwindow_temporary_default(const struct window *window,
+		struct subwindow *subwindow)
+{
+	SDL_Rect rect = {0};
+
+	rect.w = SUBWINDOW_WIDTH(subwindow->cols, subwindow->cell_width);
+	rect.h = SUBWINDOW_HEIGHT(subwindow->rows, subwindow->cell_height);
+
+	rect.x = window->inner_rect.x;
+	rect.y = window->inner_rect.y;
+
+	subwindow->full_rect = rect;
+}
+
 static void adjust_subwindow_geometry_default(const struct window *window,
 		struct subwindow *subwindow)
 {
@@ -3937,9 +4010,23 @@ static void adjust_subwindow_geometry_default(const struct window *window,
 			adjust_subwindow_sidebar_default(window, subwindow);
 			break;
 		default:
-			adjust_subwindow_other_default(window, subwindow);
+			if (subwindow->is_temporary) {
+				adjust_subwindow_temporary_default(window, subwindow);
+			} else {
+				adjust_subwindow_other_default(window, subwindow);
+			}
 			break;
 	}
+}
+
+static void adjust_subwindow_force_default(struct subwindow *subwindow)
+{
+	int min_cols;
+	int min_rows;
+	get_min_cols_rows(subwindow, &min_cols, &min_rows);
+
+	subwindow->full_rect.w = SUBWINDOW_WIDTH(min_cols, subwindow->cell_width);
+	subwindow->full_rect.h = SUBWINDOW_HEIGHT(min_rows, subwindow->cell_height);
 }
 
 static bool adjust_subwindow_geometry(const struct window *window,
@@ -3952,13 +4039,8 @@ static bool adjust_subwindow_geometry(const struct window *window,
 		subwindow->cell_width = subwindow->font->ttf.glyph.w;
 		subwindow->cell_height = subwindow->font->ttf.glyph.h;
 	}
-
-	if (subwindow->is_temporary) {
-		subwindow->full_rect.x = 0;
-		subwindow->full_rect.y = 0;
-		subwindow->full_rect.w = SUBWINDOW_WIDTH(subwindow->cols, subwindow->cell_width);
-		subwindow->full_rect.h = SUBWINDOW_HEIGHT(subwindow->rows, subwindow->cell_height);
-	} else if (!subwindow->loaded && subwindow->config == NULL) {
+	
+	if (!subwindow->loaded && subwindow->config == NULL) {
 		/* brand new permanent subwindow */
 		adjust_subwindow_geometry_default(window, subwindow);
 	}
@@ -3996,13 +4078,7 @@ static bool adjust_subwindow_geometry(const struct window *window,
 				subwindow->cell_width, subwindow->cell_height))
 	{
 		if (force) {
-			int min_cols;
-			int min_rows;
-			get_min_col_row(subwindow, &min_cols, &min_rows);
-
-			subwindow->full_rect.w = SUBWINDOW_WIDTH(min_cols, subwindow->cell_width);
-			subwindow->full_rect.h = SUBWINDOW_HEIGHT(min_rows, subwindow->cell_height);
-
+			adjust_subwindow_force_default(subwindow);
 			return adjust_subwindow_geometry(window, subwindow, false);
 		} else {
 			return false;
@@ -4091,8 +4167,6 @@ static void position_temporary_subwindow(struct subwindow *subwindow,
 static void sort_to_top_aux(struct window *window,
 		size_t *next, struct subwindow **subwindows, bool top, bool always_top)
 {
-	assert(*next < window->permanent.number);
-
 	for (size_t i = 0; i < window->permanent.number; i++) {
 		if (window->permanent.subwindows[i]->top == top &&
 				window->permanent.subwindows[i]->always_top == always_top)
@@ -4291,12 +4365,12 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 	info.type = BUTTON_DATA_UVAL;
 	info.group = BUTTON_GROUP_SUBWINDOWS;
 
-	for (unsigned i = SUBWINDOW_MAIN_MAX, j = 1;
-			i < SUBWINDOW_MAIN_MAX + SUBWINDOW_OTHER_MAX;
-			i++, j++)
+	for (unsigned i = SUBWINDOW_OTHER_0, label = 1;
+			i < SUBWINDOW_PERMANENT_MAX;
+			i++, label++)
 	{
 		info.data.uval = i;
-		PUSH_BUTTON_LEFT_TO_RIGHT(format("%2u", j));
+		PUSH_BUTTON_LEFT_TO_RIGHT(format("%2u", label));
 	}
 #undef PUSH_BUTTON_LEFT_TO_RIGHT
 
@@ -4468,6 +4542,7 @@ static void load_window(struct window *window)
 	make_button_bank(&window->status_bar.button_bank);
 	make_default_status_buttons(&window->status_bar);
 	set_window_delay(window);
+
 	if (window->wallpaper.mode != WALLPAPER_DONT_SHOW) {
 		if (window->config == NULL) {
 			load_default_wallpaper(window);
@@ -4475,7 +4550,9 @@ static void load_window(struct window *window)
 			load_wallpaper(window, window->config->wallpaper_path);
 		}
 	}
+
 	load_default_window_icon(window);
+
 	if (window->graphics.id != GRAPHICS_NONE) {
 		load_graphics(window, get_graphics_mode(window->graphics.id));
 	}
@@ -4490,7 +4567,8 @@ static bool choose_pixelformat(struct window *window,
 		const struct SDL_RendererInfo *info)
 {
 #define PIXELFORMAT_CASE(format) \
-	case SDL_PIXELFORMAT_ ##format: window->pixelformat = SDL_PIXELFORMAT_ ##format;
+	case SDL_PIXELFORMAT_ ##format: \
+		window->pixelformat = SDL_PIXELFORMAT_ ##format;
 
 	for (size_t i = 0; i < info->num_texture_formats; i++) {
 		switch (info->texture_formats[i]) {
@@ -4753,8 +4831,8 @@ static void attach_subwindow_to_window(struct window *window,
 {
 	if (subwindow->is_temporary) {
 		assert(window->temporary.number < N_ELEMENTS(window->temporary.subwindows));
-		window->temporary.subwindows[window->temporary.number] = subwindow;
 
+		window->temporary.subwindows[window->temporary.number] = subwindow;
 		window->temporary.number++;
 	} else {
 		assert(window->permanent.number < N_ELEMENTS(window->permanent.subwindows));
@@ -4828,17 +4906,21 @@ static void load_subwindow(struct window *window,
 		}
 		assert(subwindow->font != NULL);
 	}
+
 	if (!adjust_subwindow_geometry(window, subwindow, false)) {
 		quit_fmt("cant adjust geometry of subwindow %u in window %u",
 				subwindow->index, window->index);
 	}
+
 	subwindow->texture = make_subwindow_texture(window,
 			subwindow->full_rect.w, subwindow->full_rect.h);
 	assert(subwindow->texture != NULL);
 
-	/* just a pixel for sizing rect */
-	subwindow->aux_texture = make_subwindow_texture(window, 1, 1);
-	assert(subwindow->aux_texture != NULL);
+	/* just a pixel for sizing rect; temporary subwindows shouldn't be resized */
+	if (!subwindow->is_temporary) {
+		subwindow->aux_texture = make_subwindow_texture(window, 1, 1);
+		assert(subwindow->aux_texture != NULL);
+	}
 
 	/* same testing sequence as for status bar */
 	if (SDL_SetRenderDrawColor(window->renderer,
@@ -4862,158 +4944,56 @@ static void load_subwindow(struct window *window,
 	render_borders(subwindow);
 }
 
-static char *get_subwindow_name(struct subwindow *subwindow)
+static void load_term(struct subwindow *subwindow)
 {
-	switch (subwindow->index) {
-		case SUBWINDOW_CAVE:
-			return "Main";
-		case SUBWINDOW_MESSAGES:
-			return "Messages";
-		case SUBWINDOW_SIDEBAR:
-			return "Status line";
-		case SUBWINDOW_STATUS:
-			return "Sidebar";
-		default:
-			return "Other";
-	}
-}
+	assert(!subwindow->linked);
 
-static struct angband_term *get_aterm(struct subwindow *subwindow)
-{
-	struct angband_term *aterm = NULL;
-
-	switch (subwindow->index) {
-		case SUBWINDOW_CAVE:
-			aterm = &angband_cave;
-			break;
-		case SUBWINDOW_MESSAGES:
-			aterm = &angband_message_line;
-			break;
-		case SUBWINDOW_STATUS:
-			aterm = &angband_status_line;
-			break;
-		case SUBWINDOW_SIDEBAR:
-			aterm = &angband_sidebar;
-			break;
-		default:
-			/* TODO */
-			break;
-	}
-
+	struct angband_term *aterm = g_term_info[subwindow->index].aterm;
 	assert(aterm != NULL);
 
-	return aterm;
-}
-
-static struct term_create_info get_create_info(struct subwindow *subwindow)
-{
-	struct term_callbacks callbacks = {
-		.flush_events = term_flush_events,
-		.cursor       = term_cursor,
-		.redraw       = term_redraw,
-		.event        = term_event,
-		.draw         = term_draw,
-		.delay        = term_delay,
-		.push_new     = term_push_new,
-		.pop_new      = term_pop_new
-	};
-
-	struct term_point blank = {
-		.fg_char = 0,
-		.fg_attr = 0,
-		.bg_char = 0,
-		.bg_attr = 0
-	};
+	char *name = g_term_info[subwindow->index].name;
+	assert(name != NULL);
 
 	struct term_create_info info = {
 		.width     = subwindow->cols,
 		.height    = subwindow->rows,
 		.user      = subwindow,
-		.callbacks = callbacks,
-		.blank     = blank
+		.callbacks = default_callbacks,
+		.blank     = default_blank
 	};
 
-	return info;
-}
+	term term = Term_create(&info);
 
-static void load_term(struct subwindow *subwindow)
-{
-	assert(!subwindow->linked);
+	aterm->name = name;
+	aterm->term = term;
 
-	struct angband_term *aterm = get_aterm(subwindow);
-	assert(aterm != NULL);
-
-	aterm->name = get_subwindow_name(subwindow);
-
-	struct term_create_info info = get_create_info(subwindow);
-	aterm->term = Term_create(&info);
+	subwindow->term = term;
 
 	subwindow->linked = true;
-}
-
-static void set_default_dimensions(struct subwindow *subwindow)
-{
-	int cols = 0;
-	int rows = 0;
-
-#define SUBWINDOW_CASE(sym) \
-	case SUBWINDOW_ ##sym: \
-		cols = DEFAULT_COLS_ ##sym; \
-		rows = DEFAULT_ROWS_ ##sym; \
-
-	switch (subwindow->index) {
-		SUBWINDOW_CASE(CAVE);     break;
-		SUBWINDOW_CASE(STATUS);   break;
-		SUBWINDOW_CASE(MESSAGES); break;
-		SUBWINDOW_CASE(SIDEBAR);  break;
-
-		default:
-			cols = DEFAULT_COLS_OTHER;
-			rows = DEFAULT_ROWS_OTHER;
-			break;
-	}
-
-#undef SUBWINDOW_CASE
-
-	assert(cols > 0);
-	assert(rows > 0);
-
-	subwindow->cols = cols;
-	subwindow->rows = rows;
-
-	subwindow->cell_width = DEFAULT_FONT_W;
-	subwindow->cell_height = DEFAULT_FONT_H;
-
-	subwindow->full_rect.w = cols * DEFAULT_FONT_W + DEFAULT_BORDER * 2;
-	subwindow->full_rect.h = rows * DEFAULT_FONT_H + DEFAULT_BORDER * 2;
 }
 
 /* initialize subwindow with suitable hardcoded defaults */
 static void wipe_subwindow(struct subwindow *subwindow)
 {
-	unsigned index = subwindow->index;
-	bool is_temporary = subwindow->is_temporary;
+	const unsigned index = subwindow->index;
+	const bool is_temporary = subwindow->is_temporary;
 
 	memset(subwindow, 0, sizeof(*subwindow));
 
 	subwindow->index = index;
 	subwindow->is_temporary = is_temporary;
 
-	/* just in case */
-	set_default_dimensions(subwindow);
-
 	subwindow->color = g_colors[DEFAULT_SUBWINDOW_BG_COLOR];
 	subwindow->borders.color = g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR];
 	subwindow->borders.visible = true;
 
-	subwindow->texture = NULL;
+	subwindow->texture     = NULL;
 	subwindow->aux_texture = NULL;
-	subwindow->window = NULL;
-	subwindow->font = NULL;
+	subwindow->window      = NULL;
+	subwindow->font        = NULL;
+	subwindow->term        = NULL;
+	subwindow->config      = NULL;
 
-	subwindow->term = NULL;
-
-	subwindow->config = NULL;
 	subwindow->inited = true;
 	subwindow->visible = true;
 }
@@ -5305,7 +5285,7 @@ static void create_defaults(void)
 	struct window *window = get_new_window(WINDOW_MAIN);
 	assert(window != NULL);
 
-	for (unsigned i = SUBWINDOW_CAVE; i < SUBWINDOW_MAIN_MAX; i++) {
+	for (unsigned i = SUBWINDOW_CAVE; i < SUBWINDOW_OTHER_0; i++) {
 		struct subwindow *subwindow = get_new_subwindow(i);
 
 		attach_subwindow_to_window(window, subwindow);
@@ -5325,7 +5305,7 @@ static void quit_hook(const char *s)
 	(void) s;
 
 	dump_config_file();
-
+	Term_pop_all();
 	free_globals();
 	quit_systems();
 }
@@ -5337,7 +5317,6 @@ static void init_systems(void)
 	}
 	if (IMG_Init(INIT_IMG_FLAGS) != INIT_IMG_FLAGS) {
 		quit_fmt("IMG_Init: %s", IMG_GetError());
-		SDL_Quit();
 	}
 	if (TTF_Init() != 0) {
 		quit_fmt("TTF_Init: %s", TTF_GetError());
@@ -5382,21 +5361,11 @@ static char g_config_file[4096];
 
 static void init_globals(void)
 {
+	for (size_t i = 0, index = SUBWINDOW_CAVE;
+			i < N_ELEMENTS(g_permanent_subwindows) && index < SUBWINDOW_PERMANENT_MAX;
+			i++, index++)
 	{
-		size_t i = 0;
-
-		for (unsigned index = SUBWINDOW_CAVE;
-				i < N_ELEMENTS(g_permanent_subwindows) && index < SUBWINDOW_MAIN_MAX;
-				i++, index++)
-		{
-			g_permanent_subwindows[i].index = index;
-		}
-		for (unsigned index = SUBWINDOW_OTHER_0;
-				i < N_ELEMENTS(g_permanent_subwindows) && index < SUBWINDOW_OTHER_MAX;
-				i++, index++)
-		{
-			g_permanent_subwindows[i].index = index;
-		}
+		g_permanent_subwindows[i].index = index;
 	}
 
 	for (size_t i = 0; i < N_ELEMENTS(g_temporary_subwindows); i++) {
