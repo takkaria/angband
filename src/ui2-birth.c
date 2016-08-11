@@ -154,8 +154,7 @@ static struct menu roller_menu;
 #define ROLLER_COL         36
 #define HIST_INSTRUCT_ROW  18
 
-#define MENU_ROWS \
-	TABLE_ROW + 14
+#define MENU_ROWS          14
 
 /**
  * upper left column and row, width, and lower column
