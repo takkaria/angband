@@ -51,8 +51,6 @@
  */
 static const struct module modules[] =
 {
-	/* TODO UI2 */
-	{ "dummy", "this doesn't work", NULL },
 #ifdef USE_X11
 	{ "x11", help_x11, init_x11 },
 #endif /* USE_X11 */
