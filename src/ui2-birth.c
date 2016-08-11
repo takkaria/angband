@@ -365,7 +365,7 @@ static void class_help(int index, void *data, region reg)
 	};
 	Term_cursor_to_xy(CLASS_AUX_COL, TABLE_ROW);
 
-	for (int stat = 0,len = (STAT_MAX + 1) / 2; stat < len; stat++) {  
+	for (int stat = 0, len = (STAT_MAX + 1) / 2; stat < len; stat++) {  
 		const char *name = stat_names_reduced[stat];
 		int adj = class->c_adj[stat] + race->r_adj[stat];
 
