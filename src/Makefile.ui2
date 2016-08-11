@@ -27,7 +27,7 @@
 	-lSDL_ttf -lSDL_image
 
 # Support SDL2 frontend
-#SYS_sdl2 := -DUSE_SDL2 \
+SYS_sdl2 := -DUSE_SDL2 \
 	$(shell sdl2-config --cflags) $(shell sdl2-config --libs) \
 	-lSDL2_ttf -lSDL2_image
 
@@ -80,7 +80,7 @@ ifdef SYS_sdl
 	MAINOBJS += main-sdl.o
 endif
 ifdef SYS_sdl2
-	MAINOBJS += main-sdl2.o
+	MAINOBJS += main2-sdl2.o
 endif
 ifdef SOUND_sdl
 	MAINOBJS += snd-sdl.o
