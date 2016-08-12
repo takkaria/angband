@@ -3960,10 +3960,13 @@ static void adjust_subwindow_sidebar_default(const struct window *window,
 	 * (which is probaby a good idea anyway, for consistency) */
 	rect.h = window->inner_rect.h -
 		SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, subwindow->cell_height) -
-		SUBWINDOW_HEIGHT(DEFAULT_ROWS_STATUS,   subwindow->cell_height);
+		SUBWINDOW_HEIGHT(DEFAULT_ROWS_STATUS,   subwindow->cell_height) + 
+		2 * DEFAULT_VISIBLE_BORDER;
 
 	rect.x = window->inner_rect.x;
-	rect.y = window->inner_rect.y +
+	/* subtract DEFAULT_VISIBLE_BORDER to "snap" it to prompt subwindow (see try_snap());
+	 * that's also why we add 2 * DEFAULT_VISIBLE_BORDER to subwindow height */
+	rect.y = window->inner_rect.y - DEFAULT_VISIBLE_BORDER +
 		SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, subwindow->cell_height);
 	
 	subwindow->full_rect = rect;
