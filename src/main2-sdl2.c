@@ -4865,8 +4865,8 @@ static struct subwindow *make_subwindow(struct window *window, unsigned index)
 	struct subwindow *subwindow = get_new_subwindow(index);
 	assert(subwindow != NULL);
 
-	load_subwindow(window, subwindow);
 	attach_subwindow_to_window(window, subwindow);
+	load_subwindow(window, subwindow);
 	load_term(subwindow);
 
 	return subwindow;
