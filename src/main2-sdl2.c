@@ -39,8 +39,8 @@
 #define WINDOW_MAIN 0
 
 #define MAX_WINDOWS 4
-#define MAX_FONTS 128
 #define MAX_BUTTONS 32
+#define MAX_FONTS 128
 
 #define DEFAULT_DISPLAY 0
 
@@ -155,11 +155,11 @@
 #define DEFAULT_ABOUT_TEXT_COLOR \
 	COLOUR_WHITE
 
-#define SUBWINDOW_WIDTH(cols, col_w) \
-	((cols) * (col_w) + DEFAULT_BORDER * 2)
+#define SUBWINDOW_WIDTH(cols, col_width) \
+	((cols) * (col_width) + DEFAULT_BORDER * 2)
 
-#define SUBWINDOW_HEIGHT(rows, row_h) \
-	((rows) * (row_h) + DEFAULT_BORDER * 2)
+#define SUBWINDOW_HEIGHT(rows, row_height) \
+	((rows) * (row_height) + DEFAULT_BORDER * 2)
 
 /* shockbolt's tiles are 64x64; dungeon is 198 tiles long;
  * 64 * 198 is 12672 which is bigger than any possible texture! */
@@ -193,6 +193,7 @@
 
 #define MIN_COLS_TEMPORARY 1
 #define MIN_ROWS_TEMPORARY 1
+
 /* some random numbers */
 #define DEFAULT_WINDOW_MINIMUM_W 198
 #define DEFAULT_WINDOW_MINIMUM_H 66
@@ -330,8 +331,8 @@ struct font {
 struct subwindow_border {
 	bool visible;
 	bool error;
-	SDL_Color color;
 	int width;
+	SDL_Color color;
 };
 
 struct subwindow_config {
@@ -345,6 +346,7 @@ struct window_config {
 	int window_flags;
 
 	char *wallpaper_path;
+
 	char *font_name;
 	int font_size;
 };
@@ -365,13 +367,16 @@ struct subwindow {
 	struct subwindow_config *config;
 
 	/* top in z-order */
-	bool top;
+	bool is_top;
 	bool always_top;
 
 	unsigned index;
 
 	int rows;
 	int cols;
+
+	int min_cols;
+	int min_rows;
 
 	/* either font size, or tile size */
 	int cell_width;
@@ -548,8 +553,8 @@ struct size_state {
 };
 
 struct wallpaper {
-	int w;
-	int h;
+	int width;
+	int height;
 	SDL_Texture *texture;
 	enum wallpaper_mode mode;
 };
@@ -638,14 +643,14 @@ static struct term_info g_term_info[SUBWINDOW_PERMANENT_MAX] = {
 	[SUBWINDOW_SIDEBAR]  = {"Sidebar", &angband_sidebar},
 
 	/* other terms */
-	[SUBWINDOW_OTHER_0]  = {"Term-1", NULL},
-	[SUBWINDOW_OTHER_1]  = {"Term-2", NULL},
-	[SUBWINDOW_OTHER_2]  = {"Term-3", NULL},
-	[SUBWINDOW_OTHER_3]  = {"Term-4", NULL},
-	[SUBWINDOW_OTHER_4]  = {"Term-5", NULL},
-	[SUBWINDOW_OTHER_5]  = {"Term-6", NULL},
-	[SUBWINDOW_OTHER_6]  = {"Term-7", NULL},
-	[SUBWINDOW_OTHER_7]  = {"Term-8", NULL}
+	[SUBWINDOW_OTHER_0]  = {"Term-1",  NULL},
+	[SUBWINDOW_OTHER_1]  = {"Term-2",  NULL},
+	[SUBWINDOW_OTHER_2]  = {"Term-3",  NULL},
+	[SUBWINDOW_OTHER_3]  = {"Term-4",  NULL},
+	[SUBWINDOW_OTHER_4]  = {"Term-5",  NULL},
+	[SUBWINDOW_OTHER_5]  = {"Term-6",  NULL},
+	[SUBWINDOW_OTHER_6]  = {"Term-7",  NULL},
+	[SUBWINDOW_OTHER_7]  = {"Term-8",  NULL}
 };
 
 /* Forward declarations */
@@ -708,8 +713,6 @@ static void position_temporary_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints);
 static bool is_ok_col_row(const struct subwindow *subwindow,
 		const SDL_Rect *rect, int cell_w, int cell_h);
-static void get_min_cols_rows(const struct subwindow *subwindow,
-		int *min_cols, int *min_rows);
 static void resize_rect(SDL_Rect *rect,
 		int left, int top, int right, int bottom);
 static bool is_point_in_rect(int x, int y, const SDL_Rect *rect);
@@ -750,11 +753,23 @@ static const struct term_callbacks default_callbacks = {
 	.pop_new      = term_pop_new
 };
 
-static const struct term_point default_blank = {
-	.fg_char = 0,
-	.fg_attr = 0,
-	.bg_char = 0,
-	.bg_attr = 0
+#define BLANK_CHAR 0
+#define BLANK_ATTR MAX_COLORS
+
+#define IS_BLANK_FG(point_ptr) \
+	((point_ptr)->fg_char == BLANK_CHAR && (point_ptr)->fg_attr == BLANK_ATTR)
+
+#define IS_BLANK_BG(point_ptr) \
+	((point_ptr)->bg_char == BLANK_CHAR && (point_ptr)->bg_attr == BLANK_ATTR)
+
+#define IS_BLANK_POINT(point_ptr) \
+	(IS_BLANK_FG(point_ptr) && IS_BLANK_BG(point_ptr))
+
+static const struct term_point default_blank_point = {
+	.fg_char = BLANK_CHAR,
+	.fg_attr = BLANK_ATTR,
+	.bg_char = BLANK_CHAR,
+	.bg_attr = BLANK_ATTR
 };
 
 /* Functions */
@@ -772,7 +787,7 @@ static void render_wallpaper_tiled(const struct window *window)
 {
 	SDL_SetRenderTarget(window->renderer, NULL);
 
-	SDL_Rect rect = {0, 0, window->wallpaper.w, window->wallpaper.h};
+	SDL_Rect rect = {0, 0, window->wallpaper.width, window->wallpaper.height};
 	for (rect.y = window->inner_rect.y;
 			rect.y < window->inner_rect.h;
 			rect.y += rect.h)
@@ -796,8 +811,9 @@ static void render_wallpaper_centered(const struct window *window)
 {
 	SDL_Rect rect;
 
-	rect.w = window->wallpaper.w;
-	rect.h = window->wallpaper.h;
+	rect.w = window->wallpaper.width;
+	rect.h = window->wallpaper.height;
+
 	rect.x = window->inner_rect.x + (window->inner_rect.w - rect.w) / 2;
 	rect.y = window->inner_rect.y + (window->inner_rect.h - rect.h) / 2;
 
@@ -833,7 +849,7 @@ static void render_subwindows(const struct window *window,
 {
 	for (size_t i = 0; i < number; i++) {
 		const struct subwindow *subwindow = subwindows[i];
-		if (subwindow != NULL && subwindow->visible) {
+		if (subwindow->visible) {
 			SDL_RenderCopy(window->renderer,
 					subwindow->texture, NULL, &subwindow->full_rect);
 		}
@@ -857,9 +873,9 @@ static void render_status_bar(const struct window *window)
 
 	for (size_t i = 0; i < window->status_bar.button_bank.number; i++) {
 		struct button *button = &window->status_bar.button_bank.buttons[i];
-		if (button->callbacks.on_render != NULL) {
-			button->callbacks.on_render(window, button);
-		}
+
+		assert(button->callbacks.on_render != NULL);
+		button->callbacks.on_render(window, button);
 	}
 }
 
@@ -892,19 +908,18 @@ static void render_fill_rect(const struct window *window,
 	SDL_RenderFillRect(window->renderer, rect);
 }
 
-static void render_window_in_menu(const struct window *window)
+static void render_all_in_menu(const struct window *window)
 {
 	render_background(window);
 
 	SDL_SetRenderTarget(window->renderer, NULL);
 
-	/* only permanent subwindows are displayed in menu */
 	for (size_t i = 0; i < window->permanent.number; i++) {
 		struct subwindow *subwindow = window->permanent.subwindows[i];
 		if (subwindow->visible) {
 			if (subwindow->sizing_rect.w > 0 && subwindow->sizing_rect.h > 0) {
 				SDL_SetRenderTarget(window->renderer, subwindow->aux_texture);
-				/* in case subwindow's color changed */
+				/* in case subwindow's color changed (as in when it becomes transparent) */
 				render_fill_rect(window,
 						subwindow->aux_texture, NULL, &subwindow->color);
 
@@ -918,6 +933,8 @@ static void render_window_in_menu(const struct window *window)
 					NULL, &subwindow->full_rect);
 		}
 	}
+
+	render_subwindows(window, window->temporary.subwindows, window->temporary.number);
 
 	/* render it last to allow the menu to draw over subwindows */
 	render_status_bar(window);
@@ -941,25 +958,16 @@ static void set_subwindows_alpha(const struct window *window, int alpha)
 	}
 }
 
-/* this function allows to perform special things that are not
- * needed while playing the game, like moving terms */
-static void redraw_window_in_menu(struct window *window)
-{
-	set_subwindows_alpha(window, window->alpha);
-	render_window_in_menu(window);
-	SDL_RenderPresent(window->renderer);
-}
-
-/* this function is mostly used while normally playing the game */
 static void redraw_window(struct window *window)
 {
 	if (window->status_bar.in_menu) {
-		redraw_window_in_menu(window);
+		set_subwindows_alpha(window, window->alpha);
+		render_all_in_menu(window);
 	} else {
-		/* XXX XXX dont forget to prerender status bar in loader! */
 		render_all(window);
-		SDL_RenderPresent(window->renderer);
 	}
+
+	SDL_RenderPresent(window->renderer);
 }
 
 static void redraw_all_windows(void)
@@ -1506,7 +1514,7 @@ static void show_about(const struct window *window)
 	total.x = window->full_rect.w / 2 - total.w / 2;
 	total.y = window->full_rect.h / 2 - total.h / 2;
 
-	render_window_in_menu(window);
+	render_all_in_menu(window);
 
 	render_fill_rect(window, NULL, &total, &g_colors[DEFAULT_ABOUT_BG_COLOR]);
 	render_outline_rect_width(window, NULL, &total,
@@ -2244,10 +2252,6 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 	size_t n_terms = 0;
 
 	for (int i = SUBWINDOW_CAVE; i < SUBWINDOW_PERMANENT_MAX; i++) {
-		if (i == SUBWINDOW_MESSAGES || i == SUBWINDOW_STATUS || i == SUBWINDOW_SIDEBAR) {
-			continue;
-		}
-
 		const struct angband_term *aterm = term_by_index(i);
 		if (aterm != NULL) {
 			struct subwindow *subwindow = Term_priv(aterm->term);
@@ -3083,7 +3087,7 @@ static bool handle_mousebuttondown(const SDL_MouseButtonEvent *mouse)
 	if (subwindow == NULL) {
 		/* not an error, the user clicked in some random place */
 		return false;
-	} else if (!subwindow->is_temporary && !subwindow->top) {
+	} else if (!subwindow->is_temporary && !subwindow->is_top) {
 		bring_to_top(window, subwindow);
 		redraw_window(window);
 		return false;
@@ -3389,8 +3393,9 @@ static void refresh_angband_terms(void)
 {
 	if (character_dungeon) {
 		do_cmd_redraw();
-		redraw_all_windows();
 	}
+
+	redraw_all_windows();
 }
 
 static void term_event(void *user, bool wait)
@@ -3426,9 +3431,9 @@ static void term_flush_events(void *user)
 
 static void term_redraw(void *user)
 {
-	(void) user;
+	struct subwindow *subwindow = user;
 
-	redraw_all_windows();
+	redraw_window(subwindow->window);
 }
 
 static void term_delay(void *user, int msecs)
@@ -3467,7 +3472,7 @@ static void term_push_new(const struct term_hints *hints,
 	info->height    = subwindow->rows;
 	info->user      = subwindow;
 	info->callbacks = default_callbacks;
-	info->blank     = default_blank;
+	info->blank     = default_blank_point;
 }
 
 static void term_cursor(void *user, int col, int row)
@@ -3481,16 +3486,18 @@ static void term_cursor(void *user, int col, int row)
 static void term_draw_text(const struct subwindow *subwindow,
 		SDL_Rect rect, const struct term_point *point)
 {
-	SDL_Color fg = g_colors[point->fg_attr];
-	SDL_Color bg = g_colors[COLOUR_DARK];;
-
+	SDL_Color bg = g_colors[COLOUR_DARK];
 	bg.a = subwindow->color.a;
 
 	render_fill_rect(subwindow->window,
 			subwindow->texture, &rect, &bg);
 
-	render_glyph_mono(subwindow->window, subwindow->font,
-			rect.x, rect.y, &fg, (uint32_t) point->fg_char);
+	if (!IS_BLANK_FG(point)) {
+		SDL_Color fg = g_colors[point->fg_attr];
+
+		render_glyph_mono(subwindow->window, subwindow->font,
+				rect.x, rect.y, &fg, (uint32_t) point->fg_char);
+	}
 }
 
 static void term_draw_tile(const struct subwindow *subwindow,
@@ -3508,13 +3515,17 @@ static void term_draw_tile(const struct subwindow *subwindow,
 
 	render_fill_rect(subwindow->window, subwindow->texture, &rect, &subwindow->color);
 
-	render_tile(subwindow, graphics, bg_col, bg_row, col, row, rect);
+	if (!IS_BLANK_BG(point)) {
+		render_tile(subwindow, graphics, bg_col, bg_row, col, row, rect);
+	}
 
 	if (bg_col == fg_col && bg_row == fg_row) {
 		return;
 	}
 
-	render_tile(subwindow, graphics, fg_col, fg_row, col, row, rect);
+	if (!IS_BLANK_FG(point)) {
+		render_tile(subwindow, graphics, fg_col, fg_row, col, row, rect);
+	}
 }
 
 static void term_draw(void *user,
@@ -3586,8 +3597,8 @@ static void load_wallpaper(struct window *window, const char *path)
 			h *= 2;
 		}
 		window->wallpaper.texture = make_subwindow_texture(window, w, h);
-		window->wallpaper.w = w;
-		window->wallpaper.h = h;
+		window->wallpaper.width = w;
+		window->wallpaper.height = h;
 
 		SDL_Color color = {0};
 		render_clear(window, window->wallpaper.texture, &color);
@@ -3600,7 +3611,7 @@ static void load_wallpaper(struct window *window, const char *path)
 		SDL_DestroyTexture(wallpaper);
 	} else {
 		SDL_QueryTexture(wallpaper, NULL, NULL,
-				&window->wallpaper.w, &window->wallpaper.h);
+				&window->wallpaper.width, &window->wallpaper.height);
 		window->wallpaper.texture = wallpaper;
 	}
 }
@@ -3777,12 +3788,10 @@ static bool reload_font(struct subwindow *subwindow,
 				&subwindow->sizing_rect,
 				new_font->ttf.glyph.w, new_font->ttf.glyph.h))
 	{
-		int min_cols;
-		int min_rows;
-		get_min_cols_rows(subwindow, &min_cols, &min_rows);
-
-		subwindow->sizing_rect.w = SUBWINDOW_WIDTH(min_cols, new_font->ttf.glyph.w);
-		subwindow->sizing_rect.h = SUBWINDOW_HEIGHT(min_rows, new_font->ttf.glyph.h);
+		subwindow->sizing_rect.w =
+			SUBWINDOW_WIDTH(subwindow->min_cols, new_font->ttf.glyph.w);
+		subwindow->sizing_rect.h =
+			SUBWINDOW_HEIGHT(subwindow->min_rows, new_font->ttf.glyph.h);
 	}
 
 	if (subwindow->sizing_rect.w > subwindow->window->inner_rect.w
@@ -3849,15 +3858,14 @@ static void free_font(struct font *font)
 	mem_free(font);
 }
 
-static void get_min_cols_rows(const struct subwindow *subwindow,
-		int *min_cols, int *min_rows)
+static void set_min_cols_rows(struct subwindow *subwindow)
 {
-	int mcols = 0;
-	int mrows = 0;
+	int min_cols = 0;
+	int min_rows = 0;
 #define MIN_COLROW_CASE(sym) \
 	case SUBWINDOW_ ##sym: \
-		mcols = MIN_COLS_ ##sym; \
-		mrows = MIN_ROWS_ ##sym; \
+		min_cols = MIN_COLS_ ##sym; \
+		min_rows = MIN_ROWS_ ##sym; \
 
 	switch (subwindow->index) {
 		MIN_COLROW_CASE(CAVE);     break;
@@ -3867,20 +3875,20 @@ static void get_min_cols_rows(const struct subwindow *subwindow,
 
 		default:
 			if (subwindow->is_temporary) {
-				mcols = MIN_COLS_TEMPORARY;
-				mrows = MIN_ROWS_TEMPORARY;
+				min_cols = MIN_COLS_TEMPORARY;
+				min_rows = MIN_ROWS_TEMPORARY;
 			} else {
-				mcols = MIN_COLS_OTHER;
-				mrows = MIN_ROWS_OTHER;
+				min_cols = MIN_COLS_OTHER;
+				min_rows = MIN_ROWS_OTHER;
 			}
 			break;
 	}
 
-	assert(mcols > 0);
-	assert(mrows > 0);
+	assert(min_cols > 0);
+	assert(min_rows > 0);
 
-	*min_cols = mcols;
-	*min_rows = mrows;
+	subwindow->min_cols = min_cols;
+	subwindow->min_rows = min_rows;
 
 #undef MIN_COLROW_CASE
 }
@@ -3888,14 +3896,10 @@ static void get_min_cols_rows(const struct subwindow *subwindow,
 static bool is_ok_col_row(const struct subwindow *subwindow,
 		const SDL_Rect *rect, int cell_w, int cell_h)
 {
-	int min_cols;
-	int min_rows;
-	get_min_cols_rows(subwindow, &min_cols, &min_rows);
-
-	if (SUBWINDOW_WIDTH(min_cols, cell_w) > rect->w) {
+	if (SUBWINDOW_WIDTH(subwindow->min_cols, cell_w) > rect->w) {
 		return false;
 	}
-	if (SUBWINDOW_HEIGHT(min_rows, cell_h) > rect->h) {
+	if (SUBWINDOW_HEIGHT(subwindow->min_rows, cell_h) > rect->h) {
 		return false;
 	}
 
@@ -4029,12 +4033,13 @@ static void adjust_subwindow_geometry_default(const struct window *window,
 
 static void adjust_subwindow_force_default(struct subwindow *subwindow)
 {
-	int min_cols;
-	int min_rows;
-	get_min_cols_rows(subwindow, &min_cols, &min_rows);
+	assert(subwindow->min_cols > 0);
+	assert(subwindow->min_rows > 0);
 
-	subwindow->full_rect.w = SUBWINDOW_WIDTH(min_cols, subwindow->cell_width);
-	subwindow->full_rect.h = SUBWINDOW_HEIGHT(min_rows, subwindow->cell_height);
+	subwindow->full_rect.w =
+		SUBWINDOW_WIDTH(subwindow->min_cols, subwindow->cell_width);
+	subwindow->full_rect.h =
+		SUBWINDOW_HEIGHT(subwindow->min_rows, subwindow->cell_height);
 }
 
 static bool adjust_subwindow_geometry(const struct window *window,
@@ -4173,10 +4178,10 @@ static void position_temporary_subwindow(struct subwindow *subwindow,
 }
 
 static void sort_to_top_aux(struct window *window,
-		size_t *next, struct subwindow **subwindows, bool top, bool always_top)
+		size_t *next, struct subwindow **subwindows, bool is_top, bool always_top)
 {
 	for (size_t i = 0; i < window->permanent.number; i++) {
-		if (window->permanent.subwindows[i]->top == top &&
+		if (window->permanent.subwindows[i]->is_top == is_top &&
 				window->permanent.subwindows[i]->always_top == always_top)
 		{
 			subwindows[(*next)++] = window->permanent.subwindows[i];
@@ -4207,7 +4212,7 @@ static void bring_to_top(struct window *window, struct subwindow *subwindow)
 
 	bool found_subwindow_in_window = false;
 	for (size_t i = 0; i < window->permanent.number; i++) {
-		window->permanent.subwindows[i]->top = false;
+		window->permanent.subwindows[i]->is_top = false;
 		if (window->permanent.subwindows[i] == subwindow) {
 			found_subwindow_in_window = true;
 		}
@@ -4215,7 +4220,7 @@ static void bring_to_top(struct window *window, struct subwindow *subwindow)
 
 	assert(found_subwindow_in_window);
 
-	subwindow->top = true;
+	subwindow->is_top = true;
 
 	sort_to_top(window);
 }
@@ -4254,12 +4259,15 @@ static struct subwindow *get_subwindow_by_xy(const struct window *window,
 {
 	/* checking subwindows in z order */
 
-	if (temporary) {
-		for (size_t i = window->temporary.number; i > 0; i--) {
-			struct subwindow *subwindow = window->temporary.subwindows[i - 1];
+	for (size_t i = window->temporary.number; i > 0; i--) {
+		struct subwindow *subwindow = window->temporary.subwindows[i - 1];
 
-			if (is_point_in_rect(x, y, &subwindow->full_rect)) {
+		if (is_point_in_rect(x, y, &subwindow->full_rect)) {
+			/* temporary subwindows are always over permanent ones */
+			if (temporary) {
 				return subwindow;
+			} else {
+				return NULL;
 			}
 		}
 	}
@@ -4750,7 +4758,7 @@ static void dump_subwindow(const struct subwindow *subwindow, ang_file *config)
 	DUMP_SUBWINDOW("borders", "%s",
 			subwindow->borders.visible ? "true" : "false");
 	DUMP_SUBWINDOW("top", "%s:%s",
-			subwindow->top ? "true" : "false",
+			subwindow->is_top ? "true" : "false",
 			subwindow->always_top ? "true" : "false");
 	DUMP_SUBWINDOW("alpha", "%u", subwindow->color.a);
 	DUMP_SUBWINDOW("graphics", "%s",
@@ -4962,6 +4970,7 @@ static void load_subwindow(struct window *window,
 static void load_term(struct subwindow *subwindow)
 {
 	assert(!subwindow->linked);
+	assert(subwindow->index < N_ELEMENTS(g_term_info));
 
 	struct angband_term *aterm = g_term_info[subwindow->index].aterm;
 	assert(aterm != NULL);
@@ -4974,13 +4983,14 @@ static void load_term(struct subwindow *subwindow)
 		.height    = subwindow->rows,
 		.user      = subwindow,
 		.callbacks = default_callbacks,
-		.blank     = default_blank
+		.blank     = default_blank_point
 	};
 
 	term term = Term_create(&info);
 
-	aterm->name = name;
-	aterm->term = term;
+	aterm->name  = name;
+	aterm->term  = term;
+	aterm->index = subwindow->index;
 
 	subwindow->term = term;
 
@@ -4999,6 +5009,8 @@ static void wipe_subwindow(struct subwindow *subwindow)
 		subwindow->index = index;
 		subwindow->is_temporary = is_temporary;
 	}
+
+	set_min_cols_rows(subwindow);
 
 	subwindow->color = g_colors[DEFAULT_SUBWINDOW_BG_COLOR];
 	subwindow->borders.color = g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR];
@@ -5177,7 +5189,9 @@ static void free_subwindow(struct subwindow *subwindow)
 		subwindow->aux_texture = NULL;
 	}
 	if (subwindow->term != NULL) {
-		Term_destroy(subwindow->term);
+		if (!subwindow->is_temporary) {
+			Term_destroy(subwindow->term);
+		}
 		subwindow->term = NULL;
 	}
 	if (subwindow->config != NULL) {
@@ -5420,12 +5434,11 @@ static void free_temporary_subwindow(struct subwindow *subwindow)
 	assert(subwindow->is_temporary);
 	assert(g_shadow_stack.number > 0);
 
-#define TOP (g_shadow_stack.number - 1)
-	assert(subwindow == &g_shadow_stack.subwindows[TOP]);
-	assert(subwindow->index == g_shadow_stack.subwindows[TOP].index);
-#undef TOP
+#define STACK_TOP (g_shadow_stack.number - 1)
+	assert(subwindow == &g_shadow_stack.subwindows[STACK_TOP]);
+	assert(subwindow->index == g_shadow_stack.subwindows[STACK_TOP].index);
+#undef STACK_TOP
 
-	subwindow->term = NULL;
 	free_subwindow(subwindow);
 	g_shadow_stack.number--;
 }
@@ -5490,22 +5503,23 @@ static struct window *get_new_window(unsigned index)
 	return window;
 }
 
-static struct window *get_loaded_window(unsigned index)
+static struct window *get_window_direct(unsigned index)
 {
-	assert(index < N_ELEMENTS(g_windows));
-	assert(g_windows[index].index == index);
-
-	if (g_windows[index].loaded) {
+	if (index < N_ELEMENTS(g_windows) && g_windows[index].index == index) {
 		return &g_windows[index];
 	} else {
 		return NULL;
 	}
 }
 
-static struct window *get_window_direct(unsigned index)
+static struct window *get_loaded_window(unsigned index)
 {
-	if (index < N_ELEMENTS(g_windows) && g_windows[index].index == index) {
-		return &g_windows[index];
+	struct window *window = get_window_direct(index);
+
+	assert(window != NULL);
+
+	if (window->loaded) {
+		return window;
 	} else {
 		return NULL;
 	}
@@ -5742,15 +5756,21 @@ static enum parser_error config_subwindow_window(struct parser *parser)
 {
 	GET_SUBWINDOW_FROM_INDEX;
 
+	if (subwindow->inited) {
+		return PARSE_ERROR_NON_SEQUENTIAL_RECORDS;
+	}
+	wipe_subwindow(subwindow);
+
 	unsigned windex = parser_getuint(parser, "windex");
 	if (windex >= N_ELEMENTS(g_windows)) {
 		return PARSE_ERROR_OUT_OF_BOUNDS;
 	}
+
 	struct window *window = &g_windows[windex];
 	if (!window->inited) {
 		return PARSE_ERROR_NON_SEQUENTIAL_RECORDS;
 	}
-	wipe_subwindow(subwindow);
+
 	subwindow->config = mem_zalloc(sizeof(*subwindow->config));
 
 	attach_subwindow_to_window(window, subwindow);
@@ -5834,9 +5854,9 @@ static enum parser_error config_subwindow_top(struct parser *parser)
 	const char *top = parser_getsym(parser, "top");
 
 	if (streq(top, "true")) {
-		subwindow->top = true;
+		subwindow->is_top = true;
 	} else if (streq(top, "false")) {
-		subwindow->top = false;
+		subwindow->is_top = false;
 	} else {
 		return PARSE_ERROR_INVALID_VALUE;
 	}
