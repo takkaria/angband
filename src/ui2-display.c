@@ -223,7 +223,6 @@ static void display_message(game_event_type type, game_event_data *data, void *u
 /*
  * Get a term from its index
  */
-
 struct angband_term *term_by_index(int index)
 {
 	assert(index >= 0);
