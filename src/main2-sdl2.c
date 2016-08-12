@@ -362,7 +362,7 @@ struct subwindow {
 	bool is_temporary;
 	
 	/* subwindow can use graphics */
-	bool graphics;
+	bool use_graphics;
 
 	struct subwindow_config *config;
 
@@ -625,6 +625,7 @@ struct term_info {
 
 /* there are also global arrays of subwindows and windows
  * those are at the end of the file */
+
 const char help_sdl2[] = "SDL2 frontend";
 
 static SDL_Color g_colors[MAX_COLORS];
@@ -672,6 +673,7 @@ static void adjust_window_geometry(struct window *window);
 static void free_window(struct window *window);
 static struct window *get_window_by_id(Uint32 id);
 static struct window *get_window_direct(unsigned index);
+static struct window *get_loaded_window(unsigned index);
 static bool has_visible_subwindow(const struct window *window, unsigned index);
 static void resize_window(struct window *window, int w, int h);
 static void attach_subwindow_to_window(struct window *window,
@@ -683,6 +685,7 @@ static void fit_subwindow_in_window(const struct window *window,
 static struct subwindow *get_new_subwindow(unsigned index);
 static struct subwindow *get_new_temporary_subwindow(void);
 static void free_subwindow(struct subwindow *subwindow);
+static void free_temporary_subwindow(struct subwindow *subwindow);
 static void load_subwindow(struct window *window, struct subwindow *subwindow);
 static bool is_subwindow_loaded(unsigned index);
 static struct subwindow *transfer_subwindow(struct window *window, unsigned index);
@@ -722,6 +725,8 @@ static struct menu_panel *get_menu_panel_by_xy(struct menu_panel *menu_panel,
 static void refresh_angband_terms(void);
 static void handle_quit(void);
 static void wait_anykey(void);
+
+/* Term callbacks */
 
 static void term_flush_events(void *user);
 static void term_cursor(void *user, int col, int row);
@@ -962,7 +967,7 @@ static void redraw_window(struct window *window)
 static void redraw_all_windows(void)
 {
 	for (unsigned i = 0; i < MAX_WINDOWS; i++) {
-		struct window *window = get_window_direct(i);
+		struct window *window = get_loaded_window(i);
 		if (window != NULL) {
 			render_status_bar(window);
 			redraw_window(window);
@@ -1100,14 +1105,12 @@ static void render_borders(struct subwindow *subwindow)
 	SDL_QueryTexture(subwindow->texture, NULL, NULL, &rect.w, &rect.h);
 
 	SDL_Color *color;
-	if (!subwindow->borders.error) {
-		if (subwindow->borders.visible) {
-			color = &subwindow->borders.color;
-		} else {
-			color = &subwindow->color;
-		}
-	} else {
+	if (subwindow->borders.error) {
 		color = &g_colors[DEFAULT_ERROR_COLOR];
+	} else if (subwindow->borders.visible) {
+		color = &subwindow->borders.color;
+	} else {
+		color = &subwindow->color;
 	}
 
 	render_outline_rect_width(subwindow->window,
@@ -1357,7 +1360,7 @@ static void render_button_menu_window(const struct window *window,
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_UVAL);
 
-	struct window *w = get_window_direct(button->info.data.uval);
+	struct window *w = get_loaded_window(button->info.data.uval);
 
 	SDL_Color fg;
 	SDL_Color *bg;
@@ -1795,7 +1798,7 @@ static void handle_menu_window(struct window *window,
 		return;
 	}
 
-	struct window *other = get_window_direct(button->info.data.uval);
+	struct window *other = get_loaded_window(button->info.data.uval);
 	if (other == NULL) {
 		other = get_new_window(button->info.data.uval);
 		assert(other != NULL);
@@ -3442,25 +3445,29 @@ static void term_pop_new(void *user)
 	struct subwindow *subwindow = user;
 
 	detach_subwindow_from_window(subwindow->window, subwindow);
-	free_subwindow(subwindow);
+	free_temporary_subwindow(subwindow);
 }
 
 static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info)
 {
-	struct window *window = get_window_direct(WINDOW_MAIN);
+	struct window *window = get_loaded_window(WINDOW_MAIN);
+	assert(window != NULL);
+
 	struct subwindow *subwindow = get_new_temporary_subwindow();
 
 	subwindow->cols = hints->width;
 	subwindow->rows = hints->height;
 
+	/* TODO reusable font (optimization) */
+
 	attach_subwindow_to_window(window, subwindow);
 	load_subwindow(window, subwindow);
 	position_temporary_subwindow(subwindow, hints);
 
-	info->width = subwindow->cols;
-	info->height = subwindow->rows;
-	info->user   = subwindow;
+	info->width     = subwindow->cols;
+	info->height    = subwindow->rows;
+	info->user      = subwindow;
 	info->callbacks = default_callbacks;
 	info->blank     = default_blank;
 }
@@ -3673,10 +3680,10 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	assert(subwindow != NULL);
 
 	if (mode->grafID != GRAPHICS_NONE) {
-		subwindow->graphics = true;
+		subwindow->use_graphics = true;
 		load_graphics(window, mode);
 	} else {
-		subwindow->graphics = false;
+		subwindow->use_graphics = false;
 	}
 
 	adjust_subwindow_geometry(window, subwindow, true);
@@ -4032,7 +4039,7 @@ static void adjust_subwindow_force_default(struct subwindow *subwindow)
 static bool adjust_subwindow_geometry(const struct window *window,
 		struct subwindow *subwindow, bool force)
 {
-	if (subwindow->graphics) {
+	if (subwindow->use_graphics) {
 		subwindow->cell_width = window->graphics.tile_pixel_w;
 		subwindow->cell_width = window->graphics.tile_pixel_h;
 	} else {
@@ -4643,7 +4650,7 @@ static void wipe_window_aux_config(struct window *window)
 	window->config = mem_zalloc(sizeof(*window->config));
 	assert(window->config != NULL);
 
-	const struct window *main_window = get_window_direct(WINDOW_MAIN);
+	const struct window *main_window = get_loaded_window(WINDOW_MAIN);
 	assert(main_window != NULL);
 
 	SDL_RendererInfo rinfo;
@@ -4683,9 +4690,13 @@ static void wipe_window_aux_config(struct window *window)
 /* initialize window with suitable hardcoded defaults */
 static void wipe_window(struct window *window, int display)
 {
-	unsigned index = window->index;
-	memset(window, 0, sizeof(*window));
-	window->index = index;
+	{
+		const unsigned index = window->index;
+
+		memset(window, 0, sizeof(*window));
+
+		window->index = index;
+	}
 
 	for (size_t i = 0; i < N_ELEMENTS(window->permanent.subwindows); i++) {
 		window->permanent.subwindows[i] = NULL;
@@ -4742,7 +4753,7 @@ static void dump_subwindow(const struct subwindow *subwindow, ang_file *config)
 			subwindow->always_top ? "true" : "false");
 	DUMP_SUBWINDOW("alpha", "%u", subwindow->color.a);
 	DUMP_SUBWINDOW("graphics", "%s",
-			subwindow->graphics ? "true" : "false");
+			subwindow->use_graphics ? "true" : "false");
 #undef DUMP_SUBWINDOW
 	file_put(config, "\n");
 }
@@ -4813,6 +4824,7 @@ static void detach_subwindow_from_window(struct window *window,
 		{
 			i++;
 		}
+
 		assert(i < N_ELEMENTS(window->permanent.subwindows));
 
 		window->permanent.subwindows[i] = NULL;
@@ -4820,7 +4832,6 @@ static void detach_subwindow_from_window(struct window *window,
 		for (i++; i < N_ELEMENTS(window->permanent.subwindows); i++) {
 			window->permanent.subwindows[i - 1] = window->permanent.subwindows[i];
 		}
-
 	}
 
 	subwindow->window = NULL;
@@ -4831,11 +4842,13 @@ static void attach_subwindow_to_window(struct window *window,
 {
 	if (subwindow->is_temporary) {
 		assert(window->temporary.number < N_ELEMENTS(window->temporary.subwindows));
+		assert(window->temporary.subwindows[window->temporary.number] == NULL);
 
 		window->temporary.subwindows[window->temporary.number] = subwindow;
 		window->temporary.number++;
 	} else {
 		assert(window->permanent.number < N_ELEMENTS(window->permanent.subwindows));
+		assert(window->permanent.subwindows[window->permanent.number] == NULL);
 
 		window->permanent.subwindows[window->permanent.number] = subwindow;
 		window->permanent.number++;
@@ -4895,6 +4908,7 @@ static void load_subwindow(struct window *window,
 		struct subwindow *subwindow)
 {
 	assert(window->loaded);
+	assert(subwindow->inited);
 	assert(!subwindow->loaded);
 
 	if (subwindow->font == NULL) {
@@ -4975,13 +4989,15 @@ static void load_term(struct subwindow *subwindow)
 /* initialize subwindow with suitable hardcoded defaults */
 static void wipe_subwindow(struct subwindow *subwindow)
 {
-	const unsigned index = subwindow->index;
-	const bool is_temporary = subwindow->is_temporary;
+	{
+		const unsigned index = subwindow->index;
+		const bool is_temporary = subwindow->is_temporary;
 
-	memset(subwindow, 0, sizeof(*subwindow));
+		memset(subwindow, 0, sizeof(*subwindow));
 
-	subwindow->index = index;
-	subwindow->is_temporary = is_temporary;
+		subwindow->index = index;
+		subwindow->is_temporary = is_temporary;
+	}
 
 	subwindow->color = g_colors[DEFAULT_SUBWINDOW_BG_COLOR];
 	subwindow->borders.color = g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR];
@@ -5160,9 +5176,7 @@ static void free_subwindow(struct subwindow *subwindow)
 		subwindow->aux_texture = NULL;
 	}
 	if (subwindow->term != NULL) {
-		if (!subwindow->is_temporary) {
-			Term_destroy(subwindow->term);
-		}
+		Term_destroy(subwindow->term);
 		subwindow->term = NULL;
 	}
 	if (subwindow->config != NULL) {
@@ -5351,10 +5365,17 @@ int init_sdl2(int argc, char **argv)
 	return 0;
 }
 
-/* these arrays contain windows and terms that the ui operates on */
+/* these variables contain windows and terms that the ui operates on */
+
 static struct subwindow g_permanent_subwindows[SUBWINDOW_PERMANENT_MAX];
-static struct subwindow g_temporary_subwindows[SUBWINDOW_TEMPORARY_MAX];
+
+static struct {
+	struct subwindow subwindows[SUBWINDOW_TEMPORARY_MAX];
+	size_t number;
+} g_shadow_stack;
+
 static struct window g_windows[MAX_WINDOWS];
+
 /* the string ANGBAND_DIR_USER is freed before calling quit_hook(),
  * so we need to save the path to config file here */
 static char g_config_file[4096];
@@ -5362,15 +5383,16 @@ static char g_config_file[4096];
 static void init_globals(void)
 {
 	for (size_t i = 0, index = SUBWINDOW_CAVE;
-			i < N_ELEMENTS(g_permanent_subwindows) && index < SUBWINDOW_PERMANENT_MAX;
+			i < N_ELEMENTS(g_permanent_subwindows);
 			i++, index++)
 	{
+		assert(index < SUBWINDOW_PERMANENT_MAX);
 		g_permanent_subwindows[i].index = index;
 	}
 
-	for (size_t i = 0; i < N_ELEMENTS(g_temporary_subwindows); i++) {
-		g_temporary_subwindows[i].is_temporary = true;
-		g_temporary_subwindows[i].index = i + SUBWINDOW_PERMANENT_MAX;
+	for (size_t i = 0; i < N_ELEMENTS(g_shadow_stack.subwindows); i++) {
+		g_shadow_stack.subwindows[i].is_temporary = true;
+		g_shadow_stack.subwindows[i].index = i + SUBWINDOW_PERMANENT_MAX;
 	}
 
 	for (size_t i = 0; i < N_ELEMENTS(g_windows); i++) {
@@ -5390,6 +5412,38 @@ static bool is_subwindow_loaded(unsigned index)
 	assert(subwindow != NULL);
 
 	return subwindow->loaded;
+}
+
+static void free_temporary_subwindow(struct subwindow *subwindow)
+{
+	assert(subwindow->is_temporary);
+	assert(g_shadow_stack.number > 0);
+
+#define TOP (g_shadow_stack.number - 1)
+	assert(subwindow == &g_shadow_stack.subwindows[TOP]);
+	assert(subwindow->index == g_shadow_stack.subwindows[TOP].index);
+#undef TOP
+
+	subwindow->term = NULL;
+	free_subwindow(subwindow);
+	g_shadow_stack.number--;
+}
+
+static struct subwindow *get_new_temporary_subwindow(void)
+{
+	assert(g_shadow_stack.number < N_ELEMENTS(g_shadow_stack.subwindows));
+
+	struct subwindow *subwindow = &g_shadow_stack.subwindows[g_shadow_stack.number];
+
+	assert(!subwindow->loaded);
+	assert(!subwindow->inited);
+	assert(!subwindow->linked);
+
+	wipe_subwindow(subwindow);
+
+	g_shadow_stack.number++;
+
+	return subwindow;
 }
 
 static struct subwindow *get_subwindow_direct(unsigned index)
@@ -5422,29 +5476,11 @@ static struct subwindow *get_new_subwindow(unsigned index)
 	return subwindow;
 }
 
-static struct subwindow *get_new_temporary_subwindow(void)
-{
-	for (size_t i = 0; i < N_ELEMENTS(g_temporary_subwindows); i++) {
-		struct subwindow *subwindow = &g_temporary_subwindows[i];
-
-		if (!subwindow->loaded) {
-			assert(!subwindow->inited);
-			assert(!subwindow->linked);
-
-			wipe_subwindow(subwindow);
-			return subwindow;
-		}
-	}
-
-	return NULL;
-}
-
 static struct window *get_new_window(unsigned index)
 {
-	assert(index < N_ELEMENTS(g_windows));
-	assert(g_windows[index].index == index);
+	struct window *window = get_window_direct(index);
 
-	struct window *window = &g_windows[index];
+	assert(window != NULL);
 	assert(!window->inited);
 	assert(!window->loaded);
 
@@ -5453,16 +5489,25 @@ static struct window *get_new_window(unsigned index)
 	return window;
 }
 
-static struct window *get_window_direct(unsigned index)
+static struct window *get_loaded_window(unsigned index)
 {
 	assert(index < N_ELEMENTS(g_windows));
+	assert(g_windows[index].index == index);
 
 	if (g_windows[index].loaded) {
-		assert(g_windows[index].index == index);
 		return &g_windows[index];
+	} else {
+		return NULL;
 	}
+}
 
-	return NULL;
+static struct window *get_window_direct(unsigned index)
+{
+	if (index < N_ELEMENTS(g_windows) && g_windows[index].index == index) {
+		return &g_windows[index];
+	} else {
+		return NULL;
+	}
 }
 
 static struct window *get_window_by_id(Uint32 id)
@@ -5529,10 +5574,10 @@ static void dump_config_file(void)
 }
 
 #define GET_WINDOW_FROM_INDEX \
-	if (parser_getuint(parser, "index") >= N_ELEMENTS(g_windows)) { \
-		return PARSE_ERROR_OUT_OF_BOUNDS; \
+	struct window *window = get_window_direct(parser_getuint(parser, "index")); \
+	if (window == NULL) { \
+		return PARSE_ERROR_INVALID_VALUE; \
 	} \
-	struct window *window = &g_windows[parser_getuint(parser, "index")]; \
 
 #define WINDOW_INIT_OK \
 	if (!window->inited) { \
@@ -5540,10 +5585,10 @@ static void dump_config_file(void)
 	}
 
 #define GET_SUBWINDOW_FROM_INDEX \
-	if (parser_getuint(parser, "index") >= N_ELEMENTS(g_permanent_subwindows)) { \
-		return PARSE_ERROR_OUT_OF_BOUNDS; \
+	struct subwindow *subwindow = get_subwindow_direct(parser_getuint(parser, "index")); \
+	if (subwindow == NULL) { \
+		return PARSE_ERROR_INVALID_VALUE; \
 	} \
-	struct subwindow *subwindow = &g_permanent_subwindows[parser_getuint(parser, "index")]; \
 
 #define SUBWINDOW_INIT_OK \
 	if (!subwindow->inited) { \
@@ -5752,9 +5797,9 @@ static enum parser_error config_subwindow_graphics(struct parser *parser)
 	const char *graphics = parser_getsym(parser, "graphics");
 
 	if (streq(graphics, "true")) {
-		subwindow->graphics = true;
+		subwindow->use_graphics = true;
 	} else if (streq(graphics, "false")) {
-		subwindow->graphics = false;
+		subwindow->use_graphics = false;
 	} else {
 		return PARSE_ERROR_INVALID_VALUE;
 	}
