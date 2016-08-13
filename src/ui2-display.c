@@ -1239,7 +1239,6 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		}
 	}
 
-	/* Refresh the main screen unless the map needs to center */
 	if (player->upkeep->update & PU_PANEL && OPT(center_player)) {
 		struct loc coords = {
 			.x = player->px - Term_width() / 2,
@@ -1341,6 +1340,11 @@ static void animate(game_event_type type, game_event_data *data, void *user)
 	(void) user;
 
 	do_animation();
+
+	Term_push(angband_cave.term);
+	Term_flush_output();
+	Term_redraw_screen();
+	Term_pop();
 }
 
 /**
@@ -2080,8 +2084,10 @@ static void show_splashscreen(game_event_type type,
 
 /**
  * ------------------------------------------------------------------------
- * Visual updates betweeen player turns.
- * ------------------------------------------------------------------------ */
+ * Visual updates between player turns.
+ * ------------------------------------------------------------------------
+ */
+#if 0
 static void refresh(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
@@ -2097,9 +2103,9 @@ static void refresh(game_event_type type, game_event_data *data, void *user)
 	}
 
 	Term_flush_output();
-	Term_redraw_screen();
 	Term_pop();
 }
+#endif
 
 static void repeated_command_display(game_event_type type,
 		game_event_data *data, void *user)
@@ -2385,8 +2391,10 @@ static void ui_enter_world(game_event_type type,
 	/* Check to see if the player has tried to cancel game processing */
 	event_add_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, &angband_cave);
 
+#if 0
 	/* Refresh the screen and put the cursor in the appropriate place */
 	event_add_handler(EVENT_REFRESH, refresh, &angband_cave);
+#endif
 
 	/* Do the visual updates required on a new dungeon level */
 	event_add_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, &angband_cave);
@@ -2446,8 +2454,10 @@ static void ui_leave_world(game_event_type type,
 	/* Check to see if the player has tried to cancel game processing */
 	event_remove_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, &angband_cave);
 
+#if 0
 	/* Refresh the screen and put the cursor in the appropriate place */
 	event_remove_handler(EVENT_REFRESH, refresh, &angband_cave);
+#endif
 
 	/* Do the visual updates required on a new dungeon level */
 	event_remove_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, &angband_cave);
