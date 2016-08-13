@@ -4132,10 +4132,14 @@ static void position_subwindow_top_center(const struct subwindow *origin,
 {
 	(void) hints;
 
-	subwindow->full_rect.x = MAX(origin->full_rect.x,
-			origin->full_rect.x + (origin->full_rect.w - subwindow->full_rect.w) / 2);
+	subwindow->full_rect.x = MAX(subwindow->full_rect.x,
+			subwindow->window->inner_rect.x +
+			(subwindow->window->inner_rect.w - subwindow->full_rect.w) / 2);
 
-	subwindow->full_rect.y = origin->full_rect.y;
+	subwindow->full_rect.y =
+		subwindow->window->inner_rect.y +
+		SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, subwindow->cell_height) - 
+		DEFAULT_VISIBLE_BORDER;
 }
 
 static void position_subwindow_bottom_center(const struct subwindow *origin,
