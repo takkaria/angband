@@ -848,13 +848,9 @@ void display_player_xtra_info(void)
 
 /**
  * Display the character on the screen (two different modes)
- *
  * The top two lines, and the bottom line (or two) are left blank.
- *
- * Mode 0 = standard display with skills/history
- * Mode 1 = special display with equipment flags
  */
-void display_player(int mode)
+void display_player(enum player_display_mode mode)
 {
 	if (!player->upkeep->playing) {
 		return;
@@ -862,17 +858,17 @@ void display_player(int mode)
 
 	display_player_stat_info();
 
-	if (mode == 1) {
+	if (mode == PLAYER_DISPLAY_MODE_STANDARD) {
+		display_player_xtra_info();
+	} else if (mode == PLAYER_DISPLAY_MODE_SPECIAL) {
 		struct panel *p = panels[0].panel();
 		display_panel(p, panels[0].align_left, panels[0].bounds);
 		panel_free(p);
 
 		display_player_sust_info();
 		display_player_flag_info();
-	} else if (mode == 0) {
-		display_player_xtra_info();
 	} else {
-		quit_fmt("bad mode %d", mode);
+		quit_fmt("bad player display mode %d", mode);
 	}
 
 	Term_flush_output();
