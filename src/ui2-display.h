@@ -96,6 +96,9 @@ struct angband_terms {
 	size_t number;
 };
 
+#define ANGBAND_TERM_STANDARD_WIDTH 80
+#define ANGBAND_TERM_STANDARD_HEIGHT 24
+
 /* what is displayed in these terms can be controlled by the user;
  * it is recommended to create several of those */
 extern struct angband_terms angband_terms;
