@@ -677,7 +677,8 @@ ui_event menu_select(struct menu *menu)
 		} else if (in.type == EVT_KBRD) {
 			if (action_ok) {
 				if (menu->command_keys
-						&& strchr(menu->command_keys, (char) in.key.code))
+						&& in.key.code < CHAR_MAX
+						&& strchr(menu->command_keys, (int) in.key.code))
 				{
 					/* Command key */
 					if (menu_handle_action(menu, &in)) {
@@ -685,7 +686,8 @@ ui_event menu_select(struct menu *menu)
 					}
 				}
 				if (menu->stop_keys
-						&& strchr(menu->stop_keys, (char) in.key.code))
+						&& in.key.code < CHAR_MAX
+						&& strchr(menu->stop_keys, (int) in.key.code))
 				{
 					/* Stop key */
 					if (menu_handle_action(menu, &in)) {
