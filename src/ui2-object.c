@@ -1288,26 +1288,6 @@ static void cleanup_menu_data(struct object_menu_data *data)
 	}
 }
 
-static int item_menu_max_height(void)
-{
-	int maximums[] = {
-		z_info->pack_size,   /* inventory */
-		player->body.count,  /* equipment */
-		z_info->floor_size,  /* floor */
-		z_info->quiver_size  /* quiver */
-	};
-
-	int max = 0;
-
-	for (size_t i = 0; i < N_ELEMENTS(maximums); i++) {
-		if (maximums[i] > max) {
-			max = maximums[i];
-		}
-	}
-
-	return max;
-}
-
 /**
  * Let the user select an object, save its address
  *
@@ -1353,29 +1333,29 @@ bool textui_get_item(struct object **choice,
 			cmd, tester, mode);
 
 	if (menu_ok) {
-		struct term_hints hints = {
-			.width = 80,
-			.height = item_menu_max_height(),
-			.purpose = TERM_PURPOSE_MENU,
-			.position = TERM_POSITION_TOP_CENTER
-		};
-		Term_push_new(&hints);
-
 		do {
+			build_menu_list(&data, tester);
+
+			struct term_hints hints = {
+				.width = 80,
+				.height = data.list->len,
+				.purpose = TERM_PURPOSE_MENU,
+				.position = TERM_POSITION_TOP_CENTER
+			};
+			Term_push_new(&hints);
+
 			data.retval.new_menu = false;
 			data.retval.object = NULL;
 
 			Term_clear();
-			build_menu_list(&data, tester);
 			if (prompt) {
 				show_menu_prompt(&data, prompt);
 			}
 			item_menu(&data);
 			clear_prompt();
 
+			Term_pop();
 		} while (data.retval.new_menu);
-
-		Term_pop();
 
 	} else if (reject) {
 		msg("%s", reject);
