@@ -149,11 +149,8 @@ static void message_more(int x)
 {
 	if (!auto_more()) {
 		Term_addws(x, 0, MSG_MORE_LEN, COLOUR_L_BLUE, L"-more-");
-		Term_cursor_visible(true);
-
+		Term_flush_output();
 		inkey_any();
-
-		Term_cursor_visible(false);
 	}
 
 	Term_erase_line(0, 0);
@@ -304,8 +301,6 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
 		aterm->offset_x = 0;
 	}
 
-	Term_flush_output();
-	Term_redraw_screen();
 	Term_pop();
 }
 
