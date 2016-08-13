@@ -517,7 +517,6 @@ void do_cmd_view_map(void)
 
 	Term_cursor_to_xy(px, py);
 	Term_flush_output();
-	Term_redraw_screen();
 
 	inkey_any();
 
