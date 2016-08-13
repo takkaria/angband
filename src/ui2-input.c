@@ -307,6 +307,9 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime)
 {
+	assert(*curs <= *len);
+	assert(*len < buflen);
+
 	switch (keypress.code) {
 		case ESCAPE:
 			*curs = 0;
@@ -317,13 +320,19 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 			return true;
 		
 		case ARROW_LEFT:
-			if (firsttime) *curs = 0;
-			if (*curs > 0) (*curs)--;
+			if (firsttime) {
+				*curs = 0;
+			} else if (*curs > 0) {
+				(*curs)--;
+			}
 			break;
 		
 		case ARROW_RIGHT:
-			if (firsttime) *curs = *len - 1;
-			if (*curs < *len) (*curs)++;
+			if (firsttime) {
+				*curs = *len;
+			} else if (*curs < *len) {
+				(*curs)++;
+			}
 			break;
 		
 		case KC_BACKSPACE: /* fallthru */
@@ -338,21 +347,20 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 
 			/* Refuse to backspace into oblivion */
 			if ((keypress.code == KC_BACKSPACE && *curs == 0)
-					|| (keypress.code == KC_DELETE && *curs >= *len))
+					|| (keypress.code == KC_DELETE && *curs == *len))
 			{
 				break;
 			}
 
 			if (keypress.code == KC_BACKSPACE) {
-				memmove(&buf[*curs - 1], &buf[*curs], *len - *curs);
+				memmove(buf + *curs - 1, buf + *curs, *len - *curs);
 				(*curs)--;
 			} else {
-				memmove(&buf[*curs], &buf[*curs + 1], *len - (*curs + 1));
+				memmove(buf + *curs, buf + *curs + 1, *len - *curs - 1);
 			}
 
 			(*len)--;
 			buf[*len] = 0;
-
 			break;
 		
 		default:
@@ -360,31 +368,25 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 				bell("Illegal edit key!");
 				break;
 			}
+			if (*len + 1 < buflen) {
+				/* Clear the buffer if this is the first time round */
+				if (firsttime) {
+					buf[0] = 0;
+					*curs = 0;
+					*len = 0;
+				}
 
-			/* Clear the buffer if this is the first time round */
-			if (firsttime) {
-				buf[0] = 0;
-				*curs = 0;
-				*len = 0;
+				if (*curs < *len) {
+					/* Move the rest of the buffer along to make room */
+					memmove(buf + *curs + 1, buf + *curs, *len - *curs);
+				}
+
+				/* Insert the character */
+				buf[*curs] = (char) keypress.code;
+				(*curs)++;
+				(*len)++;
+				buf[*len] = 0;
 			}
-
-			if (buf[*curs] == 0) {
-				/* Make sure we have enough room for a new character */
-				if (*curs + 1 >= buflen) break;
-			} else {
-				/* Make sure we have enough room to add a new character */
-				if (*len + 1 >= buflen) break;
-
-				/* Move the rest of the buffer along to make room */
-				memmove(&buf[*curs + 1], &buf[*curs], *len - *curs);
-			}
-
-			/* Insert the character */
-			buf[*curs] = (char) keypress.code;
-			(*curs)++;
-			(*len)++;
-			buf[*len] = 0;
-
 			break;
 	}
 
@@ -430,8 +432,10 @@ bool askfor_aux(char *buf, size_t buflen,
 	int y;
 	Term_get_cursor(&x, &y, NULL, NULL);
 
-	/* Display the default answer */
-	Term_adds(x, y, len, COLOUR_YELLOW, buf);
+	if (len > 0) {
+		/* Display the default answer */
+		Term_adds(x, y, len, COLOUR_YELLOW, buf);
+	}
 
 	size_t curs = 0;
 	bool done = false;
@@ -446,7 +450,10 @@ bool askfor_aux(char *buf, size_t buflen,
 		done = keypress_h(buf, buflen, &curs, &len, key, firsttime);
 
 		Term_erase(x, y, buflen);
-		Term_adds(x, y, len, COLOUR_WHITE, buf);
+
+		if (len > 0) {
+			Term_adds(x, y, len, COLOUR_WHITE, buf);
+		}
 
 		firsttime = false;
 	}
