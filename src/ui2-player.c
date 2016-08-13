@@ -576,12 +576,15 @@ static void display_panel(const struct panel *p, bool left_adj, region reg)
 			Term_adds(reg.x, reg.y, strlen(pl->label), COLOUR_WHITE, pl->label);
 
 			int len = strlen(pl->value);
-			len = MIN(len, reg.w - offset - 1);
 
-			if (left_adj) {
-				Term_adds(reg.x + offset, reg.y, len, pl->attr, pl->value);
-			} else {
-				Term_adds(reg.x + reg.w - len, reg.y, len, pl->attr, pl->value);
+			if (len > 0) {
+				len = MIN(len, reg.w - offset - 1);
+
+				if (left_adj) {
+					Term_adds(reg.x + offset, reg.y, len, pl->attr, pl->value);
+				} else {
+					Term_adds(reg.x + reg.w - len, reg.y, len, pl->attr, pl->value);
+				}
 			}
 		}
 	}
