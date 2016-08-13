@@ -1051,7 +1051,7 @@ static void item_menu(struct object_menu_data *data)
 
 	struct menu *menu = menu_new(MN_SKIN_OBJECT, &iter);
 
-	menu_setpriv(menu, data->list->len, data->list);
+	menu_setpriv(menu, data->list->len, data);
 
 	menu->selections =
 		player->upkeep->command_wrk == USE_QUIVER ? all_digits : lower_case;
