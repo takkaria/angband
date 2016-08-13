@@ -970,6 +970,7 @@ static size_t prt_state(struct loc coords)
 		} else if (n == REST_SOME_POINTS) {
 			text[5] = text[6] = text[7] = text[8] = text[9] = '!';
 		}
+		c_put_str(attr, text, coords);
 
 	} else if (cmd_get_nrepeats()) {
 		int nrepeats = cmd_get_nrepeats();
@@ -979,9 +980,8 @@ static size_t prt_state(struct loc coords)
 		} else {
 			strnfmt(text, sizeof(text), "Repeat %3d", nrepeats);
 		}
+		c_put_str(attr, text, coords);
 	}
-
-	c_put_str(attr, text, coords);
 
 	return strlen(text);
 }
