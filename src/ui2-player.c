@@ -852,9 +852,7 @@ void display_player_xtra_info(void)
  */
 void display_player(enum player_display_mode mode)
 {
-	if (!player->upkeep->playing) {
-		return;
-	}
+	Term_clear();
 
 	display_player_stat_info();
 
