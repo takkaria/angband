@@ -453,6 +453,8 @@ void display_player_stat_info(void)
 			c_put_str(COLOUR_YELLOW, buf, loc);
 		}
 	}
+
+	Term_flush_output();
 }
 
 /**
@@ -840,6 +842,8 @@ void display_player_xtra_info(void)
 	/* History */
 	Term_cursor_to_xy(info.indent, 19);
 	text_out_c(info, COLOUR_WHITE, player->history);
+
+	Term_flush_output();
 }
 
 /**
@@ -870,6 +874,8 @@ void display_player(int mode)
 	} else {
 		quit_fmt("bad mode %d", mode);
 	}
+
+	Term_flush_output();
 }
 
 /**
