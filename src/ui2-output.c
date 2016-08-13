@@ -517,16 +517,13 @@ void clear_prompt(void)
  * Display a string on the screen using an attribute.
  *
  * At the given location, using the given attribute, if allowed,
- * add the given string.  Do not clear the line. Ignore strings
- * with invalid coordinates.
+ * add the given string.  Do not clear the line.
  */
 
 void c_put_str_len(uint32_t attr, const char *str, struct loc at, int len) {
 	assert(len >= 0);
 
-	if (Term_point_ok(at.x, at.y)) {
-		Term_adds(at.x, at.y, len, attr, str);
-	}
+	Term_adds(at.x, at.y, len, attr, str);
 }
 
 /**
@@ -540,15 +537,13 @@ void put_str_len(const char *str, struct loc at, int len) {
 
 /**
  * Display a string on the screen using an attribute, and clear to the
- * end of the line. Ignore strings with invalid coordinates.
+ * end of the line.
  */
 void c_prt_len(uint32_t attr, const char *str, struct loc at, int len) {
 	assert(len >= 0);
 
-	if (Term_point_ok(at.x, at.y)) {
-		Term_erase_line(at.x, at.y);
-		Term_adds(at.x, at.y, len, attr, str);
-	}
+	Term_erase_line(at.x, at.y);
+	Term_adds(at.x, at.y, len, attr, str);
 }
 
 /**
@@ -579,13 +574,11 @@ void prt(const char *str, struct loc at) {
 }
 
 /*
- * Wipe line at some point if it has valid coordinates
+ * Wipe line at some point
  */
 void erase_line(struct loc at)
 {
-	if (Term_point_ok(at.x, at.y)) {
-		Term_erase_line(at.x, at.y);
-	}
+	Term_erase_line(at.x, at.y);
 }
 
 /**
