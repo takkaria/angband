@@ -492,6 +492,14 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
  * Simple text display
  * ------------------------------------------------------------------------ */
 
+void clear_prompt(void)
+{
+	Term_push(angband_message_line.term);
+	Term_clear();
+	Term_flush_output();
+	Term_pop();
+}
+
 /**
  * Display a simple prompt on the screen
  */
@@ -500,15 +508,8 @@ void show_prompt(const char *str)
 	event_signal(EVENT_MESSAGE_FLUSH);
 
 	Term_push(angband_message_line.term);
-	Term_adds(0, 0, Term_width(), COLOUR_WHITE, str);
-	Term_flush_output();
-	Term_pop();
-}
-
-void clear_prompt(void)
-{
-	Term_push(angband_message_line.term);
 	Term_clear();
+	Term_adds(0, 0, Term_width(), COLOUR_WHITE, str);
 	Term_flush_output();
 	Term_pop();
 }
