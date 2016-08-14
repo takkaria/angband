@@ -25,6 +25,7 @@ void show_file(const char *name);
 
 #define HELP_LINE_SIZE 80
 #define HELP_N_LINES 1024
+#define HELP_MAX_MENU_FILES 26
 
 struct help_line {
 	char line[HELP_LINE_SIZE];
@@ -42,10 +43,11 @@ struct help_file {
 	bool highlight;
 	bool caseless;
 
-	char *menu_files[26];
+	char *menu_files[HELP_MAX_MENU_FILES];
 	bool menu;
 
 	char caption[HELP_LINE_SIZE];
+
 	char *name;
 	char *tag;
 
