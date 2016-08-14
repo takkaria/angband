@@ -45,7 +45,7 @@ struct help_file {
 	char *menu_files[26];
 	bool menu;
 
-	char *caption;
+	char caption[HELP_LINE_SIZE];
 	char *name;
 	char *tag;
 
@@ -67,7 +67,6 @@ static struct help_file *get_help_file(void)
 	help->lines = mem_zalloc(help->size * sizeof(*help->lines));
 	
 	/* Pedantry */
-	help->caption = NULL;
 	help->name    = NULL;
 	help->tag     = NULL;
 	help->file    = NULL;
@@ -81,9 +80,6 @@ static struct help_file *get_help_file(void)
 
 static void free_help_file(struct help_file *help)
 {
-	if (help->caption != NULL) {
-		mem_free(help->caption);
-	}
 	if (help->tag != NULL) {
 		mem_free(help->tag);
 	}
@@ -335,17 +331,19 @@ static void help_display_page(struct help_file *help, region reg)
 
 		const struct help_line *hline = &help->lines[l];
 
-		Term_adds(reg.x, y, reg.w, COLOUR_WHITE, hline->line);
+		if (*hline->line) {
+			Term_adds(reg.x, y, reg.w, COLOUR_WHITE, hline->line);
 
-		if (help->highlight) {
-			const char *haystack = help->caseless ? hline->line_lc : hline->line;
-			const char *needle = help->caseless ? help->search.line_lc : help->search.line;
+			if (help->highlight) {
+				const char *haystack = help->caseless ? hline->line_lc : hline->line;
+				const char *needle = help->caseless ? help->search.line_lc : help->search.line;
 
-			size_t nlen = strlen(needle);
+				size_t nlen = strlen(needle);
 
-			for (const char *h = strstr(haystack, needle); h; h = strstr(h + nlen, needle)) {
-				ptrdiff_t pos = h - haystack;
-				Term_adds(reg.x + pos, y, nlen, COLOUR_YELLOW, hline->line + pos);
+				for (const char *h = strstr(haystack, needle); h; h = strstr(h + nlen, needle)) {
+					ptrdiff_t pos = h - haystack;
+					Term_adds(reg.x + pos, y, nlen, COLOUR_YELLOW, hline->line + pos);
+				}
 			}
 		}
 	}
@@ -370,6 +368,8 @@ void show_file(const char *name)
 
 		help_display_page(help, text_reg);
 		help_display_rest(help, term_reg, text_reg);
+
+		Term_flush_output();
 
 		struct keypress key = inkey_only_key();
 
