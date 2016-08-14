@@ -23,7 +23,8 @@
 
 void show_file(const char *name);
 
-#define HELP_LINE_SIZE 80
+/* 80 characters, -2 for padding (left and right), +1 for null byte */
+#define HELP_LINE_SIZE (80 - 2 + 1)
 #define HELP_N_LINES 1024
 #define HELP_MAX_MENU_FILES 26
 
@@ -262,9 +263,9 @@ static void help_set_regions(region *term_reg, region *text_reg)
 	term_reg->y = 0;
 	Term_get_size(&term_reg->w, &term_reg->h);
 
-	text_reg->x = 0;
+	text_reg->x = 1;
 	text_reg->y = 2;
-	text_reg->w = term_reg->w;
+	text_reg->w = term_reg->w - 1;
 	text_reg->h = term_reg->h - 4;
 
 	assert(text_reg->h > 0);
