@@ -240,7 +240,7 @@ static void store_display_recalc(struct store_context *ctx)
 	ctx->scr_places_y[LOC_HEADER] = 3;
 
 	/* If we are displaying help, make the height smaller */
-	if (ctx->flags & (STORE_SHOW_HELP)) {
+	if (ctx->flags & STORE_SHOW_HELP) {
 		height -= 3;
 	}
 
