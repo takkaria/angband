@@ -151,7 +151,7 @@ static struct menu roller_menu;
 #define QUESTION_COL       2
 #define RACE_MENU_COL      2
 #define CLASS_MENU_COL    19
-#define ROLLER_MEU_COL    36
+#define ROLLER_MENU_COL   36
 
 #define RACE_MENU_WIDTH   17
 #define CLASS_MENU_WIDTH  17
@@ -181,7 +181,7 @@ static region class_region = {
 };
 
 static region roller_region = {
-	.x = ROLLER_MEU_COL,
+	.x = ROLLER_MENU_COL,
 	.y = BIRTH_MENU_ROW,
 	.w = ROLLER_MENU_WIDTH,
 	.h = BIRTH_MENU_HEIGHT
