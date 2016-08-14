@@ -152,9 +152,9 @@ static void slurp_help_file(struct help_file *help)
 			my_strcpy(line, buf, size);
 
 			char *line_lc = help->lines[help->next].line_lc;
-			size_t size_fc = sizeof(help->lines[help->next].line_lc);
+			size_t size_lc = sizeof(help->lines[help->next].line_lc);
 
-			my_strcpy(line_lc, buf, size_fc);
+			my_strcpy(line_lc, buf, size_lc);
 			string_lower(line_lc);
 
 			help->next++;
