@@ -282,14 +282,14 @@ static void store_display_entry(struct menu *menu,
 	int desc = (store->sidx == STORE_HOME) ?
 		ODESC_PREFIX | ODESC_FULL : ODESC_PREFIX | ODESC_FULL | ODESC_STORE;
 
-	char o_name[80];
+	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(o_name, sizeof(o_name), obj, desc);
 
 	/* Display the object */
 	c_put_str(obj->kind->base->attr, o_name, loc);
 
 	/* Show weights */
-	char buf[80];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(buf, sizeof(buf), "%3d.%d lb", obj->weight / 10, obj->weight % 10);
 
 	uint32_t color = menu_row_style(true, cursor);
@@ -349,7 +349,7 @@ static void store_display_frame(struct store_context *ctx)
 		put_str("Weight", loc);
 	} else {
 		/* Normal stores */
-		char buf[80];
+		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 		const char *store_name = store->name;
 		const char *owner_name = proprietor->name;
 		struct loc loc;
@@ -551,7 +551,7 @@ static bool store_sell(struct store_context *ctx)
 	/* Real store */
 	if (store->sidx != STORE_HOME) {
 		/* Get a full description */
-		char o_name[80];
+		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 		object_desc(o_name, sizeof(o_name), temp_obj,
 				ODESC_PREFIX | ODESC_FULL);
 
@@ -559,7 +559,7 @@ static bool store_sell(struct store_context *ctx)
 		int price = price_item(store, temp_obj, true, amt);
 
 		/* Confirm sale */
-		char buf[80];
+		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 		strnfmt(buf, sizeof(buf),
 				"%s %s%s? [ESC, any other key to accept]",
 				OPT(birth_no_selling) ? "Give" : "Sell",
@@ -647,7 +647,7 @@ static bool store_purchase(struct store_context *ctx, int item, bool single)
 		/* Find the number of this item in the inventory */
 		int num = aware ? find_inven(obj) : 0;
 
-		char buf[80];
+		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 		strnfmt(buf, sizeof(buf),
 				"%s how many%s? (max %d) ",
 				store->sidx == STORE_HOME ? "Take" : "Buy",
@@ -675,7 +675,7 @@ static bool store_purchase(struct store_context *ctx, int item, bool single)
 	}
 
 	/* Describe the object (fully) */
-	char o_name[80];
+	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(o_name, sizeof(o_name), dummy,
 			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
@@ -726,7 +726,7 @@ static void store_examine(struct store_context *ctx, int item)
 	/* Show full info in most stores, but normal info in player home */
 	textblock *tb = object_info(obj, OINFO_NONE);
 
-	char header[80];
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(header, sizeof(header), obj,
 			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
@@ -942,7 +942,7 @@ static void context_menu_store_item(struct store_context *ctx,
 	struct menu *menu = menu_dynamic_new();
 	struct object *obj = ctx->list[index];
 
-	char header[80];
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_BASE);
 
 	char *labels = string_make(lower_case);
@@ -1164,8 +1164,8 @@ void textui_store_knowledge(int store)
 	struct store_context ctx;
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
