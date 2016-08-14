@@ -178,7 +178,7 @@ static void prt_welcome(const struct owner *proprietor)
 		}
 
 		/* Balthazar says "Welcome" */
-		show_prompt(format(comment_welcome[i], short_name, player_name));
+		show_prompt(format(comment_welcome[i], short_name, player_name), false);
 	}
 }
 
@@ -469,7 +469,7 @@ static void store_redraw(struct store_context *ctx)
 
 static bool store_get_check(const char *prompt)
 {
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 
 	struct keypress key = inkey_only_key();
 
@@ -908,7 +908,7 @@ static int context_menu_store(struct store_context *ctx,
 	};
 	Term_push_new(&hints);
 
-	show_prompt("(Enter to select, ESC) Command:");
+	show_prompt("(Enter to select, ESC) Command:", false);
 
 	int selected = menu_dynamic_select(menu);
 
@@ -963,7 +963,7 @@ static void context_menu_store_item(struct store_context *ctx,
 	};
 	Term_push_new(&hints);
 
-	show_prompt(format("(Enter to select, ESC) Command for %s:", header));
+	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
 
 	int selected = menu_dynamic_select(menu);
 
@@ -1050,9 +1050,9 @@ static bool store_menu_handle(struct menu *menu,
 			case 'p': case 'g':
 				/* use the old way of purchasing items */
 				if (store->sidx != STORE_HOME) {
-					show_prompt("Purchase which item? (ESC to cancel, Enter to select)");
+					show_prompt("Purchase which item? (ESC to cancel, Enter to select)", false);
 				} else {
-					show_prompt("Get which item? (Esc to cancel, Enter to select)");
+					show_prompt("Get which item? (Esc to cancel, Enter to select)", false);
 				}
 
 				index = store_get_stock(menu, index);
@@ -1066,7 +1066,7 @@ static bool store_menu_handle(struct menu *menu,
 
 			case 'l': case 'x':
 				/* use the old way of examining items */
-				show_prompt("Examine which item? (ESC to cancel, Enter to select)");
+				show_prompt("Examine which item? (ESC to cancel, Enter to select)", false);
 
 				index = store_get_stock(menu, index);
 

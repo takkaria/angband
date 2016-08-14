@@ -45,7 +45,7 @@ static void do_cmd_pref_file(const char *prompt);
 static bool get_pref_path(const char *what, char *buf, size_t bufsize)
 {
 	/* Prompt */
-	show_prompt(format("%s to a pref file:", what));
+	show_prompt(format("%s to a pref file: ", what), false);
 
 	/* Default filename */
 	char ftmp[80];
@@ -596,7 +596,7 @@ static void do_cmd_delay(const char *name, int index)
 
 	char tmp[4] = {0};
 	strnfmt(tmp, sizeof(tmp), "%i", op_ptr->delay_factor);
-	show_prompt("New base delay factor (0-255): ");
+	show_prompt("New base delay factor (0-255): ", false);
 
 	/* Ask for a numeric value */
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
@@ -615,7 +615,7 @@ static void do_cmd_hp_warn(const char *name, int index)
 
 	char tmp[4] = {0};
 	strnfmt(tmp, sizeof(tmp), "%i", op_ptr->hitpoint_warn);
-	show_prompt("New hitpoint warning (0-9): ");
+	show_prompt("New hitpoint warning (0-9): ", false);
 
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
 		byte warn = strtoul(tmp, NULL, 0);
@@ -636,7 +636,7 @@ static void do_cmd_lazymove_delay(const char *name, int index)
 
 	char tmp[4] = {0};
 	strnfmt(tmp, sizeof(tmp), "%i", op_ptr->lazymove_delay);
-	show_prompt("New movement delay: ");
+	show_prompt("New movement delay: ", false);
 
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
 		op_ptr->lazymove_delay = strtoul(tmp, NULL, 0);
@@ -649,9 +649,9 @@ static void do_cmd_lazymove_delay(const char *name, int index)
 static void do_cmd_pref_file(const char *prompt)
 {
 	if (prompt != NULL) {
-		show_prompt(prompt);
+		show_prompt(prompt, false);
 	} else {
-		show_prompt("File: ");
+		show_prompt("File: ", false);
 	}
 
 	/* Default filename */
@@ -859,7 +859,7 @@ static void ego_menu(void)
 	/* Sort the array by ego item name */
 	sort(choice, max_choice, sizeof(*choice), ego_comp_func);
 
-	show_prompt("Ego item ignore menu");
+	show_prompt("Ego item ignore menu", false);
 
 	struct term_hints hints = {
 		.width = 80,
@@ -1246,7 +1246,7 @@ static bool sval_menu(int tval, const char *desc)
 	Term_push_new(&hints);
 
 	/* Help text */
-	show_prompt(format("Ignore the following %s:", desc));
+	show_prompt(format("Ignore the following %s:", desc), false);
 
 	/* Run menu */
 	struct menu *menu = menu_new(MN_SKIN_COLUMNS, &ignore_sval_menu);

@@ -249,7 +249,7 @@ static ui_event target_recall_loop_object(struct object *obj,
 				desc->a, desc->b, desc->c, o_name, desc->coords);
 	}
 
-	show_prompt(buf);
+	show_prompt(buf, false);
 
 	while (true) {
 		ui_event event = inkey_mouse_or_key();
@@ -283,7 +283,7 @@ static bool target_interactive_aux_halluc(ui_event *event,
 				desc->a, desc->b, desc->c, strange, desc->coords);
 	}
 
-	show_prompt(buf);
+	show_prompt(buf, false);
 
 	event->key = inkey_only_key();
 
@@ -334,7 +334,7 @@ static bool target_interactive_aux_monster_objects(ui_event *event,
 				(int) cave->squares[coords.y][coords.x].cost,
 				(int) cave->squares[coords.y][coords.x].when);
 
-		show_prompt(buf);
+		show_prompt(buf, false);
 		*event = inkey_mouse_or_key();
 
 		if (is_target_stop_event(event, mode)) {
@@ -372,7 +372,7 @@ static bool target_interactive_aux_monster(ui_event *event,
 	char buf[256];
 	target_desc_monster(buf, sizeof(buf), mon, coords, desc); 
 
-	show_prompt(buf);
+	show_prompt(buf, false);
 
 	while (true) {
 		*event = inkey_mouse_or_key();
@@ -439,7 +439,7 @@ static bool target_interactive_aux_trap(ui_event *event,
 				desc->a, desc->b, desc->c, trap->kind->desc, desc->coords);
 	}
 
-	show_prompt(buf);
+	show_prompt(buf, false);
 
 	do {
 		*event = inkey_mouse_or_key();
@@ -480,7 +480,7 @@ static bool target_interactive_aux_objects(ui_event *event,
 					desc->a, desc->b, desc->c, floor_num, desc->coords);
 		}
 
-		show_prompt(buf);
+		show_prompt(buf, false);
 
 		struct term_hints hints = {
 			.height = floor_num,
@@ -545,7 +545,7 @@ static bool target_interactive_aux_square(ui_event *event,
 				"%s%s%s%s, %s.", desc->a, desc->b, desc->c, name, desc->coords);
 	}
 
-	show_prompt(buf);
+	show_prompt(buf, false);
 	*event = inkey_mouse_or_key();
 
 	return is_target_stop_event(event, mode);
@@ -1239,7 +1239,7 @@ static void target_free_select(struct loc *coords, struct point_set **targets,
  */
 bool target_set_interactive(int mode, struct loc coords)
 {
-	show_prompt("Press '?' for help.");
+	show_prompt("Press '?' for help.", false);
 
 	target_set_monster(NULL);
 	struct point_set *targets = target_get_monsters(mode);

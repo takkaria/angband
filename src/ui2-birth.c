@@ -100,7 +100,7 @@ static enum birth_stage textui_birth_quickstart(void)
 {
 	const char *prompt =
 		"['Y' to use this character, 'N' to start afresh, 'C' to change name or history]";
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 
 	enum birth_stage next = BIRTH_QUICKSTART;
 
@@ -704,7 +704,7 @@ static enum birth_stage roller_command(bool first_call)
 	}
 	strnfcat(prompt, sizeof (prompt), &promptlen, " or 'Enter' to accept]");
 
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 	
 	struct keypress key = inkey_only_key();
 
@@ -816,7 +816,7 @@ static void point_based_start(void)
 	display_player_xtra_info();
 	display_player_stat_info();
 
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 
 	Term_cursor_visible(true);
 
@@ -954,7 +954,7 @@ bool edit_text(char *buffer, size_t buflen) {
 	bool retval = false;
 	bool done = false;
 
-	show_prompt("['ESC' to step back, 'Enter' to accept]");
+	show_prompt("['ESC' to step back, 'Enter' to accept]", false);
 
 	while (!done) {
 		assert(cursor <= length);
@@ -1094,7 +1094,7 @@ static enum birth_stage get_history_command(void)
 	/* Save the original history */
 	my_strcpy(old_history, player->history, sizeof(old_history));
 
-	show_prompt("Accept character history? [y/n]");
+	show_prompt("Accept character history? [y/n]", false);
 
 	struct keypress key = inkey_only_key();
 
@@ -1133,7 +1133,7 @@ static enum birth_stage get_confirm_command(void)
 
 	enum birth_stage next = BIRTH_RESET;
 
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 
 	struct keypress key = inkey_only_key();
 	

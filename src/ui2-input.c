@@ -494,7 +494,7 @@ static bool get_name_keypress(char *buf, size_t buflen,
  */
 bool get_character_name(char *buf, size_t buflen)
 {
-	show_prompt("Enter a name for your character (* for a random name): ");
+	show_prompt("Enter a name for your character (* for a random name): ", false);
 
 	/* Save the player name */
 	my_strcpy(buf, op_ptr->full_name, buflen);
@@ -521,7 +521,7 @@ bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 {
 	event_signal(EVENT_MESSAGE_FLUSH);
 
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 
 	bool res = askfor_aux(buf, buflen, NULL);
 
@@ -574,9 +574,9 @@ int textui_get_quantity(const char *prompt, int max)
 bool textui_get_check(const char *prompt)
 {
 	char buf[80];
-	strnfmt(buf, sizeof(buf), "%.70s[y/n] ", prompt);
+	strnfmt(buf, sizeof(buf), "%.70s [y/n]", prompt);
 
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 
 	ui_event event = inkey_mouse_or_key();
 
@@ -610,7 +610,7 @@ char get_char(const char *prompt, const char *options, size_t len, char fallback
 	char buf[80];
 	strnfmt(buf, sizeof(buf), "%.70s[%s] ", prompt, options);
 
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 
 	struct keypress key = inkey_only_key();
 
@@ -650,7 +650,7 @@ static bool get_file_text(const char *suggested_name, char *path, size_t len)
 		return false;
 	}
 
-	show_prompt(format("Saving as %s.", path));
+	show_prompt(format("Saving as %s.", path), false);
 
 	inkey_any();
 
@@ -667,7 +667,7 @@ bool (*get_file)(const char *suggested_name, char *path, size_t len) = get_file_
 
 static bool get_com_mouse_or_key(const char *prompt, ui_event *command)
 {
-	show_prompt(prompt);
+	show_prompt(prompt, false);
 
 	*command = inkey_mouse_or_key();
 
@@ -684,7 +684,7 @@ static bool get_com_mouse_or_key(const char *prompt, ui_event *command)
  */
 bool textui_get_com(const char *prompt, char *command)
 {
-	show_prompt(prompt);
+	show_prompt(prompt, true);
 
 	struct keypress key = inkey_only_key();
 	*command = (char) key.code;
@@ -755,7 +755,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
 		if (event.type == EVT_NONE
 				|| (event.type == EVT_KBRD && target_dir(event.key) == 0))
 		{
-			show_prompt("Direction or <click> (Escape to cancel)? ");
+			show_prompt("Direction or <click> (Escape to cancel)?", false);
 			event = inkey_simple();
 		}
 
@@ -911,7 +911,7 @@ static int textui_get_count(void)
 	int count = 0;
 
 	while (true) {
-		show_prompt(format("Repeat: %d", count));
+		show_prompt(format("Repeat: %d", count), true);
 
 		struct keypress key = inkey_only_key();
 		if (key.code == ESCAPE) {

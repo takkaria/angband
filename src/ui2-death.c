@@ -215,7 +215,7 @@ static void death_info(const char *title, int index)
 
 	display_player(0);
 
-	show_prompt("Hit any key to see more information: ");
+	show_prompt("Hit any key to see more information:", false);
 
 	inkey_any();
 
@@ -223,7 +223,7 @@ static void death_info(const char *title, int index)
 	if (player->upkeep->equip_cnt) {
 		Term_clear();
 		show_equip(OLIST_WEIGHT | OLIST_SHOW_EMPTY | OLIST_DEATH, NULL);
-		show_prompt("You are using: -more-");
+		show_prompt("You are using: -more-", false);
 		inkey_any();
 	}
 
@@ -231,7 +231,7 @@ static void death_info(const char *title, int index)
 	if (player->upkeep->inven_cnt) {
 		Term_clear();
 		show_inven(OLIST_WEIGHT | OLIST_DEATH, NULL);
-		show_prompt("You are carrying: -more-");
+		show_prompt("You are carrying: -more-", false);
 		inkey_any();
 	}
 
@@ -239,7 +239,7 @@ static void death_info(const char *title, int index)
 	if (player->upkeep->quiver_cnt) {
 		Term_clear();
 		show_quiver(OLIST_WEIGHT | OLIST_DEATH, NULL);
-		show_prompt("Your quiver holds: -more-");
+		show_prompt("Your quiver holds: -more-", false);
 		inkey_any();
 	}
 
@@ -276,7 +276,7 @@ static void death_info(const char *title, int index)
 				loc.y++;
 			}
 
-			show_prompt(format("Your home contains (page %d): -more-", page));
+			show_prompt(format("Your home contains (page %d): -more-", page), false);
 
 			inkey_any();
 		}

@@ -482,16 +482,16 @@ void save_game(void)
 	handle_stuff(player);
 
 	/* Message */
-	show_prompt("Saving game...");
+	show_prompt("Saving game...", false);
 
 	/* The player is not dead */
 	my_strcpy(player->died_from, "(saved)", sizeof(player->died_from));
 
 	/* Save the player */
 	if (savefile_save(savefile)) {
-		show_prompt("Saving game... done.");
+		show_prompt("Saving game... done.", false);
 	} else {
-		show_prompt("Saving game... failed!");
+		show_prompt("Saving game... failed!", false);
 	}
 
 	/* Save monster memory to user directory */

@@ -221,7 +221,7 @@ static void help_goto_file(const struct help_file *help)
 	char name[HELP_LINE_SIZE];
 	my_strcpy(name, help->name, sizeof(name));
 
-	show_prompt("File:");
+	show_prompt("File:", false);
 	if (askfor_aux(name, sizeof(name), NULL)) {
 		show_file(name);
 	}
@@ -245,7 +245,7 @@ static void help_goto_line(struct help_file *help)
 	char line[HELP_LINE_SIZE];
 	my_strcpy(line, format("%zu", help->line), sizeof(line));
 
-	show_prompt("Line:");
+	show_prompt("Line:", false);
 
 	if (askfor_aux(line, sizeof(line), NULL)) {
 		help->line = strtol(line, NULL, 10);
@@ -292,7 +292,7 @@ static void help_display_rest(const struct help_file *help,
 
 static void help_find_line(struct help_file *help)
 {
-	show_prompt("Find:");
+	show_prompt("Find:", false);
 
 	if (askfor_aux(help->search.line, sizeof(help->search.line), NULL)) {
 

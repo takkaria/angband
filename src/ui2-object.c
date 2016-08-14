@@ -1100,7 +1100,7 @@ static void show_menu_prompt(const struct object_menu_data *data,
 	my_strcat(menu_prompt, " ",    sizeof(menu_prompt));
 	my_strcat(menu_prompt, header, sizeof(menu_prompt));
 
-	show_prompt(menu_prompt);
+	show_prompt(menu_prompt, false);
 }
 
 static void build_menu_list(struct object_menu_data *data, item_tester tester)
@@ -1548,7 +1548,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	Term_push_new(&hints);
 	menu_layout_term(menu);
 
-	show_prompt("(Enter to select, ESC) Ignore:");
+	show_prompt("(Enter to select, ESC) Ignore:", false);
 	int selected = menu_dynamic_select(menu);
 
 	Term_pop();

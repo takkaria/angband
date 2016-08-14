@@ -1455,7 +1455,7 @@ static void o_xtra_act(struct keypress key, int index)
 	} else if (key.code == '{') {
 		char buf[80] = {0};
 
-		show_prompt("Inscribe with: ");
+		show_prompt("Inscribe with: ", false);
 
 		/* Default note */
 		if (kind->note_aware || kind->note_unaware) {
@@ -1624,7 +1624,7 @@ static void rune_xtra_act(struct keypress key, int index)
 		/* Inscribe */
 		char note_text[80] = "";
 
-		show_prompt("Inscribe with: ");
+		show_prompt("Inscribe with: ", false);
 
 		/* Default note */
 		if (rune_note(index)) {
@@ -2247,7 +2247,7 @@ void textui_browse_knowledge(void)
 void do_cmd_message_one(void)
 {
 	/* Recall one message */
-	show_prompt(format("> %s", message_str(0)));
+	show_prompt(format("> %s", message_str(0)), false);
 }
 
 /**
@@ -2321,7 +2321,7 @@ void do_cmd_messages(void)
 		}
 
 		show_prompt(format("Message recall (%d-%d of %d), offset %d",
-					current, current + m - 1, n_messages, offset));
+					current, current + m - 1, n_messages, offset), false);
 
 		/* Display help (not very informative) */
 		if (search[0]) {
@@ -2356,7 +2356,7 @@ void do_cmd_messages(void)
 
 				case '=':
 					/* Get the string to find */
-					show_prompt("Find: ");
+					show_prompt("Find: ", false);
 					if (!askfor_aux(search, sizeof(search), NULL)) {
 						continue;
 					}

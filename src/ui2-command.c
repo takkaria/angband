@@ -81,7 +81,7 @@ void do_cmd_options_and_redraw(void)
  */
 void do_cmd_unknown(void)
 {
-	show_prompt("Type '?' for help.");
+	show_prompt("Type '?' for help.", false);
 }
 
 /**
@@ -141,14 +141,14 @@ void textui_cmd_suicide(void)
 			return;
 		}
 	} else {
-		if (!get_check("Do you really want to commit suicide? ")) {
+		if (!get_check("Do you really want to commit suicide? [y/n]")) {
 			return;
 		}
 
 		event_signal(EVENT_INPUT_FLUSH);
 
 		/* Special Verification for suicide */
-		show_prompt("Please verify SUICIDE by typing the '@' sign: ");
+		show_prompt("Please verify SUICIDE by typing the '@' sign: ", true);
 		struct keypress key = inkey_only_key();
 		clear_prompt();
 

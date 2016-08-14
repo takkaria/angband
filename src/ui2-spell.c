@@ -202,7 +202,7 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 	char buf[80];
 	strnfmt(buf, sizeof(buf), "%s which %s?", verb, noun);
 	my_strcap(buf);
-	show_prompt(buf);
+	show_prompt(buf, false);
 
 	menu_select(menu);
 
@@ -227,7 +227,7 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 	Term_push_new(&hints);
 	menu_layout_term(menu);
 
-	show_prompt(format("Browsing %ss.", noun));
+	show_prompt(format("Browsing %ss.", noun), false);
 
 	data->browse = true;
 	menu_select(menu);
