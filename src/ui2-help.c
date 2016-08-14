@@ -220,8 +220,12 @@ static void help_goto_file(const struct help_file *help)
 	my_strcpy(name, help->name, sizeof(name));
 
 	show_prompt("File: ", false);
+
 	if (askfor_aux(name, sizeof(name), NULL)) {
+		clear_prompt();
 		show_file(name);
+	} else {
+		clear_prompt();
 	}
 }
 
@@ -248,6 +252,8 @@ static void help_goto_line(struct help_file *help)
 	if (askfor_aux(line, sizeof(line), NULL)) {
 		help->line = strtol(line, NULL, 10);
 	}
+
+	clear_prompt();
 }
 
 static void help_set_regions(region *term_reg, region *text_reg)
@@ -293,6 +299,7 @@ static void help_find_line(struct help_file *help)
 	show_prompt("Find: ", false);
 
 	if (askfor_aux(help->search.line, sizeof(help->search.line), NULL)) {
+		clear_prompt();
 
 		my_strcpy(help->search.line_lc, help->search.line, sizeof(help->search.line_lc));
 		string_lower(help->search.line_lc);
@@ -308,6 +315,7 @@ static void help_find_line(struct help_file *help)
 				help->lines[l].line_lc : help->lines[l].line;
 
 			if (strstr(haystack, needle)) {
+				clear_prompt();
 				help->line = l;
 				help->highlight = true;
 				return;
@@ -316,6 +324,8 @@ static void help_find_line(struct help_file *help)
 
 		bell("Search string not found!");
 		memset(&help->search, 0, sizeof(help->search));
+	} else {
+		clear_prompt();
 	}
 }
 
