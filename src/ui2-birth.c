@@ -786,9 +786,8 @@ static void point_based_points(game_event_type type,
 
 	int *stats = data->birthstats.stats;
 
-	struct loc loc = {COSTS_COL, COSTS_ROW};
+	struct loc loc = {COSTS_COL, COSTS_ROW - 1};
 	/* Display the costs header above COSTS_ROW */
-	loc.y--;
 	put_str("Cost", loc);
 	loc.y++;
 	
