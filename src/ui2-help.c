@@ -342,11 +342,11 @@ static void help_display_page(struct help_file *help, region reg)
 			if (help->highlight) {
 				size_t slen = strlen(help->search);
 
-				for (const char *h = strstr(hline->line_lc, help->search);
-						h != NULL;
-						h = strstr(h + slen, help->search))
+				for (const char *found = strstr(hline->line_lc, help->search);
+						found != NULL;
+						found = strstr(found + slen, help->search))
 				{
-					ptrdiff_t pos = h - hline->line_lc;
+					ptrdiff_t pos = found - hline->line_lc;
 					Term_adds(reg.x + pos, y, slen, COLOUR_YELLOW, hline->line + pos);
 				}
 			}
