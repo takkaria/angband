@@ -251,7 +251,11 @@ static void help_goto_line(struct help_file *help)
 	show_prompt("Line: ", false);
 
 	if (askfor_aux(line, sizeof(line), NULL)) {
-		help->line = strtol(line, NULL, 10);
+		char *end = NULL;
+		long l = strtol(line, &end, 10);
+		if (line != end) {
+			help->line = l;
+		}
 	}
 
 	clear_prompt();
