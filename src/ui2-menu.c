@@ -79,7 +79,6 @@ static int menu_index(const struct menu *menu, int index)
 		assert(index < menu->filter_count);
 		return menu->filter_list[index];
 	} else {
-		assert(index < menu->count);
 		return index;
 	}
 }
