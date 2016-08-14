@@ -592,7 +592,6 @@ static void clear_question(void)
  */	
 static void print_menu_instructions(void)
 {
-	Term_clear();
 	Term_cursor_to_xy(QUESTION_COL, HEADER_ROW);
 	
 	struct text_out_info info  = {
