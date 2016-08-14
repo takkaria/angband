@@ -70,7 +70,6 @@ enum birth_stage {
 	BIRTH_COMPLETE
 };
 
-
 enum birth_questions {
 	BQ_METHOD = 0,
 	BQ_RACE,
@@ -772,7 +771,6 @@ static void point_based_misc(game_event_type type,
 	display_player_xtra_info();
 }
 
-
 /**
  * This is called whenever the points totals are changed (in birth.c), so
  * that we can update our display of how many points have been spent and
@@ -1343,7 +1341,6 @@ static void ui_leave_birthscreen(game_event_type type,
 
 	Term_pop();
 }
-
 
 void ui_init_birthstate_handlers(void)
 {
