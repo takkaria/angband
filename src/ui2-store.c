@@ -1077,7 +1077,7 @@ static bool store_menu_handle(struct menu *menu,
 				}
 				break;
 
-			case '?': {
+			case '?':
 				/* Toggle help */
 				if (ctx->flags & STORE_SHOW_HELP) {
 					ctx->flags &= ~STORE_SHOW_HELP;
@@ -1091,13 +1091,11 @@ static bool store_menu_handle(struct menu *menu,
 				store_display_recalc(ctx);
 				store_redraw(ctx);
 				break;
-			}
 
-			case '=': {
+			case '=':
 				do_cmd_options();
 				store_menu_set_selections(menu, false);
 				break;
-			}
 
 			default:
 				processed = store_process_command_key(event->key);
