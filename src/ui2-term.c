@@ -763,7 +763,7 @@ bool Term_point_ok(int x, int y)
 	return x >= 0
 		&& y >= 0
 		&& x < TOP->width
-		&& y < TOP->width;
+		&& y < TOP->height;
 }
 
 void Term_resize(int w, int h)
