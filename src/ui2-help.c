@@ -29,6 +29,7 @@ void show_file(const char *name);
 
 struct help_line {
 	char line[HELP_LINE_SIZE];
+	/* Lowercase line, for use with case-insensitive search */
 	char line_lc[HELP_LINE_SIZE];
 };
 
@@ -39,9 +40,8 @@ struct help_file {
 	int next; /* one past the last line */
 	int size; /* total number of allocated lines */
 
-	struct help_line search;
+	char search[HELP_LINE_SIZE];
 	bool highlight;
-	bool caseless;
 
 	char *menu_files[HELP_MAX_MENU_FILES];
 	bool menu;
@@ -298,24 +298,17 @@ static void help_find_line(struct help_file *help)
 {
 	show_prompt("Find: ", false);
 
-	if (askfor_aux(help->search.line, sizeof(help->search.line), NULL)) {
+	if (askfor_aux(help->search, sizeof(help->search), NULL)) {
 		clear_prompt();
 
-		my_strcpy(help->search.line_lc, help->search.line, sizeof(help->search.line_lc));
-		string_lower(help->search.line_lc);
-
-		const char *needle = help->caseless ? help->search.line_lc : help->search.line;
+		string_lower(help->search);
 
 		for (int n = 0, l = help->line; n < help->next; n++, l++) {
 			if (l == help->next) {
 				l = 0;
 			}
 
-			const char *haystack = help->caseless ?
-				help->lines[l].line_lc : help->lines[l].line;
-
-			if (strstr(haystack, needle)) {
-				clear_prompt();
+			if (strstr(help->lines[l].line_lc, help->search)) {
 				help->line = l;
 				help->highlight = true;
 				return;
@@ -347,13 +340,13 @@ static void help_display_page(struct help_file *help, region reg)
 			Term_adds(reg.x, y, reg.w, COLOUR_WHITE, hline->line);
 
 			if (help->highlight) {
-				const char *haystack = help->caseless ? hline->line_lc : hline->line;
-				const char *needle = help->caseless ? help->search.line_lc : help->search.line;
+				size_t nlen = strlen(help->search);
 
-				size_t nlen = strlen(needle);
-
-				for (const char *h = strstr(haystack, needle); h; h = strstr(h + nlen, needle)) {
-					ptrdiff_t pos = h - haystack;
+				for (const char *h = strstr(hline->line_lc, help->search);
+						h != NULL;
+						h = strstr(h + nlen, help->search))
+				{
+					ptrdiff_t pos = h - hline->line_lc;
 					Term_adds(reg.x + pos, y, nlen, COLOUR_YELLOW, hline->line + pos);
 				}
 			}
@@ -390,9 +383,6 @@ void show_file(const char *name)
 		switch (key.code) {
 			case '?': case ESCAPE:
 				done = true;
-				break;
-			case '!':
-				help->caseless = !help->caseless;
 				break;
 			case '&':
 				help->highlight = !help->highlight;
