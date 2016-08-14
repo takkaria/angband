@@ -784,7 +784,7 @@ void menu_ensure_cursor_valid(struct menu *menu)
 
 	/* If we've run off the end, without finding a valid row, put cursor
 	 * on the last row */
-	menu->cursor = count - 1;
+	menu->cursor = MAX(0, count - 1);
 }
 
 /* ======================== MENU INITIALIZATION ==================== */
