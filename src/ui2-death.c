@@ -73,7 +73,9 @@ static void print_tomb(void)
 		struct loc loc = {0, 0};
 
 		while (file_getl(fp, buf, sizeof(buf))) {
-			put_str(buf, loc);
+			if (*buf) {
+				put_str(buf, loc);
+			}
 			loc.y++;
 		}
 
@@ -155,7 +157,9 @@ static void display_winner(void)
 		loc.x = term_width / 2 - line_width / 2;
 
 		while (file_getl(fp, buf, sizeof(buf))) {
-			put_str(buf, loc);
+			if (*buf) {
+				put_str(buf, loc);
+			}
 			loc.y++;
 		}
 
