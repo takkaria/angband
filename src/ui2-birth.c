@@ -642,13 +642,11 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
 					point_based_start();
 					cmdq_push(CMD_RESET_STATS);
 					cmd_set_arg_choice(cmdq_peek(), "choice", true);
-					/* go to BIRTH_POINTBASED */
-					next_stage = current_stage + 1;
+					next_stage = BIRTH_POINTBASED;
 				} else {
 					/* Do a first roll of the stats */
 					cmdq_push(CMD_ROLL_STATS);
-					/* go to BIRTH_ROLLER */
-					next_stage = current_stage + 2;
+					next_stage = BIRTH_ROLLER;
 				}
 			} else {
 				cmdq_push(choice_command);
