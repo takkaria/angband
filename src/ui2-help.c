@@ -340,14 +340,14 @@ static void help_display_page(struct help_file *help, region reg)
 			Term_adds(reg.x, y, reg.w, COLOUR_WHITE, hline->line);
 
 			if (help->highlight) {
-				size_t nlen = strlen(help->search);
+				size_t slen = strlen(help->search);
 
 				for (const char *h = strstr(hline->line_lc, help->search);
 						h != NULL;
-						h = strstr(h + nlen, help->search))
+						h = strstr(h + slen, help->search))
 				{
 					ptrdiff_t pos = h - hline->line_lc;
-					Term_adds(reg.x + pos, y, nlen, COLOUR_YELLOW, hline->line + pos);
+					Term_adds(reg.x + pos, y, slen, COLOUR_YELLOW, hline->line + pos);
 				}
 			}
 		}
