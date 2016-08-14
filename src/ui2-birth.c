@@ -1236,14 +1236,18 @@ int textui_do_birth(void)
 			case BIRTH_POINTBASED:
 				roller = BIRTH_POINTBASED;
 				if (prev > BIRTH_POINTBASED) {
+					/* Another hack... see comments in menu_question() */
 					point_based_start();
-				}
-				next = point_based_command();
-				if (next == BIRTH_BACK) {
-					next = BIRTH_ROLLER_CHOICE;
-				}
-				if (next != BIRTH_POINTBASED) {
-					point_based_stop();
+					cmdq_push(CMD_RESET_STATS);
+					cmd_set_arg_choice(cmdq_peek(), "choice", true);
+				} else {
+					next = point_based_command();
+					if (next == BIRTH_BACK) {
+						next = BIRTH_ROLLER_CHOICE;
+					}
+					if (next != BIRTH_POINTBASED) {
+						point_based_stop();
+					}
 				}
 				break;
 
