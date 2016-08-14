@@ -496,6 +496,7 @@ void clear_prompt(void)
 {
 	Term_push(angband_message_line.term);
 	Term_clear();
+	Term_cursor_visible(false);
 	Term_flush_output();
 	Term_pop();
 }
@@ -503,12 +504,13 @@ void clear_prompt(void)
 /**
  * Display a simple prompt on the screen
  */
-void show_prompt(const char *str)
+void show_prompt(const char *str, bool cursor)
 {
 	event_signal(EVENT_MESSAGE_FLUSH);
 
 	Term_push(angband_message_line.term);
 	Term_clear();
+	Term_cursor_visible(cursor);
 	Term_adds(0, 0, Term_width(), COLOUR_WHITE, str);
 	Term_flush_output();
 	Term_pop();

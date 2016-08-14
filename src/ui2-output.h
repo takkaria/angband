@@ -105,7 +105,7 @@ void put_str(const char *str, struct loc at);
 void c_prt(uint32_t attr, const char *str, struct loc at);
 void prt(const char *str, struct loc at);
 
-void show_prompt(const char *str);
+void show_prompt(const char *str, bool cursor);
 void clear_prompt(void);
 
 /**
