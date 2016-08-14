@@ -427,7 +427,7 @@ static char code_from_key(const struct menu *menu,
 	return code;
 }
 
-static bool tag_eq_code(char tag, char code, bool caseless)
+static bool tag_eq_code(int tag, int code, bool caseless)
 {
 	if (caseless) {
 		tag = toupper((unsigned char) tag);
@@ -587,9 +587,6 @@ void menu_handle_keypress(struct menu *menu,
 		struct keypress key, ui_event *out)
 {
 	const int count = menu_count(menu);
-	if (count <= 0) {
-		return;
-	}
 
 	/* Get the new cursor position from the menu item tags */
 	int new_cursor = get_cursor_key(menu, key);
