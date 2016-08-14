@@ -166,21 +166,21 @@ static struct menu roller_menu;
 /**
  * upper left column and row, width, and lower column
  */
-static region race_region = {
+static const region race_region = {
 	.x = RACE_MENU_COL,
 	.y = BIRTH_MENU_ROW,
 	.w = RACE_MENU_WIDTH,
 	.h = BIRTH_MENU_HEIGHT
 };
 
-static region class_region = {
+static const region class_region = {
 	.x = CLASS_MENU_COL,
 	.y = BIRTH_MENU_ROW,
 	.w = CLASS_MENU_WIDTH,
 	.h = BIRTH_MENU_HEIGHT
 };
 
-static region roller_region = {
+static const region roller_region = {
 	.x = ROLLER_MENU_COL,
 	.y = BIRTH_MENU_ROW,
 	.w = ROLLER_MENU_WIDTH,
@@ -453,6 +453,10 @@ static void init_birth_menu(struct menu *menu,
 		int n_choices, int initial_choice,
 		region reg, bool allow_random, browse_f hook)
 {
+	assert(n_choices > 0);
+	assert(initial_choice >= 0);
+	assert(initial_choice < n_choices);
+
 	/* Initialise a basic menu */
 	menu_init(menu, MN_SKIN_SCROLL, &birth_iter);
 
