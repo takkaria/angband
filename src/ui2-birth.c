@@ -684,7 +684,6 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
 static enum birth_stage roller_command(bool first_call)
 {
 	char prompt[80] = {0};
-	size_t promptlen = 0;
 
 	enum birth_stage next = BIRTH_ROLLER;
 
@@ -699,11 +698,11 @@ static enum birth_stage roller_command(bool first_call)
 	}
 
 	/* Prepare a prompt (must squeeze everything in) */
-	strnfcat(prompt, sizeof (prompt), &promptlen, "['r' to reroll");
+	my_strcpy(prompt, "['r' to reroll", sizeof(prompt));
 	if (prev_roll) {
-		strnfcat(prompt, sizeof(prompt), &promptlen, ", 'p' for previous roll");
+		my_strcat(prompt, ", 'p' for previous roll", sizeof(prompt));
 	}
-	strnfcat(prompt, sizeof (prompt), &promptlen, " or 'Enter' to accept]");
+	my_strcat(prompt, " or 'Enter' to accept]", sizeof(prompt));
 
 	show_prompt(prompt, false);
 	
