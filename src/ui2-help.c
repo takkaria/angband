@@ -420,10 +420,10 @@ void show_file(const char *name)
 void do_cmd_help(void)
 {
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width    = ANGBAND_TERM_STANDARD_WIDTH,
+		.height   = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
-		.purpose = TERM_PURPOSE_TEXT
+		.purpose  = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
 
