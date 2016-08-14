@@ -1088,7 +1088,7 @@ bool edit_text(char *buffer, size_t buflen) {
  */
 static enum birth_stage get_history_command(void)
 {
-	enum birth_stage next = 0;
+	enum birth_stage next = BIRTH_HISTORY_CHOICE;
 	char old_history[240];
 
 	/* Save the original history */
@@ -1114,7 +1114,7 @@ static enum birth_stage get_history_command(void)
 		} else {
 			next = BIRTH_BACK;
 		}
-	} else {
+	} else if (key.code == 'Y' || key.code == 'y') {
 		next = BIRTH_FINAL_CONFIRM;
 	}
 
