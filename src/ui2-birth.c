@@ -1266,7 +1266,6 @@ int textui_do_birth(void)
 				if (next == BIRTH_BACK) {
 					next = roller;
 				}
-
 				break;
 
 			case BIRTH_HISTORY_CHOICE:
@@ -1277,7 +1276,6 @@ int textui_do_birth(void)
 				if (next == BIRTH_BACK) {
 					next = BIRTH_NAME_CHOICE;
 				}
-
 				break;
 
 			case BIRTH_FINAL_CONFIRM:
