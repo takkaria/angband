@@ -308,7 +308,7 @@ static void help_find_line(struct help_file *help)
 
 		string_lower(help->search);
 
-		for (int n = 0, l = help->line; n < help->next; n++, l++) {
+		for (int n = 0, l = help->line + 1; n < help->next; n++, l++) {
 			if (l == help->next) {
 				l = 0;
 			}
