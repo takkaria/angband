@@ -593,8 +593,6 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 	struct store *store = context->store;
 	struct object *obj = context->list[item];
 
-	clear_prompt();
-
 	/* Get an amount if we weren't given one */
 	int amt = 0;
 	if (single) {
@@ -970,6 +968,7 @@ static void context_menu_store_item(struct store_context *context,
 
 	menu_dynamic_free(menu);
 	string_free(labels);
+	clear_prompt();
 	Term_pop();
 
 	switch (selected) {
