@@ -221,14 +221,14 @@ static void store_display_recalc(struct store_context *context)
 	/* Clip the width at a max of 104 (enough room for an 80-char item name) */
 	width = MIN(width, 104);
 
-	/* Clip the text_out function at two smaller than the screen width */
-	context->text_out.wrap = width - 2;
+	/* Clip the text_out function at one smaller than the screen width */
+	context->text_out.wrap = width - 1;
 
 	/* X coords first */
-	context->scr_places_x[LOC_PRICE]  = width - 14;
+	context->scr_places_x[LOC_PRICE]  = width - 10;
 	context->scr_places_x[LOC_AU]     = width - 26;
-	context->scr_places_x[LOC_OWNER]  = width - 2;
-	context->scr_places_x[LOC_WEIGHT] = width - 14;
+	context->scr_places_x[LOC_OWNER]  = width - 1;
+	context->scr_places_x[LOC_WEIGHT] = width - 10;
 
 	if (store->sidx != STORE_HOME) {
 		/* Add space for for prices */
