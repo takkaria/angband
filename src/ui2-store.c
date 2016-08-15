@@ -214,21 +214,21 @@ static void store_display_recalc(struct store_context *context)
 	struct menu *menu = &context->menu;
 	struct store *store = context->store;
 
-	int width;
-	int height;
-	Term_get_size(&width, &height);
+	int term_width;
+	int term_height;
+	Term_get_size(&term_width, &term_height);
 
 	/* Clip the width at a max of 104 (enough room for an 80-char item name) */
-	width = MIN(width, 104);
+	term_width = MIN(term_width, 104);
 
 	/* Clip the text_out function at one smaller than the screen width */
-	context->text_out.wrap = width - 1;
+	context->text_out.wrap = term_width - 1;
 
 	/* X coords first */
-	context->scr_places_x[LOC_PRICE]  = width - 10;
-	context->scr_places_x[LOC_AU]     = width - 26;
-	context->scr_places_x[LOC_OWNER]  = width - 1;
-	context->scr_places_x[LOC_WEIGHT] = width - 9;
+	context->scr_places_x[LOC_AU]     = term_width - 26;
+	context->scr_places_x[LOC_OWNER]  = term_width - 1;
+	context->scr_places_x[LOC_WEIGHT] = term_width - 9;
+	context->scr_places_x[LOC_PRICE]  = term_width - 10;
 
 	if (store->sidx != STORE_HOME) {
 		/* Add space for for prices */
@@ -241,22 +241,22 @@ static void store_display_recalc(struct store_context *context)
 
 	/* If we are displaying help, make the height smaller */
 	if (context->flags & STORE_SHOW_HELP) {
-		height -= 3;
+		term_height -= 3;
 	}
 
-	context->scr_places_y[LOC_MORE] = height - 3;
-	context->scr_places_y[LOC_AU]   = height - 1;
+	context->scr_places_y[LOC_MORE] = term_height - 3;
+	context->scr_places_y[LOC_AU]   = term_height - 1;
 
 	region reg = store_menu_region;
 
 	/* If we're displaying the help, then put it with a line of padding */
 	if (context->flags & STORE_SHOW_HELP) {
-		context->scr_places_y[LOC_HELP_CLEAR]  = height - 1;
-		context->scr_places_y[LOC_HELP_PROMPT] = height;
+		context->scr_places_y[LOC_HELP_CLEAR]  = term_height - 1;
+		context->scr_places_y[LOC_HELP_PROMPT] = term_height;
 		reg.h = -5;
 	} else {
-		context->scr_places_y[LOC_HELP_CLEAR]  = height - 2;
-		context->scr_places_y[LOC_HELP_PROMPT] = height - 1;
+		context->scr_places_y[LOC_HELP_CLEAR]  = term_height - 2;
+		context->scr_places_y[LOC_HELP_PROMPT] = term_height - 1;
 		reg.h = -2;
 	}
 
