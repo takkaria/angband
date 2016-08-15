@@ -1145,7 +1145,6 @@ static void store_menu_init(struct store_context *context,
 	menu_setpriv(menu, 0, context);
 
 	/* Calculate the positions of things and draw */
-	menu_layout(menu, store_menu_region);
 	store_menu_set_selections(menu, inspect_only);
 	store_display_recalc(context);
 	store_menu_recalc(menu);
