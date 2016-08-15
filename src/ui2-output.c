@@ -155,41 +155,46 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
 
-	int width = orig_area.w > 0 ? orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
+	int term_width = orig_area.w > 0 ? orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
 
 	size_t n_lines = textblock_calculate_lines(tb,
-			&line_starts, &line_lengths, width);
+			&line_starts, &line_lengths, term_width);
+
+	/* Add one line for the header (if present) */
+	int term_height =
+		(orig_area.h > 0 ? orig_area.h : (int) n_lines) + (header ? 1 : 0);
 
 	struct term_hints hints = {
-		.width = width,
-		.height = orig_area.h > 0 ? orig_area.h : (int) n_lines + 2,
+		.width = term_width,
+		.height = term_height,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
 
 	region area = region_calculate(orig_area);
-	
-	/* Make room for the footer */
-	area.h -= 2;
 
 	if (header != NULL) {
-		area.h--;
-		c_prt(COLOUR_L_BLUE, header, loc(area.x, area.y));
+		c_prt(COLOUR_L_BLUE, header, loc(area.x, 0));
 		area.y++;
+		area.h--;
 	}
 
+	assert(area.w > 0);
+	assert(area.h > 0);
+
 	if (n_lines > (size_t) area.h) {
+		show_prompt("(Up/down or ESCAPE to exit.)", false);
+
 		int start_line = 0;
-
-		c_prt(COLOUR_L_BLUE, "(Up/down or ESCAPE to exit.)",
-				loc(area.x, area.h + 1));
-
 		bool done = false;
+
 		/* Pager mode */
 		while (!done) {
 			display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 					line_lengths, n_lines, start_line, area);
+
+			Term_flush_output();
 
 			struct keypress ch = inkey_only_key();
 
@@ -216,13 +221,14 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 			}
 		}
 	} else {
+		show_prompt("(Press any key to continue.)", false);
 		display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 				line_lengths, n_lines, 0, area);
-
-		c_prt(COLOUR_L_BLUE, "(Press any key to continue.)",
-				loc(area.x, n_lines + 1));
+		Term_flush_output();
 		inkey_any();
 	}
+
+	clear_prompt();
 
 	mem_free(line_starts);
 	mem_free(line_lengths);
