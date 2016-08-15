@@ -185,8 +185,9 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 		c_prt(COLOUR_L_BLUE, "(Up/down or ESCAPE to exit.)",
 				loc(area.x, area.h + 1));
 
+		bool done = false;
 		/* Pager mode */
-		while (true) {
+		while (!done) {
 			display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 					line_lengths, n_lines, start_line, area);
 
@@ -204,6 +205,7 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 					break;
 				case ESCAPE: /* fallthru */
 				case 'q':
+					done = true;
 					break;
 			}
 
