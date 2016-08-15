@@ -1226,10 +1226,7 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 
 	struct store *store = store_at(cave, player->py, player->px);
 
-	/* Check that we're on a store */
-	if (store == NULL) {
-		return;
-	}
+	assert(store != NULL);
 
 	/*** Display ***/
 	struct term_hints hints = {
