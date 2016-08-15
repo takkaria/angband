@@ -228,7 +228,7 @@ static void store_display_recalc(struct store_context *context)
 	context->scr_places_x[LOC_PRICE]  = width - 10;
 	context->scr_places_x[LOC_AU]     = width - 26;
 	context->scr_places_x[LOC_OWNER]  = width - 1;
-	context->scr_places_x[LOC_WEIGHT] = width - 10;
+	context->scr_places_x[LOC_WEIGHT] = width - 9;
 
 	if (store->sidx != STORE_HOME) {
 		/* Add space for for prices */
