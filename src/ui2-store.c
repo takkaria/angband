@@ -962,6 +962,7 @@ static void context_menu_store_item(struct store_context *context,
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
+	menu_layout_term(menu);
 
 	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
 
