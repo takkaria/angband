@@ -4111,7 +4111,7 @@ static void position_subwindow_exact(const struct subwindow *origin,
 	subwindow->full_rect.x = origin->full_rect.x +
 		hints->x * origin->cell_width;
 
-	subwindow->full_rect.x = origin->full_rect.y +
+	subwindow->full_rect.y = origin->full_rect.y +
 		hints->y * origin->cell_height;
 }
 
