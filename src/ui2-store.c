@@ -779,8 +779,6 @@ static void store_menu_recalc(struct menu *menu)
  */
 static bool store_process_command_key(struct keypress kp)
 {
-	clear_prompt();
-
 	cmd_code cmd = CMD_NULL;
 
 	/* Process the keycode */
