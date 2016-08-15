@@ -148,20 +148,20 @@ static void prt_welcome(const struct owner *proprietor)
 		return;
 	}
 
-	char short_name[20] = {0};
-	my_strcpy(short_name, proprietor->name, sizeof(short_name));
-	/* Get the first name of the store owner (truncate at the first space) */
-	for (size_t i = 0; i < sizeof(short_name) && short_name[i]; i++) {
-		if (short_name[i] == ' ') {
-			short_name[i] = 0;
-			break;
-		}
-	}
-
 	if (one_in_(3)) {
 		msg(comment_hint[ randint0(N_ELEMENTS(comment_hint)) ],
 				random_hint());
 	} else if (player->lev > 5) {
+		char short_name[20] = {0};
+		my_strcpy(short_name, proprietor->name, sizeof(short_name));
+		/* Get the first name of the store owner (truncate at the first space) */
+		for (size_t i = 0; i < sizeof(short_name) && short_name[i]; i++) {
+			if (short_name[i] == ' ') {
+				short_name[i] = 0;
+				break;
+			}
+		}
+
 		/* We go from level 1 - 50  */
 		size_t l = ((unsigned) player->lev - 1) / 5;
 		size_t i = MIN(l, N_ELEMENTS(comment_welcome) - 1);
