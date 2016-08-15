@@ -182,7 +182,6 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	if (n_lines > (size_t) area.h) {
 		int start_line = 0;
 
-		c_prt(COLOUR_WHITE, "", loc(area.x, area.h));
 		c_prt(COLOUR_L_BLUE, "(Up/down or ESCAPE to exit.)",
 				loc(area.x, area.h + 1));
 
@@ -218,7 +217,6 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 		display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
 				line_lengths, n_lines, 0, area);
 
-		c_prt(COLOUR_WHITE, "", loc(area.x, n_lines));
 		c_prt(COLOUR_L_BLUE, "(Press any key to continue.)",
 				loc(area.x, n_lines + 1));
 		inkey_any();
