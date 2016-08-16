@@ -1254,9 +1254,6 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	/* Take a turn */
 	player->upkeep->energy_use = z_info->move_energy;
 
-	/* Flush messages */
-	event_signal(EVENT_MESSAGE_FLUSH);
-
 	Term_pop();
 }
 
