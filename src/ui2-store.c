@@ -222,7 +222,9 @@ static void store_display_recalc(struct store_context *context)
 	term_width = MIN(term_width, 104);
 
 	/* Clip the text_out function at one smaller than the screen width */
-	context->text_out.wrap = term_width - 1;
+	context->text_out.indent = 1;
+	context->text_out.pad    = 0;
+	context->text_out.wrap   = term_width - 1;
 
 	/* X coords first */
 	context->scr_places_x[LOC_AU]     = term_width - 26;
@@ -393,9 +395,8 @@ static void store_display_help(struct store_context *context)
 	struct text_out_info info = context->text_out;
 
 	/* Prepare help hooks */
-	info.indent = 1;
 	clear_from(context->scr_places_y[LOC_HELP_CLEAR]);
-	Term_cursor_to_xy(1, context->scr_places_y[LOC_HELP_PROMPT]);
+	Term_cursor_to_xy(info.indent, context->scr_places_y[LOC_HELP_PROMPT]);
 
 	if (OPT(rogue_like_commands)) {
 		text_out_c(info, COLOUR_L_GREEN, "x");
