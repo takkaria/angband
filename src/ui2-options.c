@@ -905,8 +905,6 @@ static void ego_menu(void)
 		return;
 	}
 
-	fprintf(stderr, "max choice %d\n", max_choice);
-
 	/* Sort the array by ego item name */
 	sort(choice, max_choice, sizeof(*choice), ego_comp_func);
 
@@ -935,8 +933,12 @@ static void ego_menu(void)
 	};
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
 	menu_setpriv(&menu, max_choice, choice);
+	mnflag_on(menu.flags, MN_NO_TAGS);
 	region area = {1, 5, -1, -1};
 	menu_layout(&menu, area);
+
+	Term_cursor_visible(true);
+	menu_set_cursor_x_offset(&menu, 1); /* Put cursor in brackets */
 
 	menu_select(&menu);
 
