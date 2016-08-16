@@ -2237,7 +2237,7 @@ void textui_browse_knowledge(void)
 	};
 	Term_push_new(&hints);
 
-	region reg = {0, 0, -1, 19};
+	region reg = {0, 0, 0, N_ELEMENTS(knowledge_actions) + 2};
 	menu_layout(&knowledge_menu, reg);
 
 	menu_select(&knowledge_menu);
