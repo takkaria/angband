@@ -912,6 +912,7 @@ static int context_menu_store(struct store_context *context,
 
 	menu_dynamic_free(menu);
 	string_free(labels);
+	clear_prompt();
 	Term_pop();
 
 	switch (selected) {
