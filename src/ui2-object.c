@@ -410,13 +410,18 @@ static void build_obj_list(struct object_menu_list *olist,
 	set_obj_names(olist, terse);
 }
 
+static int quiver_slots(int stack)
+{
+	return (player->upkeep->quiver_cnt + stack - 1) / stack;
+}
+
 /* Returns coords of the next row (after the ones shown) */
 static struct loc show_quiver_compact(const char *keys, struct loc loc)
 {
 	char buf[80];
 
 	int stack = z_info->stack_size;
-	int slots = (player->upkeep->quiver_cnt + stack - 1) / stack;
+	int slots = quiver_slots(stack);
 	int last_slot = slots - 1;
 
 	uint32_t attr = menu_row_style(false, false);
