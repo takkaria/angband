@@ -1005,7 +1005,7 @@ static bool store_menu_handle(struct menu *menu,
 		} else if (event->mouse.button == MOUSE_BUTTON_LEFT) {
 			bool action = false;
 
-			if ((event->mouse.y == 0) || (event->mouse.y == 1)) {
+			if (event->mouse.y == 0 || event->mouse.y == 1) {
 				/* show the store context menu */
 				if (!context_menu_store(context, index,
 							loc(event->mouse.x, event->mouse.y)))
