@@ -128,13 +128,14 @@ static bool menu_action_handle(struct menu *menu, const ui_event *event, int ind
 	menu_action *acts = menu_priv(menu);
 
 	if (event->type != EVT_SELECT
-			|| (acts[index].flags & MN_ACT_GRAYED)
 			|| acts[index].action == NULL)
 	{
 		return false;
 	}
 
-	acts[index].action(acts[index].name, index);
+	if (!(acts[index].flags & MN_ACT_GRAYED)) {
+		acts[index].action(acts[index].name, index);
+	}
 
 	return true;
 }
