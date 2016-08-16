@@ -739,6 +739,20 @@ static const char *strip_ego_name(const char *name)
 	}
 }
 
+/*
+ * Find size of the prefix, stripped in strip_ego_name()
+ */
+static ptrdiff_t find_prefix_size(const char *haystack, const char *needle)
+{
+	const char *s = strstr(haystack, needle);
+
+	if (s != NULL && strlen(s) == strlen(needle)) {
+		return haystack - s;
+	} else {
+		return 0;
+	}
+}
+
 /**
  * Display an ego item type on the screen.
  */
@@ -764,18 +778,16 @@ int ego_item_name(char *buf, size_t buf_size, struct ego_desc *desc)
 	/* Append an extra space */
 	end += my_strcat(buf, " ", buf_size);
 
-	/* Get the full ego item name */
-	const char *long_name = ego->name;
-
 	/* Get the length of the common prefix, if any */
-	size_t prefix_size = desc->short_name - long_name;
+	ptrdiff_t prefix_size = find_prefix_size(ego->name, desc->short_name);
 
 	/* Found a prefix? */
 	if (prefix_size > 0) {
+		fprintf(stderr, "prefix %d\n", (int) prefix_size);
 		char prefix[100];
 
 		/* Get a copy of the prefix */
-		my_strcpy(prefix, long_name, prefix_size + 1);
+		my_strcpy(prefix, ego->name, prefix_size);
 
 		/* Append the prefix */
 		end += my_strcat(buf, prefix, buf_size);
@@ -892,6 +904,8 @@ static void ego_menu(void)
 		mem_free(choice);
 		return;
 	}
+
+	fprintf(stderr, "max choice %d\n", max_choice);
 
 	/* Sort the array by ego item name */
 	sort(choice, max_choice, sizeof(*choice), ego_comp_func);
