@@ -873,7 +873,7 @@ enum {
 	ACT_EXAMINE,
 	ACT_BUY,
 	ACT_BUY_ONE,
-	ACT_EXIT
+	ACT_BACK
 };
 
 /* Pick the context menu options appropiate for a store */
@@ -892,7 +892,6 @@ static int context_menu_store(struct store_context *context,
 
 	menu_dynamic_add_label(menu, "Inspect inventory", 'I', ACT_INSPECT_INVEN, labels);
 	menu_dynamic_add_label(menu, home ? "Stash" : "Sell", 'd', ACT_SELL, labels);
-	menu_dynamic_add_label(menu, "Exit", '`', ACT_EXIT, labels);
 
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
@@ -918,15 +917,13 @@ static int context_menu_store(struct store_context *context,
 	switch (selected) {
 		case ACT_SELL:
 			store_sell(context);
-			break;
+			return true;
 		case ACT_INSPECT_INVEN:
 			textui_obj_examine();
-			break;
-		case ACT_EXIT:
+			return true;
+		default:
 			return false;
 	}
-
-	return true;
 }
 
 /* pick the context menu options appropiate for an item available in a store */
