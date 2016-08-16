@@ -821,7 +821,7 @@ static void menu_header(const struct object_menu_data *data,
 	strnfmt(header, header_size, "(%s)", out_buf);
 }
 
-static void handle_menu_key_action(struct object_menu_data *data,
+static bool handle_menu_key_action(struct object_menu_data *data,
 		struct keypress key)
 {
 	const bool inven  = ((data->item_mode & USE_INVEN)  || data->allow_all) ?
@@ -844,7 +844,7 @@ static void handle_menu_key_action(struct object_menu_data *data,
 			} else {
 				bell("Cannot switch item selector!");
 			}
-			break;
+			return false;
 
 		case '|':
 			if (quiver) {
@@ -853,7 +853,7 @@ static void handle_menu_key_action(struct object_menu_data *data,
 			} else {
 				bell("Cannot select quiver!");
 			}
-			break;
+			return false;
 
 		case '-':
 			if (floor) {
@@ -862,15 +862,15 @@ static void handle_menu_key_action(struct object_menu_data *data,
 			} else {
 				bell("Cannot select floor!");
 			}
-			break;
+			return false;
 
 		default:
 			bell("bad selector '%u' in item menu!", (unsigned) key.code);
-			break;
+			return true;
 	}
 }
 
-static void handle_menu_select_action(struct object_menu_data *data,
+static bool handle_menu_select_action(struct object_menu_data *data,
 		int index)
 {
 	struct object *obj = data->list->items[index].object;
@@ -882,6 +882,11 @@ static void handle_menu_select_action(struct object_menu_data *data,
 				(data->item_mode & IS_HARMLESS)))
 	{
 		data->retval.object = obj;
+		/* Stop the menu */
+		return false;
+	} else {
+		/* Let the menu continue to work */
+		return true;
 	}
 }
 
@@ -893,6 +898,13 @@ static char get_item_tag(struct menu *menu, int index)
 	struct object_menu_data *data = menu_priv(menu);
 
 	return data->list->items[index].key;
+}
+
+static bool get_item_validity(struct menu *menu, int index)
+{
+	struct object_menu_data *data = menu_priv(menu);
+
+	return data->list->items[index].object != NULL;
 }
 
 /**
@@ -917,13 +929,12 @@ static bool get_item_action(struct menu *menu, const ui_event *event, int index)
 	struct object_menu_data *data = menu_priv(menu);
 
 	if (event->type == EVT_SELECT) {
-		handle_menu_select_action(data, index);
+		return handle_menu_select_action(data, index);
 	} else if (event->type == EVT_KBRD) {
-		handle_menu_key_action(data, event->key);
+		return handle_menu_key_action(data, event->key);
+	} else {
+		return false;
 	}
-
-	/* Stop the menu */
-	return false;
 }
 
 /**
@@ -1038,6 +1049,7 @@ static void item_menu(struct object_menu_data *data)
 {
 	menu_iter iter = {
 		.get_tag     = get_item_tag,
+		.valid_row   = get_item_validity,
 		.display_row = get_item_display,
 		.row_handler = get_item_action
 	};
