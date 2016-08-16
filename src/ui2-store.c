@@ -873,7 +873,6 @@ enum {
 	ACT_EXAMINE,
 	ACT_BUY,
 	ACT_BUY_ONE,
-	ACT_BACK
 };
 
 /* Pick the context menu options appropiate for a store */
