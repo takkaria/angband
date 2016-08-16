@@ -1010,7 +1010,7 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
 	(void) e;
 
 	struct term_hints hints = {
-		.x = 37,
+		.x = 35,
 		.y = 2 + index,
 		.width = 29,
 		.height = IGNORE_MAX,
@@ -1034,6 +1034,7 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
 	};
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
 	menu_setpriv(&menu, count, quality_values);
+	mnflag_on(menu.flags, MN_NO_TAGS);
 	menu_layout_term(&menu);
 
 	ui_event event = menu_select(&menu);
