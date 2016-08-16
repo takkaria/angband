@@ -1193,7 +1193,7 @@ static int ignore_collect_kind(int tval, ignore_choice **c)
 	int n_choices = 0;
 
 	/* Create the array, with entries both for aware and unaware ignore */
-	ignore_choice *choice = mem_alloc(2 * z_info->k_max * sizeof(*choice));
+	ignore_choice *choice = mem_zalloc(2 * z_info->k_max * sizeof(*choice));
 
 	for (int i = 1; i < z_info->k_max; i++) {
 		struct object_kind *kind = &k_info[i];
