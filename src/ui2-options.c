@@ -602,6 +602,8 @@ static void do_cmd_delay(const char *name, int index)
 		u16b val = strtoul(tmp, NULL, 0);
 		op_ptr->delay_factor = MIN(val, 255);
 	}
+
+	clear_prompt();
 }
 
 /**
@@ -623,6 +625,8 @@ static void do_cmd_hp_warn(const char *name, int index)
 		}
 		op_ptr->hitpoint_warn = warn;
 	}
+
+	clear_prompt();
 }
 
 /**
@@ -640,6 +644,8 @@ static void do_cmd_lazymove_delay(const char *name, int index)
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
 		op_ptr->lazymove_delay = strtoul(tmp, NULL, 0);
 	}
+
+	clear_prompt();
 }
 
 /**
@@ -664,6 +670,8 @@ static void do_cmd_pref_file(const char *prompt)
 		} else {
 			msg("Loaded '%s'.", ftmp);
 		}
+	} else {
+		clear_prompt();
 	}
 }
  
