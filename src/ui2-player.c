@@ -1092,7 +1092,6 @@ static int change_mode(int mode, int inc)
 void do_cmd_change_name(void)
 {
 	const char *prompt = "['c' to change name, 'f' to file, 'h' to change mode, or ESC]";
-	const int prompt_len = strlen(prompt);
 
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
@@ -1102,13 +1101,13 @@ void do_cmd_change_name(void)
 	};
 	Term_push_new(&hints);
 
+	show_prompt(prompt, false);
+
 	int mode = 0;
 	bool done = false;
 
 	while (!done) {
 		display_player(mode);
-
-		Term_adds(2, hints.height - 1, prompt_len, COLOUR_WHITE, prompt);
 
 		ui_event event = inkey_simple();
 
@@ -1161,6 +1160,8 @@ void do_cmd_change_name(void)
 
 		event_signal(EVENT_MESSAGE_FLUSH);
 	}
+
+	clear_prompt();
 
 	Term_pop();
 }
