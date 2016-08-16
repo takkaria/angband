@@ -1251,8 +1251,11 @@ static bool sval_menu(int tval, const char *desc)
 	struct menu *menu = menu_new(MN_SKIN_COLUMNS, &ignore_sval_menu);
 	menu_setpriv(menu, n_choices, choices);
 	menu->command_keys = "Tt";
-	menu_layout_term(menu);
+	region reg = {2, 1, 0, -1};
+	menu_layout(menu, reg);
 	menu_set_cursor_x_offset(menu, 1); /* Place cursor in brackets. */
+	mnflag_on(menu->flags, MN_NO_TAGS);
+	Term_cursor_visible(true);
 
 	menu_select(menu);
 
