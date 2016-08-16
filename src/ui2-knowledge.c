@@ -229,8 +229,19 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 	}
 }
 
+static void knowledge_screen_draw_menu_names(int g_name_max_len,
+		bool group_menu, bool object_menu)
+{
+	struct loc loc = {0, 0};
+
+	loc.y = 4;
+	c_prt(group_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Group", loc);
+
+	loc.x = g_name_max_len + 3;
+	c_prt(object_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Name", loc);
+}
+
 static void knowledge_screen_draw(const char *title,
-		bool group_menu, bool object_menu,
 		const char *other_fields, region title_region, int g_name_max_len)
 {
 	struct loc loc = {0, 0};
@@ -239,12 +250,6 @@ static void knowledge_screen_draw(const char *title,
 
 	loc.y = 2;
 	prt(format("Knowledge - %s", title), loc);
-
-	loc.y = 4;
-	c_prt(group_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Group", loc);
-
-	loc.x = g_name_max_len + 3;
-	c_prt(object_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Name", loc);
 
 	if (other_fields) {
 		loc.x = 46;
@@ -402,6 +407,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	struct menu *active_menu = &group_menu;
 	struct menu *inactive_menu = &object_menu;
 
+	knowledge_screen_draw(title,
+			other_fields, title_region, g_name_max_len);
+
 	while (!stop && g_count) {
 
 		if (g_cur != g_old) {
@@ -422,9 +430,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			swap = false;
 		}
 
-		knowledge_screen_draw(title,
-				active_menu == &group_menu, active_menu == &object_menu,
-				other_fields, title_region, g_name_max_len);
+		knowledge_screen_draw_menu_names(g_name_max_len,
+				active_menu == &group_menu, active_menu == &object_menu);
 
 		menu_refresh(inactive_menu);
 		menu_refresh(active_menu);
