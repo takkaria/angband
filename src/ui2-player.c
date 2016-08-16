@@ -533,7 +533,7 @@ static void display_player_sust_info(void)
 
 	/* Check stats */
 	loc.y = row;
-	for (int stat = 0; stat < STAT_MAX; loc.y++) {
+	for (int stat = 0; stat < STAT_MAX; stat++, loc.y++) {
 		/* Default */
 		uint32_t attr = COLOUR_SLATE;
 		wchar_t ch = '.';
