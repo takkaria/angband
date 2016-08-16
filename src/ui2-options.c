@@ -957,16 +957,6 @@ static int cmp_ignore(const void *a, const void *b)
 }
 
 /**
- * Determine if an item is a valid choice
- */
-bool quality_validity(struct menu *menu, int index)
-{
-	(void) menu;
-
-	return index != 0;
-}
-
-/**
  * Display an entry in the menu.
  */
 static void quality_display(struct menu *menu,
@@ -975,9 +965,9 @@ static void quality_display(struct menu *menu,
 	(void) menu;
 	(void) width;
 
-	if (index == 0) {
-		return;
-	}
+	index++;
+	assert(index > ITYPE_NONE);
+	assert(index < ITYPE_MAX);
 
 	const char *level_name = quality_values[ignore_level[index]].name;
 	const char *name = quality_choices[index].name;
@@ -1008,6 +998,10 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
 {
 	(void) m;
 	(void) e;
+
+	index++;
+	assert(index > ITYPE_NONE);
+	assert(index < ITYPE_MAX);
 
 	struct term_hints hints = {
 		.x = 35,
@@ -1056,7 +1050,6 @@ static void quality_menu(void)
 {
 	struct menu menu;
 	menu_iter menu_f = {
-		.valid_row   = quality_validity,
 		.display_row = quality_display,
 		.row_handler = quality_action
 	};
@@ -1071,7 +1064,8 @@ static void quality_menu(void)
 	/* Set up the menu */
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
 	menu.title = "Quality ignore menu";
-	menu_setpriv(&menu, ITYPE_MAX, quality_values);
+	/* Take into account ITYPE_NONE - we don't want to display that */
+	menu_setpriv(&menu, ITYPE_MAX - 1, quality_values);
 	mnflag_on(menu.flags, MN_NO_TAGS);
 	region reg = {0, 0, 0, -1};
 	menu_layout(&menu, reg);
