@@ -1337,7 +1337,9 @@ bool textui_get_item(struct object **choice,
 				.position = TERM_POSITION_TOP_CENTER
 			};
 
-			if (data.olist_mode & OLIST_QUIVER_COMPACT) {
+			if (player->upkeep->command_wrk == USE_INVEN
+					&& data.olist_mode & OLIST_QUIVER_COMPACT)
+			{
 				/* Add space for quiver */
 				hints.height += quiver_slots(z_info->stack_size);
 			}
