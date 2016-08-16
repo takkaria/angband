@@ -770,7 +770,7 @@ int ego_item_name(char *buf, size_t buf_size, struct ego_desc *desc)
 	}
 
 	/* Initialize the buffer */
-	int end = my_strcat(buf, "[ ] ", buf_size);
+	int end = my_strcpy(buf, "[ ] ", buf_size);
 
 	/* Append the name */
 	end += my_strcat(buf, quality_choices[i].name, buf_size);
