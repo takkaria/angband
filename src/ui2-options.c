@@ -224,7 +224,7 @@ void do_cmd_options_birth(void)
 /**
  * Current (or recent) keymap action
  */
-static struct keypress keymap_buffer[KEYMAP_ACTION_MAX];
+static struct keypress keymap_buffer[KEYMAP_ACTION_MAX + 1];
 
 /**
  * Ask for, and display, a keymap trigger.
