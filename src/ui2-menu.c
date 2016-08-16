@@ -476,7 +476,7 @@ static int get_cursor_key(struct menu *menu, struct keypress key)
 static void display_menu_row(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
-	index = menu_index(menu, index);
+	int id = menu_index(menu, index);
 
 	Term_erase(loc.x, loc.y, width);
 
@@ -486,7 +486,7 @@ static void display_menu_row(struct menu *menu,
 		if (menu->selections && !mnflag_has(menu->flags, MN_PVT_TAGS)) {
 			sel = menu->selections[index];
 		} else if (menu->iter->get_tag) {
-			sel = menu->iter->get_tag(menu, index);
+			sel = menu->iter->get_tag(menu, id);
 		}
 
 		if (sel != 0) {
@@ -498,7 +498,7 @@ static void display_menu_row(struct menu *menu,
 		loc.x += 3;
 	}
 
-	menu->iter->display_row(menu, index, cursor, loc, width);
+	menu->iter->display_row(menu, id, cursor, loc, width);
 }
 
 void menu_refresh(struct menu *menu)
