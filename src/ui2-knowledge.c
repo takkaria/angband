@@ -251,7 +251,7 @@ static void knowledge_screen_draw(const char *title, const char *other_fields,
 	}
 
 	/* Print dividers: horizontal and vertical */
-	for (int x = 0; x < 80; x++) {
+	for (int x = 0; x < ANGBAND_TERM_STANDARD_WIDTH; x++) {
 		Term_addwc(x, 5, COLOUR_WHITE, '=');
 	}
 
@@ -348,8 +348,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	mem_free(g_list);
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -841,7 +841,7 @@ static void display_artifact(int index, bool cursor, struct loc loc, int width)
 {
 	(void) width;
 
-	char o_name[80];
+	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 	get_artifact_display_name(o_name, sizeof(o_name), index);
 
 	uint32_t attr = menu_row_style(true, cursor);
@@ -932,7 +932,7 @@ static void desc_art_fake(int a_idx)
 
 	textblock *tb = object_info(obj, OINFO_NONE);
 
-	char header[80];
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(header, sizeof(header), obj,
 			ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL);
 
@@ -1246,7 +1246,7 @@ static void display_object(int index, bool cursor, struct loc loc, int width)
 	bool aware = (!kind->flavor || kind->aware);
 	uint32_t attr = menu_row_style(aware, cursor);
 
-	char o_name[80];
+	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 	/* Display known artifacts differently */
 	if (kf_has(kind->kind_flags, KF_INSTA_ART)
 			&& artifact_is_known(get_artifact_from_kind(kind)))
@@ -1314,7 +1314,7 @@ static void desc_obj_fake(int k_idx)
 	}
 	obj->known = known_obj;
 
-	char header[80];
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_CAPITAL);
 
 	textblock *tb = object_info(obj, OINFO_FAKE);
@@ -1453,7 +1453,7 @@ static void o_xtra_act(struct keypress key, int index)
 	if (key.code == '}') {
 		remove_autoinscription(index);
 	} else if (key.code == '{') {
-		char buf[80] = {0};
+		char buf[ANGBAND_TERM_STANDARD_WIDTH] = {0};
 
 		show_prompt("Inscribe with: ", false);
 
@@ -1622,7 +1622,7 @@ static void rune_xtra_act(struct keypress key, int index)
 		rune_set_note(index, NULL);
 	} else if (key.code == '{') {
 		/* Inscribe */
-		char note_text[80] = "";
+		char note_text[ANGBAND_TERM_STANDARD_WIDTH] = "";
 
 		show_prompt("Inscribe with: ", false);
 
@@ -2221,8 +2221,8 @@ void textui_browse_knowledge(void)
 	}
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -2267,8 +2267,8 @@ void do_cmd_message_one(void)
  */
 void do_cmd_messages(void)
 {
-	const int term_width = 80;
-	const int term_height = 24;
+	const int term_width = ANGBAND_TERM_STANDARD_WIDTH;
+	const int term_height = ANGBAND_TERM_STANDARD_HEIGHT;
 
 	struct term_hints hints = {
 		.width = term_width,
@@ -2281,7 +2281,7 @@ void do_cmd_messages(void)
 	const int last_msg_pos = term_height - 3;
 	const struct loc help_loc = {0, term_height - 1};
 
-	char search[80] = {0};
+	char search[ANGBAND_TERM_STANDARD_WIDTH] = {0};
 
 	/* Total messages */
 	int n_messages = messages_num();
@@ -2502,7 +2502,7 @@ void do_cmd_locate(void)
 		int cury = angband_cave.offset_x;
 		int curx = angband_cave.offset_y;
 		
-		char sector[80];
+		char sector[ANGBAND_TERM_STANDARD_WIDTH];
 		if (startx == curx && starty == cury) {
 			sector[0] = 0;
 		} else {
@@ -2511,7 +2511,7 @@ void do_cmd_locate(void)
 					((curx < startx) ? " west"  : (curx > startx) ? " east"  : ""));
 		}
 
-		char prompt[80];
+		char prompt[ANGBAND_TERM_STANDARD_WIDTH];
 		if (OPT(center_player)) {
 			strnfmt(prompt, sizeof(prompt),
 		        	"Map sector [%d(%02d), %d(%02d)], which is%s your sector.  Direction?",
