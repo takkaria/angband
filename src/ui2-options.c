@@ -48,7 +48,7 @@ static bool get_pref_path(const char *what, char *buf, size_t bufsize)
 	show_prompt(format("%s to a pref file: ", what), false);
 
 	/* Default filename */
-	char ftmp[80];
+	char ftmp[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(ftmp, sizeof(ftmp), "%s.prf", player_safe_name(player, true));
 	
 	/* Get a filename */
@@ -127,8 +127,8 @@ static bool option_toggle_handle(struct menu *menu,
 			option_set(option_name(index), !op_ptr->opt[index]);
 		} else if (event->key.code == '?') {
 			struct term_hints hints = {
-				.width = 80,
-				.height = 24,
+				.width = ANGBAND_TERM_STANDARD_WIDTH,
+				.height = ANGBAND_TERM_STANDARD_HEIGHT,
 				.position = TERM_POSITION_CENTER,
 				.purpose = TERM_PURPOSE_TEXT
 			};
@@ -195,8 +195,8 @@ static void option_toggle_menu(const char *name, int page)
 
 	/* Run the menu */
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -240,7 +240,7 @@ static struct keypress keymap_get_trigger(void)
 
 	buf[0] = inkey_only_key();
 
-	char tmp[80];
+	char tmp[ANGBAND_TERM_STANDARD_WIDTH];
 	keypress_to_text(tmp, sizeof(tmp), buf, false);
 
 	Term_puts(sizeof(tmp), COLOUR_WHITE, tmp);
@@ -429,7 +429,7 @@ static void do_cmd_keymaps(const char *title, int index)
 	region reg = {0, 0, 0, 12};
 
 	struct term_hints hints = {
-		.width = 80,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = reg.h + 8,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
@@ -532,8 +532,8 @@ static void do_cmd_visuals(const char *title, int index)
 	(void) index;
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -655,7 +655,7 @@ static void do_cmd_pref_file(const char *prompt)
 	}
 
 	/* Default filename */
-	char ftmp[80];
+	char ftmp[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(ftmp, sizeof(ftmp), "%s.prf", player_safe_name(player, true));
 
 	/* Ask for a file (or cancel) */
@@ -788,7 +788,7 @@ static void ego_display(struct menu * menu,
 	uint32_t sq_attr = ignored ? COLOUR_L_RED : COLOUR_L_GREEN;
 
 	/* Acquire the name of object */
-	char buf[80];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	ego_item_name(buf, sizeof(buf), &choice[index]);
 
 	/* Print it */
@@ -862,8 +862,8 @@ static void ego_menu(void)
 	show_prompt("Ego item ignore menu", false);
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
@@ -923,8 +923,8 @@ static int cmp_ignore(const void *a, const void *b)
 		return -1;
 	}
 
-	char bufa[80];
-	char bufb[80];
+	char bufa[ANGBAND_TERM_STANDARD_WIDTH];
+	char bufb[ANGBAND_TERM_STANDARD_WIDTH];
 
 	object_kind_name(bufa, sizeof(bufa), choicea->kind, choicea->aware);
 	object_kind_name(bufb, sizeof(bufb), choiceb->kind, choiceb->aware);
@@ -1036,8 +1036,8 @@ static void quality_menu(void)
 		.row_handler = quality_action
 	};
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -1118,7 +1118,7 @@ static void ignore_sval_menu_display(struct menu *menu,
 	uint32_t attr = menu_row_style(aware, cursor);
 
 	/* Acquire the "name" of object "i" */
-	char buf[80];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	object_kind_name(buf, sizeof(buf), kind, aware);
 
 	c_put_str(attr, format("[ ] %s", buf), loc);
@@ -1238,8 +1238,8 @@ static bool sval_menu(int tval, const char *desc)
 	}
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -1408,8 +1408,8 @@ void do_cmd_options_item(const char *title, int index)
 	menu.title = title;
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -1461,8 +1461,8 @@ void do_cmd_options(void)
 	}
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
