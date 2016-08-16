@@ -1139,7 +1139,7 @@ static void ignore_sval_menu_display(struct menu *menu,
 
 	uint32_t attr = menu_row_style(aware, cursor);
 
-	/* Acquire the "name" of object "i" */
+	/* Acquire the name of object */
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	object_kind_name(buf, sizeof(buf), kind, aware);
 
