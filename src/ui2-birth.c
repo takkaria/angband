@@ -325,10 +325,6 @@ static void race_help(int index, void *data, region reg)
 		return;
 	}
 
-	for (int y = 0; y < reg.h; y++) {
-		Term_erase(reg.x, y + reg.y, reg.w);
-	}
-	
 	struct text_out_info info = {
 		.indent = reg.x + reg.w
 	};
@@ -397,10 +393,6 @@ static void class_help(int index, void *data, region reg)
 		return;
 	}
 
-	for (int y = 0; y < reg.h; y++) {
-		Term_erase(reg.x, y + reg.y, reg.w);
-	}
-
 	const struct player_race *race = player->race;
 
 	struct text_out_info info = {
@@ -449,17 +441,6 @@ static void class_help(int index, void *data, region reg)
 	while (rows < reg.h) {
 		text_out_e(info, "\n");
 		rows++;
-	}
-}
-
-
-static void roller_clear(int index, void *data, region reg)
-{
-	(void) index;
-	(void) data;
-
-	for (int y = 0; y < reg.h; y++) {
-		Term_erase(reg.x, y + reg.y, reg.w);
 	}
 }
 
@@ -555,7 +536,7 @@ static void setup_menus(void)
 	assert(N_ELEMENTS(roller_choices) == MAX_BIRTH_ROLLERS);
 
 	init_birth_menu(&roller_menu,
-			MAX_BIRTH_ROLLERS, 0, roller_region, false, roller_clear);
+			MAX_BIRTH_ROLLERS, 0, roller_region, false, NULL);
 
 	struct birthmenu_data *roller_data = menu_priv(&roller_menu);
 
