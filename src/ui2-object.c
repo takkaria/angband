@@ -887,7 +887,7 @@ static void handle_menu_select_action(struct object_menu_data *data,
 /**
  * Get an item tag
  */
-char get_item_tag(struct menu *menu, int index)
+static char get_item_tag(struct menu *menu, int index)
 {
 	struct object_menu_data *data = menu_priv(menu);
 
@@ -897,7 +897,7 @@ char get_item_tag(struct menu *menu, int index)
 /**
  * Display an entry on the item menu
  */
-void get_item_display(struct menu *menu,
+static void get_item_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
 	(void) width;
@@ -911,7 +911,7 @@ void get_item_display(struct menu *menu,
 /**
  * Deal with events on the get_item menu
  */
-bool get_item_action(struct menu *menu, const ui_event *event, int index)
+static bool get_item_action(struct menu *menu, const ui_event *event, int index)
 {
 	struct object_menu_data *data = menu_priv(menu);
 
