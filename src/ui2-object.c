@@ -711,8 +711,8 @@ static bool get_tag(struct object_menu_list *olist,
 	for (size_t i = 0; i < olist->len; i++) {
 		struct object *obj = olist->items[i].object;
 
-		if (obj->note == 0) {
-			continue; /* Empty inscription */
+		if (obj == NULL || obj->note == 0) {
+			continue;
 		}
 
 		for (const char *s = strchr(quark_str(obj->note), '@');
