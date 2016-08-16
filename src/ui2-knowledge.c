@@ -1289,12 +1289,12 @@ static void display_object(int index, bool cursor, struct loc loc, int width)
 
 	/* Show autoinscription if around */
 	if (inscrip) {
-		loc.x = 55;
+		loc.x = 54;
 		c_put_str(COLOUR_YELLOW, inscrip, loc);
 	}
 
 	/* Graphics versions of the object_char and object_attr defines */
-	Term_addwc(76, loc.y, object_kind_attr(kind), object_kind_char(kind));
+	Term_addwc(74, loc.y, object_kind_attr(kind), object_kind_char(kind));
 }
 
 /**
