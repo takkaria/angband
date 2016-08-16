@@ -250,7 +250,7 @@ static void knowledge_screen_draw(const char *title,
 {
 	region_erase(title_region);
 
-	prt(format("Knowledge - %s", title), loc(0, 1));
+	prt(format("Knowledge - %s", title), loc(title_region.x, title_region.y));
 
 	/* Print dividers: horizontal and vertical */
 	for (int x = 0, y = title_region.y + title_region.h + 1;
@@ -274,15 +274,15 @@ static void knowledge_screen_regions(region *title, region *group, region *objec
 	title->x = 0;
 	title->y = 0;
 	title->w = 0;
-	title->h = 4;
+	title->h = 2;
 
 	group->x = 0;
-	group->y = 6;
+	group->y = 4;
 	group->w = g_name_max_len;
 	group->h = -2;
 
 	object->x = group->w + 3;
-	object->y = 6;
+	object->y = 4;
 	object->w = 0;
 	object->h = summary ? -3 : -2;
 }
