@@ -1071,7 +1071,9 @@ static void quality_menu(void)
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
 	menu.title = "Quality ignore menu";
 	menu_setpriv(&menu, ITYPE_MAX, quality_values);
-	menu_layout_term(&menu);
+	mnflag_on(menu.flags, MN_NO_TAGS);
+	region reg = {0, 0, 0, -1};
+	menu_layout(&menu, reg);
 
 	menu_select(&menu);
 
