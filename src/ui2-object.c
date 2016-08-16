@@ -716,17 +716,15 @@ static bool get_tag(struct object_menu_list *olist,
 	for (size_t i = 0; i < olist->len; i++) {
 		struct object *obj = olist->items[i].object;
 
-		if (obj == NULL || obj->note == 0) {
-			continue;
-		}
-
-		for (const char *s = strchr(quark_str(obj->note), '@');
-				s != NULL;
-				s = strchr(s + 1, '@'))
-		{
-			if (s[1] == tag || (s[1] == (char) cmdkey && s[2] == tag)) {
-				*tagged_obj = obj;
-				return true;
+		if (obj != NULL && obj->note != 0) {
+			for (const char *s = strchr(quark_str(obj->note), '@');
+					s != NULL;
+					s = strchr(s + 1, '@'))
+			{
+				if (s[1] == tag || (s[1] == (char) cmdkey && s[2] == tag)) {
+					*tagged_obj = obj;
+					return true;
+				}
 			}
 		}
 	}
