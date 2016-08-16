@@ -254,11 +254,17 @@ static void knowledge_screen_draw(const char *title,
 	prt(format("Knowledge - %s", title), loc(0, 1));
 
 	/* Print dividers: horizontal and vertical */
-	for (int x = 0; x < ANGBAND_TERM_STANDARD_WIDTH; x++) {
-		Term_addwc(x, 5, COLOUR_WHITE, '=');
+	for (int x = 0, y = title_region.y + title_region.h + 1;
+			x < ANGBAND_TERM_STANDARD_WIDTH;
+			x++)
+	{
+		Term_addwc(x, y, COLOUR_WHITE, '=');
 	}
 
-	for (int y = 6, z = Term_height() - 2; y < z; y++) {
+	for (int y = title_region.y + title_region.h + 2, z = Term_height() - 2;
+			y < z;
+			y++)
+	{
 		Term_addwc(g_name_max_len + 1, y, COLOUR_WHITE, '|');
 	}
 }
