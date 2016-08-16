@@ -209,7 +209,7 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 	/* Position of cursor relative to top */
 	int rel_cursor = cursor - menu->top;
 
-	bool clear = !mnflag_has(menu->flags, MN_DONT_CLEAR);
+	bool clear = mnflag_has(menu->flags, MN_DONT_CLEAR) ? false : true;
 
 	for (int i = 0; i < reg.h; i++) {
 		if (clear) {
