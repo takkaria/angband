@@ -1296,6 +1296,41 @@ static void cleanup_menu_data(struct object_menu_data *data)
 	}
 }
 
+static void push_item_term(const struct object_menu_data *data)
+{
+	/* Handle empty floor, inventory, etc */
+	bool empty = data->list->len > 0 ? false : true;
+
+	struct term_hints hints = {
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = empty ? 1 : data->list->len,
+		.purpose = TERM_PURPOSE_MENU,
+		.position = TERM_POSITION_TOP_CENTER
+	};
+
+	if (player->upkeep->command_wrk == USE_INVEN
+			&& (data->olist_mode & OLIST_QUIVER_COMPACT))
+	{
+		/* Add space for quiver */
+		int slots = quiver_slots(z_info->stack_size);
+		if (slots > 0) {
+			hints.height += empty ? slots - 1 : slots;
+			empty = false;
+		}
+	}
+
+	Term_push_new(&hints);
+
+	if (empty) {
+		c_prt(menu_row_style(false, false), "(nothing)", loc(0, 0));
+	}
+}
+
+static void pop_item_term(void)
+{
+	Term_pop();
+}
+
 /**
  * Let the user select an object, save its address
  *
@@ -1344,21 +1379,7 @@ bool textui_get_item(struct object **choice,
 		do {
 			build_menu_list(&data, tester);
 
-			struct term_hints hints = {
-				.width = ANGBAND_TERM_STANDARD_WIDTH,
-				.height = data.list->len,
-				.purpose = TERM_PURPOSE_MENU,
-				.position = TERM_POSITION_TOP_CENTER
-			};
-
-			if (player->upkeep->command_wrk == USE_INVEN
-					&& (data.olist_mode & OLIST_QUIVER_COMPACT))
-			{
-				/* Add space for quiver */
-				hints.height += quiver_slots(z_info->stack_size);
-			}
-
-			Term_push_new(&hints);
+			push_item_term(&data);
 
 			data.retval.new_menu = false;
 			data.retval.object = NULL;
@@ -1369,7 +1390,7 @@ bool textui_get_item(struct object **choice,
 			item_menu(&data);
 			clear_prompt();
 
-			Term_pop();
+			pop_item_term();
 		} while (data.retval.new_menu);
 
 	} else if (reject) {
