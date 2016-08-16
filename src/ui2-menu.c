@@ -794,7 +794,7 @@ void menu_layout(struct menu *menu, region reg)
 		/* Shrink menu, move it down and to the right */
 		menu->active.y += 2;
 		menu->active.h -= 2;
-		menu->active.x += 4;
+		menu->active.x += 2;
 	}
 
 	if (menu->header) {
