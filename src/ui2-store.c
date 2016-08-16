@@ -881,7 +881,6 @@ static int context_menu_store(struct store_context *context,
 		const int index, struct loc mloc)
 {
 	(void) index;
-	(void) mloc;
 
 	struct store *store = context->store;
 	bool home = (store->sidx == STORE_HOME) ? true : false;
@@ -897,12 +896,15 @@ static int context_menu_store(struct store_context *context,
 
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
+		.x = mloc.x,
+		.y = mloc.y,
 		.width = reg.w,
 		.height = reg.h,
 		.purpose = TERM_PURPOSE_MENU,
-		.position = TERM_POSITION_CENTER
+		.position = TERM_POSITION_EXACT
 	};
 	Term_push_new(&hints);
+	menu_layout_term(menu);
 
 	show_prompt("(Enter to select, ESC) Command:", false);
 
