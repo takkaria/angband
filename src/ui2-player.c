@@ -884,7 +884,7 @@ static void write_character_dump(ang_file *file)
 
 	file_putf(file, "  [%s Character Dump]\n\n", buildid);
 
-	display_player(0);
+	display_player(PLAYER_DISPLAY_MODE_STANDARD);
 
 	for (int y = 1; y < 23; y++) {
 		char *b = buf;
@@ -907,7 +907,7 @@ static void write_character_dump(ang_file *file)
 
 	file_put(file, "\n");
 
-	display_player(1);
+	display_player(PLAYER_DISPLAY_MODE_SPECIAL);
 
 	for (int y = 11; y < 20; y++) {
 		char *b = buf;
