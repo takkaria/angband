@@ -1605,7 +1605,6 @@ static void rune_lore(int index)
 	textblock_append_c(tb, COLOUR_L_BLUE, title);
 	textblock_append(tb, "\n");
 	textblock_append(tb, rune_desc(index));
-	textblock_append(tb, "\n");
 	region reg = {0, 0, 0, 0};
 	textui_textblock_show(tb, reg, NULL);
 
@@ -1808,7 +1807,6 @@ static void feat_lore(int index)
 		textblock_append_c(tb, COLOUR_L_BLUE, title);
 		textblock_append(tb, "\n");
 		textblock_append(tb, feat->desc);
-		textblock_append(tb, "\n");
 		region reg = {0, 0, 0, 0};
 		textui_textblock_show(tb, reg, NULL);
 		textblock_free(tb);
@@ -2018,7 +2016,6 @@ static void trap_lore(int index)
 		textblock_append_c(tb, COLOUR_L_BLUE, title);
 		textblock_append(tb, "\n");
 		textblock_append(tb, trap->text);
-		textblock_append(tb, "\n");
 
 		region reg = {0, 0, 0, 0};
 		textui_textblock_show(tb, reg, NULL);
