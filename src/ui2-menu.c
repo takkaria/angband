@@ -474,12 +474,6 @@ static void display_menu_row(struct menu *menu,
 {
 	index = menu_index(menu, index);
 
-	if (menu->iter->valid_row != NULL
-			&& !menu->iter->valid_row(menu, index))
-	{
-		return;
-	}
-
 	if (!mnflag_has(menu->flags, MN_NO_TAGS)) {
 		char sel = 0;
 
