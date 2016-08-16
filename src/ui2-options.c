@@ -353,7 +353,7 @@ static void ui_keymap_create(const char *title, int index)
 			case KC_DELETE:
 			case KC_BACKSPACE:
 				if (keymap_buffer_index > 0) {
-					keymap_buffer_index -= 1;
+					keymap_buffer_index--;
 				    keymap_buffer[keymap_buffer_index].type = EVT_NONE;
 					keymap_buffer[keymap_buffer_index].code = 0;
 					keymap_buffer[keymap_buffer_index].mods = 0;
