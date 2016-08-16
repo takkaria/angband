@@ -892,16 +892,6 @@ char get_item_tag(struct menu *menu, int index)
 }
 
 /**
- * Determine if an item is a valid choice
- */
-bool get_item_validity(struct menu *menu, int index)
-{
-	struct object_menu_data *data = menu_priv(menu);
-
-	return data->list->items[index].object != NULL;
-}
-
-/**
  * Display an entry on the item menu
  */
 void get_item_display(struct menu *menu,
@@ -1044,7 +1034,6 @@ static void item_menu(struct object_menu_data *data)
 {
 	menu_iter iter = {
 		.get_tag     = get_item_tag,
-		.valid_row   = get_item_validity,
 		.display_row = get_item_display,
 		.row_handler = get_item_action
 	};
