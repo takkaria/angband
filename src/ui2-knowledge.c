@@ -81,9 +81,6 @@ typedef struct {
 	/* Maximum possible number of groups for this class */
 	int max_groups;
 
-	/* Items don't need to be IDed to recognize membership */
-	bool easy_know;
-
 } group_funcs;
 
 typedef struct {
@@ -736,7 +733,6 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 		.group = default_group_id,
 		.summary = mon_summary,
 		.max_groups = N_ELEMENTS(monster_group),
-		.easy_know = false
 	};
 
 	member_funcs m_funcs = {
@@ -1065,7 +1061,6 @@ static void do_cmd_knowledge_artifacts(const char *name, int row)
 		.group = art2gid, 
 		.summary = NULL, 
 		.max_groups = TV_MAX, 
-		.easy_know = false
 	};
 
 	member_funcs art_f = {
@@ -1162,7 +1157,6 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 		.group = default_group_id, 
 		.summary = NULL, 
 		.max_groups = TV_MAX, 
-		.easy_know = false
 	};
 
 	member_funcs ego_f = {
@@ -1514,7 +1508,6 @@ void textui_browse_object_knowledge(const char *name, int row)
 		.group = obj2gid,
 		.summary = NULL,
 		.max_groups = TV_MAX,
-		.easy_know = false
 	};
 
 	member_funcs obj_f = {
@@ -1684,7 +1677,6 @@ static void do_cmd_knowledge_runes(const char *name, int row)
 		.group = rune_var,
 		.summary = NULL,
 		.max_groups = N_ELEMENTS(rune_group_text),
-		.easy_know = false
 	};
 
 	member_funcs rune_f = {
@@ -1870,7 +1862,6 @@ static void do_cmd_knowledge_features(const char *name, int row)
 		.group = feat_order,
 		.summary = NULL,
 		.max_groups = N_ELEMENTS(feature_group_text),
-		.easy_know = false
 	};
 
 	member_funcs feat_f = {
@@ -2081,7 +2072,6 @@ static void do_cmd_knowledge_traps(const char *name, int row)
 		.group = trap_order,
 		.summary = NULL,
 		.max_groups = N_ELEMENTS(trap_group_text),
-		.easy_know = false
 	};
 
 	member_funcs trap_f = {
