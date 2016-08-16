@@ -428,12 +428,8 @@ static bool term_append_events(const ui_event *events, size_t num_events)
 static void term_mbstowcs(wchar_t *ws, const char *mbs, size_t ws_max_len)
 {
 	size_t len = text_mbstowcs(ws, mbs, ws_max_len);
-
-	if (len == (size_t) -1) {
-		quit_fmt("can't convert the string '%s'", mbs);
-	} else if (len == ws_max_len) {
-		ws[ws_max_len - 1] = 0;
-	}
+	assert(len != (size_t) -1);
+	ws[ws_max_len - 1] = 0;
 }
 
 static void term_erase_cursor(struct term_cursor cursor)
