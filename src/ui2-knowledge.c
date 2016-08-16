@@ -229,8 +229,8 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 	}
 }
 
-static void knowledge_screen_draw_menu_names(int g_name_max_len,
-		bool group_menu, bool object_menu)
+static void knowledge_screen_draw_header(int g_name_max_len,
+		bool group_menu, bool object_menu, const char *other_fields)
 {
 	struct loc loc = {0, 0};
 
@@ -239,22 +239,19 @@ static void knowledge_screen_draw_menu_names(int g_name_max_len,
 
 	loc.x = g_name_max_len + 3;
 	c_prt(object_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Name", loc);
-}
-
-static void knowledge_screen_draw(const char *title,
-		const char *other_fields, region title_region, int g_name_max_len)
-{
-	struct loc loc = {0, 0};
-
-	region_erase(title_region);
-
-	loc.y = 2;
-	prt(format("Knowledge - %s", title), loc);
 
 	if (other_fields) {
 		loc.x = 46;
 		prt(other_fields, loc);
 	}
+}
+
+static void knowledge_screen_draw(const char *title,
+		const char *other_fields, region title_region, int g_name_max_len)
+{
+	region_erase(title_region);
+
+	prt(format("Knowledge - %s", title), loc(0, 1));
 
 	/* Print dividers: horizontal and vertical */
 	for (int x = 0; x < ANGBAND_TERM_STANDARD_WIDTH; x++) {
@@ -264,8 +261,6 @@ static void knowledge_screen_draw(const char *title,
 	for (int y = 6, z = Term_height() - 2; y < z; y++) {
 		Term_addwc(g_name_max_len + 1, y, COLOUR_WHITE, '|');
 	}
-
-	Term_flush_output();
 }
 
 static void knowledge_screen_regions(region *title, region *group, region *object,
@@ -430,8 +425,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			swap = false;
 		}
 
-		knowledge_screen_draw_menu_names(g_name_max_len,
-				active_menu == &group_menu, active_menu == &object_menu);
+		knowledge_screen_draw_header(g_name_max_len,
+				active_menu == &group_menu, active_menu == &object_menu,
+				other_fields);
 
 		menu_refresh(inactive_menu);
 		menu_refresh(active_menu);
