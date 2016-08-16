@@ -431,11 +431,11 @@ static void keymap_browse_hook(int index, void *data, region reg)
 static struct menu *keymap_menu;
 
 static menu_action keymap_actions[] = {
-	{ 0, 0, "Load a user pref file",    ui_keymap_pref_load },
-	{ 0, 0, "Save keymaps to file",     ui_keymap_pref_append },
-	{ 0, 0, "Query a keymap",           ui_keymap_query },
-	{ 0, 0, "Create a keymap",          ui_keymap_create },
-	{ 0, 0, "Remove a keymap",          ui_keymap_remove },
+	{0, 0, "Load a user pref file",    ui_keymap_pref_load},
+	{0, 0, "Save keymaps to file",     ui_keymap_pref_append},
+	{0, 0, "Query a keymap",           ui_keymap_query},
+	{0, 0, "Create a keymap",          ui_keymap_create},
+	{0, 0, "Remove a keymap",          ui_keymap_remove},
 };
 
 static void do_cmd_keymaps(const char *title, int index)
@@ -522,12 +522,12 @@ static void visuals_reset(const char *title, int index)
 static struct menu *visual_menu;
 
 static menu_action visual_menu_items[] = {
-	{ 0, 0, "Load a user pref file",   visuals_pref_load },
-	{ 0, 0, "Save monster attr/chars", visuals_dump_monsters },
-	{ 0, 0, "Save object attr/chars",  visuals_dump_objects },
-	{ 0, 0, "Save feature attr/chars", visuals_dump_features },
-	{ 0, 0, "Save flavor attr/chars",  visuals_dump_flavors },
-	{ 0, 0, "Reset visuals",           visuals_reset },
+	{0, 0, "Load a user pref file",   visuals_pref_load},
+	{0, 0, "Save monster attr/chars", visuals_dump_monsters},
+	{0, 0, "Save object attr/chars",  visuals_dump_objects},
+	{0, 0, "Save feature attr/chars", visuals_dump_features},
+	{0, 0, "Save flavor attr/chars",  visuals_dump_flavors},
+	{0, 0, "Reset visuals",           visuals_reset},
 };
 
 static void visuals_browse_hook(int index, void *data, region reg)
