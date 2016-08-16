@@ -1336,6 +1336,12 @@ bool textui_get_item(struct object **choice,
 				.purpose = TERM_PURPOSE_MENU,
 				.position = TERM_POSITION_TOP_CENTER
 			};
+
+			if (player->upkeep->command_wrk == USE_INVEN) {
+				/* Add space for quiver */
+				hints.height += quiver_slots(z_info->stack_size);
+			}
+
 			Term_push_new(&hints);
 
 			data.retval.new_menu = false;
