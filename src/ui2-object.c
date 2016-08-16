@@ -1349,7 +1349,6 @@ bool textui_get_item(struct object **choice,
 			data.retval.new_menu = false;
 			data.retval.object = NULL;
 
-			Term_clear();
 			if (prompt) {
 				show_menu_prompt(&data, prompt);
 			}
