@@ -178,7 +178,6 @@ static void option_toggle_menu(const char *name, int page)
 		page -= OPT_PAGE_MAX;
 	}
 
-	/* for this particular menu */
 	menu->title = name;
 
 	/* Find the number of valid entries */
