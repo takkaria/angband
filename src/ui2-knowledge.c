@@ -433,15 +433,12 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		knowledge_screen_draw_header(title_region, g_name_max_len,
 				active_menu == &group_menu, active_menu == &object_menu,
 				other_fields);
-
-		menu_refresh(inactive_menu);
-		menu_refresh(active_menu);
-
 		knowledge_screen_summary(g_funcs,
 				g_cur, o_list, g_o_count, g_offset[g_cur], object_menu.active);
 		knowledge_screen_prompt(o_funcs, index);
 
-		Term_flush_output();
+		menu_refresh(inactive_menu);
+		menu_refresh(active_menu);
 
 		ui_event event = knowledge_screen_event(active_menu);
 
