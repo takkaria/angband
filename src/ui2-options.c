@@ -868,8 +868,8 @@ static int collect_ignorable_egos(struct ego_desc **choice)
 	int max_choice = 0;
 
 	/* Get the valid ego items */
-	for (int i = 0; i < z_info->e_max; i++) {
-		struct ego_item *ego = &e_info[i];
+	for (int e_idx = 0; e_idx < z_info->e_max; e_idx++) {
+		struct ego_item *ego = &e_info[e_idx];
 
 		/* Only valid known ego-items allowed */
 		if (!ego->name || !ego->everseen) {
@@ -880,7 +880,7 @@ static int collect_ignorable_egos(struct ego_desc **choice)
 		for (int itype = ITYPE_NONE + 1; itype < ITYPE_MAX; itype++) {
 			if (ego_has_ignore_type(ego, itype)) {
 				if (choice != NULL) {
-					(*choice)[max_choice].e_idx = i;
+					(*choice)[max_choice].e_idx = e_idx;
 					(*choice)[max_choice].itype = itype;
 					(*choice)[max_choice].short_name = strip_ego_name(ego->name);
 				}
