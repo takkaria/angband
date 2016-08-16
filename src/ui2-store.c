@@ -1014,7 +1014,7 @@ static bool store_menu_handle(struct menu *menu,
 				}
 
 				action = true;
-			} else if (event->mouse.y == index + 4) {
+			} else if (event->mouse.y == index + context->scr_places_y[LOC_HEADER] + 1) {
 				/* if press is on a list item, so store item context */
 				context_menu_store_item(context, index,
 						loc(event->mouse.x, event->mouse.y));
