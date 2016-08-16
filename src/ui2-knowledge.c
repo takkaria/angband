@@ -2324,7 +2324,10 @@ void do_cmd_messages(void)
 			if (search[0]) {
 				/* Highlight search */
 				size_t len = strlen(search);
-				for (const char *s = msg; s; s = my_stristr(s + len, search)) {
+				for (const char *s = my_stristr(msg, search);
+						s != NULL;
+						s = my_stristr(s + len, search))
+				{
 					Term_adds(s - msg, last_msg_pos - m, len, COLOUR_YELLOW, s);
 				}
 			}
