@@ -1336,7 +1336,7 @@ static char tag_options_item(struct menu *menu, int index)
 		return 0;
 	}
 
-	line -= N_ELEMENTS(sval_dependent) - 1;
+	line -= N_ELEMENTS(sval_dependent) + 1;
 
 	if (line < N_ELEMENTS(extra_item_options)) {
 		return extra_item_options[line].tag;
@@ -1360,7 +1360,7 @@ static bool valid_options_item(struct menu *menu, int index)
 		return false;
 	}
 
-	line -= N_ELEMENTS(sval_dependent) - 1;
+	line -= N_ELEMENTS(sval_dependent) + 1;
 
 	if (line < N_ELEMENTS(extra_item_options)) {
 		return true;
@@ -1384,7 +1384,7 @@ static void display_options_item(struct menu *menu,
 
 		c_prt(attr, sval_dependent[line].desc, loc);
 	} else {
-		line -= N_ELEMENTS(sval_dependent) - 1;
+		line -= N_ELEMENTS(sval_dependent) + 1;
 		if (line < N_ELEMENTS(extra_item_options)) {
 			uint32_t attr = menu_row_style(true, cursor);
 			c_prt(attr, extra_item_options[line].name, loc);
@@ -1401,7 +1401,7 @@ static bool handle_options_item(struct menu *menu,
 		if ((size_t) index < N_ELEMENTS(sval_dependent)) {
 			sval_menu(sval_dependent[index].tval, sval_dependent[index].desc);
 		} else {
-			index -= N_ELEMENTS(sval_dependent) - 1;
+			index -= N_ELEMENTS(sval_dependent) + 1;
 			assert((size_t) index < N_ELEMENTS(extra_item_options));
 			extra_item_options[index].action();
 		}
