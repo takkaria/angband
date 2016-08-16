@@ -1116,8 +1116,9 @@ bool ignore_tval(int tval)
 {
 	/* Only ignore if the tval's allowed */
 	for (size_t i = 0; i < N_ELEMENTS(sval_dependent); i++) {
-		if (tval == sval_dependent[i].tval)
+		if (tval == sval_dependent[i].tval) {
 			return true;
+		}
 	}
 
 	return false;
