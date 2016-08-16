@@ -847,13 +847,13 @@ static bool ego_action(struct menu * menu, const ui_event * event, int index)
 	}
 }
 
-/**
- * Display list of ego items to be ignored.
+/*
+ * If 'choice' is NULL, it counts the number of ignorable egos, otherwise
+ * it collects the list of egos into 'choice' as well.
  */
-static void ego_menu(void)
+static int collect_ignorable_egos(struct ego_desc **choice)
 {
 	int max_choice = 0;
-	struct ego_desc *choice = mem_zalloc(z_info->e_max * ITYPE_MAX * sizeof(*choice));
 
 	/* Get the valid ego items */
 	for (int i = 0; i < z_info->e_max; i++) {
@@ -867,13 +867,26 @@ static void ego_menu(void)
 		/* Find appropriate ignore types */
 		for (int itype = ITYPE_NONE + 1; itype < ITYPE_MAX; itype++) {
 			if (ego_has_ignore_type(ego, itype)) {
-				choice[max_choice].e_idx = i;
-				choice[max_choice].itype = itype;
-				choice[max_choice].short_name = strip_ego_name(ego->name);
+				if (choice != NULL) {
+					(*choice)[max_choice].e_idx = i;
+					(*choice)[max_choice].itype = itype;
+					(*choice)[max_choice].short_name = strip_ego_name(ego->name);
+				}
 				max_choice++;
 			}
 		}
 	}
+
+	return max_choice;
+}
+
+/**
+ * Display list of ego items to be ignored.
+ */
+static void ego_menu(void)
+{
+	struct ego_desc *choice = mem_zalloc(z_info->e_max * ITYPE_MAX * sizeof(*choice));
+	int max_choice = collect_ignorable_egos(&choice);
 
 	if (max_choice == 0) {
 		mem_free(choice);
