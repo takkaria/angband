@@ -1005,8 +1005,8 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
 
 	struct term_hints hints = {
 		.x = 35,
-		.y = 2 + index,
-		.width = 29,
+		.y = index + 1,
+		.width = 30,
 		.height = IGNORE_MAX,
 		.position = TERM_POSITION_EXACT,
 		.purpose = TERM_PURPOSE_MENU
