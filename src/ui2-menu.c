@@ -491,9 +491,10 @@ static void display_menu_row(struct menu *menu,
 		if (sel != 0) {
 			Term_adds(loc.x, loc.y, 3,
 					menu_row_style(true, cursor), format("%c) ", sel));
-			loc.x += 3;
-			width -= 3;
 		}
+
+		width -= 3;
+		loc.x += 3;
 	}
 
 	menu->iter->display_row(menu, index, cursor, loc, width);
