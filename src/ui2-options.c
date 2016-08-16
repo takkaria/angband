@@ -275,6 +275,8 @@ static void ui_keymap_query(const char *title, int index)
 
 	prt(title, loc(0, 13));
 	prt("Key: ", loc(0, 14));
+
+	Term_flush_output();
 	
 	/* Get a keymap trigger & mapping */
 	struct keypress key = keymap_get_trigger();
@@ -282,6 +284,7 @@ static void ui_keymap_query(const char *title, int index)
 
 	if (act == NULL) {
 		prt("No keymap with that trigger.  Press any key to continue.", loc(0, 16));
+		Term_flush_output();
 		inkey_any();
 	} else {
 		char tmp[1024];
@@ -291,6 +294,7 @@ static void ui_keymap_query(const char *title, int index)
 		Term_puts(sizeof(tmp), COLOUR_WHITE, tmp);
 
 		prt("Press any key to continue.", loc(0, 17));
+		Term_flush_output();
 		inkey_any();
 	}
 }
@@ -302,10 +306,13 @@ static void ui_keymap_create(const char *title, int index)
 	prt(title, loc(0, 13));
 	prt("Key: ", loc(0, 14));
 
+	Term_flush_output();
+
 	struct keypress trigger = keymap_get_trigger();
 	if (trigger.code == '$') {
 		c_prt(COLOUR_L_RED, "The '$' key is reserved.", loc(2, 16));
 		prt("Press any key to continue.", loc(0, 18));
+		Term_flush_output();
 		inkey_any();
 		return;
 	}
@@ -333,6 +340,7 @@ static void ui_keymap_create(const char *title, int index)
 				format("(Maximum keymap length is %d keys.)",
 					KEYMAP_ACTION_MAX),
 				loc(0, 19));
+		Term_flush_output();
 
 		struct keypress kp = inkey_only_key();
 
@@ -372,6 +380,7 @@ static void ui_keymap_create(const char *title, int index)
 	if (trigger.code && get_check("Save this keymap? ")) {
 		keymap_add(KEYMAP_MODE_OPT, trigger, keymap_buffer, true);
 		prt("Keymap added.  Press any trigger to continue.", loc(0, 17));
+		Term_flush_output();
 		inkey_any();
 	}
 }
@@ -383,6 +392,8 @@ static void ui_keymap_remove(const char *title, int index)
 	prt(title, loc(0, 13));
 	prt("Key: ", loc(0, 14));
 
+	Term_flush_output();
+
 	struct keypress trigger = keymap_get_trigger();
 
 	if (keymap_remove(KEYMAP_MODE_OPT, trigger)) {
@@ -392,6 +403,8 @@ static void ui_keymap_remove(const char *title, int index)
 	}
 
 	prt("Press any key to continue.", loc(0, 17));
+
+	Term_flush_output();
 	inkey_any();
 }
 
