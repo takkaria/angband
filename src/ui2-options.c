@@ -917,6 +917,7 @@ static void ego_menu(void)
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
+	Term_cursor_visible(true);
 
 	struct text_out_info info = {
 		.indent = 1,
@@ -937,7 +938,6 @@ static void ego_menu(void)
 	region area = {1, 5, -1, -1};
 	menu_layout(&menu, area);
 
-	Term_cursor_visible(true);
 	menu_set_cursor_x_offset(&menu, 1); /* Put cursor in brackets */
 
 	menu_select(&menu);
@@ -1295,6 +1295,7 @@ static bool sval_menu(int tval, const char *desc)
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
+	Term_cursor_visible(true);
 
 	/* Help text */
 	show_prompt(format("Ignore the following %s:", desc), false);
@@ -1307,7 +1308,6 @@ static bool sval_menu(int tval, const char *desc)
 	menu_layout(menu, reg);
 	menu_set_cursor_x_offset(menu, 1); /* Place cursor in brackets. */
 	mnflag_on(menu->flags, MN_NO_TAGS);
-	Term_cursor_visible(true);
 
 	menu_select(menu);
 
