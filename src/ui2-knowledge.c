@@ -2340,6 +2340,8 @@ void do_cmd_messages(void)
 		else {
 			prt("[Movement keys to navigate, '=' to find, or ESCAPE to exit]", help_loc);
 		}
+
+		Term_flush_output();
 			
 		ui_event event = inkey_simple();
 
