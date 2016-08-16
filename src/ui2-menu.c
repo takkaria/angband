@@ -210,8 +210,6 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 	int rel_cursor = cursor - menu->top;
 
 	for (int i = 0; i < reg.h; i++) {
-		/* Blank all lines */
-		Term_erase(reg.x, reg.y + i, reg.w);
 		if (i < count) {
 			/* Redraw the line if it's within the number of menu items */
 			bool is_curs = (i == rel_cursor);
@@ -473,6 +471,8 @@ static void display_menu_row(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
 	index = menu_index(menu, index);
+
+	Term_erase(loc.x, loc.y, width);
 
 	if (!mnflag_has(menu->flags, MN_NO_TAGS)) {
 		char sel = 0;
