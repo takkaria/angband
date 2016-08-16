@@ -816,7 +816,7 @@ static void ego_display(struct menu * menu,
 	ego_item_name(buf, sizeof(buf), &choice[index]);
 
 	/* Print it */
-	c_put_str(attr, format("%s", buf), loc);
+	c_put_str(attr, buf, loc);
 
 	/* Show ignore mark, if any */
 	if (ignored) {
