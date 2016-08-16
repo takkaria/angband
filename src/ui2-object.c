@@ -844,7 +844,7 @@ static bool handle_menu_key_action(struct object_menu_data *data,
 			} else {
 				bell("Cannot switch item selector!");
 			}
-			return false;
+			break;
 
 		case '|':
 			if (quiver) {
@@ -853,7 +853,7 @@ static bool handle_menu_key_action(struct object_menu_data *data,
 			} else {
 				bell("Cannot select quiver!");
 			}
-			return false;
+			break;
 
 		case '-':
 			if (floor) {
@@ -862,12 +862,15 @@ static bool handle_menu_key_action(struct object_menu_data *data,
 			} else {
 				bell("Cannot select floor!");
 			}
-			return false;
+			break;
 
 		default:
 			bell("bad selector '%u' in item menu!", (unsigned) key.code);
-			return true;
+			break;
 	}
+
+	/* false stops current menu */
+	return data->retval.new_menu ? false : true;
 }
 
 static bool handle_menu_select_action(struct object_menu_data *data,
