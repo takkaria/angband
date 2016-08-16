@@ -369,6 +369,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	menu_setpriv(&group_menu, g_count, g_names);
 	menu_layout(&group_menu, group_region);
 	mnflag_on(group_menu.flags, MN_DBL_TAP);
+	mnflag_on(group_menu.flags, MN_NO_TAGS);
 
 	menu_iter object_iter = {
 		.display_row = display_group_member
@@ -378,6 +379,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	menu_setpriv(&object_menu, 0, &o_funcs);
 	menu_layout(&object_menu, object_region);
 	mnflag_on(object_menu.flags, MN_DBL_TAP);
+	mnflag_on(object_menu.flags, MN_NO_TAGS);
 
 	/* Currenly selected panel; 0 is groups panel, 1 is objects panel */
 	int panel = 0;
