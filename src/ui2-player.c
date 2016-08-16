@@ -1095,8 +1095,8 @@ void do_cmd_change_name(void)
 	const int prompt_len = strlen(prompt);
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.purpose = TERM_PURPOSE_TEXT,
 		.position = TERM_POSITION_CENTER
 	};
