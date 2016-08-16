@@ -59,6 +59,8 @@ static bool get_pref_path(const char *what, char *buf, size_t bufsize)
 		path_build(buf, bufsize, ANGBAND_DIR_USER, ftmp);
 	}
 
+	clear_prompt();
+
 	return ok;
 }
 
@@ -913,7 +915,7 @@ static void ego_menu(void)
 	menu_select(&menu);
 
 	mem_free(choice);
-
+	clear_prompt();
 	Term_pop();
 }
 
