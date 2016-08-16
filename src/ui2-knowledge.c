@@ -442,6 +442,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 				g_cur, o_list, g_o_count, g_offset[g_cur], object_menu.active);
 		knowledge_screen_prompt(o_funcs, index);
 
+		Term_flush_output();
+
 		ui_event event = knowledge_screen_event(active_menu);
 
 		switch (event.type) {
