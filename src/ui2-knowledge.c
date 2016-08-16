@@ -2428,6 +2428,7 @@ void do_cmd_messages(void)
 		}
 	}
 
+	clear_prompt();
 	Term_pop();
 }
 
