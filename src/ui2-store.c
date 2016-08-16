@@ -426,7 +426,7 @@ static void store_display_help(struct store_context *context)
 		}
 	} else {
 		text_out_c(info, COLOUR_L_GREEN, "I");
-		text_out(info, " inspects an item from your inventory. ");
+		text_out(info, " inspects an item from your inventory.\n");
 	}
 
 	text_out_c(info, COLOUR_L_GREEN, "ESC");
