@@ -209,7 +209,12 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 	/* Position of cursor relative to top */
 	int rel_cursor = cursor - menu->top;
 
+	bool clear = !mnflag_has(menu->flags, MN_DONT_CLEAR);
+
 	for (int i = 0; i < reg.h; i++) {
+		if (clear) {
+			Term_erase(reg.x, reg.y + i, reg.w);
+		}
 		if (i < count) {
 			/* Redraw the line if it's within the number of menu items */
 			bool is_curs = (i == rel_cursor);

@@ -140,6 +140,9 @@ enum {
 	MN_INSCRIP_TAGS,
 	/* tag selections can be made regardless of the case of the key pressed.*/
 	MN_CASELESS_TAGS,
+	/* dont erase the contents of menu region before displaying anything */
+	MN_DONT_CLEAR,
+
 	MN_MAX
 };
 
