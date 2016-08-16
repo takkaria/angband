@@ -680,18 +680,14 @@ bool get_item_allow(const struct object *obj,
 }
 
 /**
- * Find the first object in the object list with the given "tag".  The object
- * list needs to be built before this function is called.
+ * Find the index of the first object in the object list with the given "tag".
  *
- * A "tag" is a char "n" appearing as "@n" anywhere in the
- * inscription of an object.
- *
+ * A tag is a char "n" appearing as "@n" anywhere in the inscription of an object.
  * Also, the tag "@xn" will work as well, where "n" is a tag-char,
- * and "x" is the action that tag will work for.
+ * and "x" is the command that tag will work for.
  */
 static bool get_tag(struct object_menu_list *olist,
-		struct object **tagged_obj,
-		char tag, cmd_code cmd, bool quiver_tags)
+		int *index, char tag, cmd_code cmd, bool quiver_tags)
 {
 	const int mode = KEYMAP_MODE_OPT;
 
@@ -702,7 +698,7 @@ static bool get_tag(struct object_menu_list *olist,
 		if (i >= 0 && i < z_info->quiver_size
 				&& player->upkeep->quiver[i])
 		{
-			*tagged_obj = player->upkeep->quiver[i];
+			*index = i;
 			return true;
 		}
 	}
@@ -722,7 +718,7 @@ static bool get_tag(struct object_menu_list *olist,
 					s = strchr(s + 1, '@'))
 			{
 				if (s[1] == tag || (s[1] == (char) cmdkey && s[2] == tag)) {
-					*tagged_obj = obj;
+					*index = i;
 					return true;
 				}
 			}
@@ -1032,15 +1028,9 @@ static void menu_find_inscriptions(struct menu *menu,
 	const bool quiver_tags = (data->item_mode & QUIVER_TAGS) ? true : false;
 
 	for (int inscrip = 0; inscrip < 10; inscrip++) {
-		struct object *obj = NULL;
-
-		if (get_tag(data->list, &obj, I2D(inscrip), item_cmd, quiver_tags)) {
-			for (size_t i = 0; i < data->list->len; i++) {
-				if (data->list->items[i].object == obj) {
-					inscriptions[inscrip] = get_item_tag(menu, i);
-					break;
-				}
-			}
+		int index = 0;
+		if (get_tag(data->list, &index, I2D(inscrip), item_cmd, quiver_tags)) {
+			inscriptions[inscrip] = get_item_tag(menu, index);
 		}
 	}
 }
@@ -1299,7 +1289,14 @@ static void cleanup_menu_data(struct object_menu_data *data)
 
 static void push_item_term(const struct object_menu_data *data)
 {
-	/* Handle empty floor, inventory, etc */
+	/* Don't show completely empty quiver */
+	if (player->upkeep->command_wrk == USE_QUIVER
+			&& quiver_slots(z_info->stack_size) == 0)
+	{
+		data->list->len = 0;
+	}
+
+	/* Handle empty floor, inventory, quiver */
 	bool empty = data->list->len > 0 ? false : true;
 
 	struct term_hints hints = {
