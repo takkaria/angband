@@ -229,12 +229,11 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 	}
 }
 
-static void knowledge_screen_draw_header(int g_name_max_len,
+static void knowledge_screen_draw_header(region reg, int g_name_max_len,
 		bool group_menu, bool object_menu, const char *other_fields)
 {
-	struct loc loc = {0, 0};
+	struct loc loc = {0, reg.y + reg.h};
 
-	loc.y = 4;
 	c_prt(group_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Group", loc);
 
 	loc.x = g_name_max_len + 3;
@@ -431,7 +430,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			swap = false;
 		}
 
-		knowledge_screen_draw_header(g_name_max_len,
+		knowledge_screen_draw_header(title_region, g_name_max_len,
 				active_menu == &group_menu, active_menu == &object_menu,
 				other_fields);
 
