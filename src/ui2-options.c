@@ -408,7 +408,9 @@ static void keymap_browse_hook(int index, void *data, region reg)
 
 	char tmp[1024];
 	keypress_to_text(tmp, sizeof(tmp), keymap_buffer, false);
-	prt(tmp, loc(0, 14));
+	if (tmp[0]) {
+		prt(tmp, loc(0, 14));
+	}
 }
 
 static struct menu *keymap_menu;
