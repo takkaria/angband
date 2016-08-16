@@ -895,7 +895,6 @@ static void ego_menu(void)
 
 	struct text_out_info info = {
 		.indent = 1,
-		.wrap = 79
 	};
 	Term_cursor_to_xy(1, 1);
 
