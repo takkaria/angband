@@ -1331,7 +1331,7 @@ bool textui_get_item(struct object **choice,
 			build_menu_list(&data, tester);
 
 			struct term_hints hints = {
-				.width = 80,
+				.width = ANGBAND_TERM_STANDARD_WIDTH,
 				.height = data.list->len,
 				.purpose = TERM_PURPOSE_MENU,
 				.position = TERM_POSITION_TOP_CENTER
