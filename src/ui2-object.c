@@ -875,7 +875,8 @@ static void handle_menu_select_action(struct object_menu_data *data,
 {
 	struct object *obj = data->list->items[index].object;
 
-	if (get_item_allow(obj,
+	if (obj != NULL
+			&& get_item_allow(obj,
 				cmd_lookup_key(data->item_cmd, KEYMAP_MODE_OPT),
 				data->item_cmd,
 				(data->item_mode & IS_HARMLESS)))
