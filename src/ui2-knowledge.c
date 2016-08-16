@@ -1739,7 +1739,7 @@ static void display_feature(int index, bool cursor, struct loc loc, int width)
 	c_prt(attr, feat->name, loc);
 
 	/* Display symbols */
-	int x = 65;
+	int x = 66;
 	int y = loc.y;
 	Term_addwc(x, y,
 	   feat_x_attr[LIGHTING_DARK][feat->fidx],
@@ -1922,7 +1922,7 @@ static void display_trap(int index, bool cursor, struct loc loc, int width)
 	c_prt(attr, trap->desc, loc);
 
 	/* Display symbols */
-	int x = 65;
+	int x = 66;
 	int y = loc.y;
 	Term_addwc(x, y,
 			trap_x_attr[LIGHTING_DARK][trap->tidx],
