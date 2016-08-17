@@ -268,7 +268,7 @@ static ui_event target_recall_loop_object(struct object *obj,
 static bool target_interactive_aux_halluc(ui_event *event,
 		struct loc coords, const struct desc *desc)
 {
-	char buf[256];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	const char *strange = "something strange";
 
@@ -371,7 +371,7 @@ static bool target_interactive_aux_monster(ui_event *event,
 	health_track(player->upkeep, mon);
 	handle_stuff(player);
 
-	char buf[256];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	target_desc_monster(buf, sizeof(buf), mon, coords, desc); 
 
 	show_prompt(buf, false);
@@ -418,7 +418,7 @@ static bool target_interactive_aux_trap(ui_event *event,
 
 	struct trap *trap = cave->squares[coords.y][coords.x].trap;
 
-	char buf[256];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	if (cave->squares[coords.y][coords.x].mon < 0) {
 		desc->a = "You are ";
@@ -466,7 +466,7 @@ static bool target_interactive_aux_objects(ui_event *event,
 
 	*boring = false;
 
-	char buf[256];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	if (floor_num > 1) {
 		if (player->wizard) {
@@ -524,7 +524,7 @@ static bool target_interactive_aux_square(ui_event *event,
 		return false;
 	}
 
-	char buf[256];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	const char *name = square_apparent_name(cave, player, coords.y, coords.x);
 
