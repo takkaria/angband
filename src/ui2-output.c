@@ -77,20 +77,17 @@ void region_erase(region reg)
 	}
 }
 
-bool loc_in_region(struct loc loc, const region *reg)
+bool loc_in_region(struct loc loc, region reg)
 {
-	return loc.x >= reg->x
-		&& loc.y <  reg->y + reg->h
-		&& loc.y >= reg->y
-		&& loc.x <  reg->x + reg->w;
+	return loc.x >= reg.x
+		&& loc.y <  reg.y + reg.h
+		&& loc.y >= reg.y
+		&& loc.x <  reg.x + reg.w;
 }
 
-bool region_inside(const region *reg, const struct mouseclick *mouse)
+bool region_inside(region reg, struct mouseclick mouse)
 {
-	struct loc loc = {
-		.x = mouse->x,
-		.y = mouse->y
-	};
+	struct loc loc = {mouse.x, mouse.y};
 
 	return loc_in_region(loc, reg);
 }
@@ -824,7 +821,7 @@ bool textui_panel_contains(unsigned int y, unsigned int x)
 
 	struct loc loc = {x, y};
 
-	return loc_in_region(loc, &reg);
+	return loc_in_region(loc, reg);
 }
 
 bool textui_map_is_visible(void)

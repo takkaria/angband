@@ -450,7 +450,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 
 			case EVT_MOUSE:
 				/* Change active panels */
-				if (region_inside(&inactive_menu->active, &event.mouse)) {
+				if (region_inside(inactive_menu->active, event.mouse)) {
 					SWAP(active_menu, inactive_menu);
 					SWAP(active_cursor, inactive_cursor);
 					panel = 1 - panel;

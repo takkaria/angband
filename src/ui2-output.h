@@ -65,12 +65,12 @@ region region_calculate(region reg);
 /**
  * Check whether a mouse) event is inside a region
  */
-bool region_inside(const region *reg, const struct mouseclick *mouse);
+bool region_inside(region reg, struct mouseclick mouse);
 
 /*
  * Check where localtion (x, y) is inside a region
  */
-bool loc_in_region(struct loc loc, const region *reg);
+bool loc_in_region(struct loc loc, region reg);
 
 /**
  * ------------------------------------------------------------------------
