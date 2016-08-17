@@ -26,7 +26,7 @@
 void context_menu_player(struct loc mloc);
 void context_menu_cave(struct chunk *cave,
 		struct loc loc, bool adjacent, struct loc mloc);
-void context_menu_object(struct object *obj);
+bool context_menu_object(struct object *obj);
 void context_menu_command(struct loc mloc);
 void textui_process_click(ui_event event);
 struct cmd_info *textui_action_menu_choose(void);

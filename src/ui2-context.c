@@ -672,9 +672,10 @@ static void context_menu_object_destroy(struct menu *m)
 }
 
 /**
- * Pick the context menu options appropiate for the item
+ * Pick the context menu options appropiate for the item.
+ * Returns true when user selected a command that must be done.
  */
-void context_menu_object(struct object *obj)
+bool context_menu_object(struct object *obj)
 {
 	const int mode = KEYMAP_MODE_OPT;
 
@@ -785,9 +786,10 @@ void context_menu_object(struct object *obj)
 	cmdkey = cmd_lookup_key(selected, mode);
 
 	bool allowed = false;
+
 	switch (selected) {
 		case -1:
-			return; /* User cancelled the menu. */
+			return false; /* User cancelled the menu. */
 
 		case MENU_VALUE_DROP_ALL:
 			/* Drop entire stack with confirmation. */
@@ -800,7 +802,7 @@ void context_menu_object(struct object *obj)
 				cmd_set_arg_item(cmdq_peek(), "item", obj);
 				cmd_set_arg_number(cmdq_peek(), "quantity", obj->number);
 			}
-			return;
+			return true;
 
 		case CMD_BROWSE_SPELL:
 		case CMD_STUDY:
@@ -835,7 +837,7 @@ void context_menu_object(struct object *obj)
 	}
 
 	if (!allowed) {
-		return;
+		return false;
 	}
 
 	if (selected == CMD_IGNORE) {
@@ -845,7 +847,7 @@ void context_menu_object(struct object *obj)
 		/* browse a spellbook */
 		/* copied from textui_spell_browse */
 		textui_book_browse(obj);
-		return;
+		return false;
 	} else if (selected == CMD_STUDY) {
 		cmdq_push(CMD_STUDY);
 		cmd_set_arg_item(cmdq_peek(), "item", obj);
@@ -870,6 +872,8 @@ void context_menu_object(struct object *obj)
 			}
 		}
 	}
+
+	return true;
 }
 
 static void show_command_list(struct cmd_info *cmd_list,
