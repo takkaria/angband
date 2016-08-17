@@ -915,6 +915,7 @@ static void show_command_list(struct cmd_info *cmd_list,
 	int selected = menu_dynamic_select(m);
 
 	menu_dynamic_free(m);
+	clear_prompt();
 	Term_pop();
 
 	if (selected > 0 && selected < size + 1) {
