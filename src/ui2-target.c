@@ -614,6 +614,7 @@ static void desc_init(struct desc *desc, struct loc coords)
 static ui_event target_set_interactive_aux(struct loc coords, int mode)
 {
 	move_cursor_relative(&angband_cave, coords);
+	Term_flush_output();
 
 	struct object **floor_list =
 		mem_zalloc(z_info->floor_size * sizeof(*floor_list));
@@ -1253,6 +1254,10 @@ bool target_set_interactive(int mode, struct loc coords)
 {
 	show_prompt("Press '?' for help.", false);
 
+	bool saved_cursor;
+	Term_get_cursor(NULL, NULL, &saved_cursor, NULL);
+	Term_cursor_visible(true);
+
 	target_set_monster(NULL);
 	struct point_set *targets = target_get_monsters(mode);
 
@@ -1278,6 +1283,8 @@ bool target_set_interactive(int mode, struct loc coords)
 					&square, &restricted, &done, mode);
 		}
 	}
+
+	Term_cursor_visible(saved_cursor);
 
 	point_set_dispose(targets);
 	verify_panel(&angband_cave);
