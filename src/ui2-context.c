@@ -678,9 +678,6 @@ void context_menu_object(struct object *obj)
 
 	m->selections = labels;
 
-	/* 'I' is used for inspect in both keymaps. */
-	menu_dynamic_add_label(m, "Inspect", 'I', MENU_VALUE_INSPECT, labels);
-
 	if (obj_can_browse(obj)) {
 		if (obj_can_cast_from(obj) && player_can_cast(player, false)) {
 			ADD_LABEL("Cast", CMD_CAST, true);
@@ -784,17 +781,6 @@ void context_menu_object(struct object *obj)
 	switch (selected) {
 		case -1:
 			return; /* User cancelled the menu. */
-
-		case MENU_VALUE_INSPECT: {
-			region reg = {0};
-			/* copied from textui_obj_examine */
-			textblock *tb = object_info(obj, OINFO_NONE);
-			object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_FULL);
-
-			textui_textblock_show(tb, reg, format("%s", header));
-			textblock_free(tb);
-			return;
-		}
 
 		case MENU_VALUE_DROP_ALL:
 			/* Drop entire stack with confirmation. */
