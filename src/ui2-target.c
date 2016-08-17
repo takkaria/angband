@@ -769,9 +769,16 @@ static size_t draw_path(struct loc *path_points, size_t path_number,
 		 if (loc_in_region(path_points[i], cave_reg)) {
 			 int relx = path_points[i].x - cave_reg.x;
 			 int rely = path_points[i].y - cave_reg.y;
+
 			 Term_get_point(relx, rely, &term_points[i]);
-			 Term_addwc(relx, rely,
-					 draw_path_get_color(path_points[i].x, path_points[i].y), L'*');
+
+			 struct term_point point = {
+				 .fg_char = L'*',
+				 .fg_attr = draw_path_get_color(path_points[i].x, path_points[i].y),
+				 .bg_char = term_points[i].bg_char,
+				 .bg_attr = term_points[i].bg_attr
+			 };
+			 Term_set_point(relx, rely, point);
 
 			 on_screen = true;
 		 } else if (on_screen) {
