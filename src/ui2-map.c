@@ -329,9 +329,7 @@ void move_cursor_relative(struct angband_term *aterm, struct loc coords)
 	int relx = coords.x - aterm->offset_x;
 	int rely = coords.y - aterm->offset_y;
 
-	if (Term_point_ok(relx, rely)) {
-		Term_cursor_to_xy(relx, rely);
-	}
+	Term_cursor_to_xy(relx, rely);
 
 	Term_pop();
 }
