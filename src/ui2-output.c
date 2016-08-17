@@ -77,12 +77,22 @@ void region_erase(region reg)
 	}
 }
 
+bool loc_in_region(struct loc loc, const region *reg)
+{
+	return loc.x >= reg->x
+		&& loc.y <  reg->y + reg->h
+		&& loc.y >= reg->y
+		&& loc.x <  reg->x + reg->w;
+}
+
 bool region_inside(const region *reg, const struct mouseclick *mouse)
 {
-	return reg->x <= mouse->x
-		&& reg->x + reg->w > mouse->x
-		&& reg->y <= mouse->y
-		&& reg->y + reg->h > mouse->y;
+	struct loc loc = {
+		.x = mouse->x,
+		.y = mouse->y
+	};
+
+	return loc_in_region(loc, reg);
 }
 
 /**
@@ -796,7 +806,6 @@ void get_cave_panel(region *reg)
 	Term_pop();
 }
 
-/* TODO use struct loc instead */
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 {
 	region reg;
@@ -808,16 +817,14 @@ void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 	*max_y = reg.y + reg.h;
 }
 
-/* TODO use struct loc instead */
 bool textui_panel_contains(unsigned int y, unsigned int x)
 {
 	region reg;
 	get_cave_panel(&reg);
 
-	return (int) x >= reg.x
-		&& (int) x <  reg.x + reg.w
-		&& (int) y >= reg.y
-		&& (int) y <  reg.y + reg.h;
+	struct loc loc = {x, y};
+
+	return loc_in_region(loc, &reg);
 }
 
 bool textui_map_is_visible(void)

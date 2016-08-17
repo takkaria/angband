@@ -67,6 +67,11 @@ region region_calculate(region reg);
  */
 bool region_inside(const region *reg, const struct mouseclick *mouse);
 
+/*
+ * Check where localtion (x, y) is inside a region
+ */
+bool loc_in_region(struct loc loc, const region *reg);
+
 /**
  * ------------------------------------------------------------------------
  * Text display
