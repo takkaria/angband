@@ -2253,7 +2253,8 @@ static void see_floor_items(game_event_type type,
 		struct term_hints hints = {
 			.width = ANGBAND_TERM_STANDARD_WIDTH,
 			.height = floor_num,
-			.purpose = TERM_PURPOSE_TEXT
+			.purpose = TERM_PURPOSE_TEXT,
+			.position = TERM_POSITION_TOP_CENTER
 		};
 		Term_push_new(&hints);
 
