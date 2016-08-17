@@ -840,7 +840,7 @@ void display_player_xtra_info(void)
 	};
 
 	/* History */
-	Term_cursor_to_xy(info.indent, 19);
+	Term_cursor_to_xy(info.indent, 20);
 	text_out_c(info, COLOUR_WHITE, player->history);
 
 	Term_flush_output();
