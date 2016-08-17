@@ -638,9 +638,16 @@ static void context_menu_object_create(struct menu *m, struct object *obj)
 	mem_free(line_starts);
 	mem_free(line_lengths);
 
+	int term_height;
+	if ((int) lines == menu_reg.h + 1) {
+		term_height = menu_reg.h + 2;
+	} else {
+		term_height = MAX(menu_reg.h, (int) lines);
+	}
+
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = MAX(menu_reg.h, (int) lines),
+		.height = term_height,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -650,7 +657,7 @@ static void context_menu_object_create(struct menu *m, struct object *obj)
 	textui_textblock_place(tb, textblock_reg, NULL);
 
 	menu_reg.x = hints.width - menu_reg.w - 1;
-	if (hints.height > menu_reg.h + 1) {
+	if (term_height > menu_reg.h + 1) {
 		menu_reg.y = 1;
 	}
 	menu_layout(m, menu_reg);
