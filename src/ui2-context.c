@@ -621,9 +621,9 @@ void context_menu_cave(struct chunk *c,
 
 static void context_menu_object_create(struct menu *m, struct object *obj)
 {
-/* -2 for menu padding, -3 for menu tags */
+/* 1 for menu padding on both sides */
 #define CONTEXT_MENU_OBJECT_WIDTH \
-	(menu_reg.w + 2 + 3)
+	(menu_reg.w + 1 + 1)
 
 	region menu_reg = menu_dynamic_calc_location(m);
 	textblock *tb = object_info(obj, OINFO_NONE);
@@ -649,8 +649,10 @@ static void context_menu_object_create(struct menu *m, struct object *obj)
 	region textblock_reg = {0, 0, textblock_width, 0};
 	textui_textblock_place(tb, textblock_reg, NULL);
 
-	menu_reg.x = hints.width - CONTEXT_MENU_OBJECT_WIDTH;
-	menu_reg.y = MAX(0, (hints.height - menu_reg.h) / 2);
+	menu_reg.x = hints.width - menu_reg.w - 1;
+	if (hints.height > menu_reg.h + 1) {
+		menu_reg.y = 1;
+	}
 	menu_layout(m, menu_reg);
 
 #undef CONTEXT_MENU_OBJECT_WIDTH
