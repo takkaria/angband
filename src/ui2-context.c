@@ -132,6 +132,7 @@ static void context_menu_player_2(struct loc mloc)
 
 	menu_dynamic_free(m);
 	string_free(labels);
+	clear_prompt();
 	Term_pop();
 
 	bool allowed = false;
