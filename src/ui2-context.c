@@ -525,6 +525,7 @@ void context_menu_cave(struct chunk *c,
 
 	menu_dynamic_free(m);
 	string_free(labels);
+	clear_prompt();
 	Term_pop();
 
 	cmdkey = cmd_lookup_key(selected, mode);
