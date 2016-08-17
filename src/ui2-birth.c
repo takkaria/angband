@@ -144,7 +144,7 @@ static struct menu roller_menu;
 #define HEADER_ROW         1
 #define QUESTION_ROW       7
 #define BIRTH_MENU_ROW     9
-#define HISTORY_ROW       18
+#define HISTORY_ROW       19
 
 #define HISTORY_COL        1
 #define QUESTION_COL       2
