@@ -488,7 +488,7 @@ void context_menu_cave(struct chunk *c,
 	if (player->timed[TMD_IMAGE]) {
 		show_prompt(PROMPT("You see something strange:"), false);
 	} else if (c->squares[loc.y][loc.x].mon) {
-		char m_name[80];
+		char m_name[ANGBAND_TERM_STANDARD_WIDTH];
 		struct monster *mon = square_monster(c, loc.y, loc.x);
 
 		/* Get the monster name ("a kobold") */
@@ -496,7 +496,7 @@ void context_menu_cave(struct chunk *c,
 
 		show_prompt(format(PROMPT("You see %s:"), m_name), false);
 	} else if (square_obj && !ignore_item_ok(square_obj)) {
-		char o_name[80];
+		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 
 		/* Obtain an object description */
 		object_desc(o_name, sizeof(o_name), square_obj,
@@ -721,12 +721,11 @@ void context_menu_object(struct object *obj)
 
 	ADD_LABEL((object_is_ignored(obj) ? "Unignore" : "Ignore"), CMD_IGNORE, true);
 
-	char header[120];
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_BASE);
 
 	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
 
-	/* TODO UI2 restore the textblock */
 	region reg = menu_dynamic_calc_location(m);
 	struct term_hints hints = {
 		.width = reg.w,
@@ -854,7 +853,7 @@ static void show_command_list(struct cmd_info *cmd_list,
 	m->selections = lower_case;
 
 	for (int i = 0; i < size; i++) {
-		char cmd_name[80];
+		char cmd_name[ANGBAND_TERM_STANDARD_WIDTH];
 		char key[3];
 
 		if (KTRL(cmd_list[i].key[mode]) == cmd_list[i].key[mode]) {
