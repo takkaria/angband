@@ -793,7 +793,7 @@ bool adjust_panel(struct angband_term *aterm, struct loc coords)
 	return modify_panel(aterm, loc(ox, oy));
 }
 
-void get_cave_panel(region *reg)
+void get_cave_region(region *reg)
 {
 	reg->x = angband_cave.offset_x;
 	reg->y = angband_cave.offset_y;
@@ -806,7 +806,7 @@ void get_cave_panel(region *reg)
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 {
 	region reg;
-	get_cave_panel(&reg);
+	get_cave_region(&reg);
 
 	*min_x = reg.x;
 	*min_y = reg.y;
@@ -817,7 +817,7 @@ void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 bool textui_panel_contains(unsigned int y, unsigned int x)
 {
 	region reg;
-	get_cave_panel(&reg);
+	get_cave_region(&reg);
 
 	struct loc loc = {x, y};
 

@@ -129,7 +129,7 @@ void clear_from(int row);
 
 bool textui_map_is_visible(void);
 
-void get_cave_panel(region *reg);
+void get_cave_region(region *reg);
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x);
 bool textui_panel_contains(unsigned int y, unsigned int x);
 
