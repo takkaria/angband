@@ -1405,7 +1405,6 @@ bool textui_get_item(struct object **choice,
 
 	*choice = data.retval.object;
 
-	player->upkeep->command_wrk = 0;
 	cleanup_menu_data(&data);
 
 	return *choice != NULL;
