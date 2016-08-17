@@ -945,6 +945,7 @@ void context_menu_command(struct loc mloc)
 	int selected = menu_dynamic_select(m);
 
 	menu_dynamic_free(m);
+	clear_prompt();
 	Term_pop();
 
 	if (selected > 0) {
