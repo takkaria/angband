@@ -1177,12 +1177,11 @@ struct cmd_info *textui_action_menu_choose(void)
 	int maxlen = 0;
 	while (cmds_all[count].list != NULL) {
 		if (cmds_all[count].len) {
-			count++;
-
 			int len = strlen(cmds_all[count].name);
 			if (len > maxlen) {
 				maxlen = len;
 			}
+			count++;
 		}
 	};
 
