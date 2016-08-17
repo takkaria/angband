@@ -308,6 +308,7 @@ void context_menu_player(struct loc mloc)
 
 	menu_dynamic_free(m);
 	string_free(labels);
+	clear_prompt();
 	Term_pop();
 
 	cmdkey = cmd_lookup_key(selected, mode);
