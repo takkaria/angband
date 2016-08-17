@@ -1194,8 +1194,8 @@ struct cmd_info *textui_action_menu_choose(void)
 	mnflag_on(command_menu.flags, MN_NO_TAGS);
 
 	struct term_hints hints = {
+		.width = maxlen + 1,
 		.height = count,
-		.width = maxlen,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
