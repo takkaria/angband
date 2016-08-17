@@ -234,7 +234,7 @@ static ui_event target_recall_loop_object(struct object *obj,
 		char *buf, size_t size,
 		struct loc coords, const struct desc *desc)
 {
-	char o_name[80];
+	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(o_name, sizeof(o_name),
 			cave->objects[obj->oidx], ODESC_PREFIX | ODESC_FULL);
 
@@ -296,10 +296,10 @@ static bool target_interactive_aux_halluc(ui_event *event,
 static void target_desc_monster(char *buf, size_t size,
 		const struct monster *mon, struct loc coords, const struct desc *desc)
 {
-	char mon_name[80];
+	char mon_name[ANGBAND_TERM_STANDARD_WIDTH];
 	monster_desc(mon_name, sizeof(mon_name), mon, MDESC_IND_VIS);
 
-	char mon_health[80];
+	char mon_health[ANGBAND_TERM_STANDARD_WIDTH];
 	look_mon_desc(mon_health, sizeof(mon_health), cave->squares[coords.y][coords.x].mon);
 
 	if (player->wizard) {
@@ -327,7 +327,7 @@ static bool target_interactive_aux_monster_objects(ui_event *event,
 	copy.b = "carrying ";
 
 	for (const struct object *obj = mon->held_obj; obj; obj = obj->next) {
-		char o_name[80];
+		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 		object_desc(o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
 		strnfmt(buf, size,
 				"%s%s%s%s, %s (%d:%d, cost = %d, when = %d).",
