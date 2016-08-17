@@ -801,8 +801,8 @@ void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 
 	*min_y = aterm->offset_y;
 	*min_x = aterm->offset_x;
-	*max_y = aterm->offset_y + width;
-	*max_x = aterm->offset_x + height;
+	*max_y = aterm->offset_y + height;
+	*max_x = aterm->offset_x + width;
 }
 
 /* TODO use struct loc instead */
