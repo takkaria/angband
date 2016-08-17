@@ -748,27 +748,30 @@ static size_t draw_path(struct loc *path_points, size_t path_number,
 		return 0;
 	}
 
+	region cave_reg;
+	get_cave_region(&cave_reg);
+
 	/* 
 	 * The starting square is never drawn, but notice if it is being
      * displayed. It could be the last such square.
      */
-	bool on_screen = panel_contains(coords.y, coords.x);
+	bool on_screen = loc_in_region(coords, cave_reg);
 
-	size_t i = 0;
-	while (i < path_number) {
-		int x = path_points[i].x;
-		int y = path_points[i].y;
-
+	size_t i;
+	for (i = 0; i < path_number; i++) {
 		/*
 		 * If the square being drawn is visible, this is part of it.
 		 * If some of it has been drawn, finish now as there are no
 		 * more visible squares to draw.
 		 */
-		 if (panel_contains(y, x)) {
+		 if (loc_in_region(path_points[i], cave_reg)) {
+			 int relx = path_points[i].x - cave_reg.x;
+			 int rely = path_points[i].y - cave_reg.y;
+			 Term_get_point(relx, rely, &term_points[i]);
+			 Term_addwc(relx, rely,
+					 draw_path_get_color(path_points[i].x, path_points[i].y), L'*');
+
 			 on_screen = true;
-			 Term_get_point(x, y, &term_points[i]);
-			 Term_addwc(x, y, draw_path_get_color(x, y), L'*');
-			 i++;
 		 } else if (on_screen) {
 			 break;
 		 }
@@ -785,15 +788,15 @@ static size_t draw_path(struct loc *path_points, size_t path_number,
 static void load_path(struct loc *path_points, size_t path_number,
 		struct term_point *term_points)
 {
+	region cave_reg;
+	get_cave_region(&cave_reg);
+
 	for (size_t i = 0; i < path_number; i++) {
-		int x = path_points[i].x;
-		int y = path_points[i].y;
-
-		if (!panel_contains(y, x)) {
-			continue;
+		if (loc_in_region(path_points[i], cave_reg)) {
+			int relx = path_points[i].x - cave_reg.x;
+			int rely = path_points[i].y - cave_reg.y;
+			Term_set_point(relx, rely, term_points[i]);
 		}
-
-		Term_set_point(x, y, term_points[i]);
 	}
 
 	Term_flush_output();
