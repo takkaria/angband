@@ -619,6 +619,49 @@ void context_menu_cave(struct chunk *c,
 	}
 }
 
+static void context_menu_object_create(struct menu *m, struct object *obj)
+{
+/* -2 for menu padding, -3 for menu tags */
+#define CONTEXT_MENU_OBJECT_WIDTH \
+	(menu_reg.w + 2 + 3)
+
+	region menu_reg = menu_dynamic_calc_location(m);
+	textblock *tb = object_info(obj, OINFO_NONE);
+
+	int textblock_width = ANGBAND_TERM_STANDARD_WIDTH - CONTEXT_MENU_OBJECT_WIDTH;
+	assert(textblock_width > 0);
+
+	size_t *line_starts = NULL;
+	size_t *line_lengths = NULL;
+	size_t lines = textblock_calculate_lines(tb,
+			&line_starts, &line_lengths, textblock_width);
+	mem_free(line_starts);
+	mem_free(line_lengths);
+
+	struct term_hints hints = {
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = MAX(menu_reg.h, (int) lines),
+		.position = TERM_POSITION_TOP_CENTER,
+		.purpose = TERM_PURPOSE_MENU
+	};
+	Term_push_new(&hints);
+
+	region textblock_reg = {0, 0, textblock_width, 0};
+	textui_textblock_place(tb, textblock_reg, NULL);
+
+	menu_reg.x = hints.width - CONTEXT_MENU_OBJECT_WIDTH;
+	menu_reg.y = MAX(0, (hints.height - menu_reg.h) / 2);
+	menu_layout(m, menu_reg);
+
+#undef CONTEXT_MENU_OBJECT_WIDTH
+}
+
+static void context_menu_object_destroy(struct menu *m)
+{
+	menu_dynamic_free(m);
+	Term_pop();
+}
+
 /**
  * Pick the context menu options appropiate for the item
  */
@@ -726,21 +769,12 @@ void context_menu_object(struct object *obj)
 
 	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
 
-	region reg = menu_dynamic_calc_location(m);
-	struct term_hints hints = {
-		.width = reg.w,
-		.height = reg.h,
-		.position = TERM_POSITION_CENTER,
-		.purpose = TERM_PURPOSE_MENU
-	};
-	Term_push_new(&hints);
-	menu_layout_term(m);
+	context_menu_object_create(m, obj);
 
 	int selected = menu_dynamic_select(m);
 
-	menu_dynamic_free(m);
+	context_menu_object_destroy(m);
 	string_free(labels);
-	Term_pop();
 
 	cmdkey = cmd_lookup_key(selected, mode);
 
