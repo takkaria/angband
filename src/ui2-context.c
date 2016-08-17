@@ -782,6 +782,7 @@ bool context_menu_object(struct object *obj)
 
 	context_menu_object_destroy(m);
 	string_free(labels);
+	clear_prompt();
 
 	cmdkey = cmd_lookup_key(selected, mode);
 
