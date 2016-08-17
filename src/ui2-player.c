@@ -657,7 +657,7 @@ static uint32_t max_color(int val, int max)
 /**
  * Colours for table items
  */
-static const uint32_t colour_table[] = {
+static const uint32_t skill_colour_table[] = {
 	COLOUR_RED,
 	COLOUR_RED,
 	COLOUR_RED,
@@ -757,7 +757,7 @@ static struct panel *get_panel_skills(void) {
 
 	/* Saving throw */
 	int skill = BOUND(player->state.skills[SKILL_SAVE], 0, 100);
-	panel_line(p, colour_table[skill / 10], "Saving Throw", "%d%%", skill);
+	panel_line(p, skill_colour_table[skill / 10], "Saving Throw", "%d%%", skill);
 
 	/* Stealth */
 	const char *desc = likert(player->state.skills[SKILL_STEALTH], 1, &attr);
@@ -765,15 +765,15 @@ static struct panel *get_panel_skills(void) {
 
 	/* Physical disarming: assume we're disarming a dungeon trap */
 	skill = BOUND(player->state.skills[SKILL_DISARM_PHYS] - depth / 5, 2, 100);
-	panel_line(p, colour_table[skill / 10], "Disarm - phys.", "%d%%", skill);
+	panel_line(p, skill_colour_table[skill / 10], "Disarm - phys.", "%d%%", skill);
 
 	/* Magical disarming */
 	skill = BOUND(player->state.skills[SKILL_DISARM_MAGIC] - depth / 5, 2, 100);
-	panel_line(p, colour_table[skill / 10], "Disarm - magic", "%d%%", skill);
+	panel_line(p, skill_colour_table[skill / 10], "Disarm - magic", "%d%%", skill);
 
 	/* Magic devices */
 	skill = player->state.skills[SKILL_DEVICE];
-	panel_line(p, colour_table[skill / 13], "Magic Devices", "%d", skill);
+	panel_line(p, skill_colour_table[skill / 13], "Magic Devices", "%d", skill);
 
 	/* Infravision */
 	panel_line(p, COLOUR_L_GREEN,
