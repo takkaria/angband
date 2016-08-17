@@ -510,6 +510,10 @@ void clear_prompt(void)
 	Term_cursor_visible(false);
 	Term_flush_output();
 	Term_pop();
+
+	/* Reset the term state, so that messages
+	 * won't print "-more-" over prompt */
+	angband_message_line.offset_x = 0;
 }
 
 /**
@@ -525,6 +529,10 @@ void show_prompt(const char *str, bool cursor)
 	Term_adds(0, 0, Term_width(), COLOUR_WHITE, str);
 	Term_flush_output();
 	Term_pop();
+
+	/* Reset the term state, so that messages
+	 * won't print "-more-" over prompt */
+	angband_message_line.offset_x = 0;
 }
 
 /**
