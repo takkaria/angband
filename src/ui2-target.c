@@ -1019,7 +1019,7 @@ static void target_free_select_dir(int dir,
 {
 	const int movx = coords->x + ddx[dir];
 	const int movy = coords->y + ddy[dir];
-	const int maxx = cave->height - 1;
+	const int maxx = cave->width - 1;
 	const int maxy = cave->height - 1;
 
 	coords->x = MAX(0, MIN(movx, maxx));
