@@ -132,6 +132,8 @@ static void target_display_help_aux(bool monster, bool free)
 		text_out(info, " targets the current selection.");
 	}
 
+	Term_flush_output();
+
 	inkey_any();
 
 	Term_pop();
