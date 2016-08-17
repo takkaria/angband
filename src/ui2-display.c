@@ -1992,7 +1992,7 @@ static void init_angband_aux(const char *why)
 }
 
 /*
- * Take notes on line 23
+ * Take notes on last line of splash screen
  */
 static void splashscreen_note(game_event_type type,
 		game_event_data *data, void *user)
@@ -2008,7 +2008,7 @@ static void splashscreen_note(game_event_type type,
 
 		/* Advance one line (wrap if needed) */
 		coords.y++;
-		if (coords.y >= 24) {
+		if (coords.y >= ANGBAND_TERM_STANDARD_HEIGHT) {
 			coords.y = 2;
 		}
 	} else {
@@ -2016,9 +2016,12 @@ static void splashscreen_note(game_event_type type,
 		int height;
 		Term_get_size(&width, &height);
 
+		const int last_line = ANGBAND_TERM_STANDARD_HEIGHT - 1;
+		assert(height >= last_line);
+
 		char *s = format("[%s]", data->message.msg);
-		Term_erase_line(0, (height - 23) / 5 + 23);
-		Term_adds((width - strlen(s)) / 2, (height - 23) / 5 + 23,
+		Term_erase_line(0, (height - last_line) / 5 + last_line);
+		Term_adds((width - strlen(s)) / 2, (height - last_line) / 5 + last_line,
 				width, COLOUR_WHITE, s);
 	}
 
@@ -2051,12 +2054,12 @@ static void show_splashscreen(game_event_type type,
 	fp = file_open(buf, MODE_READ, FTYPE_TEXT);
 
 	if (fp) {
-		/* Centre the splashscreen - assume news.txt has width 80, height 23 */
+		/* Centre the splashscreen - assume news.txt has width 80, height 24 */
 		struct text_out_info info = {
-			.indent = (Term_width() - 80) / 2
+			.indent = (Term_width() - ANGBAND_TERM_STANDARD_WIDTH) / 2
 		};
 
-		Term_cursor_to_xy(0, (Term_height() - 23) / 5);
+		Term_cursor_to_xy(0, (Term_height() - (ANGBAND_TERM_STANDARD_HEIGHT - 1)) / 5);
 
 		/* Dump the file to the screen */
 		while (file_getl(fp, buf, sizeof(buf))) {
@@ -2221,7 +2224,7 @@ static void see_floor_items(game_event_type type,
 	if (floor_num == 1) {
 		/* Get the object */
 		struct object *obj = floor_list[0];
-		char o_name[80];
+		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 
 		if (!can_pickup) {
 			p = "have no room for";
@@ -2248,7 +2251,7 @@ static void see_floor_items(game_event_type type,
 
 		/* Display objects on the floor */
 		struct term_hints hints = {
-			.width = 80,
+			.width = ANGBAND_TERM_STANDARD_WIDTH,
 			.height = floor_num,
 			.purpose = TERM_PURPOSE_TEXT
 		};
@@ -2302,8 +2305,8 @@ static void ui_enter_init(game_event_type type,
 		game_event_data *data, void *user)
 {
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.purpose = TERM_PURPOSE_INTRO
 	};
 	Term_push_new(&hints);
