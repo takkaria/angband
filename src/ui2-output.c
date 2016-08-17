@@ -786,42 +786,38 @@ bool adjust_panel(struct angband_term *aterm, struct loc coords)
 	return modify_panel(aterm, loc(ox, oy));
 }
 
+void get_cave_panel(region *reg)
+{
+	reg->x = angband_cave.offset_x;
+	reg->y = angband_cave.offset_y;
+
+	Term_push(angband_cave.term);
+	Term_get_size(&reg->w, &reg->h);
+	Term_pop();
+}
+
 /* TODO use struct loc instead */
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 {
-	struct angband_term *aterm = &angband_cave;
+	region reg;
+	get_cave_panel(&reg);
 
-	Term_push(aterm->term);
-
-	int width;
-	int height;
-	Term_get_size(&width, &height);
-
-	Term_pop();
-
-	*min_y = aterm->offset_y;
-	*min_x = aterm->offset_x;
-	*max_y = aterm->offset_y + height;
-	*max_x = aterm->offset_x + width;
+	*min_x = reg.x;
+	*min_y = reg.y;
+	*max_x = reg.x + reg.w;
+	*max_y = reg.y + reg.h;
 }
 
 /* TODO use struct loc instead */
 bool textui_panel_contains(unsigned int y, unsigned int x)
 {
-	struct angband_term *aterm = &angband_cave;
+	region reg;
+	get_cave_panel(&reg);
 
-	Term_push(aterm->term);
-
-	int width;
-	int height;
-	Term_get_size(&width, &height);
-
-	Term_pop();
-
-	return (int) x >= aterm->offset_x
-		&& (int) x <  aterm->offset_x + width
-		&& (int) y >= aterm->offset_y
-		&& (int) y <  aterm->offset_y + height;
+	return (int) x >= reg.x
+		&& (int) x <  reg.x + reg.w
+		&& (int) y >= reg.y
+		&& (int) y <  reg.y + reg.h;
 }
 
 bool textui_map_is_visible(void)
