@@ -2440,15 +2440,16 @@ void do_cmd_item(int wrk)
 	player->upkeep->command_wrk = wrk;
 
 	struct object *obj = NULL;
+	bool do_command = false;
 
 	do {
 		get_item(&obj, "Select Item:", NULL, CMD_NULL, NULL, GET_ITEM_PARAMS);
 
 		if (obj && obj->kind) {
 			track_object(player->upkeep, obj);
-			context_menu_object(obj);
+			do_command = context_menu_object(obj);
 		}
-	} while (obj);
+	} while (obj && !do_command);
 }
 /**
  * Display inventory
