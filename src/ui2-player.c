@@ -360,10 +360,10 @@ static void display_player_flag_info(void)
 	const int res_cols = 6 + player->body.count + 1;
 
 	const struct loc resist_locs[] = {
-		{0 * (res_cols + 1), 10},
-		{1 * (res_cols + 1), 10},
-		{2 * (res_cols + 1), 10},
-		{3 * (res_cols + 1), 10},
+		{0 * (res_cols + 1), 11},
+		{1 * (res_cols + 1), 11},
+		{2 * (res_cols + 1), 11},
+		{3 * (res_cols + 1), 11},
 	};
 
 	for (size_t i = 0; i < N_ELEMENTS(resist_locs); i++) {
