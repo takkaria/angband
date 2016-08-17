@@ -1115,15 +1115,19 @@ static bool cmd_menu(struct command_list *list, void *selection_p)
 	/* Set up the menu */
 	menu_init(&menu, MN_SKIN_SCROLL, &commands_menu);
 	menu_setpriv(&menu, list->len, list->list);
+	mnflag_on(menu.flags, MN_NO_TAGS);
 
-	int width;
-	int height;
-	/* Get size of previous term (created by textui_action_menu_choose()) */
-	Term_get_size(&width, &height);
+	int maxlen = 0;
+	for (size_t i = 0; i < list->len; i++) {
+		int len = strlen(list->list[i].desc);
+		if (len > maxlen) {
+			maxlen = len;
+		}
+	}
 
 	struct term_hints hints = {
-		.width = width,
-		.height = height,
+		.width = maxlen + 8, /* 8 should be enough for additional chars */
+		.height = list->len,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
