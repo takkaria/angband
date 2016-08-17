@@ -1187,10 +1187,11 @@ struct cmd_info *textui_action_menu_choose(void)
 
 	menu_init(&command_menu, MN_SKIN_SCROLL, &command_menu_iter);
 	menu_setpriv(&command_menu, count, &chosen_command);
+	mnflag_on(command_menu.flags, MN_NO_TAGS);
 
 	struct term_hints hints = {
 		.height = count,
-		.width = maxlen + 10, /* + 10 for tag, etc */
+		.width = maxlen,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
