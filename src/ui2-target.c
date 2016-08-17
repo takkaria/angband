@@ -1287,6 +1287,7 @@ bool target_set_interactive(int mode, struct loc coords)
 	point_set_dispose(targets);
 	verify_panel(&angband_cave);
 	handle_stuff(player);
+	clear_prompt();
 
 	return target_is_set();
 }
