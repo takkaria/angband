@@ -522,6 +522,8 @@ void show_inven(int mode, item_tester tester)
 			all_letters, tester, mode);
 	show_obj_list(olist, mode, loc);
 	free_obj_list(olist);
+
+	Term_flush_output();
 }
 
 /**
@@ -548,6 +550,8 @@ void show_quiver(int mode, item_tester tester)
 			all_digits, tester, mode);
 	show_obj_list(olist, mode, loc);
 	free_obj_list(olist);
+
+	Term_flush_output();
 }
 
 /**
@@ -584,6 +588,8 @@ void show_equip(int mode, item_tester tester)
 		show_obj_list(olist, mode, loc);
 		free_obj_list(olist);
 	}
+
+	Term_flush_output();
 }
 
 /**
@@ -605,6 +611,8 @@ void show_floor(struct object **floor_list, int floor_num,
 			all_letters, tester, mode);
 	show_obj_list(olist, mode, loc);
 	free_obj_list(olist);
+
+	Term_flush_output();
 }
 
 /**
