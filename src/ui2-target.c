@@ -88,7 +88,7 @@ static void target_display_help_aux(bool monster, bool free)
 {
 	/* Determine help location */
 	struct term_hints hints = {
-		.width = 80,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = 3,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
