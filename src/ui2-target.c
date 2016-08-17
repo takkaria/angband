@@ -1252,8 +1252,6 @@ static void target_free_select(struct loc *coords, struct point_set **targets,
  */
 bool target_set_interactive(int mode, struct loc coords)
 {
-	show_prompt("Press '?' for help.", false);
-
 	bool saved_cursor;
 	Term_get_cursor(NULL, NULL, &saved_cursor, NULL);
 	Term_cursor_visible(true);
