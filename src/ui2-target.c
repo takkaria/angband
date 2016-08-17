@@ -485,8 +485,10 @@ static bool target_interactive_aux_objects(ui_event *event,
 		show_prompt(buf, false);
 
 		struct term_hints hints = {
+			.width = ANGBAND_TERM_STANDARD_WIDTH,
 			.height = floor_num,
-			.purpose = TERM_PURPOSE_TEXT
+			.purpose = TERM_PURPOSE_TEXT,
+			.position = TERM_POSITION_TOP_CENTER
 		};
 		Term_push_new(&hints);
 		show_floor(floor_list, floor_num,
