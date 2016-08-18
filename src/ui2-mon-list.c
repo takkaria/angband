@@ -411,16 +411,22 @@ void monster_list_show_interactive(void)
 
 	/*
 	 * Large numbers are passed as the height and width limit so that we can
-	 * calculate the maximum number of rows and columns to display the list
-	 * nicely. Height is adjusted to account for the texblock footer.
+	 * calculate the maximum number of rows and columns to display the list nicely.
 	 */
 	size_t max_width = 0;
 	size_t max_height = 0;
-	monster_list_format_textblock(list, tb, 1000, 1000, &max_height, &max_width);
+	monster_list_format_textblock(list, NULL, 1000, 1000, &max_height, &max_width);
+
+	/*
+	 * Actually draw the list. We pass in max_height to the format function so
+	 * that all lines will be appended to the textblock. The textblock itself
+	 * will handle fitting it into the region.
+	 */
+	monster_list_format_textblock(list, tb, max_height, max_width, NULL, NULL);
 
 	region reg = {
 		.w = max_width,
-		.h = max_height + 2
+		.h = max_height
 	};
 
 	textui_textblock_show(tb, reg, NULL);
