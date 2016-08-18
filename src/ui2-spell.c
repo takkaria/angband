@@ -240,6 +240,7 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 	data->browse = true;
 	menu_select(menu);
 
+	clear_prompt();
 	Term_pop();
 }
 
