@@ -75,9 +75,8 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 			textblock_append(tb, "%s", line_buffer);
 		}
 
-		/* Force a minimum width so that the prompt doesn't get cut off. */
 		if (max_width_result != NULL) {
-			*max_width_result = MAX(max_line_length, 40);
+			*max_width_result = max_line_length;
 		}
 
 		return;
