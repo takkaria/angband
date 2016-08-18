@@ -47,7 +47,6 @@ static void show_history_prompt(void)
 		show_prompt(HISTORY_PROMPT, false);
 
 #undef HISTORY_PROMPT
-
 }
 
 /**
@@ -133,7 +132,6 @@ void history_display(void)
 	clear_prompt();
 	Term_pop();
 }
-
 
 /**
  * Dump character history to a file, which we assume is already open.
