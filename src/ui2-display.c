@@ -142,8 +142,8 @@ void cnv_stat(int val, char *out_val, size_t out_len)
  * ------------------------------------------------------------------------
  */
 
-/* "-more-" is 6 chars; 1 for preceding space; 1 for cursor */
-#define MSG_MORE_LEN 8
+/* "-more-" is 6 chars; 1 for preceding space */
+#define MSG_MORE_LEN 7
 
 static void message_more(int x)
 {
