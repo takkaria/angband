@@ -28,7 +28,6 @@
 #include "ui2-menu.h"
 #include "ui2-output.h"
 
-#define SPELL_DESC_ROWS 2
 /**
  * Spell menu data struct
  */
@@ -103,33 +102,41 @@ static void spell_menu_display(struct menu *menu,
 }
 
 /**
+ * Show spell long description when browsing
+ */
+static void show_spell_description(int index, void *data, const region reg)
+{
+	struct spell_menu_data *d = data;
+
+	const struct class_spell *spell = spell_by_index(d->spells[index]);
+
+	textblock *tb = textblock_new();
+	textblock_append(tb, "%s", spell->text);
+
+	region area = {0};
+	textui_textblock_show(tb, area, spell->name);
+
+	textblock_free(tb);
+}
+
+/**
  * Handle an event on a menu row.
  */
 static bool spell_menu_handler(struct menu *menu, const ui_event *event, int index)
 {
 	struct spell_menu_data *data = menu_priv(menu);
 
-	if (data->browse) {
+	if (event->type == EVT_KBRD && event->key.code == '?') {
+		show_spell_description(index, menu_priv(menu), menu->active);
 		return true;
+	} else if (data->browse) {
+		return true;
+	} else if (event->type == EVT_SELECT) {
+		data->selected_spell = data->spells[index];
+		return false;
 	} else {
-		if (event->type == EVT_SELECT) {
-			data->selected_spell = data->spells[index];
-		}
 		return false;
 	}
-}
-
-/**
- * Show spell long description when browsing
- */
-static void spell_menu_browser(int index, void *data, const region reg)
-{
-	struct spell_menu_data *d = data;
-
-	const struct class_spell *spell = spell_by_index(d->spells[index]);
-	struct text_out_info info = {0};
-	Term_cursor_to_xy(reg.x, reg.y + reg.h - SPELL_DESC_ROWS);
-	text_out(info, "\n%sn", spell->text);
 }
 
 static const menu_iter spell_menu_iter = {
@@ -165,7 +172,7 @@ static struct menu *spell_menu_new(const struct object *obj,
 	/* Set flags */
 	menu->header = "Name                             Lv Mana Fail Info";
 	menu->selections = lower_case;
-	menu->browse_hook = spell_menu_browser;
+	menu->command_keys = "?";
 
 	mnflag_on(menu->flags, MN_CASELESS_TAGS);
 
@@ -191,7 +198,7 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 
 	struct term_hints hints = {
 		.width = 60,
-		.height = data->n_spells + 1 + SPELL_DESC_ROWS,
+		.height = data->n_spells + 1,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -200,7 +207,7 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 
 	/* Format, capitalise and display */
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(buf, sizeof(buf), "%s which %s?", verb, noun);
+	strnfmt(buf, sizeof(buf), "%s which %s? ('?' to read description)", verb, noun);
 	my_strcap(buf);
 	show_prompt(buf, false);
 
@@ -221,14 +228,14 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 
 	struct term_hints hints = {
 		.width = 60,
-		.height = data->n_spells + 1 + SPELL_DESC_ROWS,
+		.height = data->n_spells + 1,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_TOP_CENTER
 	};
 	Term_push_new(&hints);
 	menu_layout_term(menu);
 
-	show_prompt(format("Browsing %ss.", noun), false);
+	show_prompt(format("Browsing %ss. ('?' to read description)", noun), false);
 
 	data->browse = true;
 	menu_select(menu);
