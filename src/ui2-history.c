@@ -48,8 +48,8 @@ void history_display(void)
 	static int first_item = 0;
 	int max_item = history_get_list(&history_list_local);
 
-	const int term_width = 80;
-	const int term_height = 24;
+	const int term_width = ANGBAND_TERM_STANDARD_WIDTH;
+	const int term_height = ANGBAND_TERM_STANDARD_HEIGHT;
 
 	struct term_hints hints = {
 		.width = term_width,
@@ -75,7 +75,7 @@ void history_display(void)
 		struct loc loc = {0, 2};
 
 		for (int i = first_item, y = 0; i < max_item && y < page_size; i++, y++, loc.y++) {
-			char buf[80];
+			char buf[ANGBAND_TERM_STANDARD_WIDTH];
 			strnfmt(buf, sizeof(buf), "%10d%7d\'  %s",
 					history_list_local[i].turn,
 					history_list_local[i].dlev * 50,
