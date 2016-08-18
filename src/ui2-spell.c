@@ -157,8 +157,9 @@ static struct menu *spell_menu_new(const struct object *obj,
 	/* collect spells from object */
 	data->n_spells = spell_collect_from_book(obj, &data->spells);
 	if (data->n_spells == 0 || !spell_okay_list(is_valid, data->spells, data->n_spells)) {
-		menu_free(menu);
+		mem_free(data->spells);
 		mem_free(data);
+		menu_free(menu);
 		return NULL;
 	}
 
@@ -185,8 +186,11 @@ static struct menu *spell_menu_new(const struct object *obj,
 static void spell_menu_destroy(struct menu *menu)
 {
 	struct spell_menu_data *data = menu_priv(menu);
-	menu_free(menu);
+
+	mem_free(data->spells);
 	mem_free(data);
+
+	menu_free(menu);
 }
 
 /**
