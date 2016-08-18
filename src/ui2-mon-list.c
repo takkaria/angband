@@ -121,7 +121,8 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 		}
 
 		/* Get width available for monster name and sleep tag: 2 for char and
-		 * space; location includes padding; last -1 for some reason? */
+		 * space; location includes padding; last -1 because textblock (in effect)
+		 * adds one column of padding on the right side of any string */
 		size_t full_width = max_width - 2 - utf8_strlen(location) - 1;
 
 		u16b asleep_in_section = list->entries[entry].asleep[section];
