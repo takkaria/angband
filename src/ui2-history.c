@@ -37,6 +37,18 @@ static void print_history_header(void)
 	c_put_str(COLOUR_L_BLUE, "      Turn   Depth  Note", loc);
 }
 
+static void show_history_prompt(void)
+{
+#define HISTORY_PROMPT \
+	"[Arrow keys scroll, " \
+	"p/PgUp for previous page, " \
+	"n/PgDn for next page, ESC to exit.]"
+
+		show_prompt(HISTORY_PROMPT, false);
+
+#undef HISTORY_PROMPT
+
+}
 
 /**
  * Handles all of the display functionality for the history list.
@@ -60,8 +72,8 @@ void history_display(void)
 
 	Term_push_new(&hints);
 
-	/* Four lines provide space for the header and footer */
-	const int page_size = term_height - 4;
+	/* Two lines provide space for the header */
+	const int page_size = term_height - 2;
 
 	bool done = false;
 
@@ -70,6 +82,7 @@ void history_display(void)
 
 		/* Print everything to screen */
 		print_history_header();
+		show_history_prompt();
 
 		/* Size of header 2 lines */
 		struct loc loc = {0, 2};
@@ -87,9 +100,6 @@ void history_display(void)
 
 			prt(buf, loc);
 		}
-
-		loc.y = term_height - 1;
-		prt("[Arrow keys scroll, p/PgUp for previous page, n/PgDn for next page, ESC to exit.]", loc);
 
 		Term_flush_output();
 
@@ -120,6 +130,7 @@ void history_display(void)
 		}
 	}
 
+	clear_prompt();
 	Term_pop();
 }
 
