@@ -160,6 +160,8 @@ static void display_scores_aux(const high_score *scores,
 			loc.y++;
 		}
 
+		Term_flush_output();
+
 		show_prompt("[Press ESC to exit, any other key to continue.]", false);
 		struct keypress key = inkey_only_key();
 		clear_prompt();
