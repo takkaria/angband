@@ -207,8 +207,8 @@ void predict_score(void)
 void show_scores(void)
 {
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
