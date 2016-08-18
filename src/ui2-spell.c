@@ -129,7 +129,7 @@ static void spell_menu_browser(int index, void *data, const region reg)
 	const struct class_spell *spell = spell_by_index(d->spells[index]);
 	struct text_out_info info = {0};
 	Term_cursor_to_xy(reg.x, reg.y + reg.h - SPELL_DESC_ROWS);
-	text_out(info, "\n%s\n", spell->text);
+	text_out(info, "\n%sn", spell->text);
 }
 
 static const menu_iter spell_menu_iter = {
@@ -199,13 +199,14 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 	menu_layout_term(menu);
 
 	/* Format, capitalise and display */
-	char buf[80];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(buf, sizeof(buf), "%s which %s?", verb, noun);
 	my_strcap(buf);
 	show_prompt(buf, false);
 
 	menu_select(menu);
 
+	clear_prompt();
 	Term_pop();
 
 	return data->selected_spell;
