@@ -91,6 +91,8 @@ void history_display(void)
 		loc.y = term_height - 1;
 		prt("[Arrow keys scroll, p/PgUp for previous page, n/PgDn for next page, ESC to exit.]", loc);
 
+		Term_flush_output();
+
 		struct keypress key = inkey_only_key();
 
 		switch (key.code) {
