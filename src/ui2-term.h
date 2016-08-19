@@ -193,9 +193,6 @@ void Term_clear(void);
  * bga - background attr (usually color)
  * bgc - background char
  * x and y must be valid */
-bool Term_putwchar(uint32_t fga, wchar_t fgc,
-		uint32_t bga, wchar_t bgc, bitflag *flags);
-/* simplified interface to the above; background attr and char will be unchanged */
 bool Term_putwc(uint32_t fga, wchar_t fgc);
 /* as above, but with a null-terminated string of wchar_t */
 bool Term_putws(int len, uint32_t fga, const wchar_t *fgc);
@@ -203,8 +200,6 @@ bool Term_putws(int len, uint32_t fga, const wchar_t *fgc);
  * only the part of the string that fits in the term window will be used */
 bool Term_puts(int len, uint32_t fga, const char *fgc);
  /* Term_add* are like Term_put* functions, but allow to specify coordinates */
-bool Term_addwchar(int x, int y,
-		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags);
 bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc);
 bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc);
 bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc);

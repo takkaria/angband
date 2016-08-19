@@ -232,23 +232,6 @@ static void term_mark_line_dirty(int x, int y, int len)
 	term_mark_point_dirty(z, y);
 }
 
-static struct term_point term_make_point(uint32_t fga, wchar_t fgc,
-		uint32_t bga, wchar_t bgc, bitflag *flags)
-{
-	struct term_point point = {
-		.fg_char = fgc,
-		.fg_attr = fga,
-		.bg_char = bgc,
-		.bg_attr = bga
-	};
-	
-	if (flags != NULL) {
-		tpf_copy(point.flags, flags);
-	}
-
-	return point;
-}
-
 static void term_set_point(int x, int y, struct term_point point)
 {
 	STACK_OK();
@@ -568,12 +551,6 @@ void Term_pop_all(void)
 	}
 }
 
-bool Term_putwchar(uint32_t fga, wchar_t fgc,
-		uint32_t bga, wchar_t bgc, bitflag *flags)
-{
-	return term_put_point_at_cursor(term_make_point(fga, fgc, bga, bgc, flags));
-}
-
 bool Term_putwc(uint32_t fga, wchar_t fgc)
 {
 	return term_put_fg_at_cursor(fga, fgc);
@@ -594,14 +571,6 @@ bool Term_puts(int len, uint32_t fga, const char *fgc)
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
 
 	return term_put_ws_at_cursor(len, fga, ws);
-}
-
-bool Term_addwchar(int x, int y,
-		uint32_t fga, wchar_t fgc, uint32_t bga, wchar_t bgc, bitflag *flags)
-{
-	term_move_cursor(x, y);
-
-	return term_put_point_at_cursor(term_make_point(fga, fgc, bga, bgc, flags));
 }
 
 bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
