@@ -116,7 +116,7 @@ void textui_cmd_debug(void)
 		event_signal(EVENT_MESSAGE_FLUSH);
 
 		/* Verify request */
-		if (!get_check("Are you sure you want to use the debug commands? ")) {
+		if (!get_check("Are you sure you want to use the debug commands?")) {
 			return;
 		}
 
@@ -137,11 +137,11 @@ void textui_cmd_suicide(void)
 
 	/* Verify */
 	if (player->total_winner) {
-		if (!get_check("Do you want to retire? ")) {
+		if (!get_check("Do you want to retire?")) {
 			return;
 		}
 	} else {
-		if (!get_check("Do you really want to commit suicide? [y/n]")) {
+		if (!get_check("Do you really want to commit suicide?")) {
 			return;
 		}
 
