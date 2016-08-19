@@ -2421,6 +2421,7 @@ static void ui_enter_world(game_event_type type,
 	/* Allow the player to cheat death, if appropriate */
 	event_add_handler(EVENT_CHEAT_DEATH, cheat_death, NULL);
 
+	/* Redraw the screen (several times) each turn */
 	event_add_handler(EVENT_END, redraw, NULL);
 }
 
