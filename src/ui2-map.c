@@ -110,6 +110,24 @@ static void grid_get_light(const struct grid_data *g,
 	}
 }
 
+static void grid_get_terrain(const struct grid_data *g, uint32_t *attr)
+{
+	if (use_graphics == GRAPHICS_NONE) {
+		/* Hybrid or block walls */
+		if (feat_is_wall(g->f_idx)) {
+			if (OPT(hybrid_walls)) {
+				*attr = BG_DARK;
+			} else if (OPT(solid_walls)) {
+				*attr = BG_SAME;
+			} else {
+				*attr = BG_BLACK;
+			}
+		} else {
+			*attr = BG_BLACK;
+		}
+	}
+}
+
 /**
  * Apply text lighting effects
  */
@@ -129,15 +147,6 @@ static void grid_get_attr(const struct grid_data *g, uint32_t *attr)
 			if (!g->in_view) {
 				*attr = COLOUR_L_DARK;
 			}
-		}
-	}
-
-	/* Hybrid or block walls */
-	if (use_graphics == GRAPHICS_NONE && feat_is_wall(g->f_idx)) {
-		if (OPT(hybrid_walls)) {
-			*attr = BG_DARK;
-		} else if (OPT(solid_walls)) {
-			*attr = BG_SAME;
 		}
 	}
 }
@@ -310,6 +319,8 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 	/* Save the terrain info for the transparency effects */
 	point->bg_attr = attr;
 	point->bg_char = ch;
+
+	grid_get_terrain(g, &point->terrain_attr);
 
 	grid_get_trap(g, &attr, &ch);
 	grid_get_object(g, &attr, &ch);
