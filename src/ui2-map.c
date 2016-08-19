@@ -53,7 +53,7 @@ static void hallucinatory_object(uint32_t *attr, wchar_t *ch)
 {
 	while (true) {
 		/* Select a random object */
-		struct object_kind *kind = &k_info[randint0(z_info->k_max - 1) + 1];
+		struct object_kind *kind = &k_info[randint1(z_info->k_max - 1)];
 		if (!kind->name) {
 			continue;
 		}
