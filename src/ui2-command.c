@@ -89,7 +89,7 @@ void do_cmd_unknown(void)
  */
 void do_cmd_version(void)
 {
-	char header_buf[80];
+	char header_buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	textblock *tb = textblock_new();
 	region reg = {0, 0, 0, 0};
