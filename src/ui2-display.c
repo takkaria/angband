@@ -972,6 +972,7 @@ static size_t prt_state(struct loc coords)
 		}
 		c_put_str(attr, text, coords);
 
+		return strlen(text) + 1;
 	} else if (cmd_get_nrepeats()) {
 		int nrepeats = cmd_get_nrepeats();
 
@@ -981,9 +982,11 @@ static size_t prt_state(struct loc coords)
 			strnfmt(text, sizeof(text), "Repeat %3d", nrepeats);
 		}
 		c_put_str(attr, text, coords);
+
+		return strlen(text) + 1;
 	}
 
-	return strlen(text);
+	return 0;
 }
 
 /* Colors used to display each obj feeling 	*/
