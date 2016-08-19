@@ -192,7 +192,7 @@ void textui_cmd_rest(void)
 		/* ...some */
 		int turns = atoi(buf);
 		if (turns > 0) {
-			turns = MIN(turn, 9999);
+			turns = MIN(turns, 9999);
 			cmdq_push(CMD_REST);
 			cmd_set_arg_choice(cmdq_peek(), "choice", turns);
 		}
