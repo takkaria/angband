@@ -2532,10 +2532,32 @@ static void ui_leave_game(game_event_type type,
 	event_remove_handler(EVENT_MESSAGE_FLUSH, message_flush, NULL);
 }
 
+void init_terms(void)
+{
+	if (angband_cave.term == NULL) {
+		quit("Main map is not initialized!");
+	}
+	if (angband_message_line.term == NULL) {
+		quit("Message line is not initialized!");
+	}
+	if (angband_sidebar.term == NULL) {
+		quit("Side bar is not initialized!");
+	}
+	if (angband_status_line.term == NULL) {
+		quit("Status line is not initialized!");
+	}
+
+	/* 
+	 * This term is always on the stack;
+	 * this is necessary because the rest of textui depends
+	 * on the fact that term callbacks can always be invoked
+	 */
+	Term_push(angband_cave.term);
+}
+
 void init_display(void)
 {
-	/* and never pop it */
-	Term_push(angband_cave.term);
+	init_terms();
 
 	event_add_handler(EVENT_ENTER_INIT, ui_enter_init, NULL);
 	event_add_handler(EVENT_LEAVE_INIT, ui_leave_init, NULL);
