@@ -453,7 +453,7 @@ void play_game(bool new_game)
  */
 void savefile_set_name(const char *fname)
 {
-	char path[128];
+	char path[1024];
 
 #if defined(SETGID)
 	/* Rename the savefile, using the player_uid and base_name */
