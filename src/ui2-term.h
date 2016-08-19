@@ -61,6 +61,9 @@ struct term_point {
 	uint32_t bg_attr;
 	wchar_t bg_char;
 
+	/* terrain attribute */
+	uint32_t terrain_attr;
+
 	bitflag flags[TPF_SIZE];
 };
 
