@@ -375,7 +375,7 @@ void pre_turn_refresh(void)
 	}
 
 	/* Redraw map */
-	player->upkeep->redraw |= (PR_MAP | PR_STATE);
+	player->upkeep->redraw |= (PR_STATE);
 	player->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
 	handle_stuff(player);
 
