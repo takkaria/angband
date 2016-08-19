@@ -125,6 +125,8 @@ static void grid_get_terrain(const struct grid_data *g, uint32_t *attr)
 		} else {
 			*attr = BG_BLACK;
 		}
+	} else {
+		*attr = 0;
 	}
 }
 
