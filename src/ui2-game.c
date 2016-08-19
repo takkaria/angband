@@ -360,8 +360,6 @@ void check_for_player_interrupt(game_event_type type, game_event_data *data, voi
 		ui_event event = inkey_wait(0);
 
 		if (event.type != EVT_NONE) {
-			/* Flush and disturb */
-			event_signal(EVENT_INPUT_FLUSH);
 			disturb(player, 0);
 			msg("Cancelled.");
 		}
