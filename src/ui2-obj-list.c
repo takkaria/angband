@@ -114,8 +114,9 @@ static void object_list_format_section(const object_list_t *list,
 				abs(list->entries[entry].dy), n_or_s,
 				abs(list->entries[entry].dx), w_or_e);
 
-		/* Get width available for object name: 2 for char and space; location
-		 * includes padding; last -1 for some reason? */
+		/* Get width available for object name: 2 for char and space;
+		 * location includes padding; last -1 because textblock (in effect)
+		 * adds one column of padding on the right side of any string */
 		size_t full_width = max_width - 2 - utf8_strlen(location) - 1;
 
 		/* Add the object count and clip the object name to fit. */
@@ -350,16 +351,22 @@ void object_list_show_interactive(void)
 
 	/*
 	 * Large numbers are passed as the height and width limit so that we can
-	 * calculate the maximum number of rows and columns to display the list
-	 * nicely. Height is adjusted to account for the texblock footer.
+	 * calculate the maximum number of rows and columns to display the list nicely.
 	 */
 	size_t max_width = 0;
 	size_t max_height = 0;
 	object_list_format_textblock(list, NULL, 1000, 1000, &max_height, &max_width);
 
+	/*
+	 * Actually draw the list. We pass in max_height to the format function so
+	 * that all lines will be appended to the textblock. The textblock itself
+	 * will handle fitting it into the region.
+	 */
+	object_list_format_textblock(list, tb, max_height, max_width, NULL, NULL);
+
 	region reg = {
 		.w = max_width,
-		.h = max_height + 2
+		.h = max_height
 	};
 
 	textui_textblock_show(tb, reg, NULL);
