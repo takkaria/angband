@@ -95,7 +95,7 @@ void do_cmd_version(void)
 	region reg = {0, 0, 0, 0};
 
 	my_strcpy(header_buf,
-			format("You are playing %s.  Type '?' for more info.", buildver),
+			format("You are playing %s. Type '?' for more info.", buildver),
 			sizeof(header_buf));
 	textblock_append(tb, "\n");
 	textblock_append(tb, copyright);
