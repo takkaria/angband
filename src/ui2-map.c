@@ -51,22 +51,17 @@ static void hallucinatory_monster(uint32_t *attr, wchar_t *ch)
 
 static void hallucinatory_object(uint32_t *attr, wchar_t *ch)
 {
-	while (true) {
+	*attr = 0;
+	*ch = 0;
+
+	while (*attr == 0 || *ch == 0) {
 		/* Select a random object */
 		struct object_kind *kind = &k_info[randint1(z_info->k_max - 1)];
-		if (!kind->name) {
-			continue;
-		}
-		
-		/* Retrieve attr/char (without flavors) */
-		*attr = kind_x_attr[kind->kidx];
-		*ch = kind_x_char[kind->kidx];
-		
-		if (*attr == 0 || *ch == 0) {
-			continue;
-		}
 
-		return;
+		if (kind->name) {
+			*attr = kind_x_attr[kind->kidx];
+			*ch = kind_x_char[kind->kidx];
+		}
 	}
 }
 
