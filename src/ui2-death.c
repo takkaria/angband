@@ -136,9 +136,7 @@ static void display_winner(void)
 
 	Term_clear();
 
-	int term_width;
-	int term_height;
-	Term_get_size(&term_width, &term_height);
+	int term_width = Term_width();
 
 	struct loc loc = {
 		.x = 0,
