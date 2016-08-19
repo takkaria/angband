@@ -570,7 +570,7 @@ bool textui_get_check(const char *prompt)
 	char buf[80];
 	strnfmt(buf, sizeof(buf), "%.70s [y/n]", prompt);
 
-	show_prompt(prompt, false);
+	show_prompt(buf, false);
 
 	ui_event event = inkey_mouse_or_key();
 
