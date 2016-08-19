@@ -216,7 +216,8 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
  * \return true if further formatting should be bypassed.
  */
 static bool monster_list_format_special(const monster_list_t *list,
-		textblock *tb, int max_lines, int max_width, size_t *max_height_result, size_t *max_width_result)
+		textblock *tb, int max_lines, int max_width,
+		size_t *max_height_result, size_t *max_width_result)
 {
 	(void) list;
 	(void) max_lines;
@@ -262,7 +263,8 @@ static bool monster_list_format_special(const monster_list_t *list,
  * without truncation.
  */
 static void monster_list_format_textblock(const monster_list_t *list,
-		textblock *tb, int max_lines, int max_width, size_t *max_height_result, size_t *max_width_result)
+		textblock *tb, int max_lines, int max_width,
+		size_t *max_height_result, size_t *max_width_result)
 {
 	if (list == NULL || list->entries == NULL) {
 		return;
