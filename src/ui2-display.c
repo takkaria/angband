@@ -2422,7 +2422,6 @@ static void ui_enter_world(game_event_type type,
 	event_add_handler(EVENT_CHEAT_DEATH, cheat_death, NULL);
 
 	event_add_handler(EVENT_END, redraw, NULL);
-
 }
 
 static void ui_leave_world(game_event_type type,
