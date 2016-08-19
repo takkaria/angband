@@ -2486,6 +2486,9 @@ static void ui_leave_world(game_event_type type,
 	/* Allow the player to cheat death, if appropriate */
 	event_remove_handler(EVENT_CHEAT_DEATH, cheat_death, NULL);
 
+	/* Redraw the screen (several times) each turn */
+	event_remove_handler(EVENT_END, redraw, NULL);
+
 	/* Prepare to interact with a store */
 	event_add_handler(EVENT_USE_STORE, use_store, NULL);
 
