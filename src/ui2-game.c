@@ -510,7 +510,7 @@ void save_game(void)
  * Note that the savefile is not saved until the tombstone is
  * actually displayed and the player has a chance to examine
  * the inventory and such.  This allows cheating if the game
- * is equipped with a "quit without save" method.  XXX XXX XXX
+ * is equipped with a "quit without save" method.
  */
 void close_game(void)
 {
