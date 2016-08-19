@@ -170,20 +170,16 @@ static bool inkey_keymap(ui_event *event)
  */
 ui_event inkey_full(bool instant, bool wait, int scans)
 {
-	Term_push(angband_cave.term);
-
 	inkey_state_check_flush();
 
 	ui_event event = EVENT_EMPTY;
 
 	if (inkey_keymap(&event)) {
-		Term_pop();
 		return event;
 	}
 
 	if (instant) {
 		Term_take_event(&event);
-		Term_pop();
 		return event;
 	}
 	
@@ -199,8 +195,6 @@ ui_event inkey_full(bool instant, bool wait, int scans)
 			Term_delay(INKEY_SCAN_PERIOD);
 		}
 	}
-
-	Term_pop();
 
 	return event;
 }
