@@ -182,7 +182,7 @@ static void death_file(const char *title, int index)
 	(void) index;
 
 	char buf[1024];
-	char ftmp[80];
+	char ftmp[ANGBAND_TERM_STANDARD_WIDTH];
 
 	strnfmt(ftmp, sizeof(ftmp), "%s.txt", player_safe_name(player, false));
 
@@ -206,8 +206,8 @@ static void death_info(const char *title, int index)
 	(void) index;
 
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
@@ -261,7 +261,7 @@ static void death_info(const char *title, int index)
 			/* Show 12 items */
 			for (int line = 0; obj && line < 12; obj = obj->next, line++) {
 				char tag[8];
-				char o_name[80];
+				char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 
 				strnfmt(tag, sizeof(tag), "%c) ", I2A(line));
 				prt(tag, loc);
@@ -394,8 +394,8 @@ static menu_action death_actions[] = {
 void death_screen(void)
 {
 	struct term_hints hints = {
-		.width = 80,
-		.height = 24,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.purpose = TERM_PURPOSE_DEATH
 	};
 	Term_push_new(&hints);
