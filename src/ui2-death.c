@@ -409,6 +409,7 @@ void death_screen(void)
 	/* Flush all input and output */
 	event_signal(EVENT_INPUT_FLUSH);
 	event_signal(EVENT_MESSAGE_FLUSH);
+	clear_prompt();
 
 	/* Display and use the death menu */
 	struct menu *death_menu =
