@@ -61,7 +61,7 @@ static const struct {
 };
 
 /**
- * Given a string, try and find it in "mappings".
+ * Given a string, try and find it in mappings[].
  */
 keycode_t keycode_find_code(const char *str, size_t len)
 {
