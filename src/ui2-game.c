@@ -388,7 +388,6 @@ void pre_turn_refresh(void)
 	move_cursor_relative(&angband_cave, loc);
 
 	Term_flush_output();
-
 	Term_pop();
 }
 
