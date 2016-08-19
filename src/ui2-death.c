@@ -282,6 +282,7 @@ static void death_info(const char *title, int index)
 		}
 	}
 
+	clear_prompt();
 	Term_pop();
 }
 
