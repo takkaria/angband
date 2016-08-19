@@ -258,7 +258,7 @@ void keypress_to_text(char *buf, size_t len,
 			strnfcat(buf, len, &end, "[%s]", desc);
 		} else {
 			switch (i) {
-				case '\a': strnfcat(buf, len, &end, "\a"); break;
+				case '\a': strnfcat(buf, len, &end, "\\a"); break;
 				case '\\':
 					if (expand_backslash) {
 						strnfcat(buf, len, &end, "\\\\");
