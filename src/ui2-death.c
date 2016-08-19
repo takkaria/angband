@@ -421,7 +421,7 @@ void death_screen(void)
 	const region area = {
 		.x = 51,
 		.y = 2,
-		.w = 0,
+		.w = hints.width - 51,
 		.h = N_ELEMENTS(death_actions)
 	};
 	menu_layout(death_menu, area);
