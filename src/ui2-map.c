@@ -486,7 +486,8 @@ static void view_map_aux(int *px, int *py)
 		.fg_attr = monster_x_attr[r_info[0].ridx],
 		.fg_char = monster_x_attr[r_info[0].ridx],
 		.bg_attr = point.bg_attr,
-		.bg_char = point.bg_char
+		.bg_char = point.bg_char,
+		.terrain_attr = BG_BLACK
 	};
 
 	/* Draw the player */
