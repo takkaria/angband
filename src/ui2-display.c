@@ -1337,12 +1337,23 @@ static void animate(game_event_type type, game_event_data *data, void *user)
 	(void) data;
 	(void) user;
 
-	do_animation();
+	if (!player_is_resting(player)) {
+		do_animation();
 
-	Term_push(angband_cave.term);
-	Term_flush_output();
+		Term_push(angband_cave.term);
+		Term_flush_output();
+		Term_redraw_screen();
+		Term_pop();
+	}
+}
+
+static void redraw(game_event_type type, game_event_data *data, void *user)
+{
+	(void) type;
+	(void) data;
+	(void) user;
+
 	Term_redraw_screen();
-	Term_pop();
 }
 
 /**
@@ -2409,6 +2420,8 @@ static void ui_enter_world(game_event_type type,
 
 	/* Allow the player to cheat death, if appropriate */
 	event_add_handler(EVENT_CHEAT_DEATH, cheat_death, NULL);
+
+	event_add_handler(EVENT_END, redraw, NULL);
 
 }
 
