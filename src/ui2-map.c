@@ -371,17 +371,15 @@ void print_map(struct angband_term *aterm)
 	/* Dump the map */
 	for (int rely = 0, absy = aterm->offset_y; rely < height; rely++, absy++) {
 		for (int relx = 0, absx = aterm->offset_x; relx < width; relx++, absx++) {
-			if (!square_in_bounds(cave, absy, absx)) {
-				continue;
+			if (square_in_bounds(cave, absy, absx)) {
+				struct grid_data g;
+				map_info(absy, absx, &g);
+
+				struct term_point point;
+				grid_data_as_point(&g, &point);
+
+				Term_set_point(relx, rely, point);
 			}
-
-			struct grid_data g;
-			map_info(absy, absx, &g);
-
-			struct term_point point;
-			grid_data_as_point(&g, &point);
-
-			Term_set_point(relx, rely, point);
 		}
 	}
 
