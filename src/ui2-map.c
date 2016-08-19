@@ -202,7 +202,8 @@ static void grid_get_monster(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 			*attr = da;
 			*ch = dc;
 		} else if (OPT(purple_uniques)
-				&& rf_has(mon->race->flags, RF_UNIQUE)) {
+				&& rf_has(mon->race->flags, RF_UNIQUE))
+		{
 			/* Turn uniques purple if desired (violet, actually) */
 			*attr = COLOUR_VIOLET;
 			*ch = dc;
