@@ -801,10 +801,13 @@ static enum parser_error parse_prefs_gf(struct parser *p)
 		return PARSE_ERROR_INVALID_VALUE;
 	}
 
+	uint32_t attr = parser_getuint(p, "attr");
+	wchar_t ch = parser_getuint(p, "char");
+
 	for (size_t i = 0; i < GF_MAX; i++) {
 		if (types[i]) {
-			gf_to_attr[i][motion] = parser_getuint(p, "attr");
-			gf_to_char[i][motion] = parser_getuint(p, "char");
+			gf_to_attr[i][motion] = attr;
+			gf_to_char[i][motion] = ch;
 		}
 	}
 
