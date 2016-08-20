@@ -527,7 +527,7 @@ static enum parser_error parse_prefs_object(struct parser *p)
 
 	const char *tval = parser_getsym(p, "tval");
 	const char *sval = parser_getsym(p, "sval");
-	if (!strcmp(tval, "*")) {
+	if (streq(tval, "*")) {
 		/* object:*:* means handle all objects and flavors */
 		uint32_t attr = parser_getuint(p, "attr");
 		wchar_t ch = parser_getuint(p, "char");
