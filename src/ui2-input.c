@@ -1020,23 +1020,19 @@ ui_event textui_get_command(int *count)
  */
 bool key_confirm_command(unsigned char c)
 {
+	/* Set up string to look for, e.g. "^d" */
+	char inscrip[] = {'^', c, 0};
+
 	for (int i = 0; i < player->body.count; i++) {
-		char verify_inscrip[] = "^*";
-
 		struct object *obj = slot_object(player, i);
-		if (obj == NULL) {
-			continue;
-		}
+		if (obj != NULL) {
+			unsigned checks = check_for_inscrip(obj, inscrip);
 
-		/* Set up string to look for, e.g. "^d" */
-		verify_inscrip[1] = c;
-
-		/* Verify command */
-		unsigned n = check_for_inscrip(obj, "^*") +
-				check_for_inscrip(obj, verify_inscrip);
-		while (n--) {
-			if (!get_check("Are you sure? ")) {
-				return false;
+			while (checks > 0) {
+				if (!get_check("Are you sure? ")) {
+					return false;
+				}
+				checks--;
 			}
 		}
 	}
