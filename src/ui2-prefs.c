@@ -704,8 +704,6 @@ static enum parser_error parse_prefs_trap(struct parser *p)
 
 static enum parser_error parse_prefs_feat(struct parser *p)
 {
-	int light_idx;
-
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
 	if (d->bypass) {
@@ -716,6 +714,8 @@ static enum parser_error parse_prefs_feat(struct parser *p)
 	if (idx >= z_info->f_max) {
 		return PARSE_ERROR_OUT_OF_BOUNDS;
 	}
+
+	int light_idx;
 
 	const char *lighting = parser_getsym(p, "lighting");
 	if (streq(lighting, "torch")) {
