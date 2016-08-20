@@ -167,8 +167,6 @@ static void display_winner(void)
 	put_str_centred(loc, term_width, "All Hail the Mighty Champion!");
 
 	event_signal(EVENT_INPUT_FLUSH);
-
-	pause_line();
 }
 
 /**
