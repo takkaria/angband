@@ -999,7 +999,6 @@ ui_event textui_get_command(int *count)
 					inkey_state_has_keymap() ? NULL : &keymap);
 		}
 
-		message_skip_more();
 		clear_prompt();
 
 		if (keymap != NULL) {
