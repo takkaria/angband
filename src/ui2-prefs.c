@@ -710,8 +710,8 @@ static enum parser_error parse_prefs_feat(struct parser *p)
 		return PARSE_ERROR_NONE;
 	}
 
-	unsigned idx = parser_getuint(p, "idx");
-	if (idx >= z_info->f_max) {
+	unsigned fidx = parser_getuint(p, "idx");
+	if (fidx >= z_info->f_max) {
 		return PARSE_ERROR_OUT_OF_BOUNDS;
 	}
 
@@ -733,12 +733,12 @@ static enum parser_error parse_prefs_feat(struct parser *p)
 	}
 
 	if (light_idx < LIGHTING_MAX) {
-		feat_x_attr[light_idx][idx] = parser_getuint(p, "attr");
-		feat_x_char[light_idx][idx] = parser_getuint(p, "char");
+		feat_x_attr[light_idx][fidx] = parser_getuint(p, "attr");
+		feat_x_char[light_idx][fidx] = parser_getuint(p, "char");
 	} else {
 		for (light_idx = 0; light_idx < LIGHTING_MAX; light_idx++) {
-			feat_x_attr[light_idx][idx] = parser_getuint(p, "attr");
-			feat_x_char[light_idx][idx] = parser_getuint(p, "char");
+			feat_x_attr[light_idx][fidx] = parser_getuint(p, "attr");
+			feat_x_char[light_idx][fidx] = parser_getuint(p, "char");
 		}
 	}
 
