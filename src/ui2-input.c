@@ -552,7 +552,6 @@ int textui_get_quantity(const char *prompt, int max)
 		if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
 			amt = max;
 		} else {
-			/* TODO something better than atoi() */
 			amt = atoi(buf);
 		}
 	}
