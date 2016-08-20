@@ -329,8 +329,7 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 			}
 			break;
 		
-		case KC_BACKSPACE: /* fallthru */
-		case KC_DELETE:
+		case KC_BACKSPACE: case KC_DELETE:
 			/* If this is the first time round, backspace means "delete all" */
 			if (firsttime) {
 				buf[0] = 0;
