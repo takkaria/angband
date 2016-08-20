@@ -57,7 +57,8 @@ static struct keymap *keymaps[KEYMAP_MODE_MAX];
  */
 const struct keypress *keymap_find(int mode, struct keypress key)
 {
-	assert(mode >= 0 && mode < KEYMAP_MODE_MAX);
+	assert(mode >= 0);
+	assert(mode < KEYMAP_MODE_MAX);
 
 	for (struct keymap *k = keymaps[mode]; k; k = k->next) {
 		if (k->key.code == key.code && k->key.mods == key.mods) {
