@@ -659,7 +659,7 @@ static bool get_file_text(const char *suggested_name, char *path, size_t len)
  */
 bool (*get_file)(const char *suggested_name, char *path, size_t len) = get_file_text;
 
-static bool get_com_mouse_or_key(const char *prompt, ui_event *command)
+static bool get_mouse_or_key(const char *prompt, ui_event *command)
 {
 	show_prompt(prompt, false);
 
@@ -826,7 +826,7 @@ bool textui_get_aim_dir(int *dp)
 			"Direction ('*' or <click> to target, \"'\" for closest, Escape to cancel)? ";
 
 		ui_event event;
-		if (!get_com_mouse_or_key(prompt, &event)) {
+		if (!get_mouse_or_key(prompt, &event)) {
 			break;
 		}
 
@@ -945,7 +945,7 @@ static void textui_get_command_aux(ui_event *event,
 		case '0':
 			/* Allow repeat count to be entered */
 			cnt = textui_get_count();
-			if (cnt > 0 && get_com_mouse_or_key("Command: ", event)) {
+			if (cnt > 0 && get_mouse_or_key("Command: ", event)) {
 				*count = cnt;
 			} else {
 				event->type = EVT_NONE;
@@ -965,7 +965,7 @@ static void textui_get_command_aux(ui_event *event,
 
 		case '\\':
 			/* Allow keymaps to be bypassed */
-			if (!get_com_mouse_or_key("Command: ", event)) {
+			if (!get_mouse_or_key("Command: ", event)) {
 				event->type = EVT_NONE;
 			}
 			return;
