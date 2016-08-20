@@ -68,8 +68,6 @@ void inkey_any(void);
 
 bool auto_more(void);
 
-void pause_line(void);
-
 bool askfor_aux_keypress(char *buf, size_t buflen,
 		size_t *curs, size_t *len, struct keypress keypress, bool firsttime);
 bool askfor_aux(char *buf, size_t len,

@@ -691,26 +691,6 @@ bool textui_get_com(const char *prompt, char *command)
 	return key.code != ESCAPE;
 }
 
-/**
- * Pause for user response
- */
-void pause_line(void)
-{
-	const char *msg = "[Press any key to continue]";
-	struct term_hints hints = {
-		.width = sizeof(msg) - 1,
-		.height = 1,
-		.position = TERM_POSITION_BOTTOM_CENTER,
-		.purpose = TERM_PURPOSE_TEXT
-	};
-	Term_push_new(&hints);
-
-	put_str(msg, loc(0, 0));
-	inkey_any();
-
-	Term_pop();
-}
-
 static int dir_transitions[10][10] = {
 	/* 0-> */ { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
 	/* 1-> */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
