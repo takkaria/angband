@@ -947,7 +947,7 @@ static enum parser_error parse_prefs_color(struct parser *p)
 	}
 
 	unsigned idx = parser_getuint(p, "idx");
-	if (idx > MAX_COLORS) {
+	if (idx >= MAX_COLORS) {
 		return PARSE_ERROR_OUT_OF_BOUNDS;
 	}
 
