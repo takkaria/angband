@@ -658,9 +658,6 @@ static void set_trap_graphic(int trap_idx, int light_idx, uint32_t attr, wchar_t
 
 static enum parser_error parse_prefs_trap(struct parser *p)
 {
-	int trap_idx;
-	int light_idx;
-
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
 	if (d->bypass) {
@@ -669,6 +666,8 @@ static enum parser_error parse_prefs_trap(struct parser *p)
 
 	/* idx can be "*" or a number */
 	const char *idx_sym = parser_getsym(p, "idx");
+
+	int trap_idx;
 
 	if (streq(idx_sym, "*")) {
 		trap_idx = -1;
@@ -683,6 +682,8 @@ static enum parser_error parse_prefs_trap(struct parser *p)
 			return PARSE_ERROR_OUT_OF_BOUNDS;
 		}
 	}
+
+	int light_idx;
 
 	const char *lighting = parser_getsym(p, "lighting");
 	if (streq(lighting, "torch")) {
