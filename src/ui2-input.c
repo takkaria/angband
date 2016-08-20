@@ -916,11 +916,12 @@ static int textui_get_count(void)
 		} else if (key.code == KC_DELETE || key.code == KC_BACKSPACE) {
 			count = count / 10;
 		} else if (isdigit((unsigned char) key.code)) {
-			count = count * 10 + D2I(key.code);
+			int new_count = count * 10 + D2I(key.code);
 
-			if (count > 9999) {
+			if (new_count > 9999) {
 				bell("Invalid repeat count!");
-				count = 9999;
+			} else {
+				count = new_count;
 			}
 		} else {
 			if (key.code != KC_ENTER) {
