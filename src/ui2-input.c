@@ -610,10 +610,14 @@ char get_char(const char *prompt, const char *options, size_t len, char fallback
 
 	clear_prompt();
 
-	key.code = tolower(key.code);
+	if (key.code < CHAR_MAX) {
+		key.code = tolower(key.code);
 
-	/* See if key is in our options string */
-	if (!strchr(options, key.code)) {
+		/* See if key is in our options string */
+		if (!strchr(options, key.code)) {
+			key.code = fallback;
+		}
+	} else {
 		key.code = fallback;
 	}
 
