@@ -358,6 +358,8 @@ static enum parser_error parse_prefs_load(struct parser *p)
  *
  * Output:
  *   result
+ *
+ * TODO: lexer for this... thing? or maybe don't touch it as it seems to work...
  */
 static const char *process_pref_file_expr(char **next_token, char *end_char)
 {
