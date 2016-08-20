@@ -117,7 +117,7 @@ bool keymap_remove(int mode, struct keypress trigger)
 	assert(mode >= 0);
 	assert(mode < KEYMAP_MODE_MAX);
 
-	for (struct keymap *k = keymaps[mode], *prev = NULL; k; k = k->next) {
+	for (struct keymap *k = keymaps[mode], *prev = NULL; k; prev = k, k = k->next) {
 		if (k->key.code == trigger.code && k->key.mods == trigger.mods) {
 			if (prev) {
 				prev->next = k->next;
@@ -130,8 +130,6 @@ bool keymap_remove(int mode, struct keypress trigger)
 
 			return true;
 		}
-
-		prev = k;
 	}
 
 	return false;
