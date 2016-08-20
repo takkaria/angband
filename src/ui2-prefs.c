@@ -1034,9 +1034,9 @@ static bool process_pref_file_named(const char *path, bool quiet, bool user) {
 
 		if (e != PARSE_ERROR_NONE) {
 			print_error(path, p);
+		} else {
+			finish_parse_prefs(p);
 		}
-
-		finish_parse_prefs(p);
 
 		file_close(file);
 		mem_free(parser_priv(p));
