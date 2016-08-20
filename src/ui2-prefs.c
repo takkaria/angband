@@ -73,23 +73,15 @@ static const char *dump_separator = "#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#";
  */
 static void remove_old_dump(const char *cur_fname, const char *mark)
 {
-	char new_fname[1024];
-
-	char start_line[1024];
-	char end_line[1024];
-
-	/* Format up some filenames */
-	strnfmt(new_fname, sizeof(new_fname), "%s.new", cur_fname);
-
-	/* Work out what we expect to find */
-	strnfmt(start_line, sizeof(start_line), "%s begin %s", dump_separator, mark);
-	strnfmt(end_line, sizeof(end_line), "%s end %s", dump_separator, mark);
-
 	/* Open current file */
 	ang_file *cur_file = file_open(cur_fname, MODE_READ, FTYPE_TEXT);
 	if (!cur_file) {
 		return;
 	}
+
+	/* Format up some filenames */
+	char new_fname[1024];
+	strnfmt(new_fname, sizeof(new_fname), "%s.new", cur_fname);
 
 	/* Open new file */
 	ang_file *new_file = file_open(new_fname, MODE_WRITE, FTYPE_TEXT);
@@ -98,6 +90,13 @@ static void remove_old_dump(const char *cur_fname, const char *mark)
 		file_close(cur_file);
 		return;
 	}
+
+	/* Work out what we expect to find */
+	char start_line[1024];
+	strnfmt(start_line, sizeof(start_line), "%s begin %s", dump_separator, mark);
+
+	char end_line[1024];
+	strnfmt(end_line, sizeof(end_line), "%s end %s", dump_separator, mark);
 
 	bool between_marks = false;
 	bool changed = false;
