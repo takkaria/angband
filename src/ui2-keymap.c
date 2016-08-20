@@ -91,13 +91,13 @@ static struct keypress *keymap_make(const struct keypress *actions)
 /**
  * Add a keymap to the mappings table.
  */
-void keymap_add(int keymap,
+void keymap_add(int mode,
 		struct keypress trigger, struct keypress *actions, bool user)
 {
-	assert(keymap >= 0);
-	assert(keymap < KEYMAP_MODE_MAX);
+	assert(mode >= 0);
+	assert(mode < KEYMAP_MODE_MAX);
 
-	keymap_remove(keymap, trigger);
+	keymap_remove(mode, trigger);
 
 	struct keymap *k = mem_zalloc(sizeof(*k));
 
@@ -105,8 +105,8 @@ void keymap_add(int keymap,
 	k->actions = keymap_make(actions);
 	k->user = user;
 
-	k->next = keymaps[keymap];
-	keymaps[keymap] = k;
+	k->next = keymaps[mode];
+	keymaps[mode] = k;
 }
 
 /**
