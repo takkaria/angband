@@ -81,13 +81,15 @@ void lore_title(textblock *tb, const struct monster_race *race)
 void lore_description(textblock *tb, const struct monster_race *race,
 		const struct monster_lore *original_lore, bool spoilers)
 {
+	assert(tb != NULL);
+	assert(race != NULL);
+	assert(original_lore != NULL);
+
 	struct monster_lore mutable_lore;
 	struct monster_lore *lore = &mutable_lore;
 	bitflag known_flags[RF_SIZE];
 	int melee_colors[RBE_MAX];
 	int spell_colors[RSF_MAX];
-
-	assert(tb && race && original_lore);
 
 	/* Determine the special attack colors */
 	get_attack_colors(melee_colors, spell_colors);
