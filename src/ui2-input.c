@@ -568,7 +568,7 @@ int textui_get_quantity(const char *prompt, int max)
 bool textui_get_check(const char *prompt)
 {
 	char buf[80];
-	strnfmt(buf, sizeof(buf), "%.70s [y/n]", prompt);
+	strnfmt(buf, sizeof(buf), "%.70s[y/n]", prompt);
 
 	show_prompt(buf, false);
 
