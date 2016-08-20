@@ -1221,10 +1221,16 @@ void textui_prefs_init(void)
 	kind_x_attr = mem_zalloc(z_info->k_max * sizeof(*kind_x_attr));
 	kind_x_char = mem_zalloc(z_info->k_max * sizeof(*kind_x_char));
 
+	assert(N_ELEMENTS(feat_x_attr) == LIGHTING_MAX);
+	assert(N_ELEMENTS(feat_x_char) == LIGHTING_MAX);
+
 	for (int i = 0; i < LIGHTING_MAX; i++) {
 		feat_x_attr[i] = mem_zalloc(z_info->f_max * sizeof(feat_x_attr[0][0]));
 		feat_x_char[i] = mem_zalloc(z_info->f_max * sizeof(feat_x_char[0][0]));
 	}
+
+	assert(N_ELEMENTS(trap_x_attr) == LIGHTING_MAX);
+	assert(N_ELEMENTS(trap_x_char) == LIGHTING_MAX);
 
 	for (int i = 0; i < LIGHTING_MAX; i++) {
 		trap_x_attr[i] = mem_zalloc(z_info->trap_max * sizeof(trap_x_attr[0][0]));
