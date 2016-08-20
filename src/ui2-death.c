@@ -432,7 +432,7 @@ void death_screen(void)
 				break;
 			}
 		} else if (event.type == EVT_SELECT) {
-			if (get_check("Do you want to quit?")) {
+			if (get_check("Do you want to quit? ")) {
 				break;
 			}
 		}
