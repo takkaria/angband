@@ -1032,10 +1032,10 @@ static bool process_pref_file_named(const char *path, bool quiet, bool user) {
 			e = parser_parse(p, line);
 		}
 
-		if (e != PARSE_ERROR_NONE) {
-			print_error(path, p);
-		} else {
+		if (e == PARSE_ERROR_NONE) {
 			finish_parse_prefs(p);
+		} else {
+			print_error(path, p);
 		}
 
 		file_close(file);
