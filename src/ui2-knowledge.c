@@ -1802,11 +1802,9 @@ static void feat_lore(int index)
 
 	if (feat->desc) {
 		my_strcap(title);
-		textblock_append_c(tb, COLOUR_L_BLUE, title);
-		textblock_append(tb, "\n");
 		textblock_append(tb, feat->desc);
 		region reg = {0, 0, 0, 0};
-		textui_textblock_show(tb, reg, NULL);
+		textui_textblock_show(tb, reg, title);
 		textblock_free(tb);
 	}
 
