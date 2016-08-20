@@ -532,7 +532,7 @@ static enum parser_error parse_prefs_object(struct parser *p)
 		uint32_t attr = parser_getuint(p, "attr");
 		wchar_t ch = parser_getuint(p, "char");
 
-		if (strcmp(sval, "*")) {
+		if (!streq(sval, "*")) {
 			return PARSE_ERROR_UNRECOGNISED_SVAL;
 		}
 
