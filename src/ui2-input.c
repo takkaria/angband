@@ -667,8 +667,11 @@ static bool get_com_mouse_or_key(const char *prompt, ui_event *command)
 
 	clear_prompt();
 
-	return (command->type == EVT_KBRD && command->key.code != ESCAPE)
-		|| command->type == EVT_MOUSE;
+	if (command->type == EVT_KBRD && command->key.code == ESCAPE) {
+		return false;
+	} else {
+		return true;
+	}
 }
 
 /**
