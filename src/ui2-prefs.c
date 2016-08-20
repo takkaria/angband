@@ -732,6 +732,8 @@ static enum parser_error parse_prefs_feat(struct parser *p)
 		return PARSE_ERROR_INVALID_LIGHTING;
 	}
 
+	assert(light_idx >= 0);
+
 	uint32_t attr = parser_getuint(p, "attr");
 	wchar_t ch = parser_getuint(p, "char");
 
