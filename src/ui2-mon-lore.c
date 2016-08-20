@@ -36,6 +36,7 @@
  */
 void lore_title(textblock *tb, const struct monster_race *race)
 {
+	assert(tb != NULL);
 	assert(race);
 
 	wchar_t standard_char = race->d_char;
