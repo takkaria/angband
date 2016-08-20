@@ -642,6 +642,9 @@ static enum parser_error parse_prefs_monster_base(struct parser *p)
 }
 
 static void set_trap_graphic(int trap_idx, int light_idx, uint32_t attr, wchar_t ch) {
+	assert(trap_idx >= 0);
+	assert(light_idx >= 0);
+
 	if (light_idx < LIGHTING_MAX) {
 		trap_x_attr[light_idx][trap_idx] = attr;
 		trap_x_char[light_idx][trap_idx] = ch;
