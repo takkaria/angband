@@ -147,7 +147,7 @@ void textui_cmd_suicide(void)
 
 		event_signal(EVENT_INPUT_FLUSH);
 
-		/* Special Verification for suicide */
+		/* Special verification for suicide */
 		show_prompt("Please verify SUICIDE by typing the '@' sign: ", true);
 		struct keypress key = inkey_only_key();
 		clear_prompt();
