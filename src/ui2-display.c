@@ -2113,7 +2113,7 @@ static void repeated_command_display(game_event_type type,
 	(void) data;
 	(void) user;
 
-	/* TODO UI2 something */
+	message_skip_more();
 }
 
 /**
