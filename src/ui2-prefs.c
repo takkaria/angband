@@ -732,13 +732,16 @@ static enum parser_error parse_prefs_feat(struct parser *p)
 		return PARSE_ERROR_INVALID_LIGHTING;
 	}
 
+	uint32_t attr = parser_getuint(p, "attr");
+	wchar_t ch = parser_getuint(p, "char");
+
 	if (light_idx < LIGHTING_MAX) {
-		feat_x_attr[light_idx][fidx] = parser_getuint(p, "attr");
-		feat_x_char[light_idx][fidx] = parser_getuint(p, "char");
+		feat_x_attr[light_idx][fidx] = attr;
+		feat_x_char[light_idx][fidx] = ch;
 	} else {
 		for (light_idx = 0; light_idx < LIGHTING_MAX; light_idx++) {
-			feat_x_attr[light_idx][fidx] = parser_getuint(p, "attr");
-			feat_x_char[light_idx][fidx] = parser_getuint(p, "char");
+			feat_x_attr[light_idx][fidx] = attr;
+			feat_x_char[light_idx][fidx] = ch;
 		}
 	}
 
