@@ -109,6 +109,7 @@ static void remove_old_dump(const char *cur_fname, const char *mark)
 		if (streq(buf, start_line)) {
 			between_marks = true;
 		} else if (streq(buf, end_line)) {
+			assert(between_marks);
 			between_marks = false;
 			changed = true;
 		} else if (!between_marks) {
