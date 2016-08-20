@@ -112,17 +112,17 @@ void keymap_add(int mode,
 /**
  * Remove a keymap.  Return true if one was removed.
  */
-bool keymap_remove(int keymap, struct keypress trigger)
+bool keymap_remove(int mode, struct keypress trigger)
 {
-	assert(keymap >= 0);
-	assert(keymap < KEYMAP_MODE_MAX);
+	assert(mode >= 0);
+	assert(mode < KEYMAP_MODE_MAX);
 
-	for (struct keymap *k = keymaps[keymap], *prev = NULL; k; k = k->next) {
+	for (struct keymap *k = keymaps[mode], *prev = NULL; k; k = k->next) {
 		if (k->key.code == trigger.code && k->key.mods == trigger.mods) {
 			if (prev) {
 				prev->next = k->next;
 			} else {
-				keymaps[keymap] = k->next;
+				keymaps[mode] = k->next;
 			}
 
 			mem_free(k->actions);
