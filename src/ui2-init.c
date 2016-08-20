@@ -41,7 +41,7 @@
  */
 void textui_init(void)
 {
-	event_signal_message(EVENT_INITSTATUS, 0, "Loading basic pref file...");
+	event_signal_message(EVENT_INITSTATUS, MSG_GENERIC, "Loading basic pref file...");
 
 	/* Initialize graphics info and basic pref data */
 	process_pref_file("pref.prf", false, false);
@@ -58,7 +58,7 @@ void textui_init(void)
 	/* Initialize visual prefs */
 	textui_prefs_init();
 
-	event_signal_message(EVENT_INITSTATUS, 0, "Initialization complete");
+	event_signal_message(EVENT_INITSTATUS, MSG_GENERIC, "Initialization complete");
 }
 
 /**
