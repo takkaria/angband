@@ -114,7 +114,8 @@ void keymap_add(int mode,
  */
 bool keymap_remove(int keymap, struct keypress trigger)
 {
-	assert(keymap >= 0 && keymap < KEYMAP_MODE_MAX);
+	assert(keymap >= 0);
+	assert(keymap < KEYMAP_MODE_MAX);
 
 	for (struct keymap *k = keymaps[keymap], *prev = NULL; k; k = k->next) {
 		if (k->key.code == trigger.code && k->key.mods == trigger.mods) {
