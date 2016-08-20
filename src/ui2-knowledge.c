@@ -2009,12 +2009,10 @@ static void trap_lore(int index)
 		char *title = string_make(trap->desc);
 
 		my_strcap(title);
-		textblock_append_c(tb, COLOUR_L_BLUE, title);
-		textblock_append(tb, "\n");
 		textblock_append(tb, trap->text);
 
 		region reg = {0, 0, 0, 0};
-		textui_textblock_show(tb, reg, NULL);
+		textui_textblock_show(tb, reg, title);
 
 		textblock_free(tb);
 		string_free(title);
