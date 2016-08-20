@@ -816,8 +816,6 @@ static enum parser_error parse_prefs_gf(struct parser *p)
 
 static enum parser_error parse_prefs_flavor(struct parser *p)
 {
-	struct flavor *flavor;
-
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
 	if (d->bypass) {
@@ -825,7 +823,8 @@ static enum parser_error parse_prefs_flavor(struct parser *p)
 	}
 
 	unsigned idx = parser_getuint(p, "idx");
-	for (flavor = flavors; flavor; flavor = flavor->next) {
+
+	for (struct flavor *flavor = flavors; flavor; flavor = flavor->next) {
 		if (flavor->fidx == idx) {
 			flavor_x_attr[idx] = parser_getuint(p, "attr");
 			flavor_x_char[idx] = parser_getuint(p, "char");
