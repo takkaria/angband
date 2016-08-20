@@ -1602,11 +1602,9 @@ static void rune_lore(int index)
 	char *title = string_make(rune_name(index));
 
 	my_strcap(title);
-	textblock_append_c(tb, COLOUR_L_BLUE, title);
-	textblock_append(tb, "\n");
 	textblock_append(tb, rune_desc(index));
 	region reg = {0, 0, 0, 0};
-	textui_textblock_show(tb, reg, NULL);
+	textui_textblock_show(tb, reg, title);
 
 	textblock_free(tb);
 	string_free(title);
