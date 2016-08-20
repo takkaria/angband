@@ -513,7 +513,7 @@ void clear_prompt(void)
 
 	/* Reset the term state, so that messages
 	 * won't print "-more-" over prompt */
-	angband_message_line.offset_x = 0;
+	message_skip_more();
 }
 
 /**
@@ -532,7 +532,7 @@ void show_prompt(const char *str, bool cursor)
 
 	/* Reset the term state, so that messages
 	 * won't print "-more-" over prompt */
-	angband_message_line.offset_x = 0;
+	message_skip_more();
 }
 
 /**
