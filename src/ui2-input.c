@@ -533,8 +533,8 @@ int textui_get_quantity(const char *prompt, int max)
 
 	/* Prompt if needed */
 	if (max != 1) {
-		char tmp[80];
-		char buf[80];
+		char tmp[ANGBAND_TERM_STANDARD_WIDTH];
+		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 		/* Build a prompt if needed */
 		if (prompt == NULL) {
@@ -567,7 +567,7 @@ int textui_get_quantity(const char *prompt, int max)
  */
 bool textui_get_check(const char *prompt)
 {
-	char buf[80];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(buf, sizeof(buf), "%.70s[y/n]", prompt);
 
 	show_prompt(buf, false);
@@ -601,7 +601,7 @@ char get_char(const char *prompt, const char *options, size_t len, char fallback
 {
 	(void) len;
 
-	char buf[80];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(buf, sizeof(buf), "%.70s[%s] ", prompt, options);
 
 	show_prompt(prompt, false);
