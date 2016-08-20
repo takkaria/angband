@@ -1065,7 +1065,7 @@ static bool process_pref_file_layered(const char *name, bool quiet, bool user,
 {
 	assert(base_search_path != NULL);
 
-	char buf[1024];
+	char buf[4096];
 	path_build(buf, sizeof(buf), base_search_path, name);
 
 	bool fallback = false;;
