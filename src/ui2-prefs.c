@@ -1060,8 +1060,10 @@ static bool process_pref_file_named(const char *path, bool quiet, bool user) {
  * used, false otherwise.
  * \returns true if everything worked OK, false otherwise.
  */
-static bool process_pref_file_layered(const char *name, bool quiet, bool user,
-		const char *base_search_path, const char *fallback_search_path, bool *used_fallback)
+static bool process_pref_file_layered(const char *name,
+		bool quiet, bool user,
+		const char *base_search_path, const char *fallback_search_path,
+		bool *used_fallback)
 {
 	assert(base_search_path != NULL);
 
