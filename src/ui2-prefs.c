@@ -1026,18 +1026,16 @@ static bool process_pref_file_named(const char *path, bool quiet, bool user) {
 		e = PARSE_ERROR_INTERNAL; /* signal failure to callers */
 	} else {
 		char line[1024];
-		int line_no = 0;
 
 		struct parser *p = init_parse_prefs(user);
-		while (file_getl(file, line, sizeof line)) {
-			line_no++;
-
+		while (e == PARSE_ERROR_NONE && file_getl(file, line, sizeof(line))) {
 			e = parser_parse(p, line);
-			if (e != PARSE_ERROR_NONE) {
-				print_error(path, p);
-				break;
-			}
 		}
+
+		if (e != PARSE_ERROR_NONE) {
+			print_error(path, p);
+		}
+
 		finish_parse_prefs(p);
 
 		file_close(file);
