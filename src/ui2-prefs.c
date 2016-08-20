@@ -1201,7 +1201,7 @@ void reset_visuals(bool load_prefs)
 		assert(mode);
 
 		/* Build path to the pref file */
-		char buf[2014];
+		char buf[4096];
 		path_build(buf, sizeof(buf), mode->path, mode->pref);
 		process_pref_file_named(buf, false, false);
 	} else {
