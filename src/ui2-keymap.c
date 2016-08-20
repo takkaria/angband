@@ -161,21 +161,19 @@ void keymap_dump(ang_file *file)
 	const int mode = KEYMAP_MODE_OPT;
 
 	for (struct keymap *k = keymaps[mode]; k; k = k->next) {
-		if (!k->user) {
-			continue;
+		if (k->user) {
+			char buf[1024];
+
+			/* Encode the action */
+			keypress_to_text(buf, sizeof(buf), k->actions, false);
+			file_putf(file, "keymap-act:%s\n", buf);
+
+			/* Convert the key into a string */
+			struct keypress key[2] = {k->key, KEYPRESS_NULL};
+			keypress_to_text(buf, sizeof(buf), key, true);
+			file_putf(file, "keymap-input:%d:%s\n", mode, buf);
+
+			file_putf(file, "\n");
 		}
-
-		char buf[1024];
-
-		/* Encode the action */
-		keypress_to_text(buf, sizeof(buf), k->actions, false);
-		file_putf(file, "keymap-act:%s\n", buf);
-
-		/* Convert the key into a string */
-		struct keypress key[2] = {k->key, KEYPRESS_NULL};
-		keypress_to_text(buf, sizeof(buf), key, true);
-		file_putf(file, "keymap-input:%d:%s\n", mode, buf);
-
-		file_putf(file, "\n");
 	}
 }
