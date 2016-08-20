@@ -95,7 +95,7 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	get_attack_colors(melee_colors, spell_colors);
 
 	/* Create a copy of the monster memory that we can modify */
-	memcpy(lore, original_lore, sizeof(struct monster_lore));
+	memcpy(lore, original_lore, sizeof(*lore));
 
 	/* Now get the known monster flags */
 	monster_flags_known(race, lore, known_flags);
