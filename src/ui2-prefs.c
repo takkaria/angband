@@ -1126,7 +1126,7 @@ bool process_pref_file(const char *name, bool quiet, bool user)
 		/* Force quiet (since this is an optional file) and force user
 		 * (since this should always be considered user-specific). */
 		user_success = process_pref_file_layered(name, true, true,
-				ANGBAND_DIR_USER, NULL, &used_fallback);
+				ANGBAND_DIR_USER, NULL, NULL);
 	}
 
 	/* If only one load was successful, that's okay; we loaded something. */
