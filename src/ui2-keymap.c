@@ -94,7 +94,8 @@ static struct keypress *keymap_make(const struct keypress *actions)
 void keymap_add(int keymap,
 		struct keypress trigger, struct keypress *actions, bool user)
 {
-	assert(keymap >= 0 && keymap < KEYMAP_MODE_MAX);
+	assert(keymap >= 0);
+	assert(keymap < KEYMAP_MODE_MAX);
 
 	keymap_remove(keymap, trigger);
 
