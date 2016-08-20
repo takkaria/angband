@@ -2014,30 +2014,17 @@ static void splashscreen_note(game_event_type type,
 	(void) type;
 	(void) user;
 
-	if (data->message.type == MSG_BIRTH) {
-		static struct loc coords = {0, 2};
+	int width;
+	int height;
+	Term_get_size(&width, &height);
 
-		prt(data->message.msg, coords);
-		pause_line();
+	const int last_line = ANGBAND_TERM_STANDARD_HEIGHT - 1;
+	assert(height >= last_line);
 
-		/* Advance one line (wrap if needed) */
-		coords.y++;
-		if (coords.y >= ANGBAND_TERM_STANDARD_HEIGHT) {
-			coords.y = 2;
-		}
-	} else {
-		int width;
-		int height;
-		Term_get_size(&width, &height);
-
-		const int last_line = ANGBAND_TERM_STANDARD_HEIGHT - 1;
-		assert(height >= last_line);
-
-		char *s = format("[%s]", data->message.msg);
-		Term_erase_line(0, (height - last_line) / 5 + last_line);
-		Term_adds((width - strlen(s)) / 2, (height - last_line) / 5 + last_line,
-				width, COLOUR_WHITE, s);
-	}
+	char *s = format("[%s]", data->message.msg);
+	Term_erase_line(0, (height - last_line) / 5 + last_line);
+	Term_adds((width - strlen(s)) / 2, (height - last_line) / 5 + last_line,
+			width, COLOUR_WHITE, s);
 
 	Term_flush_output();
 	Term_redraw_screen();
