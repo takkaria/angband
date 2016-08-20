@@ -677,18 +677,24 @@ static bool get_mouse_or_key(const char *prompt, ui_event *command)
 /**
  * Prompts for a keypress
  * The prompt should take the form "Command: "
- * Returns true unless the character is "Escape"
+ * Returns true unless the character is "Escape",
+ * or otherwise not represantable as char
  */
 bool textui_get_com(const char *prompt, char *command)
 {
 	show_prompt(prompt, true);
 
 	struct keypress key = inkey_only_key();
-	*command = (char) key.code;
 
 	clear_prompt();
 
-	return key.code != ESCAPE;
+	if (key.code < CHAR_MAX && key.code != ESCAPE) {
+		*command = (char) key.code;
+		return true;
+	} else {
+		*command = 0;
+		return false;
+	}
 }
 
 static int dir_transitions[10][10] = {
