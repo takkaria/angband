@@ -610,7 +610,7 @@ static void prt_health(struct loc coords)
 		Term_adds(coords.x, coords.y, 12, attr, "[----------]");
 	} else {
 		/* Extract the percent of health */
-		int pct = 100L * mon->hp / mon->maxhp;
+		long long pct = 100LL * mon->hp / mon->maxhp;
 		/* Convert percent into health */
 		int len = (pct < 10) ? 1 : (pct < 90) ? (pct / 10 + 1) : 10;
 		/* Default to unknown */
