@@ -263,25 +263,25 @@ static void text_out_backtrack(struct text_out_info info, int wrap, struct loc *
 	assert(wrap > 0);
 	struct term_point points[wrap];
 
-	int split = 0;
+	int next = 0;
 	for (int w = wrap - 1; w > info.indent + info.pad; w--) {
 		Term_get_point(w, cursor->y, &points[w]);
 
 		if (points[w].fg_char == L' ') {
-			split = w + 1;
+			next = w + 1;
 			break;
 		}
 	}
 
-	/* split == 0 when there are no spaces in this line
-	 * split == wrap when the last char in this line is space */
-	if (split > 0 && split < wrap) {
-		Term_erase_line(split, cursor->y);
+	/* next == 0 when there are no spaces in this line
+	 * next == wrap when the last char in this line is space */
+	if (next > 0 && next < wrap) {
+		Term_erase_line(next, cursor->y);
 		text_out_newline(info, cursor);
 
-		while (split < wrap) {
-			Term_putwc(points[split].fg_attr, points[split].fg_char);
-			split++;
+		while (next < wrap) {
+			Term_putwc(points[next].fg_attr, points[next].fg_char);
+			next++;
 			cursor->x++;
 		}
 	} else {
