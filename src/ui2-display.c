@@ -754,7 +754,7 @@ static void hp_colour_change(game_event_type type,
 	(void) data;
 	(void) user;
 
-	if ((OPT(hp_changes_color)) && use_graphics == GRAPHICS_NONE) {
+	if (OPT(hp_changes_color) && use_graphics == GRAPHICS_NONE) {
 		square_light_spot(cave, player->py, player->px);
 	}
 }
