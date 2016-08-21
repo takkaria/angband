@@ -603,8 +603,8 @@ static void prt_health(struct loc coords)
 
 	/* Tracking an unseen, hallucinatory, or dead monster */
 	if (!mflag_has(mon->mflag, MFLAG_VISIBLE) /* Unseen */
-			|| player->timed[TMD_IMAGE]     /* Hallucination */
-			|| mon->hp < 0)                 /* Dead (?) */
+			|| player->timed[TMD_IMAGE]       /* Hallucination */
+			|| mon->hp < 0)                   /* Dead (?) */
 	{
 		/* The monster health is unknown */
 		Term_adds(coords.x, coords.y, 12, attr, "[----------]");
