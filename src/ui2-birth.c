@@ -969,8 +969,8 @@ bool edit_text(char *buffer, size_t buflen) {
 				&line_starts, &line_lengths, history_region.w);
 
 		/* Set cursor to current editing position */
-		int x;
-		int y;
+		int x = 0;
+		int y = 0;
 		get_screen_loc(cursor, &x, &y, n_lines, line_starts, line_lengths);
 		Term_cursor_to_xy(x + history_region.x, y + history_region.y);
 
