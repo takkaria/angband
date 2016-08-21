@@ -1724,23 +1724,20 @@ static void update_messages_subwindow(game_event_type type,
 	int height;
 	Term_get_size(&width, &height);
 
-	/* Dump messages */
-	for (int i = 0; i < height; i++) {
-		uint32_t color = message_color(i);
-		u16b count = message_count(i);
-		const char *str = message_str(i);
-		const char *msg;
+	/* Dump messages, starting from the last term line */
+	int y = height - 1;
+	for (unsigned m = 0, num = messages_num(); m < num && y >= 0; m++) {
+		uint32_t color = message_color(m);
+		unsigned count = message_count(m);
+		const char *str = message_str(m);
 
-		if (count == 1) {
-			msg = str;
-		} else if (count == 0) {
-			msg = " "; /* TODO ??? */
-		} else {
-			msg = format("%s <%dx>", str, count);
+		if (count != 0) {
+			const char *msg = count == 1 ? str : format("%s <%ux>", str, count);
+
+			Term_erase_line(0, y);
+			Term_adds(0, y, width, color, msg);
+			y--;
 		}
-
-		Term_erase_line(0, height - 1 - i);
-		Term_adds(0, height - 1 - i, width, color, msg);
 	}
 
 	Term_flush_output();
