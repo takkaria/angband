@@ -762,7 +762,8 @@ static void hp_colour_change(game_event_type type,
 /**
  * ------------------------------------------------------------------------
  * Status line display functions
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
 
 struct state_info {
 	int value;
@@ -1261,7 +1262,8 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 /**
  * ------------------------------------------------------------------------
  * Animations.
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
 
 static byte flicker = 0;
 static byte color_flicker[MAX_COLORS][3] = 
@@ -1586,7 +1588,8 @@ static void display_missile(game_event_type type,
 /**
  * ------------------------------------------------------------------------
  * Subwindow displays
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
 
 /**
  * true when we're supposed to display the equipment in the inventory 
@@ -1992,7 +1995,8 @@ void subwindow_set_flags(struct angband_term *aterm, bitflag *flags, size_t size
 /**
  * ------------------------------------------------------------------------
  * Showing and updating the splash screen.
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
 /**
  * Explain a broken "lib" folder and quit (see below).
  */
@@ -2169,7 +2173,9 @@ static void new_level_display_update(game_event_type type,
 /**
  * ------------------------------------------------------------------------
  * Temporary (hopefully) hackish solutions.
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
+
 static void cheat_death(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
@@ -2272,7 +2278,9 @@ static void see_floor_items(game_event_type type,
 /**
  * ------------------------------------------------------------------------
  * Initialising
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
+
 /**
  * Process the user pref files relevant to a newly loaded character
  */
