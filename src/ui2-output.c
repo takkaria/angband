@@ -612,6 +612,18 @@ void erase_line(struct loc at)
 }
 
 /**
+ * Clear the bottom part of the screen
+ */
+void clear_from(int row)
+{
+	int height = Term_height();
+
+	for (int y = row; y < height; y++) {
+		Term_erase_line(0, y);
+	}
+}
+
+/**
  * ------------------------------------------------------------------------
  * Miscellaneous things
  * ------------------------------------------------------------------------
@@ -844,16 +856,4 @@ bool textui_panel_contains(unsigned int y, unsigned int x)
 bool textui_map_is_visible(void)
 {
 	return true;
-}
-
-/**
- * Clear the bottom part of the screen
- */
-void clear_from(int row)
-{
-	int height = Term_height();
-
-	for (int y = row; y < height; y++) {
-		Term_erase_line(0, y);
-	}
 }
