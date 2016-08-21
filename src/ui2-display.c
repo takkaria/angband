@@ -2005,8 +2005,6 @@ static void show_splashscreen(game_event_type type,
 	(void) data;
 	(void) user;
 
-	ang_file *fp;
-
 	char buf[1024];
 
 	/* Verify the "news" file */
@@ -2019,7 +2017,7 @@ static void show_splashscreen(game_event_type type,
 
 	Term_clear();
 
-	fp = file_open(buf, MODE_READ, FTYPE_TEXT);
+	ang_file *fp = file_open(buf, MODE_READ, FTYPE_TEXT);
 
 	if (fp) {
 		/* Centre the splashscreen - assume news.txt has width 80, height 24 */
