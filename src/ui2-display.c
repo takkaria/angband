@@ -1120,9 +1120,9 @@ static size_t prt_unignore(struct loc coords)
 	if (player->unignoring) {
 		put_str("Unignoring", coords);
 		return sizeof("Unignoring");
+	} else {
+		return 0;
 	}
-
-	return 0;
 }
 
 /**
