@@ -1027,6 +1027,8 @@ static size_t prt_level_feeling(struct loc coords)
 		my_strcpy(obj_feeling_str, "?", sizeof(obj_feeling_str));
 		obj_feeling_color_print = COLOUR_WHITE;
 	} else {
+		assert(obj_feeling < N_ELEMENTS(obj_feeling_color));
+
 		obj_feeling_color_print = obj_feeling_color[obj_feeling];
 
 		if (obj_feeling == 0) {
