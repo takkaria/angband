@@ -923,52 +923,27 @@ static size_t prt_hunger(struct loc coords)
 /**
  * Prints Resting, or 'count' status
  * Display is always exactly 10 characters wide (see below)
- *
- * This function was a major bottleneck when resting, so a lot of
- * the text formatting code was optimized in place below.
  */
 static size_t prt_state(struct loc coords)
 {
 	uint32_t attr = COLOUR_WHITE;
-	char text[16] = "Rest      ";
+	char text[] = "Rest      ";
 
 	/* Displayed states are resting and repeating */
 	if (player_is_resting(player)) {
-		int i;
 		int n = player_resting_count(player);
 
 		/* Display according to length or intent of rest */
-		if (n >= 1000) {
-			i = n / 100;
-			text[9] = '0';
-			text[8] = '0';
-			text[7] = I2D(i % 10);
-			if (i >= 10) {
-				i = i / 10;
-				text[6] = I2D(i % 10);
-				if (i >= 10)
-					text[5] = I2D(i / 10);
-			}
-		} else if (n >= 100) {
-			i = n;
-			text[9] = I2D(i % 10);
-			i = i / 10;
-			text[8] = I2D(i % 10);
-			text[7] = I2D(i / 10);
-		} else if (n >= 10) {
-			i = n;
-			text[9] = I2D(i % 10);
-			text[8] = I2D(i / 10);
-		} else if (n > 0) {
-			i = n;
-			text[9] = I2D(i);
-		} else if (n == REST_ALL_POINTS) {
+		if (n == REST_ALL_POINTS) {
 			text[5] = text[6] = text[7] = text[8] = text[9] = '*';
 		} else if (n == REST_COMPLETE) {
 			text[5] = text[6] = text[7] = text[8] = text[9] = '&';
 		} else if (n == REST_SOME_POINTS) {
 			text[5] = text[6] = text[7] = text[8] = text[9] = '!';
+		} else {
+			strnfmt(text + 5, sizeof(text) - 5, "%d", n);
 		}
+
 		c_put_str(attr, text, coords);
 
 		return strlen(text) + 1;
