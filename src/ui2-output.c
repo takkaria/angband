@@ -388,15 +388,14 @@ static bool next_section(const char *source, size_t init,
 		const char **tag, size_t *taglen,
 		const char **end)
 {
-	const char *next;	
-
 	*tag = NULL;
 	*text = source + init;
 	if (*text[0] == '\0') {
 		return false;
 	}
 
-	next = strchr(*text, '{');
+	const char *next = strchr(*text, '{');
+
 	while (next) {
 		const char *s = next + 1;
 
