@@ -2250,9 +2250,6 @@ static void see_floor_items(game_event_type type,
  */
 static void process_character_pref_files(void)
 {
-	bool found;
-	char buf[1024];
-
 	/* Process the "window.prf" file */
 	process_pref_file("window.prf", true, true);
 
@@ -2260,8 +2257,10 @@ static void process_character_pref_files(void)
 	process_pref_file("user.prf", true, true);
 
 	/* Process the pref file based on the character name */
+	char buf[1024];
 	strnfmt(buf, sizeof(buf), "%s.prf", player_safe_name(player, true));
-	found = process_pref_file(buf, true, true);
+
+	bool found = process_pref_file(buf, true, true);
 
 	/* Try pref file using savefile name if we fail using character name */
 	if (!found) {
