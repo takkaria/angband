@@ -80,9 +80,9 @@ void region_erase(region reg)
 bool loc_in_region(struct loc loc, region reg)
 {
 	return loc.x >= reg.x
-		&& loc.y <  reg.y + reg.h
+		&& loc.x <  reg.x + reg.w
 		&& loc.y >= reg.y
-		&& loc.x <  reg.x + reg.w;
+		&& loc.y <  reg.y + reg.h;
 }
 
 bool region_inside(region reg, struct mouseclick mouse)
