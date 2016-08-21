@@ -685,27 +685,27 @@ static const struct side_handler_t {
 	int priority;         /* 0 is most important */
 	game_event_type type; /* PR_* flag this corresponds to */
 } side_handlers[] = {
-	{ prt_race,    19, EVENT_RACE_CLASS },
-	{ prt_title,   18, EVENT_PLAYERTITLE },
-	{ prt_class,   22, EVENT_RACE_CLASS },
-	{ prt_level,   10, EVENT_PLAYERLEVEL },
-	{ prt_exp,     16, EVENT_EXPERIENCE },
-	{ prt_gold,    11, EVENT_GOLD },
-	{ prt_equippy, 17, EVENT_EQUIPMENT },
-	{ prt_str,      6, EVENT_STATS },
-	{ prt_int,      5, EVENT_STATS },
-	{ prt_wis,      4, EVENT_STATS },
-	{ prt_dex,      3, EVENT_STATS },
 	{ prt_con,      2, EVENT_STATS },
-	{ NULL,        15, 0 },
+	{ prt_dex,      3, EVENT_STATS },
+	{ prt_wis,      4, EVENT_STATS },
+	{ prt_int,      5, EVENT_STATS },
+	{ prt_str,      6, EVENT_STATS },
 	{ prt_ac,       7, EVENT_AC },
 	{ prt_hp,       8, EVENT_HP },
 	{ prt_sp,       9, EVENT_MANA },
-	{ NULL,        21, 0 },
+	{ prt_level,   10, EVENT_PLAYERLEVEL },
+	{ prt_gold,    11, EVENT_GOLD },
 	{ prt_health,  12, EVENT_MONSTERHEALTH },
-	{ NULL,        20, 0 },
 	{ prt_speed,   13, EVENT_PLAYERSPEED },  /* Slow (-NN) / Fast (+NN) */
 	{ prt_depth,   14, EVENT_DUNGEONLEVEL }, /* Lev NNN / NNNN ft */
+	{ NULL,        15, 0 },
+	{ prt_exp,     16, EVENT_EXPERIENCE },
+	{ prt_equippy, 17, EVENT_EQUIPMENT },
+	{ prt_title,   18, EVENT_PLAYERTITLE },
+	{ prt_race,    19, EVENT_RACE_CLASS },
+	{ NULL,        20, 0 },
+	{ NULL,        21, 0 },
+	{ prt_class,   22, EVENT_RACE_CLASS },
 };
 
 /**
