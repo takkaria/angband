@@ -63,9 +63,9 @@ void region_erase_bordered(region reg);
 region region_calculate(region reg);
 
 /**
- * Check whether a mouse) event is inside a region
+ * Check whether a mouse event is inside a region
  */
-bool region_inside(region reg, struct mouseclick mouse);
+bool mouse_in_region(struct mouseclick mouse, region reg);
 
 /*
  * Check where localtion (x, y) is inside a region

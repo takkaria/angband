@@ -85,7 +85,7 @@ bool loc_in_region(struct loc loc, region reg)
 		&& loc.y <  reg.y + reg.h;
 }
 
-bool region_inside(region reg, struct mouseclick mouse)
+bool mouse_in_region(struct mouseclick mouse, region reg)
 {
 	struct loc loc = {mouse.x, mouse.y};
 
