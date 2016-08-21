@@ -1164,9 +1164,12 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 	Term_flush_output();
 
-	/* Update the display (to animate resting counter),
-	 * but not too frequently, to make it go over quicker */
-	if (player_is_resting(player) && player_resting_count(player) % 100 == 0) {
+	/* Update the display on repeating commands (to animate resting, tunneling counters),
+	 * but, if the player is resting, not too frequently, to make it go over quicker */
+	if (cmd_get_nrepeats() > 0
+			&& (!player_is_resting(player)
+				|| player_resting_count(player) % 100 == 0))
+	{
 		Term_redraw_screen();
 	}
 
