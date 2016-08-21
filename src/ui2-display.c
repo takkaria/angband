@@ -1303,7 +1303,9 @@ static void do_animation(void)
 		}
 
 		mon->attr = attr;
-		player->upkeep->redraw |= (PR_MAP | PR_MONLIST);
+		player->upkeep->redraw |= PR_MONLIST;
+
+		square_light_spot(cave, mon->fy, mon->fx);
 	}
 
 	flicker++;
