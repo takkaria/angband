@@ -473,21 +473,21 @@ static void prt_ac(struct loc coords)
  */
 static void prt_hp(struct loc coords)
 {
-	char cur_hp[32], max_hp[32];
-	byte color = player_hp_attr(player);
+	char cur_hp[32];
+	char max_hp[32];
+	uint32_t color = player_hp_attr(player);
 
 	put_str("HP ", coords);
 	coords.x += 3;
 
-	strnfmt(max_hp, sizeof(max_hp), "%4d", player->mhp);
 	strnfmt(cur_hp, sizeof(cur_hp), "%4d", player->chp);
-
 	c_put_str(color, cur_hp, coords);
 	coords.x += 4;
 
 	c_put_str(COLOUR_WHITE, "/", coords);
 	coords.x += 1;
 
+	strnfmt(max_hp, sizeof(max_hp), "%4d", player->mhp);
 	c_put_str(COLOUR_L_GREEN, max_hp, coords);
 }
 
