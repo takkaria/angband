@@ -1839,17 +1839,6 @@ static void update_player_compact_subwindow(game_event_type type,
 	Term_pop();
 }
 
-static void flush_subwindow(game_event_type type,
-		game_event_data *data, void *user)
-{
-	(void) type;
-	(void) data;
-
-	Term_push(ANGBAND_TERM(user)->term);
-	Term_flush_output();
-	Term_pop();
-}
-
 /**
  * Certain "screens" always use the main screen, including News, Birth,
  * Dungeon, Tomb-stone, High-scores, Macros, Colors, Visuals, Options.
@@ -1909,9 +1898,6 @@ static void subwindow_flag_changed(struct angband_term *aterm, int flag, bool en
 		case ATF_MAP:
 			register_or_deregister(EVENT_MAP,
 					update_maps, aterm);
-
-			register_or_deregister(EVENT_END,
-					flush_subwindow, aterm);
 			break;
 
 		case ATF_MESSAGE:
