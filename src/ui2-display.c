@@ -1961,6 +1961,7 @@ void subwindow_set_flags(struct angband_term *aterm, bitflag *flags, size_t size
  * Showing and updating the splash screen.
  * ------------------------------------------------------------------------
  */
+
 /**
  * Explain a broken "lib" folder and quit (see below).
  */
