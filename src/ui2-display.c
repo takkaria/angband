@@ -658,8 +658,8 @@ static void prt_depth(struct loc coords)
 	if (!player->depth) {
 		my_strcpy(depths, "Town", sizeof(depths));
 	} else {
-		strnfmt(depths, sizeof(depths), "%d' (L%d)",
-				player->depth * 50, player->depth);
+		strnfmt(depths, sizeof(depths),
+				"%d' (L%d)", player->depth * 50, player->depth);
 	}
 
 	/* Right-adjust the depth, and clear old values */
