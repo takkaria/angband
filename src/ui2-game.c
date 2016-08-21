@@ -25,6 +25,7 @@
 #include "mon-lore.h"
 #include "mon-make.h"
 #include "obj-util.h"
+#include "target.h"
 #include "player-attack.h"
 #include "player-calcs.h"
 #include "player-path.h"
@@ -379,11 +380,15 @@ void pre_turn_refresh(void)
 
 	Term_push(angband_cave.term);
 
-	struct loc loc = {
-		.x = player->px,
-		.y = player->py
-	};
-	move_cursor_relative(&angband_cave, loc);
+	if (OPT(show_target) && target_sighted()) {
+		struct loc loc;
+
+		target_get(&loc.x, &loc.y);
+		move_cursor_relative(&angband_cave, loc);
+		Term_cursor_visible(true);
+	} else {
+		Term_cursor_visible(false);
+	}
 
 	Term_flush_output();
 	Term_pop();
