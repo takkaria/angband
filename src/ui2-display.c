@@ -399,16 +399,16 @@ static void prt_exp(struct loc coords)
 	char out_val[32];
 	bool lev50 = player->lev == 50;
 
-	long xp = (long) player->exp;
+	long long xp = player->exp;
 
 	/* Calculate XP for next level */
 	if (!lev50) {
-		xp = (long) (player_exp[player->lev - 1] * player->expfact / 100L) -
+		xp = ((long long) player_exp[player->lev - 1] * player->expfact / 100LL) -
 			player->exp;
 	}
 
 	/* Format XP */
-	strnfmt(out_val, sizeof(out_val), "%8d", xp);
+	strnfmt(out_val, sizeof(out_val), "%8lld", xp);
 
 	if (player->exp >= player->max_exp) {
 		put_str((lev50 ? "EXP" : "NXT"), coords);
