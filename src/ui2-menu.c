@@ -544,7 +544,7 @@ void menu_handle_mouse(struct menu *menu,
 {
 	if (mouse.button == MOUSE_BUTTON_RIGHT) {
 		out->type = EVT_ESCAPE;
-	} else if (!region_inside(menu->active, mouse)) {
+	} else if (!mouse_in_region(mouse, menu->active)) {
 		/* A click to the left of the active region is 'back' */
 		if (mouse.x < menu->active.x) {
 			out->type = EVT_ESCAPE;
