@@ -541,7 +541,7 @@ uint32_t monster_health_attr(const struct monster *mon)
 		attr = COLOUR_WHITE;
 	} else {
 		/* Extract the percent of health */
-		int pct = 100L * mon->hp / mon->maxhp;
+		long long pct = 100LL * mon->hp / mon->maxhp;
 
 		if (pct >= 100) {
 			/* Healthy */
