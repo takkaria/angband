@@ -115,15 +115,16 @@ static void display_area(const wchar_t *text, const byte *attrs,
 	assert(area.w > 0);
 	assert(area.h > 0);
 
-	n_lines = MIN(n_lines, (size_t) area.h);
-
-	for (size_t y = 0; y < n_lines; y++, cur_line++) {
-		Term_erase(area.x, area.y + y, area.w);
+	for (size_t l = 0, lines = MIN(n_lines, (size_t) area.h);
+			l < lines;
+			l++, cur_line++)
+	{
+		Term_erase(area.x, area.y + l, area.w);
 
 		for (size_t x = 0; x < line_lengths[cur_line]; x++) {
 			size_t position = line_starts[cur_line] + x;
 
-			Term_addwc(area.x + x, area.y + y,
+			Term_addwc(area.x + x, area.y + l,
 					attrs[position], text[position]);
 		}
 	}
