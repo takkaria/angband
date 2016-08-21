@@ -1064,6 +1064,8 @@ static size_t prt_level_feeling(struct loc coords)
 	c_put_str(COLOUR_WHITE, "LF:", coords);
 	coords.x += 3;
 
+	assert(mon_feeling < N_ELEMENTS(mon_feeling_color));
+
 	c_put_str(mon_feeling_color[mon_feeling], mon_feeling_str, coords);
 	coords.x += strlen(mon_feeling_str);
 
