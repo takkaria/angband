@@ -1789,45 +1789,51 @@ static void update_player_compact_subwindow(game_event_type type,
 
 	Term_push(ANGBAND_TERM(user)->term);
 
+	const int height = Term_height();
 	struct loc coords = {0, 0};
 
+#define PRT_SAFELY(expr) do { \
+	if (coords.y >= height) { \
+		Term_flush_output(); \
+		Term_pop(); \
+		return; \
+	} else { \
+		(expr); \
+		coords.y++; \
+	} \
+} while (0)
+
 	/* Race and Class */
-	prt_field(player->race->name, coords);
-	coords.y++;
-	prt_field(player->class->name, coords);
-	coords.y++;
+	PRT_SAFELY(prt_field(player->race->name, coords));
+	PRT_SAFELY(prt_field(player->class->name, coords));
 	/* Title */
-	prt_title(coords);
-	coords.y++;
+	PRT_SAFELY(prt_title(coords));
 	/* Level/Experience */
-	prt_level(coords);
-	coords.y++;
-	prt_exp(coords);
-	coords.y++;
+	PRT_SAFELY(prt_level(coords));
+	PRT_SAFELY(prt_exp(coords));
 	/* Gold */
-	prt_gold(coords);
-	coords.y++;
+	PRT_SAFELY(prt_gold(coords));
 	/* Equippy chars */
-	prt_equippy(coords);
-	coords.y++;
+	PRT_SAFELY(prt_equippy(coords));
+
 	/* All Stats */
-	for (int i = 0; i < STAT_MAX; i++) {
-		prt_stat(i, coords);
-		coords.y++;
+	for (int stat = 0; stat < STAT_MAX; stat++) {
+		PRT_SAFELY(prt_stat(stat, coords));
 	}
+
 	/* Empty row */
 	coords.y++;
+
 	/* Armor */
-	prt_ac(coords);
-	coords.y++;
+	PRT_SAFELY(prt_ac(coords));
 	/* Hitpoints */
-	prt_hp(coords);
-	coords.y++;
+	PRT_SAFELY(prt_hp(coords));
 	/* Spellpoints */
-	prt_sp(coords);
-	coords.y++;
+	PRT_SAFELY(prt_sp(coords));
 	/* Monster health */
-	prt_health(coords);
+	PRT_SAFELY(prt_health(coords));
+
+#undef PRT_SAFELY
 
 	Term_flush_output();
 	Term_pop();
