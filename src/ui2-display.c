@@ -1228,7 +1228,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		}
 	}
 
-	if (player->upkeep->update & PU_PANEL && OPT(center_player)) {
+	if ((player->upkeep->update & PU_PANEL) && OPT(center_player)) {
 		struct loc coords = {
 			.x = player->px - Term_width() / 2,
 			.y = player->py - Term_height() / 2
