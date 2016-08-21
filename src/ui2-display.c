@@ -1290,7 +1290,7 @@ static void do_animation(void)
 {
 	for (int i = 1; i < cave_monster_max(cave); i++) {
 		struct monster *mon = cave_monster(cave, i);
-		byte attr;
+		uint32_t attr;
 
 		if (!mon || !mon->race || !mflag_has(mon->mflag, MFLAG_VISIBLE)) {
 			continue;
