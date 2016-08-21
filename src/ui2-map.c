@@ -434,10 +434,6 @@ static void view_map_aux(int *px, int *py)
 	const int term_width = MIN(width, cave_width);
 	const int term_height = MIN(height, cave_height);
 
-	if (term_width < 1 || term_height < 1) {
-		return;
-	}
-
 	byte **priority_grid = NULL;
 	if (term_width != cave_width || term_height != cave_height) {
 		priority_grid = make_priority_grid();
