@@ -1567,7 +1567,7 @@ static void display_missile(game_event_type type,
  */
 
 /**
- * true when we're supposed to display the equipment in the inventory 
+ * True when we're supposed to display the equipment in the inventory 
  * window, or vice-versa.
  */
 static bool flip_inven;
