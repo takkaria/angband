@@ -1183,6 +1183,13 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 	}
 
 	Term_flush_output();
+
+	/* Update the display (to animate resting counter),
+	 * but not too frequently, to make it go over quicker */
+	if (player_is_resting(player) && player_resting_count(player) % 100 == 0) {
+		Term_redraw_screen();
+	}
+
 	Term_pop();
 }
 
@@ -1337,14 +1344,7 @@ static void animate(game_event_type type, game_event_data *data, void *user)
 	(void) data;
 	(void) user;
 
-	if (!player_is_resting(player)) {
-		do_animation();
-
-		Term_push(angband_cave.term);
-		Term_flush_output();
-		Term_redraw_screen();
-		Term_pop();
-	}
+	do_animation();
 }
 
 static void redraw(game_event_type type, game_event_data *data, void *user)
@@ -2373,6 +2373,9 @@ static void ui_enter_world(game_event_type type,
 	/* Check if the panel should shift when the player's moved */
 	event_add_handler(EVENT_PLAYERMOVED, check_panel, &angband_cave);
 
+	/* Redraw the display after player movement, to animate it */
+	event_add_handler(EVENT_PLAYERMOVED, redraw, NULL);
+
 	/* Take note of what's on the floor */
 	event_add_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
 
@@ -2407,9 +2410,6 @@ static void ui_enter_world(game_event_type type,
 
 	/* Allow the player to cheat death, if appropriate */
 	event_add_handler(EVENT_CHEAT_DEATH, cheat_death, NULL);
-
-	/* Redraw the screen (several times) each turn */
-	event_add_handler(EVENT_END, redraw, NULL);
 }
 
 static void ui_leave_world(game_event_type type,
@@ -2440,6 +2440,9 @@ static void ui_leave_world(game_event_type type,
 
 	/* Check if the panel should shift when the player's moved */
 	event_remove_handler(EVENT_PLAYERMOVED, check_panel, NULL);
+
+	/* Redraw the display after player movement, to animate it */
+	event_add_handler(EVENT_PLAYERMOVED, redraw, NULL);
 
 	/* Take note of what's on the floor */
 	event_remove_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
@@ -2472,9 +2475,6 @@ static void ui_leave_world(game_event_type type,
 
 	/* Allow the player to cheat death, if appropriate */
 	event_remove_handler(EVENT_CHEAT_DEATH, cheat_death, NULL);
-
-	/* Redraw the screen (several times) each turn */
-	event_remove_handler(EVENT_END, redraw, NULL);
 
 	/* Prepare to interact with a store */
 	event_add_handler(EVENT_USE_STORE, use_store, NULL);
