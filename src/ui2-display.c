@@ -1196,7 +1196,8 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 /**
  * ------------------------------------------------------------------------
  * Map redraw.
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
 
 #ifdef MAP_DEBUG
 static void trace_map_updates(game_event_type type, game_event_data *data,
