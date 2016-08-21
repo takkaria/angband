@@ -291,11 +291,11 @@ static void text_out_backtrack(struct text_out_info info, int wrap, struct loc *
 
 /**
  * Print some (colored) text to the screen at the current cursor position,
- * automatically "wrapping" existing text (at spaces) when necessary to
- * avoid placing any text into the last column, and clearing every line
- * before placing any text in that line.  Also, allow "newline" to force
- * a "wrap" to the next line.  Advance the cursor as needed so sequential
- * calls to this function will work correctly.
+ * automatically wrapping existing text (at spaces) when necessary and
+ * clearing every line before placing any text in that line.
+ * Also, allow "newline" to force a "wrap" to the next line.
+ * Advance the cursor as needed so sequential calls to this function
+ * will work correctly.
  *
  * Once this function has been called, the cursor should not be moved
  * until all the related "text_out()" calls to the window are complete.
@@ -304,7 +304,7 @@ static void text_out_to_screen(struct text_out_info info, uint32_t attr, const c
 {
 	const int width = Term_width();
 	const int wrap = info.wrap > 0 && info.wrap < width ?
-		info.wrap - 1 : width - 1;
+		info.wrap : width - 1;
 
 	assert(info.indent + info.pad < wrap);
 
