@@ -112,6 +112,9 @@ static void display_area(const wchar_t *text, const byte *attrs,
 		size_t *line_starts, size_t *line_lengths,
 		size_t n_lines, size_t cur_line, region area)
 {
+	assert(area.w > 0);
+	assert(area.h > 0);
+
 	n_lines = MIN(n_lines, (size_t) area.h);
 
 	for (size_t y = 0; y < n_lines; y++, cur_line++) {
