@@ -1989,10 +1989,10 @@ static void splashscreen_note(game_event_type type,
 	const int last_line = ANGBAND_TERM_STANDARD_HEIGHT - 1;
 	assert(height >= last_line);
 
-	char *s = format("[%s]", data->message.msg);
+	char *str = format("[%s]", data->message.msg);
 	Term_erase_line(0, (height - last_line) / 5 + last_line);
-	Term_adds((width - strlen(s)) / 2, (height - last_line) / 5 + last_line,
-			width, COLOUR_WHITE, s);
+	Term_adds((width - strlen(str)) / 2, (height - last_line) / 5 + last_line,
+			width, COLOUR_WHITE, str);
 
 	Term_flush_output();
 	Term_redraw_screen();
