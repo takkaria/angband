@@ -463,8 +463,8 @@ static void prt_ac(struct loc coords)
 
 	put_str("Cur AC ", coords);
 	coords.x += 7;
-	strnfmt(tmp, sizeof(tmp), "%5d", 
-			player->known_state.ac + player->known_state.to_a);
+	strnfmt(tmp, sizeof(tmp),
+			"%5d", player->known_state.ac + player->known_state.to_a);
 	c_put_str(COLOUR_L_GREEN, tmp, coords);
 }
 
