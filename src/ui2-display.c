@@ -2105,12 +2105,14 @@ static void new_level_display_update(game_event_type type,
 	Term_clear();
 
 	player->upkeep->only_partial = true;
+
 	/* Update stuff */
 	player->upkeep->update |= (PU_BONUS | PU_HP | PU_SPELLS);
 	/* Calculate torch radius */
 	player->upkeep->update |= (PU_TORCH);
-	/* Update stuff */
+
 	update_stuff(player);
+
 	/* Fully update the visuals (and monster distances) */
 	player->upkeep->update |= (PU_UPDATE_VIEW | PU_DISTANCE);
 	/* Fully update the flow */
@@ -2122,10 +2124,10 @@ static void new_level_display_update(game_event_type type,
 	/* Because changing levels doesn't take a turn and PR_MONLIST might not be
 	 * set for a few game turns, manually force an update on level change. */
 	monster_list_force_subwindow_update();
-	/* Update stuff */
+
 	update_stuff(player);
-	/* Redraw stuff */
 	redraw_stuff(player);
+
 	player->upkeep->only_partial = false;
 
 	Term_flush_output();
