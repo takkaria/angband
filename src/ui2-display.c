@@ -543,22 +543,20 @@ uint32_t monster_health_attr(const struct monster *mon)
 		/* Extract the percent of health */
 		int pct = 100L * mon->hp / mon->maxhp;
 
-		if (pct >= 10) {
-			/* Badly wounded */
-			attr = COLOUR_L_RED;
-		}
-		if (pct >= 25) {
-			/* Wounded */
-			attr = COLOUR_ORANGE;
-		}
-		if (pct >= 60) {
-			/* Somewhat wounded */
-			attr = COLOUR_YELLOW;
-		}
 		if (pct >= 100) {
 			/* Healthy */
 			attr = COLOUR_L_GREEN;
+		} else if (pct >= 60) {
+			/* Somewhat wounded */
+			attr = COLOUR_YELLOW;
+		} else if (pct >= 25) {
+			/* Wounded */
+			attr = COLOUR_ORANGE;
+		} else {
+			/* Badly wounded */
+			attr = COLOUR_L_RED;
 		}
+
 		if (mon->m_timed[MON_TMD_FEAR]) {
 			/* Afraid */
 			attr = COLOUR_VIOLET;
