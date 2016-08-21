@@ -1153,10 +1153,12 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 	Term_push(ANGBAND_TERM(user)->term);
 
+	const int width = Term_width();
+
 	Term_erase_line(0, 0);
 
 	struct loc coords = {0, 0};
-	for (size_t i = 0; i < N_ELEMENTS(status_handlers); i++) {
+	for (size_t i = 0; i < N_ELEMENTS(status_handlers) && coords.x < width; i++) {
 		coords.x += status_handlers[i](coords);
 	}
 
