@@ -1686,8 +1686,8 @@ static void update_monster_subwindow(game_event_type type,
 
 	/* Display monster race info */
 	if (player->upkeep->monster_race) {
-		lore_show_subwindow(player->upkeep->monster_race, 
-							get_lore(player->upkeep->monster_race));
+		lore_show_subwindow(player->upkeep->monster_race,
+				get_lore(player->upkeep->monster_race));
 	}
 
 	Term_flush_output();
