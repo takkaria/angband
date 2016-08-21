@@ -64,7 +64,7 @@ void region_erase_bordered(region reg)
 	calc.h += 2;
 
 	for (int y = 0; y < calc.h; y++) {
-		Term_erase(calc.x, calc.x + y, calc.w);
+		Term_erase(calc.x, calc.y + y, calc.w);
 	}
 }
 
