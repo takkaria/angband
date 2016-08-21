@@ -1745,7 +1745,7 @@ static void update_messages_subwindow(game_event_type type,
 }
 
 /**
- * Display player in sub-windows (mode 0)
+ * Display player in sub-windows (basic info)
  */
 static void update_player_basic_subwindow(game_event_type type,
 		game_event_data *data, void *user)
@@ -1755,14 +1755,14 @@ static void update_player_basic_subwindow(game_event_type type,
 
 	Term_push(ANGBAND_TERM(user)->term);
 
-	display_player(0);
+	display_player(PLAYER_DISPLAY_MODE_STANDARD);
 
 	Term_flush_output();
 	Term_pop();
 }
 
 /**
- * Display player in sub-windows (mode 1)
+ * Display player in sub-windows (resistances)
  */
 static void update_player_extra_subwindow(game_event_type type,
 		game_event_data *data, void *user)
@@ -1772,7 +1772,7 @@ static void update_player_extra_subwindow(game_event_type type,
 
 	Term_push(ANGBAND_TERM(user)->term);
 
-	display_player(1);
+	display_player(PLAYER_DISPLAY_MODE_SPECIAL);
 
 	Term_flush_output();
 	Term_pop();
