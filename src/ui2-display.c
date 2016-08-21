@@ -439,7 +439,6 @@ static void prt_gold(struct loc coords)
  */
 static void prt_equippy(struct loc coords)
 {
-
 	for (int i = 0; i < player->body.count; i++, coords.x++) {
 		wchar_t ch = ' ';
 		uint32_t attr = COLOUR_WHITE;
