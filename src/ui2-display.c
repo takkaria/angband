@@ -1228,17 +1228,6 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		}
 	}
 
-	if ((player->upkeep->update & PU_PANEL) && OPT(center_player)) {
-		struct loc coords = {
-			.x = player->px - Term_width() / 2,
-			.y = player->py - Term_height() / 2
-		};
-		if (panel_should_modify(ANGBAND_TERM(user), coords)) {
-			Term_pop();
-			return;
-		}
-	}
-
 	Term_flush_output();
 	Term_pop();
 }
