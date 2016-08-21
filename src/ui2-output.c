@@ -477,6 +477,8 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 	while (next_section(start, 0, &text, &textlen, &tag, &taglen, &next)) {
 		int a = -1;
 
+		assert(textlen < sizeof(smallbuf));
+
 		memcpy(smallbuf, text, textlen);
 		smallbuf[textlen] = 0;
 
