@@ -2538,7 +2538,6 @@ static void fit_rect_in_rect_by_xy(SDL_Rect *small, const SDL_Rect *big)
 	}
 }
 
-#if 0
 static void fit_rect_in_rect_proportional(SDL_Rect *small, const SDL_Rect *big)
 {
 	if (small->x < big->x) {
@@ -2556,7 +2555,6 @@ static void fit_rect_in_rect_proportional(SDL_Rect *small, const SDL_Rect *big)
 		small->h = big->h;
 	}
 }
-#endif
 
 static void resize_rect(SDL_Rect *rect,
 		int left, int top, int right, int bottom)
