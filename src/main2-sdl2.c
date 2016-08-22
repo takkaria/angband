@@ -3503,7 +3503,7 @@ static void term_pop_new(void *user)
 	struct subwindow *subwindow = user;
 
 	if (subwindow->big_map) {
-		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	}
 
 	detach_subwindow_from_window(subwindow->window, subwindow);
