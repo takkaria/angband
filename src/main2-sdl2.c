@@ -711,7 +711,8 @@ static void free_graphics(struct graphics *graphics);
 static void load_terms(void);
 static void load_term(struct subwindow *subwindow);
 static bool adjust_subwindow_geometry(const struct window *window,
-		struct subwindow *subwindow, bool force);
+		struct subwindow *subwindow);
+static void adjust_subwindow_force_default(struct subwindow *subwindow);
 static void position_temporary_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints);
 static bool is_ok_col_row(const struct subwindow *subwindow,
@@ -2807,7 +2808,7 @@ static void resize_subwindow(struct subwindow *subwindow)
 	SDL_DestroyTexture(subwindow->texture);
 
 	subwindow->full_rect = subwindow->sizing_rect;
-	if (!adjust_subwindow_geometry(subwindow->window, subwindow, false)) {
+	if (!adjust_subwindow_geometry(subwindow->window, subwindow)) {
 		quit_fmt("bad_geometry of subwindow %u in window %u",
 				subwindow->index, subwindow->window->index);
 	}
@@ -3785,7 +3786,10 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 		subwindow->use_graphics = false;
 	}
 
-	adjust_subwindow_geometry(window, subwindow, true);
+	if (!adjust_subwindow_geometry(window, subwindow)) {
+		adjust_subwindow_force_default(subwindow);
+		adjust_subwindow_geometry(window, subwindow);
+	}
 }
 
 static const struct font_info *find_font_info(const char *name)
@@ -4133,7 +4137,7 @@ static void adjust_subwindow_force_default(struct subwindow *subwindow)
 }
 
 static bool adjust_subwindow_geometry(const struct window *window,
-		struct subwindow *subwindow, bool force)
+		struct subwindow *subwindow)
 {
 	if (subwindow->use_graphics) {
 		if (subwindow->big_map) {
@@ -4185,13 +4189,7 @@ static bool adjust_subwindow_geometry(const struct window *window,
 	if (!is_ok_col_row(subwindow, &subwindow->full_rect,
 				subwindow->cell_width, subwindow->cell_height))
 	{
-		/* TODO remove that */
-		if (force) {
-			adjust_subwindow_force_default(subwindow);
-			return adjust_subwindow_geometry(window, subwindow, false);
-		} else {
-			return false;
-		}
+		return false;
 	}
 
 	if (!is_rect_in_rect(&subwindow->full_rect, &window->inner_rect)
@@ -5055,7 +5053,7 @@ static void load_subwindow(struct window *window,
 		assert(subwindow->font != NULL);
 	}
 
-	if (!adjust_subwindow_geometry(window, subwindow, false)) {
+	if (!adjust_subwindow_geometry(window, subwindow)) {
 		quit_fmt("cant adjust geometry of subwindow %u in window %u",
 				subwindow->index, window->index);
 	}
