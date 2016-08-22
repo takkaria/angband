@@ -360,6 +360,9 @@ struct subwindow {
 
 	/* this is a subwindow for temporary term */
 	bool is_temporary;
+
+	/* this is the "overview map" subwindow (invoked by 'M' command) */
+	bool big_map;
 	
 	/* subwindow can use graphics */
 	bool use_graphics;
@@ -867,6 +870,25 @@ static void render_all(const struct window *window)
 	render_subwindows(window, window->temporary.subwindows, window->temporary.number);
 }
 
+static void render_big_map(const struct window *window)
+{
+	assert(window->temporary.number > 0);
+	assert(window->temporary.subwindows[window->temporary.number - 1]->big_map);
+
+	render_background(window);
+
+	SDL_RenderCopy(window->renderer,
+			window->status_bar.texture, NULL, &window->status_bar.full_rect);
+
+	render_subwindows(window, window->permanent.subwindows, window->permanent.number);
+	render_subwindows(window, window->temporary.subwindows, window->temporary.number - 1);
+
+	const struct subwindow *big_map =
+		window->temporary.subwindows[window->temporary.number - 1];
+
+	SDL_RenderCopy(window->renderer, big_map->texture, NULL, &big_map->sizing_rect);
+}
+
 static void render_status_bar(const struct window *window)
 {
 	render_clear(window, window->status_bar.texture, &window->status_bar.color);
@@ -970,6 +992,13 @@ static void redraw_window(struct window *window)
 	SDL_RenderPresent(window->renderer);
 }
 
+static void redraw_big_map(struct window *window)
+{
+	render_big_map(window);
+
+	SDL_RenderPresent(window->renderer);
+}
+
 static void redraw_all_windows(void)
 {
 	for (unsigned i = 0; i < MAX_WINDOWS; i++) {
@@ -1057,6 +1086,27 @@ static void render_cursor(struct subwindow *subwindow,
 
 	render_outline_rect(subwindow->window, subwindow->texture,
 			&rect, &color);
+}
+
+static void render_big_map_cursor(struct subwindow *subwindow,
+		int col, int row)
+{
+	SDL_Color color = g_colors[DEFAULT_SUBWINDOW_CURSOR_COLOR];
+
+	SDL_Rect rect = {
+		subwindow->inner_rect.x + subwindow->cell_width * col,
+		subwindow->inner_rect.y + subwindow->cell_height * row,
+		subwindow->cell_width,
+		subwindow->cell_height
+	};
+
+	/* XXX some arbitrary values that look ok at the moment */
+	int width = MIN(MIN(subwindow->cell_width / 4, subwindow->cell_height / 4),
+			DEFAULT_VISIBLE_BORDER);
+
+	/* render cursor around player */
+	render_outline_rect_width(subwindow->window,
+			subwindow->texture, &rect, &color, width);
 }
 
 static void render_tile(const struct subwindow *subwindow,
@@ -3434,6 +3484,13 @@ static void term_redraw(void *user)
 	redraw_window(subwindow->window);
 }
 
+static void term_big_map_redraw(void *user)
+{
+	struct subwindow *subwindow = user;
+
+	redraw_big_map(subwindow->window);
+}
+
 static void term_delay(void *user, int msecs)
 {
 	(void) user;
@@ -3445,8 +3502,28 @@ static void term_pop_new(void *user)
 {
 	struct subwindow *subwindow = user;
 
+	if (subwindow->big_map) {
+		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+	}
+
 	detach_subwindow_from_window(subwindow->window, subwindow);
 	free_temporary_subwindow(subwindow);
+}
+
+static void term_cursor(void *user, int col, int row)
+{
+	struct subwindow *subwindow = user;
+	assert(subwindow != NULL);
+
+	render_cursor(subwindow, col, row);
+}
+
+static void term_big_map_cursor(void *user, int col, int row)
+{
+	struct subwindow *subwindow = user;
+	assert(subwindow != NULL);
+
+	render_big_map_cursor(subwindow, col, row);
 }
 
 static void term_push_new(const struct term_hints *hints,
@@ -3460,25 +3537,25 @@ static void term_push_new(const struct term_hints *hints,
 	subwindow->cols = hints->width;
 	subwindow->rows = hints->height;
 
+	info->callbacks = default_callbacks;
+
+	if (hints->purpose == TERM_PURPOSE_BIG_MAP) {
+		subwindow->big_map = true;
+		info->callbacks.redraw = term_big_map_redraw;
+		info->callbacks.cursor = term_big_map_cursor;
+		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+	}
+
 	/* TODO reusable font (optimization) */
 
 	attach_subwindow_to_window(window, subwindow);
 	load_subwindow(window, subwindow);
 	position_temporary_subwindow(subwindow, hints);
 
-	info->width     = subwindow->cols;
-	info->height    = subwindow->rows;
-	info->user      = subwindow;
-	info->callbacks = default_callbacks;
-	info->blank     = default_blank_point;
-}
-
-static void term_cursor(void *user, int col, int row)
-{
-	struct subwindow *subwindow = user;
-	assert(subwindow != NULL);
-
-	render_cursor(subwindow, col, row);
+	info->user   = subwindow;
+	info->blank  = default_blank_point;
+	info->width  = subwindow->cols;
+	info->height = subwindow->rows;
 }
 
 static void term_draw_text(const struct subwindow *subwindow,
@@ -4059,8 +4136,13 @@ static bool adjust_subwindow_geometry(const struct window *window,
 		struct subwindow *subwindow, bool force)
 {
 	if (subwindow->use_graphics) {
-		subwindow->cell_width = window->graphics.tile_pixel_w;
-		subwindow->cell_width = window->graphics.tile_pixel_h;
+		if (subwindow->big_map) {
+			subwindow->cell_width = REASONABLE_MAP_TILE_WIDTH;
+			subwindow->cell_width = REASONABLE_MAP_TILE_HEIGHT;
+		} else {
+			subwindow->cell_width = window->graphics.tile_pixel_w;
+			subwindow->cell_width = window->graphics.tile_pixel_h;
+		}
 	} else {
 		subwindow->cell_width = subwindow->font->ttf.glyph.w;
 		subwindow->cell_height = subwindow->font->ttf.glyph.h;
@@ -4103,6 +4185,7 @@ static bool adjust_subwindow_geometry(const struct window *window,
 	if (!is_ok_col_row(subwindow, &subwindow->full_rect,
 				subwindow->cell_width, subwindow->cell_height))
 	{
+		/* TODO remove that */
 		if (force) {
 			adjust_subwindow_force_default(subwindow);
 			return adjust_subwindow_geometry(window, subwindow, false);
@@ -4111,7 +4194,11 @@ static bool adjust_subwindow_geometry(const struct window *window,
 		}
 	}
 
-	if (!is_rect_in_rect(&subwindow->full_rect, &window->inner_rect)) {
+	if (!is_rect_in_rect(&subwindow->full_rect, &window->inner_rect)
+			&& !subwindow->big_map)
+	{
+		/* big map takes whole window;
+		 * other subwindows are not allowed to to that */
 		subwindow->borders.error = true;
 	}
 
@@ -4167,7 +4254,20 @@ static void position_subwindow_bottom_center(const struct subwindow *origin,
 		origin->full_rect.w - subwindow->full_rect.w;
 }
 
-static void position_temporary_subwindow(struct subwindow *subwindow,
+static void position_subwindow_big_map(struct subwindow *subwindow)
+{
+	subwindow->sizing_rect = subwindow->full_rect;
+
+	fit_rect_in_rect_proportional(&subwindow->sizing_rect,
+			&subwindow->window->full_rect);
+
+	subwindow->sizing_rect.x =
+		(subwindow->window->full_rect.w - subwindow->sizing_rect.w) / 2;
+	subwindow->sizing_rect.y =
+		(subwindow->window->full_rect.h - subwindow->sizing_rect.h) / 2;
+}
+
+static void position_other_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints)
 {
 	const struct subwindow *origin = get_subwindow_direct(SUBWINDOW_CAVE);
@@ -4190,8 +4290,16 @@ static void position_temporary_subwindow(struct subwindow *subwindow,
 			position_subwindow_center(origin, subwindow, hints);
 			break;
 	}
+}
 
-	fit_subwindow_in_window(subwindow->window, subwindow);
+static void position_temporary_subwindow(struct subwindow *subwindow,
+		const struct term_hints *hints)
+{
+	if (subwindow->big_map) {
+		position_subwindow_big_map(subwindow);
+	} else {
+		position_other_subwindow(subwindow, hints);
+	}
 }
 
 static void sort_to_top_aux(struct window *window,

@@ -480,7 +480,7 @@ static void view_map_aux(int *px, int *py)
 
 	struct term_point other = {
 		.fg_attr = monster_x_attr[r_info[0].ridx],
-		.fg_char = monster_x_attr[r_info[0].ridx],
+		.fg_char = monster_x_char[r_info[0].ridx],
 		.bg_attr = point.bg_attr,
 		.bg_char = point.bg_char,
 		.terrain_attr = BG_BLACK
@@ -518,6 +518,7 @@ void do_cmd_view_map(void)
 	view_map_aux(&px, &py);
 
 	Term_cursor_to_xy(px, py);
+	Term_cursor_visible(true);
 	Term_flush_output();
 
 	inkey_any();
