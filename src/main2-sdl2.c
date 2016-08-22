@@ -4067,7 +4067,7 @@ static bool adjust_subwindow_geometry(const struct window *window,
 	}
 	
 	if (!subwindow->loaded && subwindow->config == NULL) {
-		/* brand new permanent subwindow */
+		/* brand new subwindow */
 		adjust_subwindow_geometry_default(window, subwindow);
 	}
 
