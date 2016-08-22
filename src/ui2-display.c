@@ -1781,67 +1781,6 @@ static void update_player_extra_subwindow(game_event_type type,
 }
 
 /**
- * Display the left-hand-side of the main term, in more compact fashion.
- */
-static void update_player_compact_subwindow(game_event_type type,
-		game_event_data *data, void *user)
-{
-	(void) type;
-	(void) data;
-
-	Term_push(ANGBAND_TERM(user)->term);
-
-	const int height = Term_height();
-	struct loc coords = {0, 0};
-
-#define PRT_SAFELY(expr) do { \
-	if (coords.y >= height) { \
-		Term_flush_output(); \
-		Term_pop(); \
-		return; \
-	} else { \
-		(expr); \
-		coords.y++; \
-	} \
-} while (0)
-
-	/* Race and Class */
-	PRT_SAFELY(prt_field(player->race->name, coords));
-	PRT_SAFELY(prt_field(player->class->name, coords));
-	/* Title */
-	PRT_SAFELY(prt_title(coords));
-	/* Level/Experience */
-	PRT_SAFELY(prt_level(coords));
-	PRT_SAFELY(prt_exp(coords));
-	/* Gold */
-	PRT_SAFELY(prt_gold(coords));
-	/* Equippy chars */
-	PRT_SAFELY(prt_equippy(coords));
-
-	/* All Stats */
-	for (int stat = 0; stat < STAT_MAX; stat++) {
-		PRT_SAFELY(prt_stat(stat, coords));
-	}
-
-	/* Empty row */
-	coords.y++;
-
-	/* Armor */
-	PRT_SAFELY(prt_ac(coords));
-	/* Hitpoints */
-	PRT_SAFELY(prt_hp(coords));
-	/* Spellpoints */
-	PRT_SAFELY(prt_sp(coords));
-	/* Monster health */
-	PRT_SAFELY(prt_health(coords));
-
-#undef PRT_SAFELY
-
-	Term_flush_output();
-	Term_pop();
-}
-
-/**
  * Certain "screens" always use the main screen, including News, Birth,
  * Dungeon, Tomb-stone, High-scores, Macros, Colors, Visuals, Options.
  *
@@ -1889,17 +1828,6 @@ static void subwindow_flag_changed(struct angband_term *aterm, int flag, bool en
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
 					update_player_extra_subwindow, aterm);
-			break;
-
-		case ATF_PLAYER_COMPACT:
-			set_register_or_deregister(player_events,
-					N_ELEMENTS(player_events),
-					update_player_compact_subwindow, aterm);
-			break;
-
-		case ATF_MAP:
-			register_or_deregister(EVENT_MAP,
-					update_maps, aterm);
 			break;
 
 		case ATF_MESSAGE:
