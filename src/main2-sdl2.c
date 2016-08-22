@@ -712,7 +712,6 @@ static void load_terms(void);
 static void load_term(struct subwindow *subwindow);
 static bool adjust_subwindow_geometry(const struct window *window,
 		struct subwindow *subwindow);
-static void adjust_subwindow_force_default(struct subwindow *subwindow);
 static void position_temporary_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints);
 static bool is_ok_col_row(const struct subwindow *subwindow,
@@ -3787,7 +3786,14 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	}
 
 	if (!adjust_subwindow_geometry(window, subwindow)) {
-		adjust_subwindow_force_default(subwindow);
+		assert(subwindow->min_cols > 0);
+		assert(subwindow->min_rows > 0);
+
+		subwindow->full_rect.w =
+			SUBWINDOW_WIDTH(subwindow->min_cols, subwindow->cell_width);
+		subwindow->full_rect.h =
+			SUBWINDOW_HEIGHT(subwindow->min_rows, subwindow->cell_height);
+
 		adjust_subwindow_geometry(window, subwindow);
 	}
 }
@@ -4123,17 +4129,6 @@ static void adjust_subwindow_geometry_default(const struct window *window,
 			}
 			break;
 	}
-}
-
-static void adjust_subwindow_force_default(struct subwindow *subwindow)
-{
-	assert(subwindow->min_cols > 0);
-	assert(subwindow->min_rows > 0);
-
-	subwindow->full_rect.w =
-		SUBWINDOW_WIDTH(subwindow->min_cols, subwindow->cell_width);
-	subwindow->full_rect.h =
-		SUBWINDOW_HEIGHT(subwindow->min_rows, subwindow->cell_height);
 }
 
 static bool adjust_subwindow_geometry(const struct window *window,
