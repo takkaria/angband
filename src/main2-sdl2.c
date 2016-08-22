@@ -1001,33 +1001,33 @@ static void render_utf8_string(const struct window *window,
 /* this function is typically called in a loop, so for efficiency it doesnt
  * SetRenderTarget; caller must do it (but it does SetTextureColorMod) */
 static void render_glyph_mono(const struct window *window, const struct font *font,
-		int x, int y, const SDL_Color *fg, uint32_t codepoint)
+		int x, int y, SDL_Color fg, uint32_t codepoint)
 {
 	SDL_Rect dst = {
-		x + font->ttf.glyph.x,
-		y + font->ttf.glyph.y,
-		0, 0
+		.x = x + font->ttf.glyph.x,
+		.y = y + font->ttf.glyph.y,
 	};
 
 	if (IS_CACHED_ASCII_CODEPOINT(codepoint)) {
 		dst.w = font->cache.rects[codepoint].w;
 		dst.h = font->cache.rects[codepoint].h;
 
-		SDL_SetTextureColorMod(font->cache.texture, fg->r, fg->g, fg->b);
+		SDL_SetTextureColorMod(font->cache.texture, fg.r, fg.g, fg.b);
 
 		SDL_RenderCopy(window->renderer,
 				font->cache.texture, &font->cache.rects[codepoint], &dst);
 	} else {
 		SDL_Surface *surface = TTF_RenderGlyph_Blended(font->ttf.handle,
-				(Uint16) codepoint, *fg);
+				(Uint16) codepoint, fg);
 		if (surface == NULL) {
 			return;
 		}
 
 		SDL_Rect src = {
-			0, 0,
-			MIN(surface->w, font->ttf.glyph.w - font->ttf.glyph.x),
-			MIN(surface->h, font->ttf.glyph.h - font->ttf.glyph.y)
+			.x = 0,
+			.y = 0,
+			.w = MIN(surface->w, font->ttf.glyph.w - font->ttf.glyph.x),
+			.h = MIN(surface->h, font->ttf.glyph.h - font->ttf.glyph.y)
 		};
 
 		dst.w = src.w;
@@ -3509,7 +3509,7 @@ static void term_draw_text(const struct subwindow *subwindow,
 		SDL_Color fg = g_colors[point->fg_attr];
 
 		render_glyph_mono(subwindow->window, subwindow->font,
-				rect.x, rect.y, &fg, (uint32_t) point->fg_char);
+				rect.x, rect.y, fg, (uint32_t) point->fg_char);
 	}
 }
 
