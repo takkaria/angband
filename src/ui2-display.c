@@ -243,35 +243,6 @@ struct angband_term *term_by_index(int index)
 	return NULL;
 }
 
-/*
- * Flush the contents of all terms and redraw the screen
- */
-void flush_all_terms(void)
-{
-	struct angband_term *permanent_terms[] = {
-		&angband_cave,
-		&angband_message_line,
-		&angband_status_line,
-		&angband_sidebar
-	};
-
-	for (size_t i = 0; i < N_ELEMENTS(permanent_terms); i++) {
-		Term_push(permanent_terms[i]->term);
-		Term_flush_output();
-		Term_pop();
-	}
-
-	for (size_t i = 0; i < angband_terms.number; i++) {
-		Term_push(angband_terms.terms[i].term);
-		Term_flush_output();
-		Term_pop();
-	}
-
-	Term_push(angband_cave.term);
-	Term_redraw_screen();
-	Term_pop();
-}
-
 /**
  * Flush the output before displaying for emphasis
  */

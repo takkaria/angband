@@ -111,7 +111,6 @@ void cnv_stat(int val, char *out_val, size_t out_len);
 void idle_update(void);
 void toggle_inven_equip(void);
 
-void flush_all_terms(void);
 void subwindow_set_flags(struct angband_term *aterm,
 		bitflag *flags, size_t size);
 void init_display(void);

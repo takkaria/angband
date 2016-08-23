@@ -61,8 +61,6 @@ void do_cmd_redraw(void)
 	move_cursor_relative(&angband_cave, loc(player->px, player->py));
 
 	handle_stuff(player);
-
-	flush_all_terms();
 }
 
 /**
