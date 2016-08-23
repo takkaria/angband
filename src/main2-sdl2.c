@@ -2426,6 +2426,7 @@ static bool handle_menu_button_click(struct window *window,
 
 	struct menu_panel *menu_panel = get_menu_panel_by_xy(window->status_bar.menu_panel,
 				event->button.x, event->button.y);
+
 	if (menu_panel == NULL) {
 		return handled;
 	}
