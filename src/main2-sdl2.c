@@ -5670,12 +5670,22 @@ static char g_config_file[4096];
 
 static void init_globals(void)
 {
-	for (size_t i = 0, index = SUBWINDOW_CAVE;
-			i < N_ELEMENTS(g_permanent_subwindows);
-			i++, index++)
 	{
-		assert(index < SUBWINDOW_PERMANENT_MAX);
-		g_permanent_subwindows[i].index = index;
+		size_t i = 0;
+		for (unsigned index = SUBWINDOW_MAIN_MIN;
+				i < N_ELEMENTS(g_permanent_subwindows) && index < SUBWINDOW_MAIN_MAX;
+				i++, index++)
+		{
+			assert(index < SUBWINDOW_PERMANENT_MAX);
+			g_permanent_subwindows[i].index = index;
+		}
+		for (unsigned index = SUBWINDOW_OTHER_MIN;
+				i < N_ELEMENTS(g_permanent_subwindows) && index < SUBWINDOW_OTHER_MAX;
+				i++, index++)
+		{
+			assert(index < SUBWINDOW_PERMANENT_MAX);
+			g_permanent_subwindows[i].index = index;
+		}
 	}
 
 	for (size_t i = 0; i < N_ELEMENTS(g_shadow_stack.subwindows); i++) {
