@@ -51,7 +51,7 @@ struct angband_term {
 
 	char *name;
 
-	enum angband_window_flag flag;
+	enum angband_term_flag flag;
 };
 
 /* for use with event handlers */
