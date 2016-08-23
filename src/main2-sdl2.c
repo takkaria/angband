@@ -676,6 +676,16 @@ static struct term_info g_term_info[SUBWINDOW_PERMANENT_MAX] = {
 #define IS_SUBWINDOW_OTHER(subwindow) \
 	((subwindow)->index > SUBWINDOW_SIDEBAR)
 
+#define SUBWINDOW_MAIN_MIN \
+	SUBWINDOW_CAVE
+#define SUBWINDOW_MAIN_MAX \
+	SUBWINDOW_OTHER_0
+
+#define SUBWINDOW_OTHER_MIN \
+	SUBWINDOW_OTHER_0
+#define SUBWINDOW_OTHER_MAX \
+	SUBWINDOW_PERMANENT_MAX
+
 /* Forward declarations */
 
 static void init_globals(void);
@@ -4601,8 +4611,8 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 
 	callbacks.on_click = do_button_open_subwindow;
 
-	for (unsigned i = SUBWINDOW_OTHER_0, label = 1;
-			i < SUBWINDOW_PERMANENT_MAX;
+	for (unsigned i = SUBWINDOW_OTHER_MIN, label = 1;
+			i < SUBWINDOW_OTHER_MAX;
 			i++, label++)
 	{
 		info.data.uval = i;
@@ -5572,7 +5582,7 @@ static void create_defaults(void)
 	struct window *window = get_new_window(WINDOW_MAIN);
 	assert(window != NULL);
 
-	for (unsigned i = SUBWINDOW_CAVE; i < SUBWINDOW_OTHER_0; i++) {
+	for (unsigned i = SUBWINDOW_MAIN_MIN; i < SUBWINDOW_MAIN_MAX; i++) {
 		struct subwindow *subwindow = get_new_subwindow(i);
 
 		attach_subwindow_to_window(window, subwindow);
