@@ -28,7 +28,7 @@ extern const char *stat_names_reduced[STAT_MAX];
 extern const char *window_flag_desc[32];
 
 /* angband_term flags which determine what a particular term does */
-enum angband_window_flag {
+enum angband_term_flag {
 	#define ATF(a, b) ATF_ ##a,
 	#include "list-term-flags.h"
 	#undef ATF
@@ -91,7 +91,7 @@ void idle_update(void);
 void toggle_inven_equip(void);
 
 void subwindow_set_flag(struct angband_term *aterm,
-		enum angband_window_flag flag);
+		enum angband_term_flag flag);
 void init_display(void);
 
 #endif /* UI2_DISPLAY_H */

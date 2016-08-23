@@ -1729,7 +1729,7 @@ static void update_player_extra_subwindow(game_event_type type,
 }
 
 static void subwindow_flag_changed(struct angband_term *aterm,
-		enum angband_window_flag flag, bool enable)
+		enum angband_term_flag flag, bool enable)
 {
 	assert(flag > ATF_NONE);
 	assert(flag < ATF_MAX);
@@ -1809,7 +1809,7 @@ static void subwindow_flag_changed(struct angband_term *aterm,
  * displaying the new thing or no longer displaying the old one.
  */
 void subwindow_set_flag(struct angband_term *aterm,
-		enum angband_window_flag flag)
+		enum angband_term_flag flag)
 {
 	if (flag != aterm->flag) {
 		if (aterm->flag != ATF_NONE) {
