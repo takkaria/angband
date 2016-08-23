@@ -345,6 +345,7 @@ struct subwindow_border {
 struct subwindow_config {
 	char *font_name;
 	int font_size;
+	enum angband_term_flag flag;
 };
 
 struct window_config {
@@ -377,12 +378,15 @@ struct subwindow {
 	/* subwindow can use graphics */
 	bool use_graphics;
 
+	enum angband_term_flag flag;
+
 	struct subwindow_config *config;
 
 	/* top in z-order */
 	bool is_top;
 	bool always_top;
 
+	/* index into g_term_info array */
 	unsigned index;
 
 	int rows;
@@ -453,7 +457,7 @@ struct fontval {
 
 struct termval {
 	struct subwindow *subwindow;
-	u32b value;
+	enum angband_term_flag flag;
 };
 
 struct alphaval {
@@ -741,6 +745,8 @@ static void free_menu_panel(struct menu_panel *menu_panel);
 static struct menu_panel *get_menu_panel_by_xy(struct menu_panel *menu_panel,
 		int x, int y);
 static void refresh_angband_terms(void);
+static struct angband_term *get_aterm(unsigned index);
+static char *get_aterm_name(unsigned index);
 static void handle_quit(void);
 static void wait_anykey(void);
 
@@ -1306,6 +1312,21 @@ static void render_button_menu_terms(const struct window *window, struct button 
 	}
 
 	render_button_menu_simple(window, button);
+}
+
+static void render_button_menu_flag(const struct window *window, struct button *button)
+{
+	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_TERMVAL);
+
+	struct subwindow *subwindow = button->info.data.termval.subwindow;
+
+	assert(subwindow->index >= SUBWINDOW_OTHER_0);
+	struct angband_term *aterm = get_aterm(subwindow->index);
+	assert(aterm != NULL);
+
+	enum angband_term_flag flag = button->info.data.termval.flag;
+
+	render_button_menu_toggle(window, button, aterm->flag == flag);
 }
 
 static void render_button_menu_borders(const struct window *window, struct button *button)
@@ -2003,6 +2024,27 @@ static void handle_menu_tile_sets(struct window *window,
 	load_next_menu_panel(window, menu_panel, button, num_elems, elems);
 }
 
+static void handle_menu_flag(struct window *window,
+		struct button *button, const SDL_Event *event,
+		struct menu_panel *menu_panel)
+{
+	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_TERMVAL);
+
+	if (!click_menu_button(button, menu_panel, event)) {
+		return;
+	}
+
+	struct subwindow *subwindow = button->info.data.termval.subwindow;
+
+	assert(subwindow->index >= SUBWINDOW_OTHER_0);
+	struct angband_term *aterm = get_aterm(subwindow->index);
+	assert(aterm != NULL);
+
+	subwindow_set_flag(aterm, button->info.data.termval.flag);
+
+	refresh_angband_terms();
+}
+
 static void handle_menu_tiles(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel)
@@ -2180,6 +2222,36 @@ static void handle_menu_font(struct window *window,
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
 }
 
+static void handle_menu_purpose(struct window *window,
+		struct button *button, const SDL_Event *event,
+		struct menu_panel *menu_panel)
+{
+	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
+
+	struct subwindow *subwindow = button->info.data.subval;
+	assert(subwindow->index >= SUBWINDOW_OTHER_0);
+
+	if (!select_menu_button(button, menu_panel, event)) {
+		return;
+	}
+
+	struct menu_elem elems[ATF_MAX];
+
+	size_t num_elems = 0;
+	for (enum angband_term_flag flag = ATF_NONE + 1; flag < ATF_MAX; flag++) {
+		elems[num_elems].caption = angband_term_flag_description[flag];
+		elems[num_elems].info.group = BUTTON_GROUP_MENU;
+		elems[num_elems].info.data.termval.subwindow = subwindow;
+		elems[num_elems].info.data.termval.flag = flag;
+		elems[num_elems].info.type = BUTTON_DATA_TERMVAL;
+		elems[num_elems].on_render = render_button_menu_flag;
+		elems[num_elems].on_menu = handle_menu_flag;
+		num_elems++;
+	}
+
+	load_next_menu_panel(window, menu_panel, button, num_elems, elems);
+}
+
 static void handle_menu_borders(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel)
@@ -2296,6 +2368,10 @@ static void handle_menu_terms(struct window *window,
 			info, render_button_menu_simple, handle_menu_tiles
 		},
 		{
+			subwindow->index < SUBWINDOW_OTHER_0 ? NULL: "Purpose",
+			info, render_button_menu_simple, handle_menu_purpose
+		},
+		{
 			subwindow->index == SUBWINDOW_CAVE ? NULL : "Alpha",
 			info, render_button_menu_simple, handle_menu_alpha
 		},
@@ -2316,8 +2392,8 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 	size_t n_terms = 0;
 
 	for (int i = SUBWINDOW_CAVE; i < SUBWINDOW_PERMANENT_MAX; i++) {
-		const struct angband_term *aterm = g_term_info[i].aterm;
-		if (aterm != NULL) {
+		const struct angband_term *aterm = get_aterm(i);
+		if (aterm != NULL && aterm->term != NULL) {
 			struct subwindow *subwindow = Term_priv(aterm->term);
 
 			if (subwindow->window == status_bar->window) {
@@ -4919,6 +4995,12 @@ static void dump_subwindow(const struct subwindow *subwindow, ang_file *config)
 	DUMP_SUBWINDOW("alpha", "%u", subwindow->color.a);
 	DUMP_SUBWINDOW("graphics", "%s",
 			subwindow->use_graphics ? "true" : "false");
+
+	struct angband_term *aterm = get_aterm(subwindow->index);
+	assert(aterm != NULL);
+	if (aterm->flag != ATF_NONE) {
+		DUMP_SUBWINDOW("flag", "%u", aterm->flag);
+	}
 #undef DUMP_SUBWINDOW
 	file_put(config, "\n");
 }
@@ -5128,12 +5210,11 @@ static void load_subwindow(struct window *window,
 static void load_term(struct subwindow *subwindow)
 {
 	assert(!subwindow->linked);
-	assert(subwindow->index < N_ELEMENTS(g_term_info));
 
-	struct angband_term *aterm = g_term_info[subwindow->index].aterm;
+	struct angband_term *aterm = get_aterm(subwindow->index);
 	assert(aterm != NULL);
 
-	char *name = g_term_info[subwindow->index].name;
+	char *name = get_aterm_name(subwindow->index);
 	assert(name != NULL);
 
 	struct term_create_info info = {
@@ -5151,6 +5232,13 @@ static void load_term(struct subwindow *subwindow)
 	aterm->index = subwindow->index;
 
 	subwindow->term = term;
+
+	if (subwindow->config != NULL
+			&& subwindow->config->flag != ATF_NONE
+			&& aterm->flag != subwindow->config->flag)
+	{
+		subwindow_set_flag(aterm, subwindow->config->flag);
+	}
 
 	subwindow->linked = true;
 }
@@ -5610,6 +5698,7 @@ static void init_angband_terms(void)
 		assert(t < N_ELEMENTS(g_term_info));
 
 		angband_terms.terms[i].term = NULL;
+		angband_terms.terms[i].flag = ATF_NONE;
 		g_term_info[t].aterm = &angband_terms.terms[i];
 	}
 }
@@ -5732,6 +5821,20 @@ static struct window *get_window_by_id(Uint32 id)
 	}
 	
 	return NULL;
+}
+
+static struct angband_term *get_aterm(unsigned index)
+{
+	assert(index < N_ELEMENTS(g_term_info));
+
+	return g_term_info[index].aterm;
+}
+
+static char *get_aterm_name(unsigned index)
+{
+	assert(index < N_ELEMENTS(g_term_info));
+
+	return g_term_info[index].name;
 }
 
 static void free_globals(void)
@@ -6109,6 +6212,22 @@ static enum parser_error config_subwindow_alpha(struct parser *parser)
 	return PARSE_ERROR_NONE;
 }
 
+static enum parser_error config_subwindow_flag(struct parser *parser)
+{
+	GET_SUBWINDOW_FROM_INDEX;
+	SUBWINDOW_INIT_OK;
+
+	enum angband_term_flag flag = parser_getuint(parser, "flag");
+
+	if (flag <= ATF_NONE || flag > ATF_MAX) {
+		return PARSE_ERROR_INVALID_VALUE;
+	}
+
+	subwindow->config->flag = flag;
+
+	return PARSE_ERROR_NONE;
+}
+
 #undef GET_WINDOW_FROM_INDEX
 #undef WINDOW_INIT_OK
 #undef GET_SUBWINDOW_FROM_INDEX
@@ -6151,6 +6270,8 @@ static struct parser *init_parse_config(void)
 			config_subwindow_top);
 	parser_reg(parser, "subwindow-alpha uint index int alpha",
 			config_subwindow_alpha);
+	parser_reg(parser, "subwindow-flag uint index uint flag",
+			config_subwindow_flag);
 
 	return parser;
 }
