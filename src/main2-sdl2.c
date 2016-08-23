@@ -2388,6 +2388,7 @@ static bool handle_menu_button_mousemotion(struct window *window,
 
 	struct menu_panel *menu_panel = get_menu_panel_by_xy(window->status_bar.menu_panel,
 				event->motion.x, event->motion.y);
+
 	if (menu_panel == NULL) {
 		return handled;
 	}
