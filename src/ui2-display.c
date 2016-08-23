@@ -1811,13 +1811,13 @@ static void subwindow_flag_changed(struct angband_term *aterm,
 void subwindow_set_flag(struct angband_term *aterm,
 		enum angband_term_flag flag)
 {
-	if (flag != aterm->flag) {
-		if (aterm->flag != ATF_NONE) {
-			subwindow_flag_changed(aterm, aterm->flag, false);
-		}
-		subwindow_flag_changed(aterm, flag, true);
-		aterm->flag = flag;
+	assert(aterm->flag != flag);
+
+	if (aterm->flag != ATF_NONE) {
+		subwindow_flag_changed(aterm, aterm->flag, false);
 	}
+	subwindow_flag_changed(aterm, flag, true);
+	aterm->flag = flag;
 
 	Term_push(aterm->term);
 	Term_clear();
