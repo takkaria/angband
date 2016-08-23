@@ -49,9 +49,6 @@ void do_cmd_redraw(void)
 	Term_clear();
 	Term_pop();
 
-	/* Reset "inkey()" */
-	event_signal(EVENT_INPUT_FLUSH);
-
 	player->upkeep->notice |= (PN_COMBINE);
 
 	player->upkeep->update |= (PU_TORCH | PU_INVEN | PU_BONUS | PU_HP |
@@ -60,9 +57,10 @@ void do_cmd_redraw(void)
 	player->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_INVEN |
 			PR_EQUIP | PR_MESSAGE | PR_MONSTER | PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
 
-	handle_stuff(player);
 	verify_panel(&angband_cave);
 	move_cursor_relative(&angband_cave, loc(player->px, player->py));
+
+	handle_stuff(player);
 
 	flush_all_terms();
 }
