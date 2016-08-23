@@ -1570,7 +1570,7 @@ void toggle_inven_equip(void)
 	for (size_t i = 0; i < angband_terms.number; i++) {
 		struct angband_term *aterm = &angband_terms.terms[i];
 
-		if (atf_has(aterm->flags, ATF_INVEN)) {
+		if (aterm->flag == ATF_INVEN) {
 			Term_push(aterm->term);
 
 			if (!flip_inven) {
@@ -1581,7 +1581,7 @@ void toggle_inven_equip(void)
 
 			Term_flush_output();
 			Term_pop();
-		} else if (atf_has(aterm->flags, ATF_EQUIP)) {
+		} else if (aterm->flag == ATF_EQUIP) {
 			Term_push(aterm->term);
 
 			if (!flip_inven) {
@@ -1736,7 +1736,8 @@ static void update_player_extra_subwindow(game_event_type type,
  * main window, including File dump (help), File dump (artifacts, uniques),
  * Character screen, Small scale map, Previous Messages, Store screen, etc.
  */
-static void subwindow_flag_changed(struct angband_term *aterm, int flag, bool enable)
+static void subwindow_flag_changed(struct angband_term *aterm,
+		enum angband_window_flag flag, bool enable)
 {
 	assert(flag > ATF_NONE);
 	assert(flag < ATF_MAX);
@@ -1803,7 +1804,9 @@ static void subwindow_flag_changed(struct angband_term *aterm, int flag, bool en
 					update_itemlist_subwindow, aterm);
 			break;
 
-		default:
+		/* Silence compiler warnings */
+		case ATF_NONE: case ATF_MAX:
+			quit_fmt("Bad flag %d for subwindow %d\n", flag, aterm->index);
 			break;
 	}
 }
@@ -1813,20 +1816,15 @@ static void subwindow_flag_changed(struct angband_term *aterm, int flag, bool en
  * that has changed setting so that it can do any housekeeping to do with 
  * displaying the new thing or no longer displaying the old one.
  */
-void subwindow_set_flags(struct angband_term *aterm, bitflag *flags, size_t size)
+void subwindow_set_flag(struct angband_term *aterm,
+		enum angband_window_flag flag)
 {
-	assert(size == ATF_SIZE);
-
-	/* Deal with the changed flags by seeing what's changed */
-	for (int flag = ATF_NONE + 1; flag < ATF_MAX; flag++) {
-		bool old = atf_has(aterm->flags, flag);
-		bool new = atf_has(flags, flag);
-		if (new != old) {
-			subwindow_flag_changed(aterm, flag, new);
+	if (flag != aterm->flag) {
+		if (aterm->flag != ATF_NONE) {
+			subwindow_flag_changed(aterm, aterm->flag, false);
 		}
+		subwindow_flag_changed(aterm, flag, true);
 	}
-
-	atf_copy(aterm->flags, flags);
 
 	Term_push(aterm->term);
 	Term_clear();

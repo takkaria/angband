@@ -28,31 +28,12 @@ extern const char *stat_names_reduced[STAT_MAX];
 extern const char *window_flag_desc[32];
 
 /* angband_term flags which determine what a particular term does */
-enum {
+enum angband_window_flag {
 	#define ATF(a, b) ATF_ ##a,
 	#include "list-term-flags.h"
 	#undef ATF
 	ATF_MAX
 };
-
-#define ATF_SIZE                FLAG_SIZE(ATF_MAX)
-#define atf_has(f, flag)        flag_has_dbg(f, ATF_SIZE, flag, #f, #flag)
-#define atf_next(f, flag)       flag_next(f, ATF_SIZE, flag)
-#define atf_is_empty(f)         flag_is_empty(f, ATF_SIZE)
-#define atf_is_full(f)          flag_is_full(f, ATF_SIZE)
-#define atf_is_inter(f1, f2)    flag_is_inter(f1, f2, ATF_SIZE)
-#define atf_is_subset(f1, f2)   flag_is_subset(f1, f2, ATF_SIZE)
-#define atf_is_equal(f1, f2)    flag_is_equal(f1, f2, ATF_SIZE)
-#define atf_on(f, flag)         flag_on_dbg(f, ATF_SIZE, flag, #f, #flag)
-#define atf_off(f, flag)        flag_off(f, ATF_SIZE, flag)
-#define atf_wipe(f)             flag_wipe(f, ATF_SIZE)
-#define atf_setall(f)           flag_setall(f, ATF_SIZE)
-#define atf_negate(f)           flag_negate(f, ATF_SIZE)
-#define atf_copy(f1, f2)        flag_copy(f1, f2, ATF_SIZE)
-#define atf_union(f1, f2)       flag_union(f1, f2, ATF_SIZE)
-#define atf_comp_union(f1, f2)  flag_comp_union(f1, f2, ATF_SIZE)
-#define atf_inter(f1, f2)       flag_inter(f1, f2, ATF_SIZE)
-#define atf_diff(f1, f2)        flag_diff(f1, f2, ATF_SIZE)
 
 extern const char *atf_descr[ATF_MAX];
 
@@ -70,7 +51,7 @@ struct angband_term {
 
 	char *name;
 
-	bitflag flags[ATF_SIZE];
+	enum angband_window_flag flag;
 };
 
 /* for use with event handlers */
@@ -109,8 +90,8 @@ void cnv_stat(int val, char *out_val, size_t out_len);
 void idle_update(void);
 void toggle_inven_equip(void);
 
-void subwindow_set_flags(struct angband_term *aterm,
-		bitflag *flags, size_t size);
+void subwindow_set_flag(struct angband_term *aterm,
+		enum angband_window_flag flag);
 void init_display(void);
 
 #endif /* UI2_DISPLAY_H */
