@@ -644,6 +644,7 @@ struct font_info {
 struct term_info {
 	char *name;
 	struct angband_term *aterm;
+	unsigned index;
 };
 
 /* there are also global arrays of subwindows and windows
@@ -657,20 +658,20 @@ static struct font_info g_font_info[MAX_FONTS];
 
 static struct term_info g_term_info[SUBWINDOW_PERMANENT_MAX] = {
 	/* main terms */
-	[SUBWINDOW_CAVE]     = {"Main",    &angband_cave},
-	[SUBWINDOW_MESSAGES] = {"Prompt",  &angband_message_line},
-	[SUBWINDOW_STATUS]   = {"Status",  &angband_status_line},
-	[SUBWINDOW_SIDEBAR]  = {"Sidebar", &angband_sidebar},
+	[SUBWINDOW_CAVE]     = {"Main",    &angband_cave,         SUBWINDOW_CAVE},
+	[SUBWINDOW_MESSAGES] = {"Prompt",  &angband_message_line, SUBWINDOW_MESSAGES},
+	[SUBWINDOW_STATUS]   = {"Status",  &angband_status_line,  SUBWINDOW_STATUS},
+	[SUBWINDOW_SIDEBAR]  = {"Sidebar", &angband_sidebar,      SUBWINDOW_SIDEBAR},
 
 	/* other terms */
-	[SUBWINDOW_OTHER_0]  = {"Term-1",  NULL},
-	[SUBWINDOW_OTHER_1]  = {"Term-2",  NULL},
-	[SUBWINDOW_OTHER_2]  = {"Term-3",  NULL},
-	[SUBWINDOW_OTHER_3]  = {"Term-4",  NULL},
-	[SUBWINDOW_OTHER_4]  = {"Term-5",  NULL},
-	[SUBWINDOW_OTHER_5]  = {"Term-6",  NULL},
-	[SUBWINDOW_OTHER_6]  = {"Term-7",  NULL},
-	[SUBWINDOW_OTHER_7]  = {"Term-8",  NULL}
+	[SUBWINDOW_OTHER_0]  = {"Term-1",  NULL, SUBWINDOW_OTHER_0},
+	[SUBWINDOW_OTHER_1]  = {"Term-2",  NULL, SUBWINDOW_OTHER_1},
+	[SUBWINDOW_OTHER_2]  = {"Term-3",  NULL, SUBWINDOW_OTHER_2},
+	[SUBWINDOW_OTHER_3]  = {"Term-4",  NULL, SUBWINDOW_OTHER_3},
+	[SUBWINDOW_OTHER_4]  = {"Term-5",  NULL, SUBWINDOW_OTHER_4},
+	[SUBWINDOW_OTHER_5]  = {"Term-6",  NULL, SUBWINDOW_OTHER_5},
+	[SUBWINDOW_OTHER_6]  = {"Term-7",  NULL, SUBWINDOW_OTHER_6},
+	[SUBWINDOW_OTHER_7]  = {"Term-8",  NULL, SUBWINDOW_OTHER_7}
 };
 
 #define IS_SUBWINDOW_OTHER(subwindow) \
@@ -5853,16 +5854,36 @@ static struct window *get_window_by_id(Uint32 id)
 
 static struct angband_term *get_aterm(unsigned index)
 {
-	assert(index < N_ELEMENTS(g_term_info));
+	if (index < N_ELEMENTS(g_term_info)
+			&& g_term_info[index].index == index)
+	{
+		return g_term_info[index].aterm;
+	}
 
-	return g_term_info[index].aterm;
+	for (size_t i = 0; i < N_ELEMENTS(g_term_info); i++) {
+		if (g_term_info[i].index == index) {
+			return g_term_info[i].aterm;
+		}
+	}
+
+	return NULL;
 }
 
 static char *get_aterm_name(unsigned index)
 {
-	assert(index < N_ELEMENTS(g_term_info));
+	if (index < N_ELEMENTS(g_term_info)
+			&& g_term_info[index].index == index)
+	{
+		return g_term_info[index].name;
+	}
 
-	return g_term_info[index].name;
+	for (size_t i = 0; i < N_ELEMENTS(g_term_info); i++) {
+		if (g_term_info[i].index == index) {
+			return g_term_info[i].name;
+		}
+	}
+
+	return NULL;
 }
 
 static void free_globals(void)
