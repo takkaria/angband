@@ -5728,6 +5728,7 @@ static void init_angband_terms(void)
 		assert(g_term_info[t].name != NULL);
 		assert(t < N_ELEMENTS(g_term_info));
 
+		angband_terms.terms[i].name = NULL;
 		angband_terms.terms[i].term = NULL;
 		angband_terms.terms[i].flag = ATF_NONE;
 		g_term_info[t].aterm = &angband_terms.terms[i];
