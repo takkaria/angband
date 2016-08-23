@@ -5459,6 +5459,8 @@ static void free_subwindow(struct subwindow *subwindow)
 		struct angband_term *aterm = get_aterm(subwindow->index);
 		if (aterm->flag != ATF_NONE) {
 			subwindow_set_flag(aterm, ATF_NONE);
+			aterm->term = NULL;
+			aterm->name = NULL;
 		}
 
 		Term_destroy(subwindow->term);
