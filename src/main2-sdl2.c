@@ -4208,53 +4208,62 @@ static bool adjust_subwindow_geometry(const struct window *window,
 	return true;
 }
 
-static void position_subwindow_exact(const struct subwindow *origin,
-		struct subwindow *subwindow, const struct term_hints *hints)
+static void position_subwindow_exact(struct subwindow *subwindow,
+		const struct term_hints *hints)
 {
-	subwindow->full_rect.x = origin->full_rect.x +
-		hints->x * origin->cell_width;
+	const struct window *window = subwindow->window;
 
-	subwindow->full_rect.y = origin->full_rect.y +
-		hints->y * origin->cell_height;
+	const struct subwindow *prev_top;
+	if (window->temporary.number > 1) {
+		/* we need previous top term here (the current top is this subwindow) */
+		prev_top = window->temporary.subwindows[window->temporary.number - 1 - 1];
+	} else {
+		/* no temporary terms (except this subwindow); use main map then */
+		prev_top = get_subwindow_direct(SUBWINDOW_CAVE);
+	}
+
+	assert(prev_top->window == subwindow->window);
+
+	subwindow->full_rect.x = prev_top->full_rect.x +
+		hints->x * prev_top->cell_width;
+
+	subwindow->full_rect.y = prev_top->full_rect.y +
+		hints->y * prev_top->cell_height;
 }
 
-static void position_subwindow_center(const struct subwindow *origin,
-		struct subwindow *subwindow, const struct term_hints *hints)
+static void position_subwindow_center(struct subwindow *subwindow,
+		const struct term_hints *hints)
 {
 	(void) hints;
 
-	subwindow->full_rect.x = MAX(origin->full_rect.x,
-			origin->full_rect.x + (origin->full_rect.w - subwindow->full_rect.w) / 2);
+	const struct subwindow *cave = get_subwindow_direct(SUBWINDOW_CAVE);
+	assert(cave->window == subwindow->window);
 
-	subwindow->full_rect.y = MAX(origin->full_rect.y,
-			origin->full_rect.y + (origin->full_rect.h - subwindow->full_rect.h) / 2);
+	subwindow->full_rect.x = MAX(cave->full_rect.x,
+			cave->full_rect.x + (cave->full_rect.w - subwindow->full_rect.w) / 2);
+
+	subwindow->full_rect.y = MAX(cave->full_rect.y,
+			cave->full_rect.y + (cave->full_rect.h - subwindow->full_rect.h) / 2);
 }
 
-static void position_subwindow_top_center(const struct subwindow *origin,
-		struct subwindow *subwindow, const struct term_hints *hints)
+static void position_subwindow_top_center(struct subwindow *subwindow,
+		const struct term_hints *hints)
 {
 	(void) hints;
 
+	const struct subwindow *message_line = get_subwindow_direct(SUBWINDOW_MESSAGES);
+	assert(message_line->window == subwindow->window);
+
+	/* center in in the window horizontally */
 	subwindow->full_rect.x = MAX(subwindow->full_rect.x,
 			subwindow->window->inner_rect.x +
 			(subwindow->window->inner_rect.w - subwindow->full_rect.w) / 2);
 
+	/* put it under message line and 'snap' to it */
 	subwindow->full_rect.y =
 		subwindow->window->inner_rect.y +
-		SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, subwindow->cell_height) - 
+		SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, message_line->cell_height) - 
 		DEFAULT_VISIBLE_BORDER;
-}
-
-static void position_subwindow_bottom_center(const struct subwindow *origin,
-		struct subwindow *subwindow, const struct term_hints *hints)
-{
-	(void) hints;
-
-	subwindow->full_rect.x = MAX(origin->full_rect.x,
-			origin->full_rect.x + (origin->full_rect.w - subwindow->full_rect.w) / 2);
-
-	subwindow->full_rect.y = origin->full_rect.y +
-		origin->full_rect.w - subwindow->full_rect.w;
 }
 
 static void position_subwindow_big_map(struct subwindow *subwindow)
@@ -4273,24 +4282,18 @@ static void position_subwindow_big_map(struct subwindow *subwindow)
 static void position_other_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints)
 {
-	const struct subwindow *origin = get_subwindow_direct(SUBWINDOW_CAVE);
-	assert(origin->window == subwindow->window);
-
 	switch (hints->position) {
 		case TERM_POSITION_EXACT:
-			position_subwindow_exact(origin, subwindow, hints);
+			position_subwindow_exact(subwindow, hints);
 			break;
 		case TERM_POSITION_CENTER:
-			position_subwindow_center(origin, subwindow, hints);
+			position_subwindow_center(subwindow, hints);
 			break;
 		case TERM_POSITION_TOP_CENTER:
-			position_subwindow_top_center(origin, subwindow, hints);
+			position_subwindow_top_center(subwindow, hints);
 			break;
-		case TERM_POSITION_BOTTOM_CENTER:
-			position_subwindow_bottom_center(origin, subwindow, hints);
-			break;
-		case TERM_POSITION_NONE:
-			position_subwindow_center(origin, subwindow, hints);
+		default:
+			position_subwindow_center(subwindow, hints);
 			break;
 	}
 }
