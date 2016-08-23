@@ -92,11 +92,11 @@
 #define DEFAULT_FONT_H \
 	(20 + 2 * GLYPH_PADDING)
 
-#define DEFAULT_SYSTEM_FONT \
+#define DEFAULT_GAME_FONT \
 	DEFAULT_FONT
-#define DEFAULT_SYSTEM_FONT_W \
+#define DEFAULT_GAME_FONT_W \
 	DEFAULT_FONT_W
-#define DEFAULT_SYSTEM_FONT_H \
+#define DEFAULT_GAME_FONT_H \
 	DEFAULT_FONT_H
 
 #define DEFAULT_STATUS_BAR_FONT "8x13x.fon"
@@ -357,8 +357,8 @@ struct window_config {
 	char *font_name;
 	int font_size;
 
-	char *system_font_name;
-	int system_font_size;
+	char *game_font_name;
+	int game_font_size;
 };
 
 /* struct subwindow is representation of angband's term */
@@ -615,7 +615,7 @@ struct window {
 	struct graphics graphics;
 
 	/* used for menus and other temporary terms */
-	struct font *system_font;
+	struct font *game_font;
 
 	struct {
 		size_t number;
@@ -3559,8 +3559,8 @@ static void term_push_new(const struct term_hints *hints,
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 	}
 
-	assert(window->system_font != NULL);
-	subwindow->font = window->system_font;
+	assert(window->game_font != NULL);
+	subwindow->font = window->game_font;
 
 	attach_subwindow_to_window(window, subwindow);
 	load_subwindow(window, subwindow);
@@ -4708,14 +4708,13 @@ static void load_window(struct window *window)
 		load_graphics(window, get_graphics_mode(window->graphics.id));
 	}
 
-	if (window->system_font == NULL) {
+	if (window->game_font == NULL) {
 		if (window->config != NULL) {
-			window->system_font =
-				make_font(window,
-						window->config->system_font_name,
-						window->config->system_font_size);
+			window->game_font = make_font(window,
+					window->config->game_font_name,
+					window->config->game_font_size);
 		} else {
-			window->system_font = make_font(window, DEFAULT_SYSTEM_FONT, 0);
+			window->game_font = make_font(window, DEFAULT_GAME_FONT, 0);
 		}
 	}
 
@@ -4875,7 +4874,7 @@ static void wipe_window(struct window *window, int display)
 	window->alpha = DEFAULT_ALPHA_FULL;
 
 	window->status_bar.font = NULL;
-	window->system_font = NULL;
+	window->game_font = NULL;
 
 	window->wallpaper.texture = NULL;
 	window->wallpaper.mode = WALLPAPER_TILED;
@@ -4947,8 +4946,8 @@ static void dump_window(const struct window *window, ang_file *config)
 			"ERROR");
 	DUMP_WINDOW("status-bar-font", "%d:%s",
 			window->status_bar.font->size, window->status_bar.font->name);
-	DUMP_WINDOW("system-font", "%d:%s",
-			window->system_font->size, window->system_font->name);
+	DUMP_WINDOW("game-font", "%d:%s",
+			window->game_font->size, window->game_font->name);
 
 	DUMP_WINDOW("graphics-id", "%d", window->graphics.id);
 #undef DUMP_WINDOW
@@ -5303,8 +5302,8 @@ static void free_window_config(struct window_config *config)
 	if (config->font_name != NULL) {
 		mem_free(config->font_name);
 	}
-	if (config->system_font_name != NULL) {
-		mem_free(config->system_font_name);
+	if (config->game_font_name != NULL) {
+		mem_free(config->game_font_name);
 	}
 	mem_free(config);
 }
@@ -5383,8 +5382,8 @@ static void free_window(struct window *window)
 		window->wallpaper.texture = NULL;
 	}
 
-	if (window->system_font != NULL) {
-		free_font(window->system_font);
+	if (window->game_font != NULL) {
+		free_font(window->game_font);
 	}
 
 	free_graphics(&window->graphics);
@@ -5896,7 +5895,7 @@ static enum parser_error config_window_font(struct parser *parser)
 	return PARSE_ERROR_NONE;
 }
 
-static enum parser_error config_window_system_font(struct parser *parser)
+static enum parser_error config_window_game_font(struct parser *parser)
 {
 	GET_WINDOW_FROM_INDEX;
 	WINDOW_INIT_OK;
@@ -5908,8 +5907,8 @@ static enum parser_error config_window_system_font(struct parser *parser)
 		return PARSE_ERROR_INVALID_VALUE;
 	}
 
-	window->config->system_font_name = string_make(name);
-	window->config->system_font_size = size;
+	window->config->game_font_name = string_make(name);
+	window->config->game_font_size = size;
 
 	return PARSE_ERROR_NONE;
 }
@@ -6092,7 +6091,7 @@ static struct parser *init_parse_config(void)
 	parser_reg(parser, "window-status-bar-font uint index int size str name",
 			config_window_font);
 	parser_reg(parser, "window-system-font uint index int size str name",
-			config_window_system_font);
+			config_window_game_font);
 	parser_reg(parser, "window-graphics-id uint index int id",
 			config_window_graphics);
 
