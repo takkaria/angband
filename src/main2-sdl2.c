@@ -2743,6 +2743,8 @@ static void handle_window_closed(const SDL_WindowEvent *event)
 
 	if (window->index == WINDOW_MAIN) {
 		handle_quit();
+	} else {
+		free_window(window);
 	}
 }
 
