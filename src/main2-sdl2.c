@@ -356,6 +356,9 @@ struct window_config {
 
 	char *font_name;
 	int font_size;
+
+	char *system_font_name;
+	int system_font_size;
 };
 
 /* struct subwindow is representation of angband's term */
@@ -4706,7 +4709,14 @@ static void load_window(struct window *window)
 	}
 
 	if (window->system_font == NULL) {
-		window->system_font = make_font(window, DEFAULT_SYSTEM_FONT, 0);
+		if (window->config != NULL) {
+			window->system_font =
+				make_font(window,
+						window->config->system_font_name,
+						window->config->system_font_size);
+		} else {
+			window->system_font = make_font(window, DEFAULT_SYSTEM_FONT, 0);
+		}
 	}
 
 	render_clear(window, NULL, &window->color);
@@ -4937,6 +4947,8 @@ static void dump_window(const struct window *window, ang_file *config)
 			"ERROR");
 	DUMP_WINDOW("status-bar-font", "%d:%s",
 			window->status_bar.font->size, window->status_bar.font->name);
+	DUMP_WINDOW("system-font", "%d:%s",
+			window->system_font->size, window->system_font->name);
 
 	DUMP_WINDOW("graphics-id", "%d", window->graphics.id);
 #undef DUMP_WINDOW
@@ -5290,6 +5302,9 @@ static void free_window_config(struct window_config *config)
 	}
 	if (config->font_name != NULL) {
 		mem_free(config->font_name);
+	}
+	if (config->system_font_name != NULL) {
+		mem_free(config->system_font_name);
 	}
 	mem_free(config);
 }
@@ -5881,6 +5896,24 @@ static enum parser_error config_window_font(struct parser *parser)
 	return PARSE_ERROR_NONE;
 }
 
+static enum parser_error config_window_system_font(struct parser *parser)
+{
+	GET_WINDOW_FROM_INDEX;
+	WINDOW_INIT_OK;
+
+	const char *name = parser_getstr(parser, "name");
+	int size = parser_getint(parser, "size");
+
+	if (find_font_info(name) == NULL) {
+		return PARSE_ERROR_INVALID_VALUE;
+	}
+
+	window->config->system_font_name = string_make(name);
+	window->config->system_font_size = size;
+
+	return PARSE_ERROR_NONE;
+}
+
 static enum parser_error config_window_graphics(struct parser *parser)
 {
 	GET_WINDOW_FROM_INDEX;
@@ -6058,6 +6091,8 @@ static struct parser *init_parse_config(void)
 			config_window_wallpaper_mode);
 	parser_reg(parser, "window-status-bar-font uint index int size str name",
 			config_window_font);
+	parser_reg(parser, "window-system-font uint index int size str name",
+			config_window_system_font);
 	parser_reg(parser, "window-graphics-id uint index int id",
 			config_window_graphics);
 
