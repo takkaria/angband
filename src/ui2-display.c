@@ -1728,14 +1728,6 @@ static void update_player_extra_subwindow(game_event_type type,
 	Term_pop();
 }
 
-/**
- * Certain "screens" always use the main screen, including News, Birth,
- * Dungeon, Tomb-stone, High-scores, Macros, Colors, Visuals, Options.
- *
- * Later, special flags may allow sub-windows to "steal" stuff from the
- * main window, including File dump (help), File dump (artifacts, uniques),
- * Character screen, Small scale map, Previous Messages, Store screen, etc.
- */
 static void subwindow_flag_changed(struct angband_term *aterm,
 		enum angband_window_flag flag, bool enable)
 {
