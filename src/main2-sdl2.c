@@ -4865,6 +4865,7 @@ static void wipe_window(struct window *window, int display)
 	window->alpha = DEFAULT_ALPHA_FULL;
 
 	window->status_bar.font = NULL;
+	window->system_font = NULL;
 
 	window->wallpaper.texture = NULL;
 	window->wallpaper.mode = WALLPAPER_TILED;
