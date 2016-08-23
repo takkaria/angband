@@ -1816,6 +1816,7 @@ void subwindow_set_flag(struct angband_term *aterm,
 			subwindow_flag_changed(aterm, aterm->flag, false);
 		}
 		subwindow_flag_changed(aterm, flag, true);
+		aterm->flag = flag;
 	}
 
 	Term_push(aterm->term);
