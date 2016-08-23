@@ -2316,7 +2316,7 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 	size_t n_terms = 0;
 
 	for (int i = SUBWINDOW_CAVE; i < SUBWINDOW_PERMANENT_MAX; i++) {
-		const struct angband_term *aterm = term_by_index(i);
+		const struct angband_term *aterm = g_term_info[i].aterm;
 		if (aterm != NULL) {
 			struct subwindow *subwindow = Term_priv(aterm->term);
 

@@ -220,29 +220,6 @@ static void display_message(game_event_type type, game_event_data *data, void *u
 /*
  * Get a term from its index
  */
-struct angband_term *term_by_index(int index)
-{
-	assert(index >= 0);
-
-	if (index == angband_cave.index) {
-		return &angband_cave;
-	} else if (index == angband_message_line.index) {
-		return &angband_message_line;
-	} else if (index == angband_status_line.index) {
-		return &angband_status_line;
-	} else if (index == angband_sidebar.index) {
-		return &angband_sidebar;
-	} else {
-		for (size_t i = 0; i < angband_terms.number; i++) {
-			if (angband_terms.terms[i].index == index) {
-				return &angband_terms.terms[i];
-			}
-		}
-	}
-
-	return NULL;
-}
-
 /**
  * Flush the output before displaying for emphasis
  */

@@ -103,8 +103,6 @@ struct angband_terms {
  * it is recommended to create several of those */
 extern struct angband_terms angband_terms;
 
-struct angband_term *term_by_index(int index);
-
 void message_skip_more(void);
 uint32_t monster_health_attr(const struct monster *mon);
 void cnv_stat(int val, char *out_val, size_t out_len);
