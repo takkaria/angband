@@ -1804,9 +1804,8 @@ static void subwindow_flag_changed(struct angband_term *aterm,
 }
 
 /**
- * Set the flags for one term, calling subwindow_flag_changed() with each flag
- * that has changed setting so that it can do any housekeeping to do with 
- * displaying the new thing or no longer displaying the old one.
+ * Set the flag for one term, calling subwindow_flag_changed()
+ * so that it can deregister old handler for the term and register new one
  */
 void subwindow_set_flag(struct angband_term *aterm,
 		enum angband_term_flag flag)
