@@ -5454,9 +5454,14 @@ static void free_subwindow(struct subwindow *subwindow)
 	}
 	if (subwindow->term != NULL) {
 		assert(!subwindow->is_temporary);
+
+		struct angband_term *aterm = get_aterm(subwindow->index);
+		if (aterm->flag != ATF_NONE) {
+			subwindow_set_flag(aterm, ATF_NONE);
+		}
+
 		Term_destroy(subwindow->term);
 		subwindow->term = NULL;
-
 	}
 	if (subwindow->config != NULL) {
 		free_subwindow_config(subwindow->config);
