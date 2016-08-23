@@ -92,6 +92,12 @@
 #define DEFAULT_FONT_H \
 	(20 + 2 * GLYPH_PADDING)
 
+#define DEFAULT_SYSTEM_FONT "8x13x.fon"
+#define DEFAULT_SYSTEM_FONT_W \
+	(8 + 2 * GLYPH_PADDING)
+#define DEFAULT_SYSTEM_FONT_H \
+	(13 + 2 * GLYPH_PADDING)
+
 #define DEFAULT_STATUS_BAR_FONT "8x13x.fon"
 #define DEFAULT_STATUS_BAR_FONT_W \
 	(8 + 2 * GLYPH_PADDING)
@@ -603,6 +609,9 @@ struct window {
 	struct size_state size_state;
 	struct status_bar status_bar;
 	struct graphics graphics;
+
+	/* used for menus and other temporary terms */
+	struct font *system_font;
 
 	struct {
 		size_t number;
@@ -3546,7 +3555,8 @@ static void term_push_new(const struct term_hints *hints,
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 	}
 
-	/* TODO reusable font (optimization) */
+	assert(window->system_font != NULL);
+	subwindow->font = window->system_font;
 
 	attach_subwindow_to_window(window, subwindow);
 	load_subwindow(window, subwindow);
@@ -4691,6 +4701,10 @@ static void load_window(struct window *window)
 		load_graphics(window, get_graphics_mode(window->graphics.id));
 	}
 
+	if (window->system_font == NULL) {
+		window->system_font = make_font(window, DEFAULT_SYSTEM_FONT, 0);
+	}
+
 	render_clear(window, NULL, &window->color);
 	render_status_bar(window);
 
@@ -5295,9 +5309,10 @@ static void free_subwindow(struct subwindow *subwindow)
 {
 	assert(subwindow->loaded);
 
-	free_font(subwindow->font);
-	subwindow->font = NULL;
-
+	if (subwindow->font != NULL) {
+		free_font(subwindow->font);
+		subwindow->font = NULL;
+	}
 	if (subwindow->texture != NULL) {
 		SDL_DestroyTexture(subwindow->texture);
 		subwindow->texture = NULL;
@@ -5348,6 +5363,10 @@ static void free_window(struct window *window)
 	if (window->wallpaper.texture != NULL) {
 		SDL_DestroyTexture(window->wallpaper.texture);
 		window->wallpaper.texture = NULL;
+	}
+
+	if (window->system_font != NULL) {
+		free_font(window->system_font);
 	}
 
 	free_graphics(&window->graphics);
@@ -5556,6 +5575,8 @@ static void free_temporary_subwindow(struct subwindow *subwindow)
 	assert(subwindow == &g_shadow_stack.subwindows[STACK_TOP]);
 	assert(subwindow->index == g_shadow_stack.subwindows[STACK_TOP].index);
 #undef STACK_TOP
+
+	subwindow->font = NULL;
 
 	free_subwindow(subwindow);
 	g_shadow_stack.number--;
