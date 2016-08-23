@@ -673,6 +673,9 @@ static struct term_info g_term_info[SUBWINDOW_PERMANENT_MAX] = {
 	[SUBWINDOW_OTHER_7]  = {"Term-8",  NULL}
 };
 
+#define IS_SUBWINDOW_OTHER(subwindow) \
+	((subwindow)->index > SUBWINDOW_SIDEBAR)
+
 /* Forward declarations */
 
 static void init_globals(void);
@@ -1320,7 +1323,7 @@ static void render_button_menu_flag(const struct window *window, struct button *
 
 	struct subwindow *subwindow = button->info.data.termval.subwindow;
 
-	assert(subwindow->index >= SUBWINDOW_OTHER_0);
+	assert(IS_SUBWINDOW_OTHER(subwindow));
 	struct angband_term *aterm = get_aterm(subwindow->index);
 	assert(aterm != NULL);
 
@@ -2036,7 +2039,7 @@ static void handle_menu_flag(struct window *window,
 
 	struct subwindow *subwindow = button->info.data.termval.subwindow;
 
-	assert(subwindow->index >= SUBWINDOW_OTHER_0);
+	assert(IS_SUBWINDOW_OTHER(subwindow));
 	struct angband_term *aterm = get_aterm(subwindow->index);
 	assert(aterm != NULL);
 
@@ -2229,7 +2232,7 @@ static void handle_menu_purpose(struct window *window,
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
 
 	struct subwindow *subwindow = button->info.data.subval;
-	assert(subwindow->index >= SUBWINDOW_OTHER_0);
+	assert(IS_SUBWINDOW_OTHER(subwindow));
 
 	if (!select_menu_button(button, menu_panel, event)) {
 		return;
@@ -2368,7 +2371,7 @@ static void handle_menu_terms(struct window *window,
 			info, render_button_menu_simple, handle_menu_tiles
 		},
 		{
-			subwindow->index < SUBWINDOW_OTHER_0 ? NULL: "Purpose",
+			IS_SUBWINDOW_OTHER(subwindow) ? "Purpose": NULL,
 			info, render_button_menu_simple, handle_menu_purpose
 		},
 		{
