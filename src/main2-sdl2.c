@@ -5322,9 +5322,7 @@ static void free_subwindow(struct subwindow *subwindow)
 		subwindow->aux_texture = NULL;
 	}
 	if (subwindow->term != NULL) {
-		if (!subwindow->is_temporary) {
-			Term_destroy(subwindow->term);
-		}
+		Term_destroy(subwindow->term);
 		subwindow->term = NULL;
 	}
 	if (subwindow->config != NULL) {
@@ -5576,7 +5574,10 @@ static void free_temporary_subwindow(struct subwindow *subwindow)
 	assert(subwindow->index == g_shadow_stack.subwindows[STACK_TOP].index);
 #undef STACK_TOP
 
+	/* font of temporary subwindow 'belongs' to its window;
+	 * term of temporary subwindow should not be destroyed manually */
 	subwindow->font = NULL;
+	subwindow->term = NULL;
 
 	free_subwindow(subwindow);
 	g_shadow_stack.number--;
