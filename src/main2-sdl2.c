@@ -99,10 +99,10 @@
 #define DEFAULT_GAME_FONT_H \
 	DEFAULT_FONT_H
 
-#define DEFAULT_STATUS_BAR_FONT "8x13x.fon"
-#define DEFAULT_STATUS_BAR_FONT_W \
+#define DEFAULT_SYSTEM_FONT "8x13x.fon"
+#define DEFAULT_SYSTEM_FONT_W \
 	(8 + 2 * GLYPH_PADDING)
-#define DEFAULT_STATUS_BAR_FONT_H \
+#define DEFAULT_SYSTEM_FONT_H \
 	(13 + 2 * GLYPH_PADDING)
 
 #define MAX_VECTOR_FONT_SIZE 24
@@ -354,8 +354,8 @@ struct window_config {
 
 	char *wallpaper_path;
 
-	char *font_name;
-	int font_size;
+	char *system_font_name;
+	int system_font_size;
 
 	char *game_font_name;
 	int game_font_size;
@@ -4574,10 +4574,10 @@ static void load_status_bar(struct window *window)
 	if (window->status_bar.font == NULL) {
 		if (window->config != NULL) {
 			window->status_bar.font = make_font(window,
-					window->config->font_name,
-					window->config->font_size);
+					window->config->system_font_name,
+					window->config->system_font_size);
 		} else {
-			window->status_bar.font = make_font(window, DEFAULT_STATUS_BAR_FONT, 0);
+			window->status_bar.font = make_font(window, DEFAULT_SYSTEM_FONT, 0);
 		}
 		assert(window->status_bar.font != NULL);
 	} else {
@@ -4820,11 +4820,11 @@ static void wipe_window_aux_config(struct window *window)
 		char path[4096];
 		path_build(path, sizeof(path), DEFAULT_WALLPAPER_DIR, DEFAULT_WALLPAPER);
 		window->config->wallpaper_path = string_make(path);
-		window->config->font_name = string_make(DEFAULT_STATUS_BAR_FONT);
+		window->config->system_font_name = string_make(DEFAULT_SYSTEM_FONT);
 	} else {
 		window->config->wallpaper_path = string_make(main_window->config->wallpaper_path);
-		window->config->font_name = string_make(main_window->config->font_name);
-		window->config->font_size = main_window->config->font_size;
+		window->config->system_font_name = string_make(main_window->config->system_font_name);
+		window->config->system_font_size = main_window->config->system_font_size;
 	}
 
 	int display = SDL_GetWindowDisplayIndex(main_window->window);
@@ -4944,7 +4944,7 @@ static void dump_window(const struct window *window, ang_file *config)
 			window->wallpaper.mode == WALLPAPER_CENTERED  ? "centered" :
 			window->wallpaper.mode == WALLPAPER_SCALED    ? "scaled"   :
 			"ERROR");
-	DUMP_WINDOW("status-bar-font", "%d:%s",
+	DUMP_WINDOW("system-font", "%d:%s",
 			window->status_bar.font->size, window->status_bar.font->name);
 	DUMP_WINDOW("game-font", "%d:%s",
 			window->game_font->size, window->game_font->name);
@@ -5299,8 +5299,8 @@ static void free_window_config(struct window_config *config)
 	if (config->wallpaper_path != NULL) {
 		mem_free(config->wallpaper_path);
 	}
-	if (config->font_name != NULL) {
-		mem_free(config->font_name);
+	if (config->system_font_name != NULL) {
+		mem_free(config->system_font_name);
 	}
 	if (config->game_font_name != NULL) {
 		mem_free(config->game_font_name);
@@ -5877,7 +5877,7 @@ static enum parser_error config_window_wallpaper_mode(struct parser *parser)
 	return PARSE_ERROR_NONE;
 }
 
-static enum parser_error config_window_font(struct parser *parser)
+static enum parser_error config_window_system_font(struct parser *parser)
 {
 	GET_WINDOW_FROM_INDEX;
 	WINDOW_INIT_OK;
@@ -5889,8 +5889,8 @@ static enum parser_error config_window_font(struct parser *parser)
 		return PARSE_ERROR_INVALID_VALUE;
 	}
 
-	window->config->font_name = string_make(name);
-	window->config->font_size = size;
+	window->config->system_font_name = string_make(name);
+	window->config->system_font_size = size;
 
 	return PARSE_ERROR_NONE;
 }
@@ -6088,9 +6088,9 @@ static struct parser *init_parse_config(void)
 			config_window_wallpaper_path);
 	parser_reg(parser, "window-wallpaper-mode uint index str mode",
 			config_window_wallpaper_mode);
-	parser_reg(parser, "window-status-bar-font uint index int size str name",
-			config_window_font);
 	parser_reg(parser, "window-system-font uint index int size str name",
+			config_window_system_font);
+	parser_reg(parser, "window-game-font uint index int size str name",
 			config_window_game_font);
 	parser_reg(parser, "window-graphics-id uint index int id",
 			config_window_graphics);
