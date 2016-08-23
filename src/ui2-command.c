@@ -61,8 +61,8 @@ void do_cmd_redraw(void)
 			PR_EQUIP | PR_MESSAGE | PR_MONSTER | PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
 
 	handle_stuff(player);
-	move_cursor_relative(&angband_cave, loc(player->px, player->py));
 	verify_panel(&angband_cave);
+	move_cursor_relative(&angband_cave, loc(player->px, player->py));
 
 	flush_all_terms();
 }

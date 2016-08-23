@@ -746,6 +746,9 @@ void Term_resize(int w, int h)
 	TOP->points = mem_zalloc(TOP->size * sizeof(TOP->points[0]));
 	TOP->dirty.rows = mem_zalloc(TOP->height * sizeof(TOP->dirty.rows[0]));
 
+	/* put cursor (in effect) in top left corner and make it invisible */
+	memset(&TOP->cursor, 0, sizeof(TOP->cursor));
+
 	for (int y = 0; y < TOP->height; y++) {
 		term_wipe_line(0, y, TOP->width);
 	}
