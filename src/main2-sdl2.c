@@ -193,8 +193,8 @@
 #define MIN_COLS_SIDEBAR 13
 #define MIN_ROWS_SIDEBAR 12
 
-#define DEFAULT_COLS_OTHER 12
-#define DEFAULT_ROWS_OTHER 6
+#define DEFAULT_COLS_OTHER 40
+#define DEFAULT_ROWS_OTHER 12
 #define MIN_COLS_OTHER 6
 #define MIN_ROWS_OTHER 3
 
@@ -676,6 +676,7 @@ static void free_globals(void);
 static bool read_config_file(void);
 static void dump_config_file(void);
 static void init_colors(void);
+static void init_angband_terms(void);
 static void start_windows(void);
 static void start_window(struct window *window);
 static void load_font(struct font *font);
@@ -4504,7 +4505,6 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 
 	callbacks.on_render = render_menu_button;
 	callbacks.on_event = handle_menu_button;
-	callbacks.on_click = do_button_open_subwindow;
 	callbacks.on_menu = NULL;
 
 	info.type = BUTTON_DATA_NONE;
@@ -4516,6 +4516,8 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 
 	info.type = BUTTON_DATA_UVAL;
 	info.group = BUTTON_GROUP_SUBWINDOWS;
+
+	callbacks.on_click = do_button_open_subwindow;
 
 	for (unsigned i = SUBWINDOW_OTHER_0, label = 1;
 			i < SUBWINDOW_PERMANENT_MAX;
@@ -5350,6 +5352,7 @@ static void free_subwindow(struct subwindow *subwindow)
 		assert(!subwindow->is_temporary);
 		Term_destroy(subwindow->term);
 		subwindow->term = NULL;
+
 	}
 	if (subwindow->config != NULL) {
 		free_subwindow_config(subwindow->config);
@@ -5580,6 +5583,32 @@ static void init_globals(void)
 
 	path_build(g_config_file, sizeof(g_config_file),
 			DEFAULT_CONFIG_FILE_DIR, DEFAULT_CONFIG_FILE);
+
+	init_angband_terms();
+}
+
+static void init_angband_terms(void)
+{
+	assert(N_ELEMENTS(g_permanent_subwindows) == N_ELEMENTS(g_term_info));
+
+	size_t t = 0;
+	while (t < N_ELEMENTS(g_term_info) && g_term_info[t].aterm != NULL) {
+		t++;
+	}
+
+	assert(t < N_ELEMENTS(g_term_info));
+
+	angband_terms.number = N_ELEMENTS(g_term_info) - t;
+	angband_terms.terms = mem_zalloc(angband_terms.number * sizeof(*angband_terms.terms));
+
+	for (size_t i = 0; i < angband_terms.number; i++, t++) {
+		assert(g_term_info[t].aterm == NULL);
+		assert(g_term_info[t].name != NULL);
+		assert(t < N_ELEMENTS(g_term_info));
+
+		angband_terms.terms[i].term = NULL;
+		g_term_info[t].aterm = &angband_terms.terms[i];
+	}
 }
 
 static bool is_subwindow_loaded(unsigned index)
@@ -5717,6 +5746,9 @@ static void free_globals(void)
 		assert(!g_permanent_subwindows[i].loaded);
 		assert(!g_permanent_subwindows[i].linked);
 	}
+
+	assert(angband_terms.terms != NULL);
+	mem_free(angband_terms.terms);
 }
 
 static void start_windows(void)
