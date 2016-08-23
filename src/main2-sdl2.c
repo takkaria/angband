@@ -5333,6 +5333,7 @@ static void free_subwindow(struct subwindow *subwindow)
 	assert(subwindow->loaded);
 
 	if (subwindow->font != NULL) {
+		assert(!subwindow->is_temporary);
 		free_font(subwindow->font);
 		subwindow->font = NULL;
 	}
@@ -5345,6 +5346,7 @@ static void free_subwindow(struct subwindow *subwindow)
 		subwindow->aux_texture = NULL;
 	}
 	if (subwindow->term != NULL) {
+		assert(!subwindow->is_temporary);
 		Term_destroy(subwindow->term);
 		subwindow->term = NULL;
 	}
