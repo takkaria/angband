@@ -64,7 +64,7 @@ struct angband_term angband_sidebar;
 
 struct angband_terms angband_terms;
 
-const char *atf_descr[ATF_MAX] = {
+const char *angband_term_flag_description[ATF_MAX] = {
 	#define ATF(a, b) b,
 	#include "list-term-flags.h"
 	#undef ATF

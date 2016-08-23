@@ -35,7 +35,7 @@ enum angband_term_flag {
 	ATF_MAX
 };
 
-extern const char *atf_descr[ATF_MAX];
+extern const char *angband_term_flag_description[ATF_MAX];
 
 struct angband_term {
 	term term;
