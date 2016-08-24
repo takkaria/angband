@@ -2194,15 +2194,18 @@ static void handle_menu_font_sizes(struct window *window,
 	}
 
 	struct subwindow *subwindow = button->info.data.subval.subwindow;
+	bool temporary = button->info.data.subval.temporary;
+	unsigned index = temporary ?
+		subwindow->window->game_font->index : subwindow->font->index;
 
 	struct button_info info = {
 		BUTTON_DATA_FONTVAL,
 		{
 			.fontval = {
 				.subwindow = subwindow,
-				.index = subwindow->font->index,
+				.index = index,
 				.size_ok = true,
-				.temporary = button->info.data.subval.temporary
+				.temporary = temporary
 			}
 		},
 		BUTTON_GROUP_MENU
