@@ -2229,7 +2229,7 @@ static void handle_menu_font_sizes_subwindow(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel)
 {
-	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_WINVAL);
+	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
 
 	if (!select_menu_button(button, menu_panel, event)) {
 		return;
