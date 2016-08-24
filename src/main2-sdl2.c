@@ -5461,11 +5461,14 @@ static void free_subwindow(struct subwindow *subwindow)
 		assert(!subwindow->is_temporary);
 
 		struct angband_term *aterm = get_aterm(subwindow->index);
+
 		if (aterm->flag != ATF_NONE) {
 			subwindow_set_flag(aterm, ATF_NONE);
-			aterm->term = NULL;
-			aterm->name = NULL;
 		}
+
+		aterm->term = NULL;
+		aterm->name = NULL;
+		aterm->index = SUBWINDOW_PERMANENT_MAX;
 
 		Term_destroy(subwindow->term);
 		subwindow->term = NULL;
@@ -5735,6 +5738,7 @@ static void init_angband_terms(void)
 		angband_terms.terms[i].name = NULL;
 		angband_terms.terms[i].term = NULL;
 		angband_terms.terms[i].flag = ATF_NONE;
+		angband_terms.terms[i].index = SUBWINDOW_PERMANENT_MAX;
 		g_term_info[t].aterm = &angband_terms.terms[i];
 	}
 }
