@@ -2053,6 +2053,7 @@ static void handle_menu_flag(struct window *window,
 	assert(IS_SUBWINDOW_OTHER(subwindow));
 	struct angband_term *aterm = get_aterm(subwindow->index);
 	assert(aterm != NULL);
+	assert(aterm->term == subwindow->term);
 
 	enum angband_term_flag flag = button->info.data.termval.flag;
 
