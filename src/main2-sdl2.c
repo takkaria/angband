@@ -1308,10 +1308,11 @@ static void render_button_menu_terms(const struct window *window, struct button 
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
 
-	if (button->highlighted) {
+	struct subwindow *subwindow = button->info.data.subval;
+
+	if (button->highlighted && subwindow->visible) {
 		/* draw a border around subwindow, so that it would be easy to see
 		 * which subwindow corresponds to that button */
-		struct subwindow *subwindow = button->info.data.subval;
 		int outline_width = (subwindow->full_rect.w - subwindow->inner_rect.w) / 2
 				- subwindow->borders.width;
 		SDL_Rect outline_rect = subwindow->full_rect;
