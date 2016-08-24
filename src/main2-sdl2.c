@@ -2381,9 +2381,13 @@ static void handle_menu_font_cave(struct window *window,
 		BUTTON_DATA_WINVAL, {.winval = subwindow->window}, BUTTON_GROUP_MENU
 	};
 
+	const char *caption_map = "Map";
+	const char *caption_other = subwindow->window->temporary.number > 0 ?
+		NULL : "Other";
+
 	struct menu_elem elems[] = {
-		{"Map", info_perm, render_button_menu_simple, handle_menu_font_other},
-		{"Other", info_temp, render_button_menu_simple, handle_menu_font_window}
+		{caption_map, info_perm, render_button_menu_simple, handle_menu_font_other},
+		{caption_other, info_temp, render_button_menu_simple, handle_menu_font_window}
 	};
 
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
