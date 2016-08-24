@@ -206,7 +206,7 @@
 #define DEFAULT_WINDOW_MINIMUM_H 66
 
 #define DEFAULT_SNAP_RANGE \
-	DEFAULT_FONT_W
+	(DEFAULT_FONT_W / 2)
 
 #define CHECK_BUTTON_GROUP_TYPE(button, button_group, data_type) \
 	do { \
