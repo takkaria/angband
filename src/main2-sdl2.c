@@ -3973,6 +3973,11 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 
 		adjust_subwindow_geometry(window, subwindow);
 	}
+
+	Term_push(subwindow->term);
+	Term_resize(subwindow->cols, subwindow->rows);
+	Term_flush_output();
+	Term_pop();
 }
 
 static const struct font_info *find_font_info(const char *name)
