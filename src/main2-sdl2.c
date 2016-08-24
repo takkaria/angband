@@ -2054,9 +2054,12 @@ static void handle_menu_flag(struct window *window,
 	struct angband_term *aterm = get_aterm(subwindow->index);
 	assert(aterm != NULL);
 
-	subwindow_set_flag(aterm, button->info.data.termval.flag);
+	enum angband_term_flag flag = button->info.data.termval.flag;
 
-	refresh_angband_terms();
+	if (aterm->flag != flag) {
+		subwindow_set_flag(aterm, flag);
+		refresh_angband_terms();
+	}
 }
 
 static void handle_menu_tiles(struct window *window,
