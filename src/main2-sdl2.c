@@ -4314,10 +4314,10 @@ static bool adjust_subwindow_geometry(const struct window *window,
 	if (subwindow->use_graphics) {
 		if (subwindow->big_map) {
 			subwindow->cell_width = REASONABLE_MAP_TILE_WIDTH;
-			subwindow->cell_width = REASONABLE_MAP_TILE_HEIGHT;
+			subwindow->cell_height = REASONABLE_MAP_TILE_HEIGHT;
 		} else {
 			subwindow->cell_width = window->graphics.tile_pixel_w;
-			subwindow->cell_width = window->graphics.tile_pixel_h;
+			subwindow->cell_height = window->graphics.tile_pixel_h;
 		}
 	} else {
 		subwindow->cell_width = subwindow->font->ttf.glyph.w;
