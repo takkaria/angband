@@ -4436,9 +4436,12 @@ static void position_subwindow_top_center(struct subwindow *subwindow,
 
 	/* put it under message line and 'snap' to it */
 	subwindow->full_rect.y =
-		subwindow->window->inner_rect.y +
-		SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, message_line->cell_height) - 
-		DEFAULT_VISIBLE_BORDER;
+		message_line->full_rect.y + message_line->full_rect.h - DEFAULT_VISIBLE_BORDER;
+
+	if (!is_rect_in_rect(&subwindow->full_rect, &subwindow->window->inner_rect)) {
+		/* center it then */
+		position_subwindow_center(subwindow, hints);
+	}
 }
 
 static void position_subwindow_big_map(struct subwindow *subwindow)
