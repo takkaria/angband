@@ -1316,9 +1316,6 @@ static void render_button_menu_terms(const struct window *window, struct button 
 		int outline_width = (subwindow->full_rect.w - subwindow->inner_rect.w) / 2
 				- subwindow->borders.width;
 		SDL_Rect outline_rect = subwindow->full_rect;
-		resize_rect(&outline_rect,
-				subwindow->borders.width, subwindow->borders.width,
-				-subwindow->borders.width, -subwindow->borders.width);
 		render_outline_rect_width(window,
 				NULL,
 				&outline_rect,
