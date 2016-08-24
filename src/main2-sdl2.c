@@ -448,11 +448,18 @@ typedef void (*button_menu)(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel);
 
+struct subval {
+	struct subwindow *subwindow;
+	bool temporary;
+};
+
 struct fontval {
 	struct subwindow *subwindow;
 	/* index of font in g_font_info array */
 	size_t index;
 	bool size_ok;
+	/* this a font for temporary subwindows */
+	bool temporary;
 };
 
 struct termval {
@@ -471,7 +478,7 @@ struct button_info {
 	union {
 		int ival;
 		unsigned uval;
-		struct subwindow *subval;
+		struct subval subval;
 		struct fontval fontval;
 		struct termval termval;
 		struct alphaval alphaval;
@@ -700,6 +707,8 @@ static void start_window(struct window *window);
 static void load_font(struct font *font);
 static bool reload_font(struct subwindow *subwindow,
 		const struct font_info *info);
+static struct font *make_font(const struct window *window,
+		const char *name, int size);
 static void free_font(struct font *font);
 static const struct font_info *find_font_info(const char *name);
 static void get_string_metrics(struct font *font, const char *str, int *w, int *h);
@@ -1308,7 +1317,7 @@ static void render_button_menu_terms(const struct window *window, struct button 
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 
 	if (button->highlighted && subwindow->visible) {
 		/* draw a border around subwindow, so that it would be easy to see
@@ -1345,7 +1354,7 @@ static void render_button_menu_borders(const struct window *window, struct butto
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 
 	render_button_menu_toggle(window, button, subwindow->borders.visible);
 }
@@ -1383,7 +1392,7 @@ static void render_button_menu_top(const struct window *window, struct button *b
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 
 	render_button_menu_toggle(window, button, subwindow->always_top);
 }
@@ -1405,6 +1414,8 @@ static void render_button_menu_font_size(const struct window *window,
 	SDL_Color *bg;
 
 	struct fontval fontval = button->info.data.fontval;
+	int size = fontval.temporary ?
+		fontval.subwindow->window->game_font->size : fontval.subwindow->font->size;
 
 	if (!button->info.data.fontval.size_ok) {
 		fg = g_colors[DEFAULT_ERROR_COLOR];
@@ -1423,8 +1434,8 @@ static void render_button_menu_font_size(const struct window *window,
 
 	render_fill_rect(window,
 			NULL, &button->full_rect, bg);
-	render_utf8_string(window, window->status_bar.font, NULL, 
-			fg, rect, format(button->caption, fontval.subwindow->font->size));
+	render_utf8_string(window, window->status_bar.font, NULL,
+			fg, rect, format(button->caption, size));
 }
 
 static void render_button_menu_font_name(const struct window *window, struct button *button)
@@ -1436,10 +1447,13 @@ static void render_button_menu_font_name(const struct window *window, struct but
 
 	struct subwindow *subwindow = button->info.data.fontval.subwindow;
 	size_t index = button->info.data.fontval.index;
+	bool temporary = button->info.data.fontval.temporary;
 
 	if (!button->info.data.fontval.size_ok) {
 		fg = g_colors[DEFAULT_ERROR_COLOR];
-	} else if (subwindow->font->index == index) {
+	} else if (!temporary && subwindow->font->index == index) {
+		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
+	} else if (temporary && subwindow->window->game_font->index == index) {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	} else {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
@@ -2098,19 +2112,21 @@ static void handle_menu_font_name(struct window *window,
 
 	unsigned index = button->info.data.fontval.index;
 	struct subwindow *subwindow = button->info.data.fontval.subwindow;
+	bool temporary = button->info.data.fontval.temporary;
 
 	const struct font_info *font_info = &g_font_info[index];
 	assert(font_info->loaded);
 
-	if (subwindow->font->index == index) {
-		/* already loaded */
-		return;
-	} 
-
-	if (reload_font(subwindow, font_info)) {
-		button->info.data.fontval.size_ok = true;
-	} else {
-		button->info.data.fontval.size_ok = false;
+	if (temporary) {
+		free_font(subwindow->window->game_font);
+		subwindow->window->game_font =
+			make_font(subwindow->window, font_info->name, font_info->size);
+	} else if (!temporary && subwindow->font->index != index) {
+		if (reload_font(subwindow, font_info)) {
+			button->info.data.fontval.size_ok = true;
+		} else {
+			button->info.data.fontval.size_ok = false;
+		}
 	}
 }
 
@@ -2139,8 +2155,9 @@ static void handle_menu_font_size(struct window *window,
 	}
 
 	struct subwindow *subwindow = button->info.data.fontval.subwindow; 
+	bool temporary = button->info.data.fontval.temporary;
 
-	int size = subwindow->font->size;
+	int size = temporary ? subwindow->window->game_font->size : subwindow->font->size;
 
 	int increment =
 		(event->button.x - button->full_rect.x < button->full_rect.w / 2) ? -1 : +1;
@@ -2153,7 +2170,12 @@ static void handle_menu_font_size(struct window *window,
 			size = MAX_VECTOR_FONT_SIZE;
 		}
 		info->size = size;
-		if (reload_font(subwindow, info)) {
+		if (temporary) {
+			free_font(subwindow->window->game_font);
+			subwindow->window->game_font =
+				make_font(subwindow->window, info->name, info->size);
+			return;
+		} else if (!temporary && reload_font(subwindow, info)) {
 			return;
 		}
 	}
@@ -2171,12 +2193,18 @@ static void handle_menu_font_sizes(struct window *window,
 		return;
 	}
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 
 	struct button_info info = {
 		BUTTON_DATA_FONTVAL,
-		{.fontval =
-			{.subwindow = subwindow, .index = subwindow->font->index, .size_ok = true}},
+		{
+			.fontval = {
+				.subwindow = subwindow,
+				.index = subwindow->font->index,
+				.size_ok = true,
+				.temporary = button->info.data.subval.temporary
+			}
+		},
 		BUTTON_GROUP_MENU
 	};
 	struct menu_elem elems[] = {
@@ -2203,9 +2231,14 @@ static void handle_menu_font_names(struct window *window,
 		if (g_font_info[i].loaded) {
 			elems[num_elems].caption = g_font_info[i].name;
 			elems[num_elems].info.type = BUTTON_DATA_FONTVAL;
-			elems[num_elems].info.data.fontval.subwindow = button->info.data.subval;
+
+			elems[num_elems].info.data.fontval.subwindow =
+				button->info.data.subval.subwindow;
 			elems[num_elems].info.data.fontval.size_ok = true;
 			elems[num_elems].info.data.fontval.index = i;
+			elems[num_elems].info.data.fontval.temporary =
+				button->info.data.subval.temporary;
+
 			elems[num_elems].info.group = BUTTON_GROUP_MENU;
 			elems[num_elems].on_render = render_button_menu_font_name;
 			elems[num_elems].on_menu = handle_menu_font_name;
@@ -2238,13 +2271,41 @@ static void handle_menu_font(struct window *window,
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
 }
 
+static void handle_menu_font_cave(struct window *window,
+		struct button *button, const SDL_Event *event,
+		struct menu_panel *menu_panel)
+{
+	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
+
+	if (!select_menu_button(button, menu_panel, event)) {
+		return;
+	}
+
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
+
+	struct button_info info_perm = {
+		BUTTON_DATA_SUBVAL, {.subval = {subwindow, false}}, BUTTON_GROUP_MENU
+	};
+
+	struct button_info info_temp = {
+		BUTTON_DATA_SUBVAL, {.subval = {subwindow, true}}, BUTTON_GROUP_MENU
+	};
+
+	struct menu_elem elems[] = {
+		{"Map", info_perm, render_button_menu_simple, handle_menu_font},
+		{"Other", info_temp, render_button_menu_simple, handle_menu_font}
+	};
+
+	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
+}
+
 static void handle_menu_purpose(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel)
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 	assert(IS_SUBWINDOW_OTHER(subwindow));
 
 	if (!select_menu_button(button, menu_panel, event)) {
@@ -2280,7 +2341,7 @@ static void handle_menu_borders(struct window *window,
 		return;
 	}
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 
 	subwindow->borders.visible = !subwindow->borders.visible;
 	render_borders(subwindow);
@@ -2317,7 +2378,7 @@ static void handle_menu_alpha(struct window *window,
 		return;
 	}
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 
 	struct menu_elem elems[(100 - DEFAULT_ALPHA_LOWEST) / DEFAULT_ALPHA_STEP +
 		1 + ((100 - DEFAULT_ALPHA_LOWEST) % DEFAULT_ALPHA_STEP == 0 ? 0 : 1)];
@@ -2352,7 +2413,7 @@ static void handle_menu_top(struct window *window,
 		return;
 	}
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 
 	subwindow->always_top = !subwindow->always_top;
 
@@ -2369,15 +2430,19 @@ static void handle_menu_terms(struct window *window,
 		return;
 	}
 
-	struct subwindow *subwindow = button->info.data.subval;
+	struct subwindow *subwindow = button->info.data.subval.subwindow;
 
-	struct button_info info = {
-		BUTTON_DATA_SUBVAL, {.subval = subwindow}, BUTTON_GROUP_MENU
+	struct subval subval = {
+		.subwindow = subwindow,
+		.temporary = false
 	};
+
+	struct button_info info = {BUTTON_DATA_SUBVAL, {.subval = subval}, BUTTON_GROUP_MENU};
 
 	struct menu_elem elems[] = {
 		{
-			"Font", info, render_button_menu_simple, handle_menu_font
+			"Font", info, render_button_menu_simple, 
+			subwindow->index == SUBWINDOW_CAVE ? handle_menu_font_cave : handle_menu_font
 		},
 		{
 			subwindow->index == SUBWINDOW_CAVE ? "Tiles" : NULL,
@@ -2415,7 +2480,8 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 			if (subwindow->window == status_bar->window) {
 				term_elems[n_terms].caption = aterm->name;
 				term_elems[n_terms].info.type = BUTTON_DATA_SUBVAL;
-				term_elems[n_terms].info.data.subval = subwindow;
+				term_elems[n_terms].info.data.subval.subwindow = subwindow;
+				term_elems[n_terms].info.data.subval.temporary = false;
 				term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
 				term_elems[n_terms].on_render = render_button_menu_terms;
 				term_elems[n_terms].on_menu = handle_menu_terms;
