@@ -2283,7 +2283,7 @@ static void ui_leave_world(game_event_type type,
 	event_remove_handler(EVENT_PLAYERMOVED, check_panel, NULL);
 
 	/* Redraw the display after player movement, to animate it */
-	event_add_handler(EVENT_PLAYERMOVED, redraw_when_running, NULL);
+	event_remove_handler(EVENT_PLAYERMOVED, redraw_when_running, NULL);
 
 	/* Take note of what's on the floor */
 	event_remove_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
