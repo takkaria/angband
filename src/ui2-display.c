@@ -41,6 +41,7 @@
 #include "savefile.h"
 #include "target.h"
 #include "ui2-birth.h"
+#include "ui2-command.h"
 #include "ui2-display.h"
 #include "ui2-game.h"
 #include "ui2-input.h"
@@ -1822,6 +1823,10 @@ static void display_term_handler(struct display_term *dt, bool enable)
 
 		default:
 			quit_fmt("Unrecognized display index %u!\n", (unsigned) dt->index);
+	}
+
+	if (enable) {
+		do_cmd_redraw();
 	}
 }
 
