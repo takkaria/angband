@@ -162,6 +162,13 @@
 #define DEFAULT_ABOUT_TEXT_COLOR \
 	COLOUR_WHITE
 
+#define DEFAULT_TOOLTIP_FG_COLOR \
+	COLOUR_WHITE
+#define DEFAULT_TOOLTIP_BG_COLOR \
+	COLOUR_DARK
+#define DEFAULT_TOOLTIP_OUTLINE_COLOR \
+	COLOUR_SHADE
+
 #define SUBWINDOW_WIDTH(cols, col_width) \
 	((cols) * (col_width) + DEFAULT_BORDER * 2)
 
@@ -612,6 +619,7 @@ static SDL_Color g_colors[MAX_COLORS];
 static struct font_info g_font_info[MAX_FONTS];
 struct {
 	enum display_term_index index;
+	const char *name;
 	int min_cols;
 	int min_rows;
 	int max_cols;
@@ -621,6 +629,7 @@ struct {
 	#define DISPLAY(i, desc, minc, minr, maxc, maxr, req) \
 		{ \
 			.index = DISPLAY_ ##i, \
+			.name = (desc), \
 			.min_cols = (minc), \
 			.min_rows = (minr), \
 			.max_cols = (maxc), \
@@ -1476,6 +1485,35 @@ static void render_button_subwindows(const struct window *window, struct button 
 
 	render_utf8_string(window, window->status_bar.font, window->status_bar.texture, 
 			color, rect, button->caption);
+
+	if (button->highlighted) {
+		/* Display term name as a tooltip */
+
+		assert(button->info.data.uval < N_ELEMENTS(g_term_info));
+		const char *name = g_term_info[button->info.data.uval].name;
+
+		SDL_Rect text_rect = {
+			.x = rect.x,
+			.y = window->status_bar.full_rect.y + window->status_bar.full_rect.h +
+				DEFAULT_XTRA_BORDER
+		};
+		get_string_metrics(window->status_bar.font, name, &text_rect.w, &text_rect.h);
+
+		SDL_Rect background_rect = text_rect;
+
+		resize_rect(&background_rect,
+				-DEFAULT_XTRA_BORDER, -DEFAULT_XTRA_BORDER,
+				DEFAULT_XTRA_BORDER, DEFAULT_XTRA_BORDER);
+
+		render_fill_rect(window, NULL, &background_rect,
+				&g_colors[DEFAULT_TOOLTIP_BG_COLOR]);
+
+		render_outline_rect_width(window, NULL, &background_rect,
+				&g_colors[DEFAULT_TOOLTIP_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
+
+		render_utf8_string(window, window->status_bar.font, NULL,
+				g_colors[DEFAULT_TOOLTIP_FG_COLOR], text_rect, name);
+	}
 }
 
 static void render_button_movesize(const struct window *window, struct button *button)
@@ -4580,7 +4618,7 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 	for (unsigned i = 0, label = 1; i < N_ELEMENTS(g_term_info); i++) {
 		/* We display optional subwindows here */
 		if (!g_term_info[i].required) {
-			info.data.uval = i;
+			info.data.uval = g_term_info[i].index;
 			PUSH_BUTTON_LEFT_TO_RIGHT(format("%2u", label));
 			label++;
 		}
