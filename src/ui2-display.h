@@ -29,6 +29,7 @@ enum display_term_index {
 		DISPLAY_ ##i,
 	#include "list-display-terms.h"
 	#undef DISPLAY
+	DISPLAY_MAX
 };
 
 #define ANGBAND_TERM_STANDARD_WIDTH 80
