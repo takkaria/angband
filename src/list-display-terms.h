@@ -17,7 +17,7 @@ DISPLAY(CAVE,           "Main map",              1,        1,    INT_MAX,     IN
 DISPLAY(MESSAGE_LINE,   "Messages line",        40,        1,    INT_MAX,           1,      true)
 
 DISPLAY(STATUS_LINE,    "Status line",          40,        1,    INT_MAX,           1,     false)
-DISPLAY(SIDEBAR,        "Sidebar",              12,       24,         13,          24,     false)
+DISPLAY(SIDEBAR,        "Sidebar",              12,       24,    INT_MAX,     INT_MAX,     false)
 DISPLAY(INVEN,          "Inven/equip",          40,       24,    INT_MAX,     INT_MAX,     false)
 DISPLAY(EQUIP,          "Equip/inven",          40,       24,    INT_MAX,     INT_MAX,     false)
 DISPLAY(PLAYER_BASIC,   "Player (basic)",       72,       24,    INT_MAX,     INT_MAX,     false)
