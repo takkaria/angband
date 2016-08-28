@@ -1759,7 +1759,7 @@ static void display_term_handler(struct display_term *dt, bool enable)
 	}
 
 	switch (dt->index) {
-		case DISPLAY_SIDEBAR:
+		case DISPLAY_PLAYER_COMPACT:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events), update_sidebar, dt);
 			break;
