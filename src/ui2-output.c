@@ -168,18 +168,17 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
 
-	int term_width = orig_area.w > 0 ? orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
+	int width = orig_area.w > 0 ? orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
 
 	size_t n_lines = textblock_calculate_lines(tb,
-			&line_starts, &line_lengths, term_width);
+			&line_starts, &line_lengths, width);
 
 	/* Add one line for the header (if present) */
-	int term_height =
-		(orig_area.h > 0 ? orig_area.h : (int) n_lines) + (header ? 1 : 0);
+	int height = (orig_area.h > 0 ? orig_area.h : (int) n_lines) + (header ? 1 : 0);
 
 	struct term_hints hints = {
-		.width = term_width,
-		.height = term_height,
+		.width = width,
+		.height = height,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
@@ -513,14 +512,16 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 
 void clear_prompt(void)
 {
-	Term_push(angband_message_line.term);
+	display_term_push(DISPLAY_MESSAGE_LINE);
+
 	Term_clear();
 	Term_cursor_visible(false);
 	Term_flush_output();
-	Term_pop();
+
+	display_term_pop();
 
 	/* Reset the term state, so that messages
-	 * won't print "-more-" over prompt */
+	 * won't print "-more-" over empty message line */
 	message_skip_more();
 }
 
@@ -531,15 +532,17 @@ void show_prompt(const char *str, bool cursor)
 {
 	event_signal(EVENT_MESSAGE_FLUSH);
 
-	Term_push(angband_message_line.term);
+	display_term_push(DISPLAY_MESSAGE_LINE);
+
 	Term_clear();
 	Term_cursor_visible(cursor);
 	Term_adds(0, 0, Term_width(), COLOUR_WHITE, str);
 	Term_flush_output();
-	Term_pop();
+
+	display_term_pop();
 
 	/* Reset the term state, so that messages
-	 * won't print "-more-" over prompt */
+	 * won't print "-more-" over prompt string */
 	message_skip_more();
 }
 
@@ -659,14 +662,11 @@ void window_make(struct loc start, struct loc end)
 	}
 }
 
-static void panel_fix_coords(const struct angband_term *aterm, struct loc *coords)
+static void panel_fix_coords(enum display_term_index index, struct loc *coords)
 {
-	Term_push(aterm->term);
-
 	int width;
 	int height;
-	Term_get_size(&width, &height);
-	Term_pop();
+	display_term_get_size(index, &width, &height);
 
 	const int curx = coords->x;
 	const int cury = coords->y;
@@ -677,11 +677,14 @@ static void panel_fix_coords(const struct angband_term *aterm, struct loc *coord
 	coords->y = MAX(0, MIN(cury, maxy));
 }
 
-bool panel_should_modify(const struct angband_term *aterm, struct loc coords)
+bool panel_should_modify(enum display_term_index index, struct loc new_coords)
 {
-	panel_fix_coords(aterm, &coords);
+	panel_fix_coords(index, &new_coords);
 
-	return aterm->offset_x != coords.x || aterm->offset_y != coords.y;
+	struct loc old_coords;
+	display_term_get_coords(index, &old_coords);
+
+	return old_coords.x != new_coords.x || old_coords.y != new_coords.y;
 }
 
 /**
@@ -690,84 +693,76 @@ bool panel_should_modify(const struct angband_term *aterm, struct loc coords)
  *
  * The town should never be scrolled around.
  */
-bool modify_panel(struct angband_term *aterm, struct loc coords)
+bool modify_panel(enum display_term_index index, struct loc new_coords)
 {
-	panel_fix_coords(aterm, &coords);
+	panel_fix_coords(index, &new_coords);
 
-	if (aterm->offset_x != coords.x || aterm->offset_y != coords.y) {
-		aterm->offset_x = coords.x;
-		aterm->offset_y = coords.y;
+	struct loc old_coords;
+	display_term_get_coords(index, &old_coords);
 
+	if (old_coords.x != new_coords.x || old_coords.y != new_coords.y) {
+		display_term_set_coords(index, new_coords);
 		player->upkeep->redraw |= PR_MAP;
-
 		return true;
 	} else {
 		return false;
 	}
 }
 
-static void verify_panel_int(struct angband_term *aterm, bool centered)
+static void verify_panel_int(enum display_term_index index, bool centered)
 {
-	Term_push(aterm->term);
+	int w;
+	int h;
+	display_term_get_size(index, &w, &h);
 
-	int term_width;
-	int term_height;
-	Term_get_size(&term_width, &term_height);
+	struct loc t;
+	display_term_get_coords(index, &t);
 
-	Term_pop();
-
-	int offset_x = aterm->offset_x;
-	int offset_y = aterm->offset_y;
-
-	int player_x = player->px;
-	int player_y = player->py;
+	struct loc p = {player->px, player->py};
 
 	/* center screen horizontally
 	 * when off-center and not running
 	 * OR
 	 * when SCROLL_DISTANCE grids from top/bottom edge */
-	if ((centered && !player->upkeep->running
-				&& player_x != offset_x + term_width / 2)
-			|| (player_x < offset_x + SCROLL_DISTANCE
-				|| player_x >= offset_x + term_width - SCROLL_DISTANCE))
+	if ((centered && !player->upkeep->running && p.x != t.x + w / 2)
+			|| (p.x < t.x + SCROLL_DISTANCE || p.x >= t.x + w - SCROLL_DISTANCE))
 	{
-		offset_x = player_x - term_width / 2;
+		t.x = p.x - w / 2;
 	}
 
 	/* center screen vertically
 	 * when off-center and not running
 	 * OR
 	 * when SCROLL_DISTANCE grids from top/bottom edge */
-	if ((centered && !player->upkeep->running
-				&& player_y != offset_y + term_height / 2)
-			|| (player_y < offset_y + SCROLL_DISTANCE
-				|| player_y >= offset_y + term_height - SCROLL_DISTANCE))
+	if ((centered && !player->upkeep->running && p.y != t.y + h / 2)
+			|| (p.y < t.y + SCROLL_DISTANCE || p.y >= t.y + h - SCROLL_DISTANCE))
 	{
-		offset_y = player_y - term_height / 2;
+		t.y = p.y - h / 2;
 	}
 
-	modify_panel(aterm, loc(offset_x, offset_y));
+	modify_panel(index, t);
 }
 
 /**
  * Change the panels to the panel lying in the given direction.
  * Return true if any panel was changed.
  */
-bool change_panel(struct angband_term *aterm, int dir)
+bool change_panel(enum display_term_index index, int dir)
 {
-	Term_push(aterm->term);
+	int width;
+	int height;
+	display_term_get_size(index, &width, &height);
 
-	int term_width;
-	int term_height;
-	Term_get_size(&term_width, &term_height);
-
-	Term_pop();
+	struct loc old_coords;
+	display_term_get_coords(index, &old_coords);
 
 	/* Shift by half a panel */
-	int offset_x = aterm->offset_x + ddx[dir] * term_width / 2;
-	int offset_y = aterm->offset_y + ddy[dir] * term_height / 2;
+	struct loc new_coords = {
+		.x = old_coords.x + ddx[dir] * width / 2,
+		.y = old_coords.y + ddy[dir] * height / 2
+	};
 
-	return modify_panel(aterm, loc(offset_x, offset_y));
+	return modify_panel(index, new_coords);
 }
 
 /**
@@ -780,14 +775,14 @@ bool change_panel(struct angband_term *aterm, int dir)
  * The "OPT(center_player)" option allows the current panel to always be
  * centered around the player
  */
-void verify_panel(struct angband_term *aterm)
+void verify_panel(enum display_term_index index)
 {
-	verify_panel_int(aterm, OPT(center_player));
+	verify_panel_int(index, OPT(center_player));
 }
 
-void center_panel(struct angband_term *aterm)
+void center_panel(enum display_term_index index)
 {
-	verify_panel_int(aterm, true);
+	verify_panel_int(index, true);
 }
 
 /**
@@ -795,41 +790,43 @@ void center_panel(struct angband_term *aterm)
  * location is contained inside the current panel, and return true if any
  * such adjustment was performed.
  */
-bool adjust_panel(struct angband_term *aterm, struct loc coords)
+bool adjust_panel(enum display_term_index index, struct loc coords)
 {
-	Term_push(aterm->term);
-	int term_width;
-	int term_height;
-	Term_get_size(&term_width, &term_height);
-	Term_pop();
+	int width;
+	int height;
+	display_term_get_size(index, &width, &height);
 
-	int ox = aterm->offset_x;
-	int oy = aterm->offset_y;
+	struct loc t;
+	display_term_get_coords(index, &t);
 
-	while (ox + term_width <= coords.x) {
-		ox += term_width / 2;
+	while (t.x + width <= coords.x) {
+		t.x += width / 2;
 	}
-	while (ox > coords.x) {
-		ox -= term_width / 2;
+	while (t.x > coords.x) {
+		t.x -= width / 2;
 	}
-	while (oy + term_height <= coords.y) {
-		oy += term_height / 2;
+	while (t.y + height <= coords.y) {
+		t.y += height / 2;
 	}
-	while (oy > coords.y) {
-		oy -= term_height / 2;
+	while (t.y > coords.y) {
+		t.y -= height / 2;
 	}
 
-	return modify_panel(aterm, loc(ox, oy));
+	return modify_panel(index, t);
 }
 
 void get_cave_region(region *reg)
 {
-	reg->x = angband_cave.offset_x;
-	reg->y = angband_cave.offset_y;
+	struct loc coords;
+	display_term_get_coords(DISPLAY_CAVE, &coords);
+	reg->x = coords.x;
+	reg->y = coords.y;
 
-	Term_push(angband_cave.term);
-	Term_get_size(&reg->w, &reg->h);
-	Term_pop();
+	int width;
+	int height;
+	display_term_get_size(DISPLAY_CAVE, &width, &height);
+	reg->w = width;
+	reg->h = height;
 }
 
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
@@ -845,10 +842,10 @@ void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
 
 bool textui_panel_contains(unsigned int y, unsigned int x)
 {
+	struct loc loc = {x, y};
+
 	region reg;
 	get_cave_region(&reg);
-
-	struct loc loc = {x, y};
 
 	return loc_in_region(loc, reg);
 }

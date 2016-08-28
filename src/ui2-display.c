@@ -57,18 +57,27 @@
 
 /* TODO UI2 #include "wizard.h" */
 
-struct angband_term angband_cave;
-struct angband_term angband_message_line;
-struct angband_term angband_status_line;
-struct angband_term angband_sidebar;
+struct display_term {
+	enum display_term_index index;
 
-struct angband_terms angband_terms;
+	term term;
 
-const char *angband_term_flag_description[ATF_MAX] = {
-	#define ATF(a, b) b,
-	#include "list-term-flags.h"
-	#undef ATF
+	int min_w;
+	int min_h;
+	int max_w;
+	int max_h;
+
+	struct loc coords;
+	const char *name;
+	bool required;
 };
+
+static struct display_term *display_term_get(enum display_term_index index);
+static void display_terms_check(void);
+
+/* For use in event handlers */
+#define DISPLAY_TERM(void_ptr) \
+	((struct display_term *) (void_ptr))
 
 /**
  * There are a few functions installed to be triggered by several 
@@ -82,7 +91,10 @@ static game_event_type player_events[] = {
 	EVENT_EXPERIENCE,
 	EVENT_PLAYERLEVEL,
 	EVENT_GOLD,
-	EVENT_EQUIPMENT,  /* For equippy chars */
+
+	/* For equippy chars */
+	EVENT_EQUIPMENT,
+
 	EVENT_STATS,
 	EVENT_HP,
 	EVENT_MANA,
@@ -163,7 +175,7 @@ static void message_more(int x)
  * Allow multiple short messages to share the top line.
  * Prompt the user to make sure he has a chance to read them.
  */
-static void display_message(game_event_type type, game_event_data *data, void *user)
+static void message_print(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 
@@ -174,20 +186,19 @@ static void display_message(game_event_type type, game_event_data *data, void *u
 		return;
 	}
 
-	struct angband_term *aterm = user;
+	struct display_term *dt = user;
 
-	Term_push(aterm->term);
+	Term_push(dt->term);
 
 	const int wrap = Term_width() - MSG_MORE_LEN;
 
 	wchar_t buf[1024];
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
 
-	if (aterm->offset_x > 0
-			&& aterm->offset_x + len > wrap)
+	if (dt->coords.x > 0 && dt->coords.x + len > wrap)
 	{
-		message_more(aterm->offset_x);
-		aterm->offset_x = 0;
+		message_more(dt->coords.x);
+		dt->coords.x = 0;
 	}
 
 	uint32_t color = message_type_color(data->message.type);
@@ -209,10 +220,10 @@ static void display_message(game_event_type type, game_event_data *data, void *u
 		len -= split;
 	}
 
-	Term_addws(aterm->offset_x, 0, len, color, ws);
+	Term_addws(dt->coords.x, 0, len, color, ws);
 	Term_flush_output();
 
-	aterm->offset_x += len + 1;
+	dt->coords.x += len + 1;
 
 	Term_pop();
 }
@@ -223,7 +234,7 @@ static void display_message(game_event_type type, game_event_data *data, void *u
 /**
  * Flush the output before displaying for emphasis
  */
-static void bell_message(game_event_type type, game_event_data *data, void *user)
+static void message_bell(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
@@ -240,24 +251,26 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
 	(void) type;
 	(void) data;
 
-	struct angband_term *aterm = user;
+	struct display_term *dt = user;
 
-	Term_push(aterm->term);
+	Term_push(dt->term);
 
-	if (aterm->offset_x > 0) {
-		message_more(aterm->offset_x);
-		aterm->offset_x = 0;
+	if (dt->coords.x > 0) {
+		message_more(dt->coords.x);
+		dt->coords.x = 0;
 	}
 
 	Term_pop();
 }
 
 /*
- * skip next "-more-" prompt, if any
+ * Skip next "-more-" prompt, if any
  */
 void message_skip_more(void)
 {
-	angband_message_line.offset_x = 0;
+	struct loc coords = {0, 0};
+
+	display_term_set_coords(DISPLAY_MESSAGE_LINE, coords);
 }
 
 /**
@@ -669,9 +682,9 @@ static void update_sidebar(game_event_type type,
 {
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
-	int height = Term_height();
+	const int height = Term_height();
 	struct loc coords = {0, 0};
 
 	for (size_t i = 0; i < N_ELEMENTS(side_handlers) && coords.y < height; i++) {
@@ -1099,7 +1112,7 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	const int width = Term_width();
 
@@ -1137,7 +1150,7 @@ static void trace_map_updates(game_event_type type, game_event_data *data,
 	if (data->point.x == -1 && data->point.y == -1) {
 		printf("Redraw whole map\n");
 	} else {
-		printf("Redraw (%i, %i)\n", data->point.x, data->point.y);
+		printf("Redraw (%d, %d)\n", data->point.x, data->point.y);
 	}
 }
 #endif
@@ -1149,17 +1162,17 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	if (data->point.x == -1 && data->point.y == -1) {
 		/* This signals a whole-map redraw. */
-		print_map(ANGBAND_TERM(user));
+		print_map(DISPLAY_TERM(user)->index);
 	} else {
 		/* Single point to be redrawn */
 
 		/* Location relative to panel */
-		int relx = data->point.x - ANGBAND_TERM(user)->offset_x;
-		int rely = data->point.y - ANGBAND_TERM(user)->offset_y;
+		int relx = data->point.x - DISPLAY_TERM(user)->coords.x;
+		int rely = data->point.y - DISPLAY_TERM(user)->coords.y;
 
 		if (Term_point_ok(relx, rely)) {
 			struct grid_data g;
@@ -1251,10 +1264,11 @@ static void do_animation(void)
 		}
 
 		mon->attr = attr;
-		player->upkeep->redraw |= PR_MONLIST;
 
-		square_light_spot(cave, mon->fy, mon->fx);
+		event_signal_point(EVENT_MAP, mon->fx, mon->fy);
 	}
+
+	player->upkeep->redraw |= PR_MONLIST;
 
 	flicker++;
 }
@@ -1297,8 +1311,6 @@ void idle_update(void)
 
 	do_animation();
 	redraw_stuff(player);
-
-	Term_flush_output();
 	Term_redraw_screen();
 }
 
@@ -1347,7 +1359,7 @@ static void display_explosion(game_event_type type,
 {
 	(void) type;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	bool new_radius = false;
 	bool drawn = false;
@@ -1378,7 +1390,7 @@ static void display_explosion(game_event_type type,
 			bolt_pict(coords, coords, gf_type, &attr, &ch);
 
 			/* Just display the pict, ignoring what was under it */
-			print_rel(ANGBAND_TERM(user), attr, ch, coords);
+			print_rel(DISPLAY_TERM(user)->index, attr, ch, coords);
 		}
 
 		/* Check for new radius, taking care not to overrun array */
@@ -1430,7 +1442,7 @@ static void display_bolt(game_event_type type,
 {
 	(void) type;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	int gf_type = data->bolt.gf_type;
 	bool drawing = data->bolt.drawing;
@@ -1451,7 +1463,7 @@ static void display_bolt(game_event_type type,
 		wchar_t ch;
 		bolt_pict(old, new, gf_type, &attr, &ch);
 
-		print_rel(ANGBAND_TERM(user), attr, ch, new);
+		print_rel(DISPLAY_TERM(user)->index, attr, ch, new);
 
 		Term_flush_output();
 		Term_redraw_screen();
@@ -1465,7 +1477,7 @@ static void display_bolt(game_event_type type,
 		/* Display "beam" grids */
 		if (beam) {
 			bolt_pict(new, new, gf_type, &attr, &ch);
-			print_rel(ANGBAND_TERM(user), attr, ch, new);
+			print_rel(DISPLAY_TERM(user)->index, attr, ch, new);
 		}
 	} else if (drawing) {
 		/* Delay for consistency */
@@ -1484,7 +1496,7 @@ static void display_missile(game_event_type type,
 	(void) type;
 	(void) user;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	struct object *obj = data->missile.obj;
 	bool seen = data->missile.seen;
@@ -1495,7 +1507,7 @@ static void display_missile(game_event_type type,
 
 	/* Only do visuals if the player can "see" the missile */
 	if (seen) {
-		print_rel(ANGBAND_TERM(user), object_attr(obj), object_char(obj), coords);
+		print_rel(DISPLAY_TERM(user)->index, object_attr(obj), object_char(obj), coords);
 
 		Term_flush_output();
 		Term_redraw_screen();
@@ -1528,7 +1540,7 @@ static void update_inven_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	if (!flip_inven) {
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
@@ -1546,7 +1558,7 @@ static void update_equip_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	if (!flip_inven) {
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
@@ -1566,33 +1578,32 @@ void toggle_inven_equip(void)
 	/* Change the actual setting */
 	flip_inven = !flip_inven;
 
-	/* Redraw any subwindows showing the inventory/equipment lists */
-	for (size_t i = 0; i < angband_terms.number; i++) {
-		struct angband_term *aterm = &angband_terms.terms[i];
+	struct display_term *inven = display_term_get(DISPLAY_INVEN);
+	if (inven->term != NULL) {
+		Term_push(inven->term);
 
-		if (aterm->flag == ATF_INVEN) {
-			Term_push(aterm->term);
-
-			if (!flip_inven) {
-				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
-			} else {
-				show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
-			}
-
-			Term_flush_output();
-			Term_pop();
-		} else if (aterm->flag == ATF_EQUIP) {
-			Term_push(aterm->term);
-
-			if (!flip_inven) {
-				show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
-			} else {
-				show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
-			}
-
-			Term_flush_output();
-			Term_pop();
+		if (flip_inven) {
+			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
+		} else {
+			show_inven(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 		}
+
+		Term_flush_output();
+		Term_pop();
+	}
+
+	struct display_term *equip = display_term_get(DISPLAY_EQUIP);
+	if (equip->term != NULL) {
+		Term_push(equip->term);
+
+		if (flip_inven) {
+			show_inven(OLIST_WINDOW | OLIST_WEIGHT, NULL);
+		} else {
+			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
+		}
+
+		Term_flush_output();
+		Term_pop();
 	}
 }
 
@@ -1602,7 +1613,7 @@ static void update_itemlist_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 	Term_clear();
 
 	object_list_show_subwindow();
@@ -1617,7 +1628,7 @@ static void update_monlist_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 	Term_clear();
 
 	monster_list_show_subwindow();
@@ -1632,7 +1643,7 @@ static void update_monster_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	/* Display monster race info */
 	if (player->upkeep->monster_race) {
@@ -1650,7 +1661,7 @@ static void update_object_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 	
 	if (player->upkeep->object != NULL) {
 		display_object_recall(player->upkeep->object);
@@ -1668,7 +1679,7 @@ static void update_messages_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	int width;
 	int height;
@@ -1703,7 +1714,7 @@ static void update_player_basic_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	display_player(PLAYER_DISPLAY_MODE_STANDARD);
 
@@ -1720,7 +1731,7 @@ static void update_player_extra_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 
 	display_player(PLAYER_DISPLAY_MODE_SPECIAL);
 
@@ -1728,11 +1739,9 @@ static void update_player_extra_subwindow(game_event_type type,
 	Term_pop();
 }
 
-static void subwindow_flag_changed(struct angband_term *aterm,
-		enum angband_term_flag flag, bool enable)
+static void display_term_handler(struct display_term *dt, bool enable)
 {
-	assert(flag > ATF_NONE);
-	assert(flag < ATF_MAX);
+	assert(dt->term != NULL);
 
 	void (*register_or_deregister)(game_event_type type,
 			game_event_handler *fn, void *user);
@@ -1748,83 +1757,62 @@ static void subwindow_flag_changed(struct angband_term *aterm,
 		set_register_or_deregister = event_remove_handler_set;
 	}
 
-	switch (flag) {
-		case ATF_INVEN:
+	switch (dt->index) {
+		case DISPLAY_INVEN:
 			register_or_deregister(EVENT_INVENTORY,
-					update_inven_subwindow, aterm);
+					update_inven_subwindow, dt);
 			break;
 
-		case ATF_EQUIP:
+		case DISPLAY_EQUIP:
 			register_or_deregister(EVENT_EQUIPMENT,
-					update_equip_subwindow, aterm);
+					update_equip_subwindow, dt);
 			break;
 
-		case ATF_PLAYER_BASIC:
+		case DISPLAY_PLAYER_BASIC:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
-					update_player_basic_subwindow, aterm);
+					update_player_basic_subwindow, dt);
 			break;
 
-		case ATF_PLAYER_EXTRA:
+		case DISPLAY_PLAYER_EXTRA:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events),
-					update_player_extra_subwindow, aterm);
+					update_player_extra_subwindow, dt);
 			break;
 
-		case ATF_MESSAGE:
+		case DISPLAY_MESSAGES:
 			register_or_deregister(EVENT_MESSAGE,
-					update_messages_subwindow, aterm);
+					update_messages_subwindow, dt);
 			break;
 
-		case ATF_MONSTER:
+		case DISPLAY_MONSTER:
 			register_or_deregister(EVENT_MONSTERTARGET,
-					update_monster_subwindow, aterm);
+					update_monster_subwindow, dt);
 			break;
 
-		case ATF_OBJECT:
+		case DISPLAY_OBJECT:
 			register_or_deregister(EVENT_OBJECTTARGET,
-					update_object_subwindow, aterm);
+					update_object_subwindow, dt);
 			break;
 
-		case ATF_MONLIST:
+		case DISPLAY_MONLIST:
 			register_or_deregister(EVENT_MONSTERLIST,
-					update_monlist_subwindow, aterm);
+					update_monlist_subwindow, dt);
 			break;
 
-		case ATF_ITEMLIST:
+		case DISPLAY_ITEMLIST:
 			register_or_deregister(EVENT_ITEMLIST,
-					update_itemlist_subwindow, aterm);
+					update_itemlist_subwindow, dt);
 			break;
 
-		/* Silence compiler warnings */
-		case ATF_NONE: case ATF_MAX:
-			quit_fmt("Bad flag %d for subwindow %d\n", flag, aterm->index);
+		case DISPLAY_CAVE:
+		case DISPLAY_SIDEBAR:
+		case DISPLAY_MESSAGE_LINE:
+		case DISPLAY_STATUS_LINE:
+			quit_fmt("Handlers for term %u are set automatically!",
+					(unsigned) dt->index);
 			break;
 	}
-}
-
-/**
- * Set the flag for one term, calling subwindow_flag_changed()
- * so that it can deregister old handler for the term and register new one
- */
-void subwindow_set_flag(struct angband_term *aterm,
-		enum angband_term_flag flag)
-{
-	assert(aterm->flag != flag);
-
-	if (aterm->flag != ATF_NONE) {
-		subwindow_flag_changed(aterm, aterm->flag, false);
-	}
-	if (flag != ATF_NONE) {
-		subwindow_flag_changed(aterm, flag, true);
-	}
-
-	aterm->flag = flag;
-
-	Term_push(aterm->term);
-	Term_clear();
-	Term_flush_output();
-	Term_pop();
 }
 
 /**
@@ -1917,31 +1905,6 @@ static void show_splashscreen(game_event_type type,
 	Term_redraw_screen();
 }
 
-/**
- * ------------------------------------------------------------------------
- * Visual updates between player turns.
- * ------------------------------------------------------------------------
- */
-#if 0
-static void refresh(game_event_type type, game_event_data *data, void *user)
-{
-	(void) type;
-	(void) data;
-
-	Term_push(ANGBAND_TERM(user)->term);
-
-	/* Place cursor on player/target */
-	if (OPT(show_target) && target_sighted()) {
-		struct loc coords;
-		target_get(&coords.x, &coords.y);
-		move_cursor_relative(ANGBAND_TERM(user), coords);
-	}
-
-	Term_flush_output();
-	Term_pop();
-}
-#endif
-
 static void repeated_command_display(game_event_type type,
 		game_event_data *data, void *user)
 {
@@ -1962,17 +1925,17 @@ static void new_level_display_update(game_event_type type,
 	(void) data;
 
 	/* force invalid offsets so that they will be updated later */
-	ANGBAND_TERM(user)->offset_x = z_info->dungeon_wid;
-	ANGBAND_TERM(user)->offset_y = z_info->dungeon_hgt;
+	DISPLAY_TERM(user)->coords.x = z_info->dungeon_wid;
+	DISPLAY_TERM(user)->coords.y = z_info->dungeon_hgt;
 
 	if (player->upkeep->autosave) {
 		save_game();
 		player->upkeep->autosave = false;
 	}
 
-	verify_panel(ANGBAND_TERM(user));
+	verify_panel(DISPLAY_TERM(user)->index);
 
-	Term_push(ANGBAND_TERM(user)->term);
+	Term_push(DISPLAY_TERM(user)->term);
 	Term_clear();
 
 	player->upkeep->only_partial = true;
@@ -2028,7 +1991,7 @@ static void check_panel(game_event_type type, game_event_data *data, void *user)
 	(void) type;
 	(void) data;
 
-	verify_panel(ANGBAND_TERM(user));
+	verify_panel(DISPLAY_TERM(user)->index);
 }
 
 static void see_floor_items(game_event_type type,
@@ -2121,9 +2084,6 @@ static void see_floor_items(game_event_type type,
  */
 static void process_character_pref_files(void)
 {
-	/* Process the "window.prf" file */
-	process_pref_file("window.prf", true, true);
-
 	/* Process the "user.prf" file */
 	process_pref_file("user.prf", true, true);
 
@@ -2189,30 +2149,34 @@ static void ui_enter_world(game_event_type type,
 	(void) data;
 	(void) user;
 
+	struct display_term *display_cave    = display_term_get(DISPLAY_CAVE);
+	struct display_term *display_status  = display_term_get(DISPLAY_STATUS_LINE);
+	struct display_term *display_sidebar = display_term_get(DISPLAY_SIDEBAR);
+
 	player->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_MONSTER | PR_MESSAGE);
 	redraw_stuff(player);
 
 	/* Because of the "flexible" sidebar, all these things trigger
 	   the same function. */
 	event_add_handler_set(player_events,
-			N_ELEMENTS(player_events), update_sidebar, &angband_sidebar);
+			N_ELEMENTS(player_events), update_sidebar, display_sidebar);
 
 	/* The flexible statusbar has similar requirements, so is
 	   also trigger by a large set of events. */
 	event_add_handler_set(statusline_events,
-			N_ELEMENTS(statusline_events), update_statusline, &angband_status_line);
+			N_ELEMENTS(statusline_events), update_statusline, display_status);
 
 	/* Player HP can optionally change the colour of the '@' now. */
 	event_add_handler(EVENT_HP, hp_colour_change, NULL);
 
 	/* Simplest way to keep the map up to date */
-	event_add_handler(EVENT_MAP, update_maps, &angband_cave);
+	event_add_handler(EVENT_MAP, update_maps, display_cave);
 #ifdef MAP_DEBUG
-	event_add_handler(EVENT_MAP, trace_map_updates, &angband_cave);
+	event_add_handler(EVENT_MAP, trace_map_updates, display_cave);
 #endif
 
 	/* Check if the panel should shift when the player's moved */
-	event_add_handler(EVENT_PLAYERMOVED, check_panel, &angband_cave);
+	event_add_handler(EVENT_PLAYERMOVED, check_panel, display_cave);
 
 	/* Redraw the display after player movement, to animate it */
 	event_add_handler(EVENT_PLAYERMOVED, redraw_when_running, NULL);
@@ -2224,24 +2188,19 @@ static void ui_enter_world(game_event_type type,
 	event_add_handler(EVENT_ENTER_STORE, enter_store, NULL);
 
 	/* Display an explosion */
-	event_add_handler(EVENT_EXPLOSION, display_explosion, &angband_cave);
+	event_add_handler(EVENT_EXPLOSION, display_explosion, display_cave);
 
 	/* Display a bolt spell */
-	event_add_handler(EVENT_BOLT, display_bolt, &angband_cave);
+	event_add_handler(EVENT_BOLT, display_bolt, display_cave);
 
 	/* Display a physical missile */
-	event_add_handler(EVENT_MISSILE, display_missile, &angband_cave);
+	event_add_handler(EVENT_MISSILE, display_missile, display_cave);
 
 	/* Check to see if the player has tried to cancel game processing */
-	event_add_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, &angband_cave);
-
-#if 0
-	/* Refresh the screen and put the cursor in the appropriate place */
-	event_add_handler(EVENT_REFRESH, refresh, &angband_cave);
-#endif
+	event_add_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, display_cave);
 
 	/* Do the visual updates required on a new dungeon level */
-	event_add_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, &angband_cave);
+	event_add_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, display_cave);
 
 	/* Automatically clear messages while the game is repeating commands */
 	event_add_handler(EVENT_COMMAND_REPEAT, repeated_command_display, NULL);
@@ -2260,23 +2219,27 @@ static void ui_leave_world(game_event_type type,
 	(void) data;
 	(void) user;
 
+	struct display_term *display_cave    = display_term_get(DISPLAY_CAVE);
+	struct display_term *display_status  = display_term_get(DISPLAY_STATUS_LINE);
+	struct display_term *display_sidebar = display_term_get(DISPLAY_SIDEBAR);
+
 	/* Because of the "flexible" sidebar, all these things trigger
 	   the same function. */
 	event_remove_handler_set(player_events,
-			N_ELEMENTS(player_events), update_sidebar, &angband_sidebar);
+			N_ELEMENTS(player_events), update_sidebar, display_sidebar);
 
 	/* The flexible statusbar has similar requirements, so is
 	   also trigger by a large set of events. */
 	event_remove_handler_set(statusline_events,
-			N_ELEMENTS(statusline_events), update_statusline, &angband_status_line);
+			N_ELEMENTS(statusline_events), update_statusline, display_status);
 
 	/* Player HP can optionally change the colour of the '@' now. */
 	event_remove_handler(EVENT_HP, hp_colour_change, NULL);
 
 	/* Simplest way to keep the map up to date */
-	event_remove_handler(EVENT_MAP, update_maps, &angband_cave);
+	event_remove_handler(EVENT_MAP, update_maps, display_cave);
 #ifdef MAP_DEBUG
-	event_remove_handler(EVENT_MAP, trace_map_updates, &angband_cave);
+	event_remove_handler(EVENT_MAP, trace_map_updates, display_cave);
 #endif
 
 	/* Check if the panel should shift when the player's moved */
@@ -2289,24 +2252,19 @@ static void ui_leave_world(game_event_type type,
 	event_remove_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
 
 	/* Display an explosion */
-	event_remove_handler(EVENT_EXPLOSION, display_explosion, &angband_cave);
+	event_remove_handler(EVENT_EXPLOSION, display_explosion, display_cave);
 
 	/* Display a bolt spell */
-	event_remove_handler(EVENT_BOLT, display_bolt, &angband_cave);
+	event_remove_handler(EVENT_BOLT, display_bolt, display_cave);
 
 	/* Display a physical missile */
-	event_remove_handler(EVENT_MISSILE, display_missile, &angband_cave);
+	event_remove_handler(EVENT_MISSILE, display_missile, display_cave);
 
 	/* Check to see if the player has tried to cancel game processing */
-	event_remove_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, &angband_cave);
-
-#if 0
-	/* Refresh the screen and put the cursor in the appropriate place */
-	event_remove_handler(EVENT_REFRESH, refresh, &angband_cave);
-#endif
+	event_remove_handler(EVENT_CHECK_INTERRUPT, check_for_player_interrupt, display_cave);
 
 	/* Do the visual updates required on a new dungeon level */
-	event_remove_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, &angband_cave);
+	event_remove_handler(EVENT_NEW_LEVEL_DISPLAY, new_level_display_update, display_cave);
 
 	/* Automatically clear messages while the game is repeating commands */
 	event_remove_handler(EVENT_COMMAND_REPEAT, repeated_command_display, NULL);
@@ -2331,17 +2289,20 @@ static void ui_enter_game(game_event_type type,
 	(void) data;
 	(void) user;
 
+	struct display_term *display_message_line =
+		display_term_get(DISPLAY_MESSAGE_LINE);
+
 	/* Display a message to the player */
-	event_add_handler(EVENT_MESSAGE, display_message, &angband_message_line);
+	event_add_handler(EVENT_MESSAGE, message_print, display_message_line);
 
 	/* Display a message and make a noise to the player */
-	event_add_handler(EVENT_BELL, bell_message, NULL);
+	event_add_handler(EVENT_BELL, message_bell, NULL);
 
 	/* Tell the UI to ignore all pending input */
 	event_add_handler(EVENT_INPUT_FLUSH, inkey_flush, NULL);
 
 	/* Print all waiting messages */
-	event_add_handler(EVENT_MESSAGE_FLUSH, message_flush, &angband_message_line);
+	event_add_handler(EVENT_MESSAGE_FLUSH, message_flush, display_message_line);
 }
 
 static void ui_leave_game(game_event_type type,
@@ -2351,40 +2312,152 @@ static void ui_leave_game(game_event_type type,
 	(void) data;
 	(void) user;
 
+	struct display_term *display_message_line =
+		display_term_get(DISPLAY_MESSAGE_LINE);
+
 	/* Display a message to the player */
-	event_remove_handler(EVENT_MESSAGE, display_message, NULL);
+	event_remove_handler(EVENT_MESSAGE, message_print, display_message_line);
 
 	/* Display a message and make a noise to the player */
-	event_remove_handler(EVENT_BELL, bell_message, NULL);
+	event_remove_handler(EVENT_BELL, message_bell, NULL);
 
 	/* Tell the UI to ignore all pending input */
 	event_remove_handler(EVENT_INPUT_FLUSH, inkey_flush, NULL);
 
 	/* Print all waiting messages */
-	event_remove_handler(EVENT_MESSAGE_FLUSH, message_flush, NULL);
+	event_remove_handler(EVENT_MESSAGE_FLUSH, message_flush, display_message_line);
+}
+
+void display_term_init(enum display_term_index index, term term)
+{
+	struct display_term *dt = display_term_get(index);
+
+	assert(dt->term == NULL);
+	assert(term != NULL);
+
+	dt->term = term;
+
+	if (index != DISPLAY_CAVE
+			&& index != DISPLAY_SIDEBAR
+			&& index != DISPLAY_MESSAGE_LINE
+			&& index != DISPLAY_STATUS_LINE)
+	{
+		display_term_handler(dt, true);
+	}
+}
+
+void display_term_destroy(enum display_term_index index)
+{
+	struct display_term *dt = display_term_get(index);
+
+	assert(dt->term != NULL);
+
+	if (index != DISPLAY_CAVE
+			&& index != DISPLAY_SIDEBAR
+			&& index != DISPLAY_MESSAGE_LINE
+			&& index != DISPLAY_STATUS_LINE)
+	{
+		display_term_handler(dt, false);
+	}
+
+	Term_destroy(dt->term);
+	dt->term = NULL;
+
+	memset(&dt->coords, 0, sizeof(dt->coords));
+}
+
+void display_term_get_min_size(enum display_term_index index,
+		int *min_width, int *min_height)
+{
+	struct display_term *dt = display_term_get(index);
+
+	*min_width = dt->min_w;
+	*min_height = dt->min_h;
+}
+
+void display_term_get_max_size(enum display_term_index index,
+		int *max_width, int *max_height)
+{
+	struct display_term *dt = display_term_get(index);
+
+	*max_width = dt->max_w;
+	*max_height = dt->max_h;
+}
+
+void display_term_get_size(enum display_term_index index,
+		int *width, int *height)
+{
+	struct display_term *dt = display_term_get(index);
+
+	if (dt->term != NULL) {
+		Term_push(dt->term);
+		Term_get_size(width, height);
+		Term_pop();
+	} else {
+		*width = 0;
+		*height = 0;
+	}
+}
+
+const char *display_term_get_name(enum display_term_index index)
+{
+	struct display_term *dt = display_term_get(index);
+
+	return dt->name;
+}
+
+void display_term_get_coords(enum display_term_index index, struct loc *coords)
+{
+	struct display_term *dt = display_term_get(index);
+
+	*coords = dt->coords;
+}
+
+void display_term_set_coords(enum display_term_index index, struct loc coords)
+{
+	struct display_term *dt = display_term_get(index);
+
+	dt->coords = coords;
+}
+
+void display_term_push(enum display_term_index index)
+{
+	struct display_term *dt = display_term_get(index);
+
+	Term_push(dt->term);
+}
+
+void display_term_pop(void)
+{
+	Term_pop();
 }
 
 void init_terms(void)
 {
-	if (angband_cave.term == NULL) {
-		quit("Main map is not initialized!");
+	/* We always need to display at least main map,
+	 * messages line, status line and sidebar */
+	struct display_term *display_cave = display_term_get(DISPLAY_CAVE);
+	assert(display_cave->required);
+
+	{
+		struct display_term *display_messages = display_term_get(DISPLAY_MESSAGE_LINE);
+		assert(display_messages->required);
+
+		struct display_term *display_status = display_term_get(DISPLAY_STATUS_LINE);
+		assert(display_status->required);
+
+		struct display_term *display_sidebar = display_term_get(DISPLAY_SIDEBAR);
+		assert(display_sidebar->required);
 	}
-	if (angband_message_line.term == NULL) {
-		quit("Message line is not initialized!");
-	}
-	if (angband_sidebar.term == NULL) {
-		quit("Side bar is not initialized!");
-	}
-	if (angband_status_line.term == NULL) {
-		quit("Status line is not initialized!");
-	}
+
+	display_terms_check();
 
 	/* 
 	 * This term is always on the stack;
 	 * this is necessary because the rest of textui depends
 	 * on the fact that term callbacks can always be invoked
 	 */
-	Term_push(angband_cave.term);
+	Term_push(display_cave->term);
 }
 
 void init_display(void)
@@ -2401,4 +2474,46 @@ void init_display(void)
 	event_add_handler(EVENT_LEAVE_WORLD, ui_leave_world, NULL);
 
 	ui_init_birthstate_handlers();
+}
+
+/* Array of display terms */
+
+static struct display_term display_terms[] = {
+	#define DISPLAY(i, desc, minw, minh, maxw, maxh, req) \
+		{ \
+			.index = DISPLAY_ ##i, \
+			.term = NULL, \
+			.min_w = (minw), \
+			.min_h = (minh), \
+			.max_w = (maxw), \
+			.max_h = (maxh), \
+			.coords = {0}, \
+			.name = (desc), \
+			.required = (req) \
+		},
+	#include "list-display-terms.h"
+	#undef DISPLAY
+};
+
+static struct display_term *display_term_get(enum display_term_index index)
+{
+	assert(index >= 0);
+	assert(index < N_ELEMENTS(display_terms));
+	assert(display_terms[index].index == index);
+
+	return &display_terms[index];
+}
+
+static void display_terms_check(void)
+{
+	for (size_t i = 0; i < N_ELEMENTS(display_terms); i++) {
+		assert(display_terms[i].index == i);
+
+		if (display_terms[i].required
+				&& display_terms[i].term == NULL)
+		{
+			quit_fmt("Display '%s' is not initialized!",
+					display_terms[i].name);
+		}
+	}
 }

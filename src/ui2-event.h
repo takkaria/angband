@@ -107,6 +107,18 @@ enum {
 };
 
 /**
+ * Convert a mouse event into a location (x coordinate)
+ */
+#define EVENT_GRID_X(e) \
+	(event_grid_x((e).mouse.x))
+
+/**
+ * Convert a mouse event into a location (y coordinate)
+ */
+#define EVENT_GRID_Y(e) \
+  (event_grid_y((e).mouse.y))
+
+/**
  * Keyset mappings for various keys.
  */
 #define ARROW_DOWN    0x80
@@ -186,10 +198,8 @@ struct mouseclick {
 	byte button;
 	byte mods;
 
-	/* Non-negative index is an index of an angband_term
-	 * (that presumably was clicked)
-	 * Negative index is an index of a temporary term
-	 * (just make it -1) */
+	/* Non-negative index is an index of a term that presumably was clicked.
+	 * Negative index is an index of a temporary term (just make it -1) */
 	int index;
 };
 
@@ -235,6 +245,12 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str);
  */
 void keypress_to_readable(char *buf, size_t len, struct keypress src);
 
-extern bool char_matches_key(wchar_t c, keycode_t key);
+bool char_matches_key(wchar_t c, keycode_t key);
+
+/*
+ * Convert relative coordinates on the grid to absolute ones
+ */
+int event_grid_x(int x);
+int event_grid_y(int y);
 
 #endif /* UI2_EVENT_H */

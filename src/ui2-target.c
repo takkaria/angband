@@ -615,7 +615,7 @@ static void desc_init(struct desc *desc, struct loc coords)
  */
 static ui_event target_set_interactive_aux(struct loc coords, int mode)
 {
-	move_cursor_relative(&angband_cave, coords);
+	move_cursor_relative(DISPLAY_CAVE, coords);
 	Term_flush_output();
 
 	struct object **floor_list =
@@ -678,11 +678,11 @@ void textui_target(void)
 void textui_target_closest(void)
 {
 	if (target_set_closest(TARGET_KILL)) {
-		Term_push(angband_cave.term);
+		display_term_push(DISPLAY_CAVE);
 
 		int x, y;
 		target_get(&x, &y);
-		move_cursor_relative(&angband_cave, loc(x, y));
+		move_cursor_relative(DISPLAY_CAVE, loc(x, y));
 
 		bool visible;
 		Term_get_cursor(NULL, NULL, &visible, NULL);
@@ -694,6 +694,8 @@ void textui_target_closest(void)
 
 		Term_cursor_visible(visible);
 		Term_flush_output();
+
+		display_term_pop();
 	}
 }
 
@@ -874,19 +876,17 @@ static void target_restricted_dir(int dir,
 	int pick = target_pick(oldy, oldx, ddy[dir], ddx[dir], *targets);
 
 	if (pick < 0) {
-		struct loc old_offsets = {
-			.x = angband_cave.offset_x,
-			.y = angband_cave.offset_y
-		};
+		struct loc old_offsets;
+		display_term_get_coords(DISPLAY_CAVE, &old_offsets);
 
-		if (change_panel(&angband_cave, dir)) {
+		if (change_panel(DISPLAY_CAVE, dir)) {
 			point_set_dispose(*targets);
 			*targets = target_get_monsters(mode);
 
 			pick = target_pick(oldy, oldx, ddy[dir], ddx[dir], *targets);
 
 			if (pick < 0) {
-				modify_panel(&angband_cave, old_offsets);
+				modify_panel(DISPLAY_CAVE, old_offsets);
 				point_set_dispose(*targets);
 				*targets = target_get_monsters(mode);
 			}
@@ -931,7 +931,7 @@ static void target_restricted_handle_key(ui_event event,
 			break;
 
 		case 'p':
-			verify_panel(&angband_cave);
+			verify_panel(DISPLAY_CAVE);
 			handle_stuff(player);
 			coords->x = player->px;
 			coords->y = player->py;
@@ -985,7 +985,7 @@ static void target_restricted(struct loc *coords, struct point_set **targets,
 	coords->x = (*targets)->pts[*square].x;
 	coords->y = (*targets)->pts[*square].y;
 
-	if (adjust_panel(&angband_cave, *coords)) {
+	if (adjust_panel(DISPLAY_CAVE, *coords)) {
 		handle_stuff(player);
 	}
 
@@ -1027,7 +1027,7 @@ static void target_free_select_dir(int dir,
 	coords->x = MAX(0, MIN(movx, maxx));
 	coords->y = MAX(0, MIN(movy, maxy));
 
-	if (adjust_panel(&angband_cave, *coords)) {
+	if (adjust_panel(DISPLAY_CAVE, *coords)) {
 		handle_stuff(player);
 		point_set_dispose(*targets);
 		*targets = target_get_monsters(mode);
@@ -1054,7 +1054,7 @@ static void target_free_select_handle_key(ui_event event,
 			break;
 
 		case 'p':
-			verify_panel(&angband_cave);
+			verify_panel(DISPLAY_CAVE);
 			handle_stuff(player);
 			coords->x = player->px;
 			coords->y = player->py;
@@ -1135,27 +1135,28 @@ static void target_free_select_handle_mouse(ui_event event,
 			cmd_set_arg_point(cmdq_peek(), "point", y, x);
 		}
 	} else if (event.mouse.button == MOUSE_BUTTON_LEFT) {
-		Term_push(angband_cave.term);
 		int term_width;
 		int term_height;
-		Term_get_size(&term_width, &term_height);
-		Term_pop();
+		display_term_get_size(DISPLAY_CAVE, &term_width, &term_height);
+
+		struct loc offset;
+		display_term_get_coords(DISPLAY_CAVE, &offset);
 
 		/* scroll the map to, resp., west, east, north or south */
 		if (event.mouse.x < SCROLL_DISTANCE) {
-			x = angband_cave.offset_x - 1;
+			x = offset.x - 1;
 		} else if (event.mouse.x >= term_width - SCROLL_DISTANCE) {
-			x = angband_cave.offset_x + term_width;
+			x = offset.x + term_width;
 		} else if (event.mouse.y < SCROLL_DISTANCE) {
-			y = angband_cave.offset_y - 1;
+			y = offset.y - 1;
 		} else if (event.mouse.y >= term_height - SCROLL_DISTANCE) {
-			y = angband_cave.offset_y + term_height;
+			y = offset.y + term_height;
 		}
 
 		coords->x = MAX(0, MIN(x, cave->width - 1));
 		coords->y = MAX(0, MIN(y, cave->height - 1));
 
-		if (adjust_panel(&angband_cave, *coords)) {
+		if (adjust_panel(DISPLAY_CAVE, *coords)) {
 			handle_stuff(player);
 			point_set_dispose(*targets);
 			*targets = target_get_monsters(mode);
@@ -1287,7 +1288,7 @@ bool target_set_interactive(int mode, struct loc coords)
 	Term_cursor_visible(saved_cursor);
 
 	point_set_dispose(targets);
-	verify_panel(&angband_cave);
+	verify_panel(DISPLAY_CAVE);
 	handle_stuff(player);
 	clear_prompt();
 

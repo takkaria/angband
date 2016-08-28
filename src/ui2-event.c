@@ -16,6 +16,7 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 #include "angband.h"
+#include "ui2-display.h"
 #include "ui2-event.h"
 
 /**
@@ -364,4 +365,20 @@ bool char_matches_key(wchar_t wc, keycode_t key)
 	text_mbstowcs(&wchar, utf8, 1);
 
 	return wc == wchar;
+}
+
+int event_grid_x(int x)
+{
+	struct loc coords;
+	display_term_get_coords(DISPLAY_CAVE, &coords);
+
+	return x + coords.x;
+}
+
+int event_grid_y(int y)
+{
+	struct loc coords;
+	display_term_get_coords(DISPLAY_CAVE, &coords);
+
+	return y + coords.y;
 }

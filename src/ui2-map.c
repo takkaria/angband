@@ -331,55 +331,59 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 	tpf_wipe(point->flags);
 }
 
-void move_cursor_relative(struct angband_term *aterm, struct loc coords)
+void move_cursor_relative(enum display_term_index index, struct loc coords)
 {
-	Term_push(aterm->term);
+	struct loc offset;
+	display_term_get_coords(index, &offset);
 
-	int relx = coords.x - aterm->offset_x;
-	int rely = coords.y - aterm->offset_y;
+	/* Calculate relative coordinates */
+	coords.x -= offset.x;
+	coords.y -= offset.y;
 
-	Term_cursor_to_xy(relx, rely);
-
-	Term_pop();
+	display_term_push(index);
+	Term_cursor_to_xy(coords.x, coords.y);
+	display_term_pop();
 }
 
-void print_rel(struct angband_term *aterm,
+void print_rel(enum display_term_index index,
 		uint32_t attr, wchar_t ch, struct loc coords)
 {
-	Term_push(aterm->term);
+	struct loc offset;
+	display_term_get_coords(index, &offset);
 
-	int relx = coords.x - aterm->offset_x;
-	int rely = coords.y - aterm->offset_y;
+	/* Calculate relative coordinates */
+	coords.x -= offset.x;
+	coords.y -= offset.y;
 
-	if (Term_point_ok(relx, rely)) {
+	display_term_push(index);
+
+	if (Term_point_ok(coords.x, coords.y)) {
 		struct term_point point;
-		Term_get_point(relx, rely, &point);
+		Term_get_point(coords.x, coords.x, &point);
 
-		/* Use different point to quickly wipe all flags */
-		struct term_point other = {
-			.fg_attr = attr,
-			.fg_char = ch,
-			.bg_attr = point.bg_attr,
-			.bg_char = point.bg_char
-		};
+		point.fg_attr = attr;
+		point.fg_char = ch;
 
-		Term_set_point(relx, rely, other);
+		Term_set_point(coords.x, coords.y, point);
 	}
 
-	Term_pop();
+	display_term_pop();
 }
 
-void print_map(struct angband_term *aterm)
+void print_map(enum display_term_index index)
 {
-	Term_push(aterm->term);
-
 	int width;
 	int height;
-	Term_get_size(&width, &height);
+	display_term_get_size(index, &width, &height);
+
+	struct loc offset;
+	display_term_get_coords(index, &offset);
+
+	display_term_push(index);
 
 	/* Dump the map */
-	for (int rely = 0, absy = aterm->offset_y; rely < height; rely++, absy++) {
-		for (int relx = 0, absx = aterm->offset_x; relx < width; relx++, absx++) {
+	for (int rely = 0, absy = offset.y; rely < height; rely++, absy++) {
+		for (int relx = 0, absx = offset.x; relx < width; relx++, absx++) {
 			if (square_in_bounds(cave, absy, absx)) {
 				struct grid_data g;
 				map_info(absy, absx, &g);
@@ -392,7 +396,7 @@ void print_map(struct angband_term *aterm)
 		}
 	}
 
-	Term_pop();
+	display_term_pop();
 }
 
 static byte **make_priority_grid(void)

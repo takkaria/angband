@@ -21,77 +21,48 @@
 #define UI2_DISPLAY_H
 
 #include "angband.h"
+#include "z-type.h"
 #include "ui2-term.h"
 
-extern const char *stat_names[STAT_MAX];
-extern const char *stat_names_reduced[STAT_MAX];
-extern const char *window_flag_desc[32];
-
-/* angband_term flags which determine what a particular term does */
-enum angband_term_flag {
-	#define ATF(a, b) ATF_ ##a,
-	#include "list-term-flags.h"
-	#undef ATF
-	ATF_MAX
-};
-
-extern const char *angband_term_flag_description[ATF_MAX];
-
-struct angband_term {
-	term term;
-
-	/* offset_x and offset_y are used by terms
-	 * that display game map (dungeon) */
-	int offset_x;
-	int offset_y;
-
-	/* All permanent terms MUST have unique, non-negative indexes;
-	 * negative indexes are reserved for temporary terms */
-	int index;
-
-	char *name;
-
-	enum angband_term_flag flag;
-};
-
-/* for use with event handlers */
-#define ANGBAND_TERM(vptr) \
-	((struct angband_term *) (vptr))
-
-/*
- * these terms MUST be initialized at the start of the game
- * by the frontend. Recommended placement of these terms:
- * angband_cave in the center (of display)
- * angband_message_line above angband_cave
- * angband_status_line below angband_cave
- * angband_sidebar to the left of angband_cave
- * (see Angband sirca 4.0.5)
- */
-extern struct angband_term angband_cave;
-extern struct angband_term angband_message_line;
-extern struct angband_term angband_status_line;
-extern struct angband_term angband_sidebar;
-
-struct angband_terms {
-	struct angband_term *terms;
-	size_t number;
+enum display_term_index {
+	#define DISPLAY(i, d, minc, minr, maxc, maxr, req) \
+		DISPLAY_ ##i,
+	#include "list-display-terms.h"
+	#undef DISPLAY
 };
 
 #define ANGBAND_TERM_STANDARD_WIDTH 80
 #define ANGBAND_TERM_STANDARD_HEIGHT 24
 
-/* what is displayed in these terms can be controlled by the user;
- * it is recommended to create several of those */
-extern struct angband_terms angband_terms;
+extern const char *stat_names[STAT_MAX];
+extern const char *stat_names_reduced[STAT_MAX];
+extern const char *window_flag_desc[32];
+
+void display_term_init(enum display_term_index i, term t);
+void display_term_destroy(enum display_term_index i);
+
+const char *display_term_get_name(enum display_term_index i);
+struct display_term_vars *display_term_get_vars(enum display_term_index i);
+
+void display_term_get_size(enum display_term_index i,
+		int *width, int *height);
+void display_term_get_min_size(enum display_term_index i,
+		int *min_width, int *min_height);
+void display_term_get_max_size(enum display_term_index i,
+		int *max_width, int *max_height);
+
+void display_term_get_coords(enum display_term_index i, struct loc *coords);
+void display_term_set_coords(enum display_term_index i, struct loc coords);
+
+void display_term_push(enum display_term_index i);
+void display_term_pop(void);
+
+void init_display(void);
 
 void message_skip_more(void);
 uint32_t monster_health_attr(const struct monster *mon);
 void cnv_stat(int val, char *out_val, size_t out_len);
 void idle_update(void);
 void toggle_inven_equip(void);
-
-void subwindow_set_flag(struct angband_term *aterm,
-		enum angband_term_flag flag);
-void init_display(void);
 
 #endif /* UI2_DISPLAY_H */

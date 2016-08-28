@@ -378,20 +378,21 @@ void pre_turn_refresh(void)
 	player->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
 	handle_stuff(player);
 
-	Term_push(angband_cave.term);
+	display_term_push(DISPLAY_CAVE);
 
 	if (OPT(show_target) && target_sighted()) {
 		struct loc loc;
 
 		target_get(&loc.x, &loc.y);
-		move_cursor_relative(&angband_cave, loc);
+		move_cursor_relative(DISPLAY_CAVE, loc);
 		Term_cursor_visible(true);
 	} else {
 		Term_cursor_visible(false);
 	}
 
 	Term_flush_output();
-	Term_pop();
+
+	display_term_pop();
 }
 
 /**

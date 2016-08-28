@@ -117,12 +117,12 @@ void clear_prompt(void);
  * ------------------------------------------------------------------------
  * Miscellaneous things
  * ------------------------------------------------------------------------ */
-bool panel_should_modify(const struct angband_term *aterm, struct loc coords);
-bool modify_panel(struct angband_term *aterm, struct loc coords);
-bool adjust_panel(struct angband_term *aterm, struct loc coords);
-bool change_panel(struct angband_term *aterm, int dir);
-void verify_panel(struct angband_term *aterm);
-void center_panel(struct angband_term *aterm);
+bool panel_should_modify(enum display_term_index i, struct loc new_coords);
+bool modify_panel(enum display_term_index i, struct loc new_coords);
+bool adjust_panel(enum display_term_index i, struct loc new_coords);
+bool change_panel(enum display_term_index i, int dir);
+void verify_panel(enum display_term_index i);
+void center_panel(enum display_term_index i);
 
 void window_make(struct loc start, struct loc end);
 void clear_from(int row);

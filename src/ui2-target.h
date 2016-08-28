@@ -22,18 +22,6 @@
 #include "z-type.h"
 #include "ui2-event.h"
 
-/**
- * Convert a mouse event into a location (y coordinate)
- */
-#define EVENT_GRID_Y(e) \
-  ((int) ((e).mouse.y + angband_cave.offset_y))
-
-/**
- * Convert a mouse event into a location (x coordinate)
- */
-#define EVENT_GRID_X(e) \
-	((int) ((e).mouse.x + angband_cave.offset_x))
-
 /*
  * Time to pause (in milliseconds) after targeting a monster with "'" command
  */

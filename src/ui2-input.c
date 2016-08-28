@@ -416,7 +416,8 @@ bool askfor_aux(char *buf, size_t buflen,
 		keypress_h = askfor_aux_keypress;
 	}
 
-	Term_push(angband_message_line.term);
+	display_term_push(DISPLAY_MESSAGE_LINE);
+
 	Term_cursor_visible(true);
 
 	size_t len = strlen(buf);
@@ -452,7 +453,8 @@ bool askfor_aux(char *buf, size_t buflen,
 	}
 
 	Term_cursor_visible(false);
-	Term_pop();
+
+	display_term_pop();
 
 	return key.code != ESCAPE;
 }

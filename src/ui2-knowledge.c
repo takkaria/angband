@@ -2506,33 +2506,33 @@ void do_cmd_look(void)
  */
 void do_cmd_locate(void)
 {
-	int startx = angband_cave.offset_x;
-	int starty = angband_cave.offset_y;
+	struct loc start;
+	display_term_get_coords(DISPLAY_CAVE, &start);
 
 	while (true) {
-		int cury = angband_cave.offset_x;
-		int curx = angband_cave.offset_y;
+		struct loc cur;
+		display_term_get_coords(DISPLAY_CAVE, &cur);
 		
 		char sector[ANGBAND_TERM_STANDARD_WIDTH];
-		if (startx == curx && starty == cury) {
+		if (start.x == cur.x && start.y == cur.y) {
 			sector[0] = 0;
 		} else {
 			strnfmt(sector, sizeof(sector), "%s%s of",
-					((cury < starty) ? " north" : (cury > starty) ? " south" : ""),
-					((curx < startx) ? " west"  : (curx > startx) ? " east"  : ""));
+					((cur.y < start.y) ? " north" : (cur.y > start.y) ? " south" : ""),
+					((cur.x < start.x) ? " west"  : (cur.x > start.x) ? " east"  : ""));
 		}
 
 		char prompt[ANGBAND_TERM_STANDARD_WIDTH];
 		if (OPT(center_player)) {
 			strnfmt(prompt, sizeof(prompt),
 		        	"Map sector [%d(%02d), %d(%02d)], which is%s your sector.  Direction?",
-					curx / PANEL_SIZE, curx % PANEL_SIZE,
-					cury / PANEL_SIZE, cury % PANEL_SIZE,
+					cur.x / PANEL_SIZE, cur.x % PANEL_SIZE,
+					cur.y / PANEL_SIZE, cur.y % PANEL_SIZE,
 					sector);
 		} else {
 			strnfmt(prompt, sizeof(prompt),
 					"Map sector [%d,%d], which is%s your sector.  Direction?",
-					curx / PANEL_SIZE, cury / PANEL_SIZE, sector);
+					cur.x / PANEL_SIZE, cur.y / PANEL_SIZE, sector);
 		}
 
 		struct keypress command = KEYPRESS_NULL;
@@ -2540,7 +2540,7 @@ void do_cmd_locate(void)
 		if (get_com(prompt, (char *) &command.code)) {
 			int dir = target_dir(command);
 			if (dir) {
-				change_panel(&angband_cave, dir);
+				change_panel(DISPLAY_CAVE, dir);
 				handle_stuff(player);
 			} else {
 				bell("Illegal direction for locate!");
@@ -2550,7 +2550,7 @@ void do_cmd_locate(void)
 		}
 	};
 
-	verify_panel(&angband_cave);
+	verify_panel(DISPLAY_CAVE);
 }
 
 static int cmp_mexp(const void *a, const void *b)
@@ -2638,7 +2638,7 @@ int cmp_monsters(const void *a, const void *b)
  */
 void do_cmd_center_map(void)
 {
-	center_panel(&angband_cave);
+	center_panel(DISPLAY_CAVE);
 }
 
 /**
