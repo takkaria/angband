@@ -15,9 +15,9 @@
 /*      index           desc              min_cols  min_rows    max_cols     max_rows   required */
 DISPLAY(CAVE,           "Main map",              1,        1,    INT_MAX,     INT_MAX,      true)
 DISPLAY(MESSAGE_LINE,   "Messages line",        40,        1,    INT_MAX,           1,      true)
-DISPLAY(SIDEBAR,        "Sidebar",              13,       24,         13,          24,      true)
-DISPLAY(STATUS_LINE,    "Status line",          40,        1,    INT_MAX,           1,      true)
 
+DISPLAY(STATUS_LINE,    "Status line",          40,        1,    INT_MAX,           1,     false)
+DISPLAY(SIDEBAR,        "Sidebar",              13,       24,         13,          24,     false)
 DISPLAY(INVEN,          "Inven/equip",          40,       24,    INT_MAX,     INT_MAX,     false)
 DISPLAY(EQUIP,          "Equip/inven",          40,       24,    INT_MAX,     INT_MAX,     false)
 DISPLAY(PLAYER_BASIC,   "Player (basic)",       72,       24,    INT_MAX,     INT_MAX,     false)

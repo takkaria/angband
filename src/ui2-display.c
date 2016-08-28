@@ -1758,6 +1758,16 @@ static void display_term_handler(struct display_term *dt, bool enable)
 	}
 
 	switch (dt->index) {
+		case DISPLAY_SIDEBAR:
+			set_register_or_deregister(player_events,
+					N_ELEMENTS(player_events), update_sidebar, dt);
+			break;
+
+		case DISPLAY_STATUS_LINE:
+			set_register_or_deregister(statusline_events,
+					N_ELEMENTS(statusline_events), update_statusline, dt);
+			break;
+
 		case DISPLAY_INVEN:
 			register_or_deregister(EVENT_INVENTORY,
 					update_inven_subwindow, dt);
@@ -1806,12 +1816,12 @@ static void display_term_handler(struct display_term *dt, bool enable)
 			break;
 
 		case DISPLAY_CAVE:
-		case DISPLAY_SIDEBAR:
 		case DISPLAY_MESSAGE_LINE:
-		case DISPLAY_STATUS_LINE:
-			quit_fmt("Handlers for term %u are set automatically!",
-					(unsigned) dt->index);
+			quit_fmt("Handlers for term '%s' are set automatically!", dt->name);
 			break;
+
+		default:
+			quit_fmt("Unrecognized display index %u!\n", (unsigned) dt->index);
 	}
 }
 
@@ -2149,22 +2159,10 @@ static void ui_enter_world(game_event_type type,
 	(void) data;
 	(void) user;
 
-	struct display_term *display_cave    = display_term_get(DISPLAY_CAVE);
-	struct display_term *display_status  = display_term_get(DISPLAY_STATUS_LINE);
-	struct display_term *display_sidebar = display_term_get(DISPLAY_SIDEBAR);
+	struct display_term *display_cave = display_term_get(DISPLAY_CAVE);
 
 	player->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_MONSTER | PR_MESSAGE);
 	redraw_stuff(player);
-
-	/* Because of the "flexible" sidebar, all these things trigger
-	   the same function. */
-	event_add_handler_set(player_events,
-			N_ELEMENTS(player_events), update_sidebar, display_sidebar);
-
-	/* The flexible statusbar has similar requirements, so is
-	   also trigger by a large set of events. */
-	event_add_handler_set(statusline_events,
-			N_ELEMENTS(statusline_events), update_statusline, display_status);
 
 	/* Player HP can optionally change the colour of the '@' now. */
 	event_add_handler(EVENT_HP, hp_colour_change, NULL);
@@ -2219,19 +2217,7 @@ static void ui_leave_world(game_event_type type,
 	(void) data;
 	(void) user;
 
-	struct display_term *display_cave    = display_term_get(DISPLAY_CAVE);
-	struct display_term *display_status  = display_term_get(DISPLAY_STATUS_LINE);
-	struct display_term *display_sidebar = display_term_get(DISPLAY_SIDEBAR);
-
-	/* Because of the "flexible" sidebar, all these things trigger
-	   the same function. */
-	event_remove_handler_set(player_events,
-			N_ELEMENTS(player_events), update_sidebar, display_sidebar);
-
-	/* The flexible statusbar has similar requirements, so is
-	   also trigger by a large set of events. */
-	event_remove_handler_set(statusline_events,
-			N_ELEMENTS(statusline_events), update_statusline, display_status);
+	struct display_term *display_cave = display_term_get(DISPLAY_CAVE);
 
 	/* Player HP can optionally change the colour of the '@' now. */
 	event_remove_handler(EVENT_HP, hp_colour_change, NULL);
@@ -2337,11 +2323,7 @@ void display_term_init(enum display_term_index index, term term)
 
 	dt->term = term;
 
-	if (index != DISPLAY_CAVE
-			&& index != DISPLAY_SIDEBAR
-			&& index != DISPLAY_MESSAGE_LINE
-			&& index != DISPLAY_STATUS_LINE)
-	{
+	if (index != DISPLAY_CAVE && index != DISPLAY_MESSAGE_LINE) {
 		display_term_handler(dt, true);
 	}
 }
@@ -2352,11 +2334,7 @@ void display_term_destroy(enum display_term_index index)
 
 	assert(dt->term != NULL);
 
-	if (index != DISPLAY_CAVE
-			&& index != DISPLAY_SIDEBAR
-			&& index != DISPLAY_MESSAGE_LINE
-			&& index != DISPLAY_STATUS_LINE)
-	{
+	if (index != DISPLAY_CAVE && index != DISPLAY_MESSAGE_LINE) {
 		display_term_handler(dt, false);
 	}
 
@@ -2434,22 +2412,6 @@ void display_term_pop(void)
 
 void init_terms(void)
 {
-	/* We always need to display at least main map,
-	 * messages line, status line and sidebar */
-	struct display_term *display_cave = display_term_get(DISPLAY_CAVE);
-	assert(display_cave->required);
-
-	{
-		struct display_term *display_messages = display_term_get(DISPLAY_MESSAGE_LINE);
-		assert(display_messages->required);
-
-		struct display_term *display_status = display_term_get(DISPLAY_STATUS_LINE);
-		assert(display_status->required);
-
-		struct display_term *display_sidebar = display_term_get(DISPLAY_SIDEBAR);
-		assert(display_sidebar->required);
-	}
-
 	display_terms_check();
 
 	/* 
@@ -2457,7 +2419,7 @@ void init_terms(void)
 	 * this is necessary because the rest of textui depends
 	 * on the fact that term callbacks can always be invoked
 	 */
-	Term_push(display_cave->term);
+	Term_push(display_term_get(DISPLAY_CAVE)->term);
 }
 
 void init_display(void)
@@ -2506,14 +2468,14 @@ static struct display_term *display_term_get(enum display_term_index index)
 
 static void display_terms_check(void)
 {
+	assert(display_terms[DISPLAY_CAVE].required);
+	assert(display_terms[DISPLAY_MESSAGE_LINE].required);
+
 	for (size_t i = 0; i < N_ELEMENTS(display_terms); i++) {
 		assert(display_terms[i].index == i);
 
-		if (display_terms[i].required
-				&& display_terms[i].term == NULL)
-		{
-			quit_fmt("Display '%s' is not initialized!",
-					display_terms[i].name);
+		if (display_terms[i].required && display_terms[i].term == NULL) {
+			quit_fmt("Display '%s' is not initialized!", display_terms[i].name);
 		}
 	}
 }
