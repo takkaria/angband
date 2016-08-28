@@ -4209,6 +4209,23 @@ static void adjust_subwindow_status_default(const struct window *window,
 	subwindow->full_rect = rect;
 }
 
+static void adjust_subwindow_compact_default(const struct window *window,
+		struct subwindow *subwindow)
+{
+	SDL_Rect rect = {0};
+
+	rect.w = SUBWINDOW_WIDTH(g_term_info[subwindow->index].def_cols,
+			subwindow->cell_width);
+	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].def_rows,
+			subwindow->cell_height);
+
+	rect.x = window->inner_rect.x;
+	rect.y = MAX(window->inner_rect.y, 
+			window->inner_rect.y + (window->inner_rect.h - rect.h) / 2);
+
+	subwindow->full_rect = rect;
+}
+
 static void adjust_subwindow_other_default(const struct window *window,
 		struct subwindow *subwindow)
 {
@@ -4254,6 +4271,9 @@ static void adjust_subwindow_geometry_default(const struct window *window,
 			break;
 		case DISPLAY_STATUS_LINE:
 			adjust_subwindow_status_default(window, subwindow);
+			break;
+		case DISPLAY_PLAYER_COMPACT:
+			adjust_subwindow_compact_default(window, subwindow);
 			break;
 		default:
 			if (subwindow->is_temporary) {
@@ -5593,6 +5613,7 @@ static void create_defaults(void)
 	}
 
 	attach_subwindow_to_window(window, get_new_subwindow(DISPLAY_STATUS_LINE));
+	attach_subwindow_to_window(window, get_new_subwindow(DISPLAY_PLAYER_COMPACT));
 }
 
 static void quit_systems(void)
