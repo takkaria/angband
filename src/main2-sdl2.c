@@ -173,31 +173,6 @@
 #define REASONABLE_MAP_TILE_WIDTH 16
 #define REASONABLE_MAP_TILE_HEIGHT 16
 
-#define DEFAULT_COLS_CAVE 80
-#define DEFAULT_ROWS_CAVE 24
-#define MIN_COLS_CAVE 3
-#define MIN_ROWS_CAVE 3
-
-#define DEFAULT_COLS_MESSAGES 80
-#define DEFAULT_ROWS_MESSAGES 1
-#define MIN_COLS_MESSAGES 40
-#define MIN_ROWS_MESSAGES 1
-
-#define DEFAULT_COLS_STATUS 80
-#define DEFAULT_ROWS_STATUS 1
-#define MIN_COLS_STATUS 40
-#define MIN_ROWS_STATUS 1
-
-#define DEFAULT_COLS_SIDEBAR 13
-#define DEFAULT_ROWS_SIDEBAR 24
-#define MIN_COLS_SIDEBAR 13
-#define MIN_ROWS_SIDEBAR 12
-
-#define DEFAULT_COLS_OTHER 40
-#define DEFAULT_ROWS_OTHER 12
-#define MIN_COLS_OTHER 6
-#define MIN_ROWS_OTHER 3
-
 #define MIN_COLS_TEMPORARY 1
 #define MIN_ROWS_TEMPORARY 1
 
@@ -214,24 +189,8 @@
 		assert((button)->info.type  == (data_type));  \
 	} while (0)
 
-enum {
-	SUBWINDOW_CAVE,
-	SUBWINDOW_MESSAGES,
-	SUBWINDOW_STATUS,
-	SUBWINDOW_SIDEBAR,
-
-	SUBWINDOW_OTHER_0,
-	SUBWINDOW_OTHER_1,
-	SUBWINDOW_OTHER_2,
-	SUBWINDOW_OTHER_3,
-	SUBWINDOW_OTHER_4,
-	SUBWINDOW_OTHER_5,
-	SUBWINDOW_OTHER_6,
-	SUBWINDOW_OTHER_7,
-
-	SUBWINDOW_PERMANENT_MAX
-};
-
+#define SUBWINDOW_PERMANENT_MAX \
+	DISPLAY_MAX
 #define SUBWINDOW_TEMPORARY_MAX \
 	TERM_STACK_MAX
 
@@ -252,7 +211,6 @@ enum button_data_type {
 	BUTTON_DATA_WINVAL,
 	BUTTON_DATA_SUBVAL,
 	BUTTON_DATA_FONTVAL,
-	BUTTON_DATA_TERMVAL,
 	BUTTON_DATA_ALPHAVAL
 };
 
@@ -346,7 +304,6 @@ struct subwindow_border {
 struct subwindow_config {
 	char *font_name;
 	int font_size;
-	enum angband_term_flag flag;
 };
 
 struct window_config {
@@ -379,8 +336,6 @@ struct subwindow {
 	/* subwindow can use graphics */
 	bool use_graphics;
 
-	enum angband_term_flag flag;
-
 	struct subwindow_config *config;
 
 	/* top in z-order */
@@ -392,9 +347,6 @@ struct subwindow {
 
 	int rows;
 	int cols;
-
-	int min_cols;
-	int min_rows;
 
 	/* either font size, or tile size */
 	int cell_width;
@@ -462,14 +414,9 @@ struct fontval {
 
 /* only one of subwindow or window in fontval must be filled;
  * the other field must be NULL */
-#define SUBVAL_XOR_WINVAL(fontval) \
+#define SUBWINDOW_XOR_WINDOW(fontval) \
 	(((fontval).window != NULL && (fontval).subwindow == NULL) \
 	 || ((fontval).window == NULL && (fontval).subwindow != NULL))
-
-struct termval {
-	struct subwindow *subwindow;
-	enum angband_term_flag flag;
-};
 
 struct alphaval {
 	struct subwindow *subwindow;
@@ -485,7 +432,6 @@ struct button_info {
 		struct subwindow *subval;
 		struct window *winval;
 		struct fontval fontval;
-		struct termval termval;
 		struct alphaval alphaval;
 	} data;
 
@@ -655,7 +601,6 @@ struct font_info {
 
 struct term_info {
 	char *name;
-	struct angband_term *aterm;
 	unsigned index;
 };
 
@@ -663,41 +608,29 @@ struct term_info {
  * those are at the end of the file */
 
 const char help_sdl2[] = "SDL2 frontend";
-
 static SDL_Color g_colors[MAX_COLORS];
-
 static struct font_info g_font_info[MAX_FONTS];
-
-static struct term_info g_term_info[SUBWINDOW_PERMANENT_MAX] = {
-	/* main terms */
-	[SUBWINDOW_CAVE]     = {"Main",    &angband_cave,         SUBWINDOW_CAVE},
-	[SUBWINDOW_MESSAGES] = {"Prompt",  &angband_message_line, SUBWINDOW_MESSAGES},
-	[SUBWINDOW_STATUS]   = {"Status",  &angband_status_line,  SUBWINDOW_STATUS},
-	[SUBWINDOW_SIDEBAR]  = {"Sidebar", &angband_sidebar,      SUBWINDOW_SIDEBAR},
-
-	/* other terms */
-	[SUBWINDOW_OTHER_0]  = {"Term-1",  NULL, SUBWINDOW_OTHER_0},
-	[SUBWINDOW_OTHER_1]  = {"Term-2",  NULL, SUBWINDOW_OTHER_1},
-	[SUBWINDOW_OTHER_2]  = {"Term-3",  NULL, SUBWINDOW_OTHER_2},
-	[SUBWINDOW_OTHER_3]  = {"Term-4",  NULL, SUBWINDOW_OTHER_3},
-	[SUBWINDOW_OTHER_4]  = {"Term-5",  NULL, SUBWINDOW_OTHER_4},
-	[SUBWINDOW_OTHER_5]  = {"Term-6",  NULL, SUBWINDOW_OTHER_5},
-	[SUBWINDOW_OTHER_6]  = {"Term-7",  NULL, SUBWINDOW_OTHER_6},
-	[SUBWINDOW_OTHER_7]  = {"Term-8",  NULL, SUBWINDOW_OTHER_7}
+struct {
+	enum display_term_index index;
+	int min_cols;
+	int min_rows;
+	int max_cols;
+	int max_rows;
+	bool required;
+} g_term_info[] = {
+	#define DISPLAY(i, desc, minc, minr, maxc, maxr, req) \
+		{ \
+			.index = DISPLAY_ ##i, \
+			.min_cols = (minc), \
+			.min_rows = (minr), \
+			.max_cols = (maxc), \
+			.max_rows = (maxr), \
+			.required = (req), \
+		},
+	#include "list-display-terms.h"
+	#undef DISPLAY
 };
 
-#define IS_SUBWINDOW_OTHER(subwindow) \
-	((subwindow)->index > SUBWINDOW_SIDEBAR)
-
-#define SUBWINDOW_MAIN_MIN \
-	SUBWINDOW_CAVE
-#define SUBWINDOW_MAIN_MAX \
-	SUBWINDOW_OTHER_0
-
-#define SUBWINDOW_OTHER_MIN \
-	SUBWINDOW_OTHER_0
-#define SUBWINDOW_OTHER_MAX \
-	SUBWINDOW_PERMANENT_MAX
 
 /* Forward declarations */
 
@@ -706,7 +639,6 @@ static void free_globals(void);
 static bool read_config_file(void);
 static void dump_config_file(void);
 static void init_colors(void);
-static void init_angband_terms(void);
 static void start_windows(void);
 static void start_window(struct window *window);
 static void load_font(struct font *font);
@@ -760,6 +692,8 @@ static bool adjust_subwindow_geometry(const struct window *window,
 		struct subwindow *subwindow);
 static void position_temporary_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints);
+static int get_min_cols(const struct subwindow *subwindow);
+static int get_min_rows(const struct subwindow *subwindow);
 static bool is_ok_col_row(const struct subwindow *subwindow,
 		const SDL_Rect *rect, int cell_w, int cell_h);
 static void resize_rect(SDL_Rect *rect,
@@ -772,9 +706,7 @@ static void free_button_bank(struct button_bank *button_bank);
 static void free_menu_panel(struct menu_panel *menu_panel);
 static struct menu_panel *get_menu_panel_by_xy(struct menu_panel *menu_panel,
 		int x, int y);
-static void refresh_angband_terms(void);
-static struct angband_term *get_aterm(unsigned index);
-static char *get_aterm_name(unsigned index);
+static void refresh_display_terms(void);
 static void handle_quit(void);
 static void wait_anykey(void);
 
@@ -1340,21 +1272,6 @@ static void render_button_menu_terms(const struct window *window, struct button 
 	render_button_menu_simple(window, button);
 }
 
-static void render_button_menu_flag(const struct window *window, struct button *button)
-{
-	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_TERMVAL);
-
-	struct subwindow *subwindow = button->info.data.termval.subwindow;
-
-	assert(IS_SUBWINDOW_OTHER(subwindow));
-	struct angband_term *aterm = get_aterm(subwindow->index);
-	assert(aterm != NULL);
-
-	enum angband_term_flag flag = button->info.data.termval.flag;
-
-	render_button_menu_toggle(window, button, aterm->flag == flag);
-}
-
 static void render_button_menu_borders(const struct window *window, struct button *button)
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
@@ -1419,7 +1336,7 @@ static void render_button_menu_font_size(const struct window *window,
 	SDL_Color *bg;
 
 	struct fontval fontval = button->info.data.fontval;
-	assert(SUBVAL_XOR_WINVAL(fontval));
+	assert(SUBWINDOW_XOR_WINDOW(fontval));
 
 	int size = fontval.window != NULL ?
 		fontval.window->game_font->size : fontval.subwindow->font->size;
@@ -1453,7 +1370,7 @@ static void render_button_menu_font_name(const struct window *window, struct but
 	SDL_Color fg;
 	SDL_Color *bg;
 
-	assert(SUBVAL_XOR_WINVAL(button->info.data.fontval));
+	assert(SUBWINDOW_XOR_WINDOW(button->info.data.fontval));
 
 	struct window *winval = button->info.data.fontval.window;
 	struct subwindow *subval = button->info.data.fontval.subwindow;
@@ -2024,7 +1941,7 @@ static void handle_menu_tile_set(struct window *window,
 
 	reload_graphics(window, mode);
 
-	refresh_angband_terms();
+	refresh_display_terms();
 }
 
 static void handle_menu_tile_sets(struct window *window,
@@ -2062,31 +1979,6 @@ static void handle_menu_tile_sets(struct window *window,
 	load_next_menu_panel(window, menu_panel, button, num_elems, elems);
 }
 
-static void handle_menu_flag(struct window *window,
-		struct button *button, const SDL_Event *event,
-		struct menu_panel *menu_panel)
-{
-	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_TERMVAL);
-
-	if (!click_menu_button(button, menu_panel, event)) {
-		return;
-	}
-
-	struct subwindow *subwindow = button->info.data.termval.subwindow;
-
-	assert(IS_SUBWINDOW_OTHER(subwindow));
-	struct angband_term *aterm = get_aterm(subwindow->index);
-	assert(aterm != NULL);
-	assert(aterm->term == subwindow->term);
-
-	enum angband_term_flag flag = button->info.data.termval.flag;
-
-	if (aterm->flag != flag) {
-		subwindow_set_flag(aterm, flag);
-		refresh_angband_terms();
-	}
-}
-
 static void handle_menu_tiles(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel)
@@ -2121,7 +2013,7 @@ static void handle_menu_font_name(struct window *window,
 	}
 
 	assert(button->info.data.fontval.index < N_ELEMENTS(g_font_info));
-	assert(SUBVAL_XOR_WINVAL(button->info.data.fontval));
+	assert(SUBWINDOW_XOR_WINDOW(button->info.data.fontval));
 
 	struct window *winval = button->info.data.fontval.window;
 	struct subwindow *subval = button->info.data.fontval.subwindow;
@@ -2167,7 +2059,7 @@ static void handle_menu_font_size(struct window *window,
 		return;
 	}
 
-	assert(SUBVAL_XOR_WINVAL(button->info.data.fontval));
+	assert(SUBWINDOW_XOR_WINDOW(button->info.data.fontval));
 
 	struct window *winval = button->info.data.fontval.window;
 	struct subwindow *subval = button->info.data.fontval.subwindow;
@@ -2216,7 +2108,7 @@ static void load_next_menu_panel_font_sizes(const struct window *window,
 		BUTTON_GROUP_MENU
 	};
 
-	assert(SUBVAL_XOR_WINVAL(info.data.fontval));
+	assert(SUBWINDOW_XOR_WINDOW(info.data.fontval));
 
 	struct menu_elem elems[] = {
 		{"< %2d points >", info, render_button_menu_font_size, handle_menu_font_size}
@@ -2280,7 +2172,7 @@ static void load_next_menu_panel_font_names(const struct window *window,
 			elems[num_elems].on_render = render_button_menu_font_name;
 			elems[num_elems].on_menu = handle_menu_font_name;
 
-			assert(SUBVAL_XOR_WINVAL(elems[num_elems].info.data.fontval));
+			assert(SUBWINDOW_XOR_WINDOW(elems[num_elems].info.data.fontval));
 
 			num_elems++;
 		}
@@ -2393,36 +2285,6 @@ static void handle_menu_font_cave(struct window *window,
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
 }
 
-static void handle_menu_purpose(struct window *window,
-		struct button *button, const SDL_Event *event,
-		struct menu_panel *menu_panel)
-{
-	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
-
-	struct subwindow *subwindow = button->info.data.subval;
-	assert(IS_SUBWINDOW_OTHER(subwindow));
-
-	if (!select_menu_button(button, menu_panel, event)) {
-		return;
-	}
-
-	struct menu_elem elems[ATF_MAX];
-
-	size_t num_elems = 0;
-	for (enum angband_term_flag flag = ATF_NONE + 1; flag < ATF_MAX; flag++) {
-		elems[num_elems].caption = angband_term_flag_description[flag];
-		elems[num_elems].info.group = BUTTON_GROUP_MENU;
-		elems[num_elems].info.data.termval.subwindow = subwindow;
-		elems[num_elems].info.data.termval.flag = flag;
-		elems[num_elems].info.type = BUTTON_DATA_TERMVAL;
-		elems[num_elems].on_render = render_button_menu_flag;
-		elems[num_elems].on_menu = handle_menu_flag;
-		num_elems++;
-	}
-
-	load_next_menu_panel(window, menu_panel, button, num_elems, elems);
-}
-
 static void handle_menu_borders(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel)
@@ -2459,7 +2321,7 @@ static void handle_menu_subwindow_alpha(struct window *window,
 	render_clear(subwindow->window, subwindow->texture, &subwindow->color);
 	render_borders(subwindow);
 
-	refresh_angband_terms();
+	refresh_display_terms();
 }
 
 static void handle_menu_alpha(struct window *window,
@@ -2531,19 +2393,15 @@ static void handle_menu_terms(struct window *window,
 	struct menu_elem elems[] = {
 		{
 			"Font", info, render_button_menu_simple, 
-			subwindow->index == SUBWINDOW_CAVE ?
+			subwindow->index == DISPLAY_CAVE ?
 				handle_menu_font_cave : handle_menu_font_other
 		},
 		{
-			subwindow->index == SUBWINDOW_CAVE ? "Tiles" : NULL,
+			subwindow->index == DISPLAY_CAVE ? "Tiles" : NULL,
 			info, render_button_menu_simple, handle_menu_tiles
 		},
 		{
-			IS_SUBWINDOW_OTHER(subwindow) ? "Purpose": NULL,
-			info, render_button_menu_simple, handle_menu_purpose
-		},
-		{
-			subwindow->index == SUBWINDOW_CAVE ? NULL : "Alpha",
+			subwindow->index == DISPLAY_CAVE ? NULL : "Alpha",
 			info, render_button_menu_simple, handle_menu_alpha
 		},
 		{
@@ -2562,21 +2420,17 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 	struct menu_elem term_elems[SUBWINDOW_PERMANENT_MAX];
 	size_t n_terms = 0;
 
-	for (int i = SUBWINDOW_CAVE; i < SUBWINDOW_PERMANENT_MAX; i++) {
-		const struct angband_term *aterm = get_aterm(i);
-		if (aterm != NULL && aterm->term != NULL) {
-			struct subwindow *subwindow = Term_priv(aterm->term);
+	for (size_t i = 0; i < N_ELEMENTS(term_elems); i++) {
+		struct subwindow *subwindow =
+			get_subwindow_by_index(status_bar->window, i, true);
 
-			if (subwindow->window == status_bar->window) {
-				term_elems[n_terms].caption = aterm->name;
-				term_elems[n_terms].info.type = BUTTON_DATA_SUBVAL;
-				term_elems[n_terms].info.data.subval = subwindow;
-				term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
-				term_elems[n_terms].on_render = render_button_menu_terms;
-				term_elems[n_terms].on_menu = handle_menu_terms;
-				n_terms++;
-			}
-		}
+		term_elems[n_terms].caption = display_term_get_name(subwindow->index);
+		term_elems[n_terms].info.type = BUTTON_DATA_SUBVAL;
+		term_elems[n_terms].info.data.subval = subwindow;
+		term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
+		term_elems[n_terms].on_render = render_button_menu_terms;
+		term_elems[n_terms].on_menu = handle_menu_terms;
+		n_terms++;
 	}
 
 	struct button_info info = {BUTTON_DATA_NONE, {0}, BUTTON_GROUP_MENU};
@@ -3088,7 +2942,7 @@ static void resize_subwindow(struct subwindow *subwindow)
 	Term_flush_output();
 	Term_pop();
 
-	refresh_angband_terms();
+	refresh_display_terms();
 }
 
 static void do_sizing(struct window *window, int x, int y)
@@ -3702,7 +3556,7 @@ static bool get_event(void)
 	}
 }
 
-static void refresh_angband_terms(void)
+static void refresh_display_terms(void)
 {
 	if (character_dungeon) {
 		do_cmd_redraw();
@@ -4040,7 +3894,7 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	window->graphics.id = GRAPHICS_NONE;
 
 	struct subwindow *subwindow =
-		get_subwindow_by_index(window, SUBWINDOW_CAVE, false);
+		get_subwindow_by_index(window, DISPLAY_CAVE, false);
 
 	assert(subwindow != NULL);
 
@@ -4052,13 +3906,10 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	}
 
 	if (!adjust_subwindow_geometry(window, subwindow)) {
-		assert(subwindow->min_cols > 0);
-		assert(subwindow->min_rows > 0);
-
 		subwindow->full_rect.w =
-			SUBWINDOW_WIDTH(subwindow->min_cols, subwindow->cell_width);
+			SUBWINDOW_WIDTH(get_min_cols(subwindow), subwindow->cell_width);
 		subwindow->full_rect.h =
-			SUBWINDOW_HEIGHT(subwindow->min_rows, subwindow->cell_height);
+			SUBWINDOW_HEIGHT(get_min_rows(subwindow), subwindow->cell_height);
 
 		adjust_subwindow_geometry(window, subwindow);
 	}
@@ -4160,9 +4011,9 @@ static bool reload_font(struct subwindow *subwindow,
 				new_font->ttf.glyph.w, new_font->ttf.glyph.h))
 	{
 		subwindow->sizing_rect.w =
-			SUBWINDOW_WIDTH(subwindow->min_cols, new_font->ttf.glyph.w);
+			SUBWINDOW_WIDTH(get_min_cols(subwindow), new_font->ttf.glyph.w);
 		subwindow->sizing_rect.h =
-			SUBWINDOW_HEIGHT(subwindow->min_rows, new_font->ttf.glyph.h);
+			SUBWINDOW_HEIGHT(get_min_rows(subwindow), new_font->ttf.glyph.h);
 	}
 
 	if (subwindow->sizing_rect.w > subwindow->window->inner_rect.w
@@ -4229,48 +4080,33 @@ static void free_font(struct font *font)
 	mem_free(font);
 }
 
-static void set_min_cols_rows(struct subwindow *subwindow)
+static int get_min_cols(const struct subwindow *subwindow)
 {
-	int min_cols = 0;
-	int min_rows = 0;
-#define MIN_COLROW_CASE(sym) \
-	case SUBWINDOW_ ##sym: \
-		min_cols = MIN_COLS_ ##sym; \
-		min_rows = MIN_ROWS_ ##sym; \
-
-	switch (subwindow->index) {
-		MIN_COLROW_CASE(CAVE);     break;
-		MIN_COLROW_CASE(MESSAGES); break;
-		MIN_COLROW_CASE(STATUS);   break;
-		MIN_COLROW_CASE(SIDEBAR);  break;
-
-		default:
-			if (subwindow->is_temporary) {
-				min_cols = MIN_COLS_TEMPORARY;
-				min_rows = MIN_ROWS_TEMPORARY;
-			} else {
-				min_cols = MIN_COLS_OTHER;
-				min_rows = MIN_ROWS_OTHER;
-			}
-			break;
+	if (subwindow->is_temporary) {
+		return MIN_COLS_TEMPORARY;
+	} else {
+		assert(subwindow->index < N_ELEMENTS(g_term_info));
+		return g_term_info[subwindow->index].min_cols;
 	}
+}
 
-	assert(min_cols > 0);
-	assert(min_rows > 0);
-
-	subwindow->min_cols = min_cols;
-	subwindow->min_rows = min_rows;
-
-#undef MIN_COLROW_CASE
+static int get_min_rows(const struct subwindow *subwindow)
+{
+	if (subwindow->is_temporary) {
+		return MIN_ROWS_TEMPORARY;
+	} else {
+		assert(subwindow->index < N_ELEMENTS(g_term_info));
+		return g_term_info[subwindow->index].min_rows;
+	}
 }
 
 static bool is_ok_col_row(const struct subwindow *subwindow,
 		const SDL_Rect *rect, int cell_w, int cell_h)
 {
-	if (SUBWINDOW_WIDTH(subwindow->min_cols, cell_w) > rect->w) {
+	if (SUBWINDOW_WIDTH(get_min_cols(subwindow), cell_w) > rect->w) {
 		return false;
 	}
-	if (SUBWINDOW_HEIGHT(subwindow->min_rows, cell_h) > rect->h) {
+	if (SUBWINDOW_HEIGHT(get_min_rows(subwindow), cell_h) > rect->h) {
 		return false;
 	}
 
@@ -4282,8 +4118,10 @@ static void adjust_subwindow_cave_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(DEFAULT_COLS_CAVE, subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(DEFAULT_ROWS_CAVE, subwindow->cell_height);
+	rect.w = SUBWINDOW_WIDTH(ANGBAND_TERM_STANDARD_WIDTH,
+			subwindow->cell_width);
+	rect.h = SUBWINDOW_HEIGHT(ANGBAND_TERM_STANDARD_HEIGHT,
+			subwindow->cell_height);
 
 	/* center it */
 	rect.x = MAX(window->inner_rect.x, 
@@ -4300,48 +4138,12 @@ static void adjust_subwindow_messages_default(const struct window *window,
 	SDL_Rect rect = {0};
 
 	rect.w = window->inner_rect.w;
-	rect.h = SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, subwindow->cell_height);
+	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].max_rows,
+			subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
 	rect.y = window->inner_rect.y;
 
-	subwindow->full_rect = rect;
-}
-
-static void adjust_subwindow_status_default(const struct window *window,
-		struct subwindow *subwindow)
-{
-	SDL_Rect rect = {0};
-
-	rect.w = window->inner_rect.w;
-	rect.h = SUBWINDOW_HEIGHT(DEFAULT_ROWS_STATUS, subwindow->cell_height);
-
-	rect.x = window->inner_rect.x;
-	rect.y = MAX(window->inner_rect.y,
-			window->inner_rect.y + window->inner_rect.h - rect.h);
-
-	subwindow->full_rect = rect;
-}
-
-static void adjust_subwindow_sidebar_default(const struct window *window,
-		struct subwindow *subwindow)
-{
-	SDL_Rect rect = {0};
-
-	rect.w = SUBWINDOW_WIDTH(DEFAULT_COLS_SIDEBAR, subwindow->cell_width);
-	/* assume status line and messages have the same font
-	 * (which is probaby a good idea anyway, for consistency) */
-	rect.h = window->inner_rect.h -
-		SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, subwindow->cell_height) -
-		SUBWINDOW_HEIGHT(DEFAULT_ROWS_STATUS,   subwindow->cell_height) + 
-		2 * DEFAULT_VISIBLE_BORDER;
-
-	rect.x = window->inner_rect.x;
-	/* subtract DEFAULT_VISIBLE_BORDER to "snap" it to prompt subwindow (see try_snap());
-	 * that's also why we add 2 * DEFAULT_VISIBLE_BORDER to subwindow height */
-	rect.y = window->inner_rect.y - DEFAULT_VISIBLE_BORDER +
-		SUBWINDOW_HEIGHT(DEFAULT_ROWS_MESSAGES, subwindow->cell_height);
-	
 	subwindow->full_rect = rect;
 }
 
@@ -4350,8 +4152,10 @@ static void adjust_subwindow_other_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(DEFAULT_COLS_OTHER, subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(DEFAULT_ROWS_OTHER, subwindow->cell_height);
+	rect.w = SUBWINDOW_WIDTH(g_term_info[subwindow->index].min_cols,
+			subwindow->cell_width);
+	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].min_rows,
+			subwindow->cell_height);
 
 	/* center it */
 	rect.x = MAX(window->inner_rect.x,
@@ -4380,17 +4184,11 @@ static void adjust_subwindow_geometry_default(const struct window *window,
 		struct subwindow *subwindow)
 {
 	switch (subwindow->index) {
-		case SUBWINDOW_CAVE:
+		case DISPLAY_CAVE:
 			adjust_subwindow_cave_default(window, subwindow);
 			break;
-		case SUBWINDOW_MESSAGES:
+		case DISPLAY_MESSAGE_LINE:
 			adjust_subwindow_messages_default(window, subwindow);
-			break;
-		case SUBWINDOW_STATUS:
-			adjust_subwindow_status_default(window, subwindow);
-			break;
-		case SUBWINDOW_SIDEBAR:
-			adjust_subwindow_sidebar_default(window, subwindow);
 			break;
 		default:
 			if (subwindow->is_temporary) {
@@ -4480,7 +4278,7 @@ static void position_subwindow_exact(struct subwindow *subwindow,
 		prev_top = window->temporary.subwindows[window->temporary.number - 1 - 1];
 	} else {
 		/* no temporary terms (except this subwindow); use main map then */
-		prev_top = get_subwindow_direct(SUBWINDOW_CAVE);
+		prev_top = get_subwindow_direct(DISPLAY_CAVE);
 	}
 
 	assert(prev_top->window == subwindow->window);
@@ -4497,7 +4295,7 @@ static void position_subwindow_center(struct subwindow *subwindow,
 {
 	(void) hints;
 
-	const struct subwindow *cave = get_subwindow_direct(SUBWINDOW_CAVE);
+	const struct subwindow *cave = get_subwindow_direct(DISPLAY_CAVE);
 	assert(cave->window == subwindow->window);
 
 	subwindow->full_rect.x = MAX(cave->full_rect.x,
@@ -4512,7 +4310,7 @@ static void position_subwindow_top_center(struct subwindow *subwindow,
 {
 	(void) hints;
 
-	const struct subwindow *message_line = get_subwindow_direct(SUBWINDOW_MESSAGES);
+	const struct subwindow *message_line = get_subwindow_direct(DISPLAY_MESSAGE_LINE);
 	assert(message_line->window == subwindow->window);
 
 	/* center in in the window horizontally */
@@ -4777,12 +4575,13 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 
 	callbacks.on_click = do_button_open_subwindow;
 
-	for (unsigned i = SUBWINDOW_OTHER_MIN, label = 1;
-			i < SUBWINDOW_OTHER_MAX;
-			i++, label++)
-	{
-		info.data.uval = i;
-		PUSH_BUTTON_LEFT_TO_RIGHT(format("%2u", label));
+	for (unsigned i = 0, label = 1; i < N_ELEMENTS(g_term_info); i++) {
+		/* We display optional subwindows here */
+		if (!g_term_info[i].required) {
+			info.data.uval = i;
+			PUSH_BUTTON_LEFT_TO_RIGHT(format("%2u", label));
+			label++;
+		}
 	}
 #undef PUSH_BUTTON_LEFT_TO_RIGHT
 
@@ -5174,12 +4973,6 @@ static void dump_subwindow(const struct subwindow *subwindow, ang_file *config)
 	DUMP_SUBWINDOW("alpha", "%u", subwindow->color.a);
 	DUMP_SUBWINDOW("graphics", "%s",
 			subwindow->use_graphics ? "true" : "false");
-
-	struct angband_term *aterm = get_aterm(subwindow->index);
-	assert(aterm != NULL);
-	if (aterm->flag != ATF_NONE) {
-		DUMP_SUBWINDOW("flag", "%u", aterm->flag);
-	}
 #undef DUMP_SUBWINDOW
 	file_put(config, "\n");
 }
@@ -5390,12 +5183,6 @@ static void load_term(struct subwindow *subwindow)
 {
 	assert(!subwindow->linked);
 
-	struct angband_term *aterm = get_aterm(subwindow->index);
-	assert(aterm != NULL);
-
-	char *name = get_aterm_name(subwindow->index);
-	assert(name != NULL);
-
 	struct term_create_info info = {
 		.width     = subwindow->cols,
 		.height    = subwindow->rows,
@@ -5406,18 +5193,8 @@ static void load_term(struct subwindow *subwindow)
 
 	term term = Term_create(&info);
 
-	aterm->name  = name;
-	aterm->term  = term;
-	aterm->index = subwindow->index;
-
 	subwindow->term = term;
-
-	if (subwindow->config != NULL
-			&& subwindow->config->flag != ATF_NONE
-			&& aterm->flag != subwindow->config->flag)
-	{
-		subwindow_set_flag(aterm, subwindow->config->flag);
-	}
+	display_term_init(subwindow->index, term);
 
 	subwindow->linked = true;
 }
@@ -5434,8 +5211,6 @@ static void wipe_subwindow(struct subwindow *subwindow)
 		subwindow->index = index;
 		subwindow->is_temporary = is_temporary;
 	}
-
-	set_min_cols_rows(subwindow);
 
 	subwindow->color = g_colors[DEFAULT_SUBWINDOW_BG_COLOR];
 	subwindow->borders.color = g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR];
@@ -5620,19 +5395,7 @@ static void free_subwindow(struct subwindow *subwindow)
 	}
 	if (subwindow->term != NULL) {
 		assert(!subwindow->is_temporary);
-
-		struct angband_term *aterm = get_aterm(subwindow->index);
-
-		if (aterm->flag != ATF_NONE) {
-			subwindow_set_flag(aterm, ATF_NONE);
-		}
-
-		aterm->term = NULL;
-		aterm->name = NULL;
-		aterm->index = SUBWINDOW_PERMANENT_MAX;
-
-		Term_destroy(subwindow->term);
-		subwindow->term = NULL;
+		display_term_destroy(subwindow->index);
 	}
 	if (subwindow->config != NULL) {
 		free_subwindow_config(subwindow->config);
@@ -5758,10 +5521,10 @@ static void create_defaults(void)
 	struct window *window = get_new_window(WINDOW_MAIN);
 	assert(window != NULL);
 
-	for (unsigned i = SUBWINDOW_MAIN_MIN; i < SUBWINDOW_MAIN_MAX; i++) {
-		struct subwindow *subwindow = get_new_subwindow(i);
-
-		attach_subwindow_to_window(window, subwindow);
+	for (unsigned i = 0; i < N_ELEMENTS(g_term_info); i++) {
+		if (g_term_info[i].required) {
+			attach_subwindow_to_window(window, get_new_subwindow(i));
+		}
 	}
 }
 
@@ -5841,27 +5604,15 @@ static char g_config_file[4096];
 
 static void init_globals(void)
 {
-	{
-		size_t i = 0;
-		for (unsigned index = SUBWINDOW_MAIN_MIN;
-				i < N_ELEMENTS(g_permanent_subwindows) && index < SUBWINDOW_MAIN_MAX;
-				i++, index++)
-		{
-			assert(index < SUBWINDOW_PERMANENT_MAX);
-			g_permanent_subwindows[i].index = index;
-		}
-		for (unsigned index = SUBWINDOW_OTHER_MIN;
-				i < N_ELEMENTS(g_permanent_subwindows) && index < SUBWINDOW_OTHER_MAX;
-				i++, index++)
-		{
-			assert(index < SUBWINDOW_PERMANENT_MAX);
-			g_permanent_subwindows[i].index = index;
-		}
+	assert(N_ELEMENTS(g_term_info) == N_ELEMENTS(g_permanent_subwindows));
+
+	for (size_t i = 0; i < N_ELEMENTS(g_permanent_subwindows); i++) {
+		g_permanent_subwindows[i].index = g_term_info[i].index;
 	}
 
 	for (size_t i = 0; i < N_ELEMENTS(g_shadow_stack.subwindows); i++) {
 		g_shadow_stack.subwindows[i].is_temporary = true;
-		g_shadow_stack.subwindows[i].index = i + SUBWINDOW_PERMANENT_MAX;
+		g_shadow_stack.subwindows[i].index = DISPLAY_MAX;
 	}
 
 	for (size_t i = 0; i < N_ELEMENTS(g_windows); i++) {
@@ -5873,35 +5624,6 @@ static void init_globals(void)
 
 	path_build(g_config_file, sizeof(g_config_file),
 			DEFAULT_CONFIG_FILE_DIR, DEFAULT_CONFIG_FILE);
-
-	init_angband_terms();
-}
-
-static void init_angband_terms(void)
-{
-	assert(N_ELEMENTS(g_permanent_subwindows) == N_ELEMENTS(g_term_info));
-
-	size_t t = 0;
-	while (t < N_ELEMENTS(g_term_info) && g_term_info[t].aterm != NULL) {
-		t++;
-	}
-
-	assert(t < N_ELEMENTS(g_term_info));
-
-	angband_terms.number = N_ELEMENTS(g_term_info) - t;
-	angband_terms.terms = mem_zalloc(angband_terms.number * sizeof(*angband_terms.terms));
-
-	for (size_t i = 0; i < angband_terms.number; i++, t++) {
-		assert(g_term_info[t].aterm == NULL);
-		assert(g_term_info[t].name != NULL);
-		assert(t < N_ELEMENTS(g_term_info));
-
-		angband_terms.terms[i].name = NULL;
-		angband_terms.terms[i].term = NULL;
-		angband_terms.terms[i].flag = ATF_NONE;
-		angband_terms.terms[i].index = SUBWINDOW_PERMANENT_MAX;
-		g_term_info[t].aterm = &angband_terms.terms[i];
-	}
 }
 
 static bool is_subwindow_loaded(unsigned index)
@@ -6024,40 +5746,6 @@ static struct window *get_window_by_id(Uint32 id)
 	return NULL;
 }
 
-static struct angband_term *get_aterm(unsigned index)
-{
-	if (index < N_ELEMENTS(g_term_info)
-			&& g_term_info[index].index == index)
-	{
-		return g_term_info[index].aterm;
-	}
-
-	for (size_t i = 0; i < N_ELEMENTS(g_term_info); i++) {
-		if (g_term_info[i].index == index) {
-			return g_term_info[i].aterm;
-		}
-	}
-
-	return NULL;
-}
-
-static char *get_aterm_name(unsigned index)
-{
-	if (index < N_ELEMENTS(g_term_info)
-			&& g_term_info[index].index == index)
-	{
-		return g_term_info[index].name;
-	}
-
-	for (size_t i = 0; i < N_ELEMENTS(g_term_info); i++) {
-		if (g_term_info[i].index == index) {
-			return g_term_info[i].name;
-		}
-	}
-
-	return NULL;
-}
-
 static void free_globals(void)
 {
 	for (size_t i = 0; i < N_ELEMENTS(g_font_info); i++) {
@@ -6073,9 +5761,6 @@ static void free_globals(void)
 		assert(!g_permanent_subwindows[i].loaded);
 		assert(!g_permanent_subwindows[i].linked);
 	}
-
-	assert(angband_terms.terms != NULL);
-	mem_free(angband_terms.terms);
 }
 
 static void start_windows(void)
@@ -6433,22 +6118,6 @@ static enum parser_error config_subwindow_alpha(struct parser *parser)
 	return PARSE_ERROR_NONE;
 }
 
-static enum parser_error config_subwindow_flag(struct parser *parser)
-{
-	GET_SUBWINDOW_FROM_INDEX;
-	SUBWINDOW_INIT_OK;
-
-	enum angband_term_flag flag = parser_getuint(parser, "flag");
-
-	if (flag <= ATF_NONE || flag > ATF_MAX) {
-		return PARSE_ERROR_INVALID_VALUE;
-	}
-
-	subwindow->config->flag = flag;
-
-	return PARSE_ERROR_NONE;
-}
-
 #undef GET_WINDOW_FROM_INDEX
 #undef WINDOW_INIT_OK
 #undef GET_SUBWINDOW_FROM_INDEX
@@ -6491,8 +6160,6 @@ static struct parser *init_parse_config(void)
 			config_subwindow_top);
 	parser_reg(parser, "subwindow-alpha uint index int alpha",
 			config_subwindow_alpha);
-	parser_reg(parser, "subwindow-flag uint index uint flag",
-			config_subwindow_flag);
 
 	return parser;
 }
