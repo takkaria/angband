@@ -1496,14 +1496,15 @@ static void render_button_subwindows(const struct window *window, struct button 
 		/* Display term name as a tooltip */
 
 		assert(button->info.data.uval < N_ELEMENTS(g_term_info));
-		const char *full_name = g_term_info[button->info.data.uval].full_name;
+		const char *tip =
+			format("\"%s\" subwindow", g_term_info[button->info.data.uval].full_name);
 
 		SDL_Rect text_rect = {
 			.x = rect.x,
 			.y = window->status_bar.full_rect.y + window->status_bar.full_rect.h +
 				DEFAULT_XTRA_BORDER
 		};
-		get_string_metrics(window->status_bar.font, full_name, &text_rect.w, &text_rect.h);
+		get_string_metrics(window->status_bar.font, tip, &text_rect.w, &text_rect.h);
 
 		SDL_Rect background_rect = text_rect;
 
@@ -1518,7 +1519,7 @@ static void render_button_subwindows(const struct window *window, struct button 
 				&g_colors[DEFAULT_TOOLTIP_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
 
 		render_utf8_string(window, window->status_bar.font, NULL,
-				g_colors[DEFAULT_TOOLTIP_FG_COLOR], text_rect, full_name);
+				g_colors[DEFAULT_TOOLTIP_FG_COLOR], text_rect, tip);
 	}
 }
 
