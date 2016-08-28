@@ -25,7 +25,7 @@
 #include "ui2-term.h"
 
 enum display_term_index {
-	#define DISPLAY(i, d, minc, minr, maxc, maxr, req) \
+	#define DISPLAY(i, abbr, desc, minc, minr, defc, defr, maxc, maxr, req) \
 		DISPLAY_ ##i,
 	#include "list-display-terms.h"
 	#undef DISPLAY

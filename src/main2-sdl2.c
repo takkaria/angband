@@ -619,19 +619,25 @@ static SDL_Color g_colors[MAX_COLORS];
 static struct font_info g_font_info[MAX_FONTS];
 struct {
 	enum display_term_index index;
-	const char *name;
+	const char *short_name;
+	const char *full_name;
 	int min_cols;
 	int min_rows;
+	int def_cols;
+	int def_rows;
 	int max_cols;
 	int max_rows;
 	bool required;
 } g_term_info[] = {
-	#define DISPLAY(i, desc, minc, minr, maxc, maxr, req) \
+	#define DISPLAY(i, abbr, desc, minc, minr, defc, defr, maxc, maxr, req) \
 		{ \
 			.index = DISPLAY_ ##i, \
-			.name = (desc), \
+			.short_name = (abbr), \
+			.full_name = (desc), \
 			.min_cols = (minc), \
 			.min_rows = (minr), \
+			.def_cols = (defc), \
+			.def_rows = (defr), \
 			.max_cols = (maxc), \
 			.max_rows = (maxr), \
 			.required = (req), \
@@ -1490,14 +1496,14 @@ static void render_button_subwindows(const struct window *window, struct button 
 		/* Display term name as a tooltip */
 
 		assert(button->info.data.uval < N_ELEMENTS(g_term_info));
-		const char *name = g_term_info[button->info.data.uval].name;
+		const char *full_name = g_term_info[button->info.data.uval].full_name;
 
 		SDL_Rect text_rect = {
 			.x = rect.x,
 			.y = window->status_bar.full_rect.y + window->status_bar.full_rect.h +
 				DEFAULT_XTRA_BORDER
 		};
-		get_string_metrics(window->status_bar.font, name, &text_rect.w, &text_rect.h);
+		get_string_metrics(window->status_bar.font, full_name, &text_rect.w, &text_rect.h);
 
 		SDL_Rect background_rect = text_rect;
 
@@ -1512,7 +1518,7 @@ static void render_button_subwindows(const struct window *window, struct button 
 				&g_colors[DEFAULT_TOOLTIP_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
 
 		render_utf8_string(window, window->status_bar.font, NULL,
-				g_colors[DEFAULT_TOOLTIP_FG_COLOR], text_rect, name);
+				g_colors[DEFAULT_TOOLTIP_FG_COLOR], text_rect, full_name);
 	}
 }
 
@@ -4158,9 +4164,9 @@ static void adjust_subwindow_cave_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(ANGBAND_TERM_STANDARD_WIDTH,
+	rect.w = SUBWINDOW_WIDTH(g_term_info[DISPLAY_CAVE].def_cols,
 			subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(ANGBAND_TERM_STANDARD_HEIGHT,
+	rect.h = SUBWINDOW_HEIGHT(g_term_info[DISPLAY_CAVE].def_rows,
 			subwindow->cell_height);
 
 	/* center it */
@@ -4178,7 +4184,7 @@ static void adjust_subwindow_messages_default(const struct window *window,
 	SDL_Rect rect = {0};
 
 	rect.w = window->inner_rect.w;
-	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].max_rows,
+	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].def_rows,
 			subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
@@ -4192,9 +4198,9 @@ static void adjust_subwindow_other_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(g_term_info[subwindow->index].min_cols,
+	rect.w = SUBWINDOW_WIDTH(g_term_info[subwindow->index].def_cols,
 			subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].min_rows,
+	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].def_rows,
 			subwindow->cell_height);
 
 	/* center it */
@@ -4619,7 +4625,7 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 		/* We display optional subwindows here */
 		if (!g_term_info[i].required) {
 			info.data.uval = g_term_info[i].index;
-			PUSH_BUTTON_LEFT_TO_RIGHT(format("%2u", label));
+			PUSH_BUTTON_LEFT_TO_RIGHT(g_term_info[i].short_name);
 			label++;
 		}
 	}
