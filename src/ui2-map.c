@@ -359,7 +359,7 @@ void print_rel(enum display_term_index index,
 
 	if (Term_point_ok(coords.x, coords.y)) {
 		struct term_point point;
-		Term_get_point(coords.x, coords.x, &point);
+		Term_get_point(coords.x, coords.y, &point);
 
 		point.fg_attr = attr;
 		point.fg_char = ch;
