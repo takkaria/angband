@@ -2424,13 +2424,15 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 		struct subwindow *subwindow =
 			get_subwindow_by_index(status_bar->window, i, true);
 
-		term_elems[n_terms].caption = display_term_get_name(subwindow->index);
-		term_elems[n_terms].info.type = BUTTON_DATA_SUBVAL;
-		term_elems[n_terms].info.data.subval = subwindow;
-		term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
-		term_elems[n_terms].on_render = render_button_menu_terms;
-		term_elems[n_terms].on_menu = handle_menu_terms;
-		n_terms++;
+		if (subwindow != NULL) {
+			term_elems[n_terms].caption = display_term_get_name(subwindow->index);
+			term_elems[n_terms].info.type = BUTTON_DATA_SUBVAL;
+			term_elems[n_terms].info.data.subval = subwindow;
+			term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
+			term_elems[n_terms].on_render = render_button_menu_terms;
+			term_elems[n_terms].on_menu = handle_menu_terms;
+			n_terms++;
+		}
 	}
 
 	struct button_info info = {BUTTON_DATA_NONE, {0}, BUTTON_GROUP_MENU};
