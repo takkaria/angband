@@ -1545,7 +1545,8 @@ static void show_about(const struct window *window)
 		"Visit our forum at http://angband.oook.cz/forum"
 	};
 
-	struct { SDL_Rect rect; const char *text; } elems[N_ELEMENTS(about_text)];
+	struct {SDL_Rect rect; const char *text;} elems[N_ELEMENTS(about_text)];
+
 	for (size_t i = 0; i < N_ELEMENTS(elems); i++) {
 		elems[i].text = about_text[i];
 	}
