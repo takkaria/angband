@@ -277,7 +277,7 @@ struct font {
 	char *path;
 	int size;
 	/* index of font in g_font_info array */
-	size_t index;
+	unsigned index;
 
 	struct font_cache cache;
 };
@@ -396,7 +396,7 @@ struct fontval {
 	struct window *window;
 
 	/* index of font in g_font_info array */
-	size_t index;
+	unsigned index;
 	bool size_ok;
 };
 
