@@ -1679,6 +1679,10 @@ static bool do_button_movesize(struct window *window,
 			}
 			signal_size_state(window);
 			break;
+		default:
+			quit_fmt("bad ival %d in button '%s'",
+					button->info.data.ival, button->caption);
+			break;
 	}
 
 	return true;
