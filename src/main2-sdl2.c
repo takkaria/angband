@@ -1072,8 +1072,8 @@ static void render_cursor(struct subwindow *subwindow,
 		subwindow->cell_height
 	};
 
-	render_outline_rect(subwindow->window, subwindow->texture,
-			&rect, &color);
+	render_outline_rect(subwindow->window,
+			subwindow->texture, &rect, &color);
 }
 
 static void render_big_map_cursor(struct subwindow *subwindow,
