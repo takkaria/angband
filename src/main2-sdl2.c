@@ -547,7 +547,7 @@ struct window {
 	/* does window have mouse focus? */
 	bool focus;
 
-	/* from display mode */
+	/* from display mode; typically 16 milliseconds */
 	int delay;
 
 	/* as reported by SDL_GetWindowFlags() */
