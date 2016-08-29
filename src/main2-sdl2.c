@@ -486,7 +486,7 @@ struct status_bar {
 	SDL_Color color;
 	SDL_Texture *texture;
 
-	bool in_menu;
+	bool is_in_menu;
 };
 
 struct graphics {
@@ -967,7 +967,7 @@ static void set_subwindows_alpha(const struct window *window, int alpha)
 
 static void redraw_window(struct window *window)
 {
-	if (window->status_bar.in_menu) {
+	if (window->status_bar.is_in_menu) {
 		set_subwindows_alpha(window, window->alpha);
 		render_all_in_menu(window);
 	} else {
@@ -3198,7 +3198,7 @@ static bool handle_status_bar_events(struct window *window,
 
 static void do_status_bar_loop(struct window *window)
 {
-	window->status_bar.in_menu = true;
+	window->status_bar.is_in_menu = true;
 
 	bool keep_going = true;
 	while (keep_going) {
@@ -3228,7 +3228,7 @@ static void do_status_bar_loop(struct window *window)
 		redraw_window(window);
 	}
 
-	window->status_bar.in_menu = false;
+	window->status_bar.is_in_menu = false;
 }
 
 static bool has_visible_subwindow(const struct window *window, unsigned index)
