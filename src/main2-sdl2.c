@@ -1392,11 +1392,9 @@ static void render_button_menu_window(const struct window *window,
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_UVAL);
 
-	struct window *w = get_loaded_window(button->info.data.uval);
-
 	SDL_Color fg;
 
-	if (w != NULL) {
+	if (get_loaded_window(button->info.data.uval) != NULL) {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	} else {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
