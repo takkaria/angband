@@ -1441,7 +1441,7 @@ static void render_menu_button(const struct window *window, struct button *butto
 	}
 }
 
-static void render_button_subwindows(const struct window *window, struct button *button)
+static void render_subwindows_button(const struct window *window, struct button *button)
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_SUBWINDOWS, BUTTON_DATA_UVAL);
 
@@ -4632,7 +4632,7 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 	info.group = BUTTON_GROUP_MENU;
 	PUSH_BUTTON_LEFT_TO_RIGHT("Menu");
 
-	callbacks.on_render = render_button_subwindows;
+	callbacks.on_render = render_subwindows_button;
 	callbacks.on_event = NULL;
 
 	info.type = BUTTON_DATA_UVAL;
