@@ -1323,7 +1323,6 @@ static void render_button_menu_font_size(const struct window *window,
 		fontval.window->game_font->size : fontval.subwindow->font->size;
 
 	SDL_Color fg;
-
 	if (!button->info.data.fontval.size_ok) {
 		fg = g_colors[DEFAULT_ERROR_COLOR];
 	} else if (g_font_info[fontval.index].type == FONT_TYPE_VECTOR) {
@@ -1333,7 +1332,6 @@ static void render_button_menu_font_size(const struct window *window,
 	}
 
 	SDL_Color *bg;
-
 	if (button->highlighted) {
 		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
@@ -1360,7 +1358,6 @@ static void render_button_menu_font_name(const struct window *window, struct but
 	size_t index = button->info.data.fontval.index;
 
 	SDL_Color fg;
-
 	if (!button->info.data.fontval.size_ok) {
 		fg = g_colors[DEFAULT_ERROR_COLOR];
 	} else if (subval != NULL && subval->font->index == index) {
@@ -1372,7 +1369,6 @@ static void render_button_menu_font_name(const struct window *window, struct but
 	}
 
 	SDL_Color *bg;
-
 	if (button->highlighted) {
 		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
@@ -1393,7 +1389,6 @@ static void render_button_menu_window(const struct window *window,
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_UVAL);
 
 	SDL_Color fg;
-
 	if (get_loaded_window(button->info.data.uval) != NULL) {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	} else {
@@ -1401,7 +1396,6 @@ static void render_button_menu_window(const struct window *window,
 	}
 
 	SDL_Color *bg;
-
 	if (button->highlighted) {
 		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
