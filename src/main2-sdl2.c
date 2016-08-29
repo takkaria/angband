@@ -1412,8 +1412,9 @@ static void render_button_menu_window(const struct window *window,
 
 	SDL_Rect rect = get_button_caption_rect(button);
 
-	render_fill_rect(window, NULL, &button->full_rect, bg);
-	render_utf8_string(window, window->status_bar.font, NULL, 
+	render_fill_rect(window,
+			NULL, &button->full_rect, bg);
+	render_utf8_string(window, window->status_bar.font, NULL,
 			fg, rect, format(button->caption, button->info.data.uval));
 }
 
