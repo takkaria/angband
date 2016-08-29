@@ -605,8 +605,7 @@ static SDL_Color g_colors[MAX_COLORS];
 static struct font_info g_font_info[MAX_FONTS];
 struct {
 	enum display_term_index index;
-	const char *short_name;
-	const char *full_name;
+	const char *name;
 	int min_cols;
 	int min_rows;
 	int def_cols;
@@ -615,11 +614,10 @@ struct {
 	int max_rows;
 	bool required;
 } g_term_info[] = {
-	#define DISPLAY(i, abbr, desc, minc, minr, defc, defr, maxc, maxr, req) \
+	#define DISPLAY(i, desc, minc, minr, defc, defr, maxc, maxr, req) \
 		{ \
-			.index = DISPLAY_ ##i, \
-			.short_name = (abbr), \
-			.full_name = (desc), \
+			.index    = DISPLAY_ ##i, \
+			.name     = (desc), \
 			.min_cols = (minc), \
 			.min_rows = (minr), \
 			.def_cols = (defc), \
@@ -1490,7 +1488,7 @@ static void render_button_subwindows(const struct window *window, struct button 
 
 		assert(button->info.data.uval < N_ELEMENTS(g_term_info));
 		const char *tip =
-			format("\"%s\" subwindow", g_term_info[button->info.data.uval].full_name);
+			format("\"%s\" subwindow", g_term_info[button->info.data.uval].name);
 
 		SDL_Rect text_rect = {
 			.x = rect.x,
@@ -4655,7 +4653,7 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 		/* We display optional subwindows here */
 		if (!g_term_info[i].required) {
 			info.data.uval = g_term_info[i].index;
-			PUSH_BUTTON_LEFT_TO_RIGHT(g_term_info[i].short_name);
+			PUSH_BUTTON_LEFT_TO_RIGHT(format("%X", label));
 			label++;
 		}
 	}
