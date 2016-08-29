@@ -1459,7 +1459,7 @@ static void render_subwindows_button(const struct window *window, struct button 
 			color, rect, button->caption);
 
 	if (button->highlighted) {
-		struct subwindow *subwindow =
+		const struct subwindow *subwindow =
 			get_subwindow_by_index(window, button->info.data.uval, true);
 
 		if (subwindow != NULL && subwindow->visible) {
