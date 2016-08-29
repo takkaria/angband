@@ -1465,6 +1465,7 @@ static void render_subwindows_button(const struct window *window, struct button 
 		if (subwindow != NULL && subwindow->visible) {
 			/* draw a border around subwindow, so that it would be easy to see
 			 * which subwindow corresponds to that button */
+
 			int outline_width = (subwindow->full_rect.w - subwindow->inner_rect.w) / 2
 					- subwindow->borders.width;
 			SDL_Rect outline_rect = subwindow->full_rect;
