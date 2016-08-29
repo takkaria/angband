@@ -462,6 +462,8 @@ struct button {
 	 * not clicking yet */
 	bool highlighted;
 
+	/* this string will be freed with the button,
+	 * so use string_make() to create it */
 	char *caption;
 
 	SDL_Rect full_rect;
