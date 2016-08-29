@@ -409,6 +409,10 @@ struct fontval {
 	(((fontval).window != NULL && (fontval).subwindow == NULL) \
 	 || ((fontval).window == NULL && (fontval).subwindow != NULL))
 
+#define CHECK_FONTVAL(fontval) do { \
+	assert(SUBWINDOW_XOR_WINDOW(fontval)); \
+} while (0)
+
 struct alphaval {
 	struct subwindow *subwindow;
 	int real_value;
@@ -1335,7 +1339,7 @@ static void render_button_menu_font_size(const struct window *window,
 	SDL_Color *bg;
 
 	struct fontval fontval = button->info.data.fontval;
-	assert(SUBWINDOW_XOR_WINDOW(fontval));
+	CHECK_FONTVAL(fontval);
 
 	int size = fontval.window != NULL ?
 		fontval.window->game_font->size : fontval.subwindow->font->size;
@@ -1369,7 +1373,7 @@ static void render_button_menu_font_name(const struct window *window, struct but
 	SDL_Color fg;
 	SDL_Color *bg;
 
-	assert(SUBWINDOW_XOR_WINDOW(button->info.data.fontval));
+	CHECK_FONTVAL(button->info.data.fontval);
 
 	struct window *winval = button->info.data.fontval.window;
 	struct subwindow *subval = button->info.data.fontval.subwindow;
@@ -2042,7 +2046,7 @@ static void handle_menu_font_name(struct window *window,
 	}
 
 	assert(button->info.data.fontval.index < N_ELEMENTS(g_font_info));
-	assert(SUBWINDOW_XOR_WINDOW(button->info.data.fontval));
+	CHECK_FONTVAL(button->info.data.fontval);
 
 	struct window *winval = button->info.data.fontval.window;
 	struct subwindow *subval = button->info.data.fontval.subwindow;
@@ -2088,7 +2092,7 @@ static void handle_menu_font_size(struct window *window,
 		return;
 	}
 
-	assert(SUBWINDOW_XOR_WINDOW(button->info.data.fontval));
+	CHECK_FONTVAL(button->info.data.fontval);
 
 	struct window *winval = button->info.data.fontval.window;
 	struct subwindow *subval = button->info.data.fontval.subwindow;
@@ -2137,7 +2141,7 @@ static void load_next_menu_panel_font_sizes(const struct window *window,
 		BUTTON_GROUP_MENU
 	};
 
-	assert(SUBWINDOW_XOR_WINDOW(info.data.fontval));
+	CHECK_FONTVAL(info.data.fontval);
 
 	struct menu_elem elems[] = {
 		{"< %2d points >", info, render_button_menu_font_size, handle_menu_font_size}
@@ -2201,7 +2205,7 @@ static void load_next_menu_panel_font_names(const struct window *window,
 			elems[num_elems].on_render = render_button_menu_font_name;
 			elems[num_elems].on_menu = handle_menu_font_name;
 
-			assert(SUBWINDOW_XOR_WINDOW(elems[num_elems].info.data.fontval));
+			CHECK_FONTVAL(elems[num_elems].info.data.fontval);
 
 			num_elems++;
 		}
