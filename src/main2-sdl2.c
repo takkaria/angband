@@ -736,23 +736,30 @@ static const struct term_callbacks default_callbacks = {
 	.pop_new      = term_pop_new
 };
 
-#define BLANK_CHAR 0
-#define BLANK_ATTR MAX_COLORS
+#define BLANK_CHAR    0
+#define BLANK_ATTR    MAX_COLORS
+#define BLANK_TERRAIN BG_BLACK
 
-#define IS_BLANK_FG(point_ptr) \
+#define IS_BLANK_POINT_FG(point_ptr) \
 	((point_ptr)->fg_char == BLANK_CHAR && (point_ptr)->fg_attr == BLANK_ATTR)
 
-#define IS_BLANK_BG(point_ptr) \
+#define IS_BLANK_POINT_BG(point_ptr) \
 	((point_ptr)->bg_char == BLANK_CHAR && (point_ptr)->bg_attr == BLANK_ATTR)
 
+#define IS_BLANK_POINT_TERRAIN(point_ptr) \
+	((point_ptr)->terrain_attr == BLANK_TERRAIN)
+
 #define IS_BLANK_POINT(point_ptr) \
-	(IS_BLANK_FG(point_ptr) && IS_BLANK_BG(point_ptr))
+	(IS_BLANK_POINT_FG(point_ptr) \
+	 && IS_BLANK_POINT_BG(point_ptr) \
+	 && IS_BLANK_POINT_TERRAIN(point_ptr))
 
 static const struct term_point default_blank_point = {
 	.fg_char = BLANK_CHAR,
 	.fg_attr = BLANK_ATTR,
 	.bg_char = BLANK_CHAR,
-	.bg_attr = BLANK_ATTR
+	.bg_attr = BLANK_ATTR,
+	.terrain_attr = BLANK_TERRAIN
 };
 
 /* Functions */
@@ -3732,7 +3739,7 @@ static void term_draw_text(const struct subwindow *subwindow,
 	render_fill_rect(subwindow->window,
 			subwindow->texture, &rect, &bg);
 
-	if (!IS_BLANK_FG(point)) {
+	if (!IS_BLANK_POINT_FG(point)) {
 		SDL_Color fg = g_colors[point->fg_attr];
 
 		render_glyph_mono(subwindow->window, subwindow->font,
@@ -3755,7 +3762,7 @@ static void term_draw_tile(const struct subwindow *subwindow,
 
 	render_fill_rect(subwindow->window, subwindow->texture, &rect, &subwindow->color);
 
-	if (!IS_BLANK_BG(point)) {
+	if (!IS_BLANK_POINT_BG(point)) {
 		render_tile(subwindow, graphics, bg_col, bg_row, col, row, rect);
 	}
 
@@ -3763,7 +3770,7 @@ static void term_draw_tile(const struct subwindow *subwindow,
 		return;
 	}
 
-	if (!IS_BLANK_FG(point)) {
+	if (!IS_BLANK_POINT_FG(point)) {
 		render_tile(subwindow, graphics, fg_col, fg_row, col, row, rect);
 	}
 }
