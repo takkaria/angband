@@ -555,7 +555,7 @@ struct window {
 
 	/* position and size of window as it is on display */
 	SDL_Rect full_rect;
-	/* size of window without status bar, basically */
+	/* position and size of the part of window without status bar, basically */
 	SDL_Rect inner_rect;
 
 	SDL_Color color;
