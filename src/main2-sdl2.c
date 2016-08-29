@@ -1260,21 +1260,6 @@ static void render_button_menu_terms(const struct window *window, struct button 
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
 
-	struct subwindow *subwindow = button->info.data.subval;
-
-	if (button->highlighted && subwindow->visible) {
-		/* draw a border around subwindow, so that it would be easy to see
-		 * which subwindow corresponds to that button */
-		int outline_width = (subwindow->full_rect.w - subwindow->inner_rect.w) / 2
-				- subwindow->borders.width;
-		SDL_Rect outline_rect = subwindow->full_rect;
-		render_outline_rect_width(window,
-				NULL,
-				&outline_rect,
-				&g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR],
-				outline_width);
-	}
-
 	render_button_menu_simple(window, button);
 }
 
@@ -1484,6 +1469,22 @@ static void render_button_subwindows(const struct window *window, struct button 
 			color, rect, button->caption);
 
 	if (button->highlighted) {
+		struct subwindow *subwindow =
+			get_subwindow_by_index(window, button->info.data.uval, true);
+
+		if (subwindow != NULL && subwindow->visible) {
+			/* draw a border around subwindow, so that it would be easy to see
+			 * which subwindow corresponds to that button */
+			int outline_width = (subwindow->full_rect.w - subwindow->inner_rect.w) / 2
+					- subwindow->borders.width;
+			SDL_Rect outline_rect = subwindow->full_rect;
+			render_outline_rect_width(window,
+					NULL,
+					&outline_rect,
+					&g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR],
+					outline_width);
+		}
+
 		/* Display term name as a tooltip */
 
 		assert(button->info.data.uval < N_ELEMENTS(g_term_info));
