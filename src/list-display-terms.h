@@ -16,8 +16,8 @@
  */
 
 /*      index            short  full             min_c  min_r  def_c  def_r     max_c     max_r   required */
-DISPLAY(CAVE,               "",  "Main",             1,     1,    80,    24,  INT_MAX,  INT_MAX,      true)
-DISPLAY(MESSAGE_LINE,       "",  "Prompt line",     40,     1,    80,     1,  INT_MAX,        1,      true)
+DISPLAY(CAVE,            "Map",  "Main",             1,     1,    80,    24,  INT_MAX,  INT_MAX,      true)
+DISPLAY(MESSAGE_LINE,    "Pmt",  "Prompt line",     40,     1,    80,     1,  INT_MAX,        1,      true)
 
 DISPLAY(STATUS_LINE,     "Sts", "Status line",      40,     1,    80,     1,  INT_MAX,        1,     false)
 DISPLAY(PLAYER_COMPACT, "P(c)", "Player (compact)", 12,    24,    12,    24,  INT_MAX,  INT_MAX,     false)
