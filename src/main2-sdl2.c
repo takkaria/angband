@@ -1256,13 +1256,6 @@ static void render_button_menu_simple(const struct window *window, struct button
 	render_button_menu(window, button, fg, bg);
 }
 
-static void render_button_menu_terms(const struct window *window, struct button *button)
-{
-	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
-
-	render_button_menu_simple(window, button);
-}
-
 static void render_button_menu_borders(const struct window *window, struct button *button)
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
@@ -2464,7 +2457,7 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 			term_elems[n_terms].info.type = BUTTON_DATA_SUBVAL;
 			term_elems[n_terms].info.data.subval = subwindow;
 			term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
-			term_elems[n_terms].on_render = render_button_menu_terms;
+			term_elems[n_terms].on_render = render_button_menu_simple;
 			term_elems[n_terms].on_menu = handle_menu_terms;
 			n_terms++;
 		}
