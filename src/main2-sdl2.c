@@ -596,11 +596,6 @@ struct font_info {
 	bool loaded;
 };
 
-struct term_info {
-	char *name;
-	unsigned index;
-};
-
 /* there are also global arrays of subwindows and windows
  * those are at the end of the file */
 
