@@ -1223,14 +1223,14 @@ static void render_button_menu(const struct window *window,
 static void render_button_menu_toggle(const struct window *window,
 		struct button *button, bool active)
 {
-	SDL_Color *bg;
 	SDL_Color *fg;
-
 	if (active) {
 		fg = &g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	} else {
 		fg = &g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
 	}
+
+	SDL_Color *bg;
 	if (button->highlighted) {
 		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
@@ -1273,13 +1273,13 @@ static void render_button_menu_alpha(const struct window *window, struct button 
 	int alpha = button->info.data.alphaval.real_value;
 
 	SDL_Color fg;
-	SDL_Color *bg;
-
 	if (is_close_to(alpha, subwindow->color.a, DEFAULT_ALPHA_STEP / 2)) {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	} else {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
 	}
+
+	SDL_Color *bg;
 	if (button->highlighted) {
 		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
