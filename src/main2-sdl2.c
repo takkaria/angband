@@ -390,9 +390,12 @@ typedef void (*button_menu)(struct window *window,
 		struct menu_panel *menu_panel);
 
 struct fontval {
-	/* this a font for permanent subwindows */
+	/* this a font for permanent subwindows;
+	 * the field window must be NULL then */
 	struct subwindow *subwindow;
-	/* this a font for temporary subwindows */
+
+	/* this a font for temporary subwindows (game_font);
+	 * the field subwindow must be NULL then */
 	struct window *window;
 
 	/* index of font in g_font_info array */
@@ -400,7 +403,7 @@ struct fontval {
 	bool size_ok;
 };
 
-/* only one of subwindow or window in fontval must be filled;
+/* only one of subwindow or window in fontval must be present;
  * the other field must be NULL */
 #define SUBWINDOW_XOR_WINDOW(fontval) \
 	(((fontval).window != NULL && (fontval).subwindow == NULL) \
