@@ -345,7 +345,7 @@ struct subwindow {
 	SDL_Rect full_rect;
 	/* coordinates of inner rect are relative to that of full rect */
 	SDL_Rect inner_rect;
-	/* for use when resizing term */
+	/* for use when resizing term and for scaling big map */
 	SDL_Rect sizing_rect;
 	/* a one pixel texture, mostly for displaying something when
 	 * the player is resizing term */
