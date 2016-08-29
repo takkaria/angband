@@ -40,7 +40,7 @@
 
 #define MAX_WINDOWS 4
 #define MAX_BUTTONS 32
-#define MAX_FONTS 128
+#define MAX_FONTS   128
 
 #define DEFAULT_DISPLAY 0
 
@@ -59,7 +59,7 @@
 #define DEFAULT_ALPHA_LOW \
 	ALPHA_PERCENT(80)
 /* for "Alpha" button; in percents */
-#define DEFAULT_ALPHA_STEP 10
+#define DEFAULT_ALPHA_STEP  10
 #define DEFAULT_ALPHA_LOWEST 0
 
 #define DEFAULT_WALLPAPER "att-128.png"
@@ -86,33 +86,20 @@
 #define GLYPH_PADDING 1
 #define DEFAULT_VECTOR_FONT_SIZE 12
 
-#define DEFAULT_FONT "10x20x.fon"
-#define DEFAULT_FONT_W \
-	(10 + 2 * GLYPH_PADDING)
-#define DEFAULT_FONT_H \
-	(20 + 2 * GLYPH_PADDING)
-
+#define DEFAULT_FONT        "10x20x.fon"
+#define DEFAULT_SYSTEM_FONT "8x13x.fon"
 #define DEFAULT_GAME_FONT \
 	DEFAULT_FONT
-#define DEFAULT_GAME_FONT_W \
-	DEFAULT_FONT_W
-#define DEFAULT_GAME_FONT_H \
-	DEFAULT_FONT_H
 
-#define DEFAULT_SYSTEM_FONT "8x13x.fon"
-#define DEFAULT_SYSTEM_FONT_W \
-	(8 + 2 * GLYPH_PADDING)
-#define DEFAULT_SYSTEM_FONT_H \
-	(13 + 2 * GLYPH_PADDING)
-
-#define MAX_VECTOR_FONT_SIZE 24
+#define MAX_VECTOR_FONT_SIZE 32
 #define MIN_VECTOR_FONT_SIZE 4
 
 #define DEFAULT_BUTTON_BORDER 8
-#define DEFAULT_LINE_HEIGHT(h) ((h) * 150 / 100)
+#define DEFAULT_LINE_HEIGHT(h)      ((h) * 150 / 100)
 #define DEFAULT_MENU_LINE_HEIGHT(h) ((h) * 200 / 100)
 #define DEFAULT_MENU_LINE_WIDTH(w) \
 	((w) + DEFAULT_BUTTON_BORDER + DEFAULT_XTRA_BORDER)
+
 /* update period in window delays (160 milliseconds, assuming 60 fps) */
 #define DEFAULT_IDLE_UPDATE_PERIOD 10
 
@@ -133,19 +120,19 @@
 #define DEFAULT_STATUS_BAR_BUTTON_INACTIVE_COLOR \
 	COLOUR_L_DARK
 
-#define DEFAULT_MENU_FG_ACTIVE_COLOR \
+#define DEFAULT_MENU_SIMPLE_FG_ACTIVE_COLOR \
 	COLOUR_WHITE
-#define DEFAULT_MENU_FG_INACTIVE_COLOR \
+#define DEFAULT_MENU_SIMPLE_FG_INACTIVE_COLOR \
 	COLOUR_WHITE
-#define DEFAULT_MENU_BG_ACTIVE_COLOR \
-	COLOUR_SHADE
-#define DEFAULT_MENU_BG_INACTIVE_COLOR \
-	COLOUR_DARK
-
 #define DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR \
 	COLOUR_WHITE
 #define DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR \
 	COLOUR_L_DARK
+
+#define DEFAULT_MENU_BG_ACTIVE_COLOR \
+	COLOUR_SHADE
+#define DEFAULT_MENU_BG_INACTIVE_COLOR \
+	COLOUR_DARK
 
 #define DEFAULT_MENU_PANEL_OUTLINE_COLOR \
 	COLOUR_SHADE
@@ -153,13 +140,13 @@
 #define DEFAULT_ERROR_COLOR \
 	COLOUR_RED
 
+#define DEFAULT_ABOUT_FG_COLOR \
+	COLOUR_WHITE
 #define DEFAULT_ABOUT_BG_COLOR \
 	COLOUR_SHADE
 #define DEFAULT_ABOUT_BORDER_OUTER_COLOR \
 	COLOUR_L_DARK
 #define DEFAULT_ABOUT_BORDER_INNER_COLOR \
-	COLOUR_WHITE
-#define DEFAULT_ABOUT_TEXT_COLOR \
 	COLOUR_WHITE
 
 #define DEFAULT_TOOLTIP_FG_COLOR \
@@ -187,8 +174,8 @@
 #define DEFAULT_WINDOW_MINIMUM_W 198
 #define DEFAULT_WINDOW_MINIMUM_H 66
 
-#define DEFAULT_SNAP_RANGE \
-	(DEFAULT_FONT_W / 2)
+/* See try_snap(); range in pixels */
+#define DEFAULT_SNAP_RANGE 4
 
 #define CHECK_BUTTON_GROUP_TYPE(button, button_group, data_type) \
 	do { \
@@ -1255,10 +1242,10 @@ static void render_button_menu_simple(const struct window *window, struct button
 	SDL_Color *bg;
 
 	if (button->highlighted) {
-		fg = &g_colors[DEFAULT_MENU_FG_ACTIVE_COLOR];
+		fg = &g_colors[DEFAULT_MENU_SIMPLE_FG_ACTIVE_COLOR];
 		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
-		fg = &g_colors[DEFAULT_MENU_FG_INACTIVE_COLOR];
+		fg = &g_colors[DEFAULT_MENU_SIMPLE_FG_INACTIVE_COLOR];
 		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
 	}
 
@@ -1617,7 +1604,7 @@ static void show_about(const struct window *window)
 		elems[i].rect.y += total.y;
 
 		render_utf8_string(window, window->status_bar.font,
-			NULL, g_colors[DEFAULT_ABOUT_TEXT_COLOR],
+			NULL, g_colors[DEFAULT_ABOUT_FG_COLOR],
 			elems[i].rect, elems[i].text);
 	}
 
