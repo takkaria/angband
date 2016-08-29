@@ -1033,8 +1033,9 @@ static void render_glyph_mono(const struct window *window, const struct font *fo
 		SDL_RenderCopy(window->renderer,
 				font->cache.texture, &font->cache.rects[codepoint], &dst);
 	} else {
-		SDL_Surface *surface = TTF_RenderGlyph_Blended(font->ttf.handle,
-				(Uint16) codepoint, fg);
+		SDL_Surface *surface =
+			TTF_RenderGlyph_Blended(font->ttf.handle, (Uint16) codepoint, fg);
+
 		if (surface == NULL) {
 			return;
 		}
