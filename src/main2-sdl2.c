@@ -222,12 +222,6 @@ enum button_movesize {
 	BUTTON_MOVESIZE_SIZING
 };
 
-enum button_tile_scale {
-	BUTTON_TILE_SIZE_INVALID = 0,
-	BUTTON_TILE_SIZE_WIDTH,
-	BUTTON_TILE_SIZE_HEIGHT
-};
-
 enum button_caption_position {
 	CAPTION_POSITION_INVALID = 0,
 	CAPTION_POSITION_CENTER,
