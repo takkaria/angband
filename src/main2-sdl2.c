@@ -411,6 +411,7 @@ struct fontval {
 
 #define CHECK_FONTVAL(fontval) do { \
 	assert(SUBWINDOW_XOR_WINDOW(fontval)); \
+	assert(fontval.index < N_ELEMENTS(g_font_info)); \
 } while (0)
 
 struct alphaval {
@@ -2079,16 +2080,14 @@ static void handle_menu_font_size(struct window *window,
 		return;
 	}
 
-	unsigned index = button->info.data.fontval.index;
-	assert(index < N_ELEMENTS(g_font_info));
+	CHECK_FONTVAL(button->info.data.fontval);
 
+	unsigned index = button->info.data.fontval.index;
 	struct font_info *info = &g_font_info[index];
 
 	if (info->type == FONT_TYPE_RASTER) {
 		return;
 	}
-
-	CHECK_FONTVAL(button->info.data.fontval);
 
 	struct window *winval = button->info.data.fontval.window;
 	struct subwindow *subval = button->info.data.fontval.subwindow;
