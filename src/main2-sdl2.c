@@ -631,7 +631,6 @@ struct {
 	#undef DISPLAY
 };
 
-
 /* Forward declarations */
 
 static void init_globals(void);
