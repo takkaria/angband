@@ -2038,7 +2038,6 @@ static void handle_menu_font_name(struct window *window,
 		return;
 	}
 
-	assert(button->info.data.fontval.index < N_ELEMENTS(g_font_info));
 	CHECK_FONTVAL(button->info.data.fontval);
 
 	struct window *winval = button->info.data.fontval.window;
