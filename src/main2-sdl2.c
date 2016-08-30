@@ -1774,23 +1774,21 @@ static struct menu_panel *make_menu_panel(const struct button *origin,
 	menu_panel->rect.h = 0;
 
 	for (size_t i = 0; i < n_elems; i++) {
-		if (elems[i].caption == NULL) {
-			continue;
+		if (elems[i].caption != NULL) {
+			struct button_callbacks callbacks = {
+				elems[i].on_render, NULL, NULL, elems[i].on_menu
+			};
+			push_button(&menu_panel->button_bank,
+					font,
+					elems[i].caption,
+					elems[i].info,
+					callbacks,
+					&rect,
+					CAPTION_POSITION_LEFT);
+
+			rect.y += rect.h;
+			menu_panel->rect.h += rect.h;
 		}
-
-		struct button_callbacks callbacks = {
-			elems[i].on_render, NULL, NULL, elems[i].on_menu
-		};
-		push_button(&menu_panel->button_bank,
-				font,
-				elems[i].caption,
-				elems[i].info,
-				callbacks,
-				&rect,
-				CAPTION_POSITION_LEFT);
-
-		rect.y += rect.h;
-		menu_panel->rect.h += rect.h;
 	}
 
 	return menu_panel;
