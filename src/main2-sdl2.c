@@ -5117,6 +5117,8 @@ static void detach_subwindow_from_window(struct window *window,
 		for (i++; i < N_ELEMENTS(window->permanent.subwindows); i++) {
 			window->permanent.subwindows[i - 1] = window->permanent.subwindows[i];
 		}
+
+		window->permanent.number--;
 	}
 
 	subwindow->window = NULL;
