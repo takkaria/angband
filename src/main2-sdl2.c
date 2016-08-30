@@ -1754,12 +1754,11 @@ static struct menu_panel *make_menu_panel(const struct button *origin,
 	int maxlen = 0;
 
 	for (size_t i = 0; i < n_elems; i++) {
-		if (elems[i].caption == NULL) {
-			continue;
+		if (elems[i].caption != NULL) {
+			int w;
+			get_string_metrics(font, elems[i].caption, &w, NULL);
+			maxlen = MAX(maxlen, w);
 		}
-		int w;
-		get_string_metrics(font, elems[i].caption, &w, NULL);
-		maxlen = MAX(maxlen, w);
 	}
 
 	struct menu_panel *menu_panel = new_menu_panel();
