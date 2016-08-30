@@ -1832,7 +1832,6 @@ static bool select_menu_button(struct button *button,
 	} else {
 		do_menu_cleanup(button, menu_panel, event);
 		button->selected = true;
-
 		return true;
 	}
 }
