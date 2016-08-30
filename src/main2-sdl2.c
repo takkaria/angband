@@ -640,7 +640,7 @@ static void init_colors(void);
 static void start_windows(void);
 static void start_window(struct window *window);
 static void load_font(struct font *font);
-static void reload_game_font(struct window *window,
+static bool reload_game_font(struct window *window,
 		const struct font_info *info);
 static bool reload_subwindow_font(struct subwindow *subwindow,
 		const struct font_info *info);
@@ -2057,7 +2057,11 @@ static void handle_menu_font_name(struct window *window,
 			button->info.data.fontval.size_ok = false;
 		}
 	} else if (winval != NULL && winval->game_font->index != index) {
-		reload_game_font(winval, font_info);
+		if (reload_game_font(winval, font_info)) {
+			button->info.data.fontval.size_ok = true;
+		} else {
+			button->info.data.fontval.size_ok = false;
+		}
 	}
 }
 
@@ -2105,8 +2109,7 @@ static void handle_menu_font_size(struct window *window,
 
 		if (subval != NULL && reload_subwindow_font(subval, info)) {
 			return;
-		} else if (winval != NULL) {
-			reload_game_font(winval, info);
+		} else if (winval != NULL && reload_game_font(winval, info)) {
 			return;
 		}
 	}
@@ -4022,13 +4025,17 @@ static struct font *make_font(const struct window *window,
 	return font;
 }
 
-static void reload_game_font(struct window *window,
+static bool reload_game_font(struct window *window,
 		const struct font_info *info)
 {
-	assert(window->temporary.number == 0);
+	if (window->temporary.number > 0) {
+		return false;
+	}
 
 	free_font(window->game_font);
 	window->game_font = make_font(window, info->name, info->size);
+
+	return true;
 }
 
 static bool reload_subwindow_font(struct subwindow *subwindow,
