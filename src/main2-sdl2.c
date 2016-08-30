@@ -1762,9 +1762,6 @@ static struct menu_panel *make_menu_panel(const struct button *origin,
 	}
 
 	struct menu_panel *menu_panel = new_menu_panel();
-	if (menu_panel == NULL) {
-		return NULL;
-	}
 
 	SDL_Rect rect = {
 		origin->full_rect.x + origin->full_rect.w,
