@@ -1871,12 +1871,11 @@ static void handle_menu_window(struct window *window,
 		return;
 	}
 
-	struct window *other = get_loaded_window(button->info.data.uval);
-	if (other == NULL) {
-		other = get_new_window(button->info.data.uval);
-		assert(other != NULL);
-		wipe_window_aux_config(other);
-		start_window(other);
+	if (get_loaded_window(button->info.data.uval) == NULL) {
+		struct window *w = get_new_window(button->info.data.uval);
+		assert(w != NULL);
+		wipe_window_aux_config(w);
+		start_window(w);
 	}
 }
 
