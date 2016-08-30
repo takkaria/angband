@@ -640,6 +640,8 @@ static void init_colors(void);
 static void start_windows(void);
 static void start_window(struct window *window);
 static void load_font(struct font *font);
+static void reload_game_font(struct window *window,
+		const struct font_info *info);
 static bool reload_subwindow_font(struct subwindow *subwindow,
 		const struct font_info *info);
 static struct font *make_font(const struct window *window,
@@ -2048,16 +2050,14 @@ static void handle_menu_font_name(struct window *window,
 	const struct font_info *font_info = &g_font_info[index];
 	assert(font_info->loaded);
 
-	if (subval && subval->font->index != index) {
+	if (subval != NULL && subval->font->index != index) {
 		if (reload_subwindow_font(subval, font_info)) {
 			button->info.data.fontval.size_ok = true;
 		} else {
 			button->info.data.fontval.size_ok = false;
 		}
-	} else if (winval && winval->game_font->index != index) {
-		assert(winval->temporary.number == 0);
-		free_font(winval->game_font);
-		winval->game_font = make_font(winval, font_info->name, font_info->size);
+	} else if (winval != NULL && winval->game_font->index != index) {
+		reload_game_font(winval, font_info);
 	}
 }
 
@@ -2104,11 +2104,12 @@ static void handle_menu_font_size(struct window *window,
 		info->size = size;
 
 		if (winval != NULL) {
-			free_font(winval->game_font);
-			winval->game_font = make_font(winval, info->name, size);
+			reload_game_font(winval, info);
 			return;
-		} else if (subval != NULL && reload_subwindow_font(subval, info)) {
-			return;
+		} else if (subval != NULL) {
+			if (reload_subwindow_font(subval, info)) {
+				return;
+			}
 		}
 	}
 
@@ -4021,6 +4022,15 @@ static struct font *make_font(const struct window *window,
 	make_font_cache(window, font);
 
 	return font;
+}
+
+static void reload_game_font(struct window *window,
+		const struct font_info *info)
+{
+	assert(window->temporary.number == 0);
+
+	free_font(window->game_font);
+	window->game_font = make_font(window, info->name, info->size);
 }
 
 static bool reload_subwindow_font(struct subwindow *subwindow,
