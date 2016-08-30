@@ -2103,13 +2103,11 @@ static void handle_menu_font_size(struct window *window,
 		}
 		info->size = size;
 
-		if (winval != NULL) {
+		if (subval != NULL && reload_subwindow_font(subval, info)) {
+			return;
+		} else if (winval != NULL) {
 			reload_game_font(winval, info);
 			return;
-		} else if (subval != NULL) {
-			if (reload_subwindow_font(subval, info)) {
-				return;
-			}
 		}
 	}
 
