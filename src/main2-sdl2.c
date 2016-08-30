@@ -2055,6 +2055,7 @@ static void handle_menu_font_name(struct window *window,
 			button->info.data.fontval.size_ok = false;
 		}
 	} else if (winval && winval->game_font->index != index) {
+		assert(winval->temporary.number == 0);
 		free_font(winval->game_font);
 		winval->game_font = make_font(winval, font_info->name, font_info->size);
 	}
