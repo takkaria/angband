@@ -1872,10 +1872,10 @@ static void handle_menu_window(struct window *window,
 	}
 
 	if (get_loaded_window(button->info.data.uval) == NULL) {
-		struct window *w = get_new_window(button->info.data.uval);
-		assert(w != NULL);
-		wipe_window_aux_config(w);
-		start_window(w);
+		struct window *new = get_new_window(button->info.data.uval);
+		assert(new != NULL);
+		wipe_window_aux_config(new);
+		start_window(new);
 	}
 }
 
