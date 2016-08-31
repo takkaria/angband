@@ -2458,7 +2458,7 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 			get_subwindow_by_index(status_bar->window, i, true);
 
 		if (subwindow != NULL) {
-			term_elems[n_terms].caption = display_term_get_name(subwindow->index);
+			term_elems[n_terms].caption = g_term_info[subwindow->index].name;
 			term_elems[n_terms].info.type = BUTTON_DATA_SUBVAL;
 			term_elems[n_terms].info.data.subval = subwindow;
 			term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
