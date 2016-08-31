@@ -2368,6 +2368,8 @@ static void handle_menu_alpha(struct window *window,
 
 	struct subwindow *subwindow = button->info.data.subval;
 
+	/* Add one for DEFAULT_ALPHA_LOWEST itself, and one FOR DEFAULT_ALPHA_FULL
+	 * if it was truncated (by integer division) */
 	struct menu_elem elems[(100 - DEFAULT_ALPHA_LOWEST) / DEFAULT_ALPHA_STEP +
 		1 + ((100 - DEFAULT_ALPHA_LOWEST) % DEFAULT_ALPHA_STEP == 0 ? 0 : 1)];
 
