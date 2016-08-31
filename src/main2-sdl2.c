@@ -2440,7 +2440,7 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 	struct menu_elem term_elems[SUBWINDOW_PERMANENT_MAX];
 	size_t n_terms = 0;
 
-	for (size_t i = 0; i < N_ELEMENTS(term_elems); i++) {
+	for (unsigned i = DISPLAY_CAVE; i < DISPLAY_MAX; i++) {
 		struct subwindow *subwindow =
 			get_subwindow_by_index(status_bar->window, i, true);
 
@@ -2451,6 +2451,8 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 			term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
 			term_elems[n_terms].on_render = render_button_menu_simple;
 			term_elems[n_terms].on_menu = handle_menu_terms;
+
+			assert(n_terms < N_ELEMENTS(term_elems));
 			n_terms++;
 		}
 	}
