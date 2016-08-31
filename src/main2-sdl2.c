@@ -2385,8 +2385,7 @@ static void handle_menu_alpha(struct window *window,
 		elems[i].on_render = render_button_menu_alpha;
 		elems[i].on_menu = handle_menu_subwindow_alpha;
 	}
-	elems[N_ELEMENTS(elems) - 1].info.data.alphaval.real_value =
-		DEFAULT_ALPHA_FULL;
+	elems[N_ELEMENTS(elems) - 1].info.data.alphaval.real_value = DEFAULT_ALPHA_FULL;
 
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
 }
