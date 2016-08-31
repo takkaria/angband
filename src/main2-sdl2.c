@@ -597,13 +597,7 @@ struct font_info {
 	bool loaded;
 };
 
-/* there are also global arrays of subwindows and windows
- * those are at the end of the file */
-
-const char help_sdl2[] = "SDL2 frontend";
-static SDL_Color g_colors[MAX_COLORS];
-static struct font_info g_font_info[MAX_FONTS];
-struct {
+struct term_info {
 	enum display_term_index index;
 	const char *name;
 	int min_cols;
@@ -613,22 +607,14 @@ struct {
 	int max_cols;
 	int max_rows;
 	bool required;
-} g_term_info[] = {
-	#define DISPLAY(i, desc, minc, minr, defc, defr, maxc, maxr, req) \
-		{ \
-			.index    = DISPLAY_ ##i, \
-			.name     = (desc), \
-			.min_cols = (minc), \
-			.min_rows = (minr), \
-			.def_cols = (defc), \
-			.def_rows = (defr), \
-			.max_cols = (maxc), \
-			.max_rows = (maxr), \
-			.required = (req), \
-		},
-	#include "list-display-terms.h"
-	#undef DISPLAY
 };
+
+/* there are also global arrays of subwindows and windows
+ * those are at the end of the file */
+
+const char help_sdl2[] = "SDL2 frontend";
+static SDL_Color g_colors[MAX_COLORS];
+static struct font_info g_font_info[MAX_FONTS];
 
 /* Forward declarations */
 
@@ -709,6 +695,7 @@ static struct menu_panel *get_menu_panel_by_xy(struct menu_panel *menu_panel,
 static void refresh_display_terms(void);
 static void handle_quit(void);
 static void wait_anykey(void);
+static const struct term_info *get_term_info(enum display_term_index index);
 
 /* Term callbacks */
 
@@ -1480,9 +1467,8 @@ static void render_subwindows_button(const struct window *window, struct button 
 
 		/* Display term name as a tooltip */
 
-		assert(button->info.data.uval < N_ELEMENTS(g_term_info));
 		const char *tip =
-			format("\"%s\" subwindow", g_term_info[button->info.data.uval].name);
+			format("\"%s\" subwindow", get_term_info(button->info.data.uval)->name);
 
 		SDL_Rect text_rect = {
 			.x = rect.x,
@@ -2458,7 +2444,7 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 			get_subwindow_by_index(status_bar->window, i, true);
 
 		if (subwindow != NULL) {
-			term_elems[n_terms].caption = g_term_info[subwindow->index].name;
+			term_elems[n_terms].caption = get_term_info(subwindow->index)->name;
 			term_elems[n_terms].info.type = BUTTON_DATA_SUBVAL;
 			term_elems[n_terms].info.data.subval = subwindow;
 			term_elems[n_terms].info.group = BUTTON_GROUP_MENU;
@@ -4133,8 +4119,7 @@ static int get_min_cols(const struct subwindow *subwindow)
 	if (subwindow->is_temporary) {
 		return MIN_COLS_TEMPORARY;
 	} else {
-		assert(subwindow->index < N_ELEMENTS(g_term_info));
-		return g_term_info[subwindow->index].min_cols;
+		return get_term_info(subwindow->index)->min_cols;
 	}
 }
 
@@ -4143,8 +4128,7 @@ static int get_min_rows(const struct subwindow *subwindow)
 	if (subwindow->is_temporary) {
 		return MIN_ROWS_TEMPORARY;
 	} else {
-		assert(subwindow->index < N_ELEMENTS(g_term_info));
-		return g_term_info[subwindow->index].min_rows;
+		return get_term_info(subwindow->index)->min_rows;
 	}
 }
 
@@ -4166,9 +4150,9 @@ static void adjust_subwindow_cave_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(g_term_info[DISPLAY_CAVE].def_cols,
+	rect.w = SUBWINDOW_WIDTH(get_term_info(DISPLAY_CAVE)->def_cols,
 			subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(g_term_info[DISPLAY_CAVE].def_rows,
+	rect.h = SUBWINDOW_HEIGHT(get_term_info(DISPLAY_CAVE)->def_rows,
 			subwindow->cell_height);
 
 	/* center it */
@@ -4186,7 +4170,7 @@ static void adjust_subwindow_messages_default(const struct window *window,
 	SDL_Rect rect = {0};
 
 	rect.w = window->inner_rect.w;
-	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].def_rows,
+	rect.h = SUBWINDOW_HEIGHT(get_term_info(subwindow->index)->def_rows,
 			subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
@@ -4201,7 +4185,7 @@ static void adjust_subwindow_status_default(const struct window *window,
 	SDL_Rect rect = {0};
 
 	rect.w = window->inner_rect.w;
-	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].def_rows,
+	rect.h = SUBWINDOW_HEIGHT(get_term_info(subwindow->index)->def_rows,
 			subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
@@ -4215,9 +4199,9 @@ static void adjust_subwindow_compact_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(g_term_info[subwindow->index].def_cols,
+	rect.w = SUBWINDOW_WIDTH(get_term_info(subwindow->index)->def_cols,
 			subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].def_rows,
+	rect.h = SUBWINDOW_HEIGHT(get_term_info(subwindow->index)->def_rows,
 			subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
@@ -4232,9 +4216,9 @@ static void adjust_subwindow_other_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(g_term_info[subwindow->index].def_cols,
+	rect.w = SUBWINDOW_WIDTH(get_term_info(subwindow->index)->def_cols,
 			subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(g_term_info[subwindow->index].def_rows,
+	rect.h = SUBWINDOW_HEIGHT(get_term_info(subwindow->index)->def_rows,
 			subwindow->cell_height);
 
 	/* center it */
@@ -4661,10 +4645,10 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 
 	callbacks.on_click = do_button_open_subwindow;
 
-	for (unsigned i = 0, label = 1; i < N_ELEMENTS(g_term_info); i++) {
+	for (unsigned i = DISPLAY_CAVE, label = 1; i < DISPLAY_MAX; i++) {
 		/* We display optional subwindows here */
-		if (!g_term_info[i].required) {
-			info.data.uval = g_term_info[i].index;
+		if (!get_term_info(i)->required) {
+			info.data.uval = i;
 			PUSH_BUTTON_LEFT_TO_RIGHT(format("%X", label));
 			label++;
 		}
@@ -5609,8 +5593,8 @@ static void create_defaults(void)
 	struct window *window = get_new_window(WINDOW_MAIN);
 	assert(window != NULL);
 
-	for (unsigned i = 0; i < N_ELEMENTS(g_term_info); i++) {
-		if (g_term_info[i].required) {
+	for (unsigned i = DISPLAY_CAVE; i < DISPLAY_MAX; i++) {
+		if (get_term_info(i)->required) {
 			attach_subwindow_to_window(window, get_new_subwindow(i));
 		}
 	}
@@ -5689,6 +5673,23 @@ static struct {
 
 static struct window g_windows[MAX_WINDOWS];
 
+static struct term_info g_term_info[] = {
+	#define DISPLAY(i, desc, minc, minr, defc, defr, maxc, maxr, req) \
+		{ \
+			.index    = DISPLAY_ ##i, \
+			.name     = (desc), \
+			.min_cols = (minc), \
+			.min_rows = (minr), \
+			.def_cols = (defc), \
+			.def_rows = (defr), \
+			.max_cols = (maxc), \
+			.max_rows = (maxr), \
+			.required = (req), \
+		},
+	#include "list-display-terms.h"
+	#undef DISPLAY
+};
+
 /* the string ANGBAND_DIR_USER is freed before calling quit_hook(),
  * so we need to save the path to config file here */
 static char g_config_file[4096];
@@ -5715,6 +5716,15 @@ static void init_globals(void)
 
 	path_build(g_config_file, sizeof(g_config_file),
 			DEFAULT_CONFIG_FILE_DIR, DEFAULT_CONFIG_FILE);
+}
+
+static const struct term_info *get_term_info(enum display_term_index index)
+{
+	assert(index >= 0);
+	assert(index < N_ELEMENTS(g_term_info));
+	assert(g_term_info[index].index == index);
+
+	return &g_term_info[index];
 }
 
 static bool is_subwindow_loaded(unsigned index)
