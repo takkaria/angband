@@ -2749,11 +2749,10 @@ static void fit_rect_in_rect_proportional(SDL_Rect *small, const SDL_Rect *big)
 static void resize_rect(SDL_Rect *rect,
 		int left, int top, int right, int bottom)
 {
-	if (rect->w - left + right <= 0
-			|| rect->h - top + bottom <= 0)
-	{
+	if (rect->w - left + right <= 0 || rect->h - top + bottom <= 0) {
 		return;
 	}
+
 	rect->x += left;
 	rect->w -= left;
 
