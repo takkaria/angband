@@ -2303,6 +2303,9 @@ static void handle_menu_font_cave(struct window *window,
 	};
 
 	const char *caption_map = "Map";
+	/* dont allow to change fonts while any temporary subwindows are open,
+	 * because they all use the same font, and that font will be freed when
+	 * the new one is loaded */
 	const char *caption_game = subwindow->window->temporary.number > 0 ?
 		NULL : "Game";
 
