@@ -2260,7 +2260,7 @@ static void handle_menu_font_window(struct window *window,
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
 }
 
-static void handle_menu_font_other(struct window *window,
+static void handle_menu_font_subwindow(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel)
 {
@@ -2307,7 +2307,7 @@ static void handle_menu_font_cave(struct window *window,
 		NULL : "Other";
 
 	struct menu_elem elems[] = {
-		{caption_map, info_perm, render_button_menu_simple, handle_menu_font_other},
+		{caption_map, info_perm, render_button_menu_simple, handle_menu_font_subwindow},
 		{caption_other, info_temp, render_button_menu_simple, handle_menu_font_window}
 	};
 
@@ -2423,7 +2423,7 @@ static void handle_menu_terms(struct window *window,
 		{
 			"Font", info, render_button_menu_simple, 
 			subwindow->index == DISPLAY_CAVE ?
-				handle_menu_font_cave : handle_menu_font_other
+				handle_menu_font_cave : handle_menu_font_subwindow
 		},
 		{
 			subwindow->index == DISPLAY_CAVE ? "Tiles" : NULL,
