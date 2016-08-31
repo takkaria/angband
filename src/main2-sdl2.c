@@ -2626,9 +2626,7 @@ static bool handle_menu_button(struct window *window,
 			} else if (is_menu_button_mouse_click(button, event)) {
 				/* menu button just eats mouse clicks */
 				return true;
-			}
-
-			if (window->status_bar.menu_panel != NULL) {
+			} else if (window->status_bar.menu_panel != NULL) {
 				free_menu_panel(window->status_bar.menu_panel);
 				window->status_bar.menu_panel = NULL;
 			}
