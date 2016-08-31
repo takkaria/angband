@@ -1855,8 +1855,12 @@ static bool click_menu_button(struct button *button,
 			} else {
 				return false;
 			}
-		default:
+		case SDL_MOUSEMOTION:
 			return false;
+		default:
+			quit_fmt("non mouse event %d for button '%s'",
+					event->type, button->caption);
+			return false; /* squelch compiler warning */
 	}
 }
 
