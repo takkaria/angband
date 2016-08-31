@@ -2012,6 +2012,7 @@ static void handle_menu_tiles(struct window *window,
 
 	struct menu_elem elems[] = {
 		{"Set", info, render_button_menu_simple, handle_menu_tile_sets},
+		/* TODO size */
 	};
 
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
