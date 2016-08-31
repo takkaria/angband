@@ -2482,11 +2482,11 @@ static void load_main_menu_panel(struct status_bar *status_bar)
 	memcpy(elems, term_elems, n_terms * sizeof(term_elems[0]));
 	memcpy(elems + n_terms, other_elems, sizeof(other_elems));
 
-	struct button dummy = {0};
-	dummy.full_rect.x = status_bar->full_rect.x;
-	dummy.full_rect.y = status_bar->full_rect.y + status_bar->full_rect.h;
+	struct button origin = {0};
+	origin.full_rect.x = status_bar->full_rect.x;
+	origin.full_rect.y = status_bar->full_rect.y + status_bar->full_rect.h;
 
-	status_bar->menu_panel = make_menu_panel(&dummy, status_bar->font,
+	status_bar->menu_panel = make_menu_panel(&origin, status_bar->font,
 			n_terms + N_ELEMENTS(other_elems), elems);
 }
 
