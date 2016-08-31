@@ -2511,7 +2511,8 @@ static bool handle_menu_button_mousemotion(struct window *window,
 
 	bool handled = false;
 
-	struct menu_panel *menu_panel = get_menu_panel_by_xy(window->status_bar.menu_panel,
+	struct menu_panel *menu_panel =
+		get_menu_panel_by_xy(window->status_bar.menu_panel,
 				event->motion.x, event->motion.y);
 
 	if (menu_panel == NULL) {
@@ -2546,12 +2547,12 @@ static bool handle_menu_button_mousemotion(struct window *window,
 static bool handle_menu_button_click(struct window *window,
 		const SDL_Event *event)
 {
-	assert(event->type == SDL_MOUSEBUTTONDOWN
-			|| event->type == SDL_MOUSEBUTTONUP);
+	assert(event->type == SDL_MOUSEBUTTONDOWN || event->type == SDL_MOUSEBUTTONUP);
 
 	bool handled = false;
 
-	struct menu_panel *menu_panel = get_menu_panel_by_xy(window->status_bar.menu_panel,
+	struct menu_panel *menu_panel =
+		get_menu_panel_by_xy(window->status_bar.menu_panel,
 				event->button.x, event->button.y);
 
 	if (menu_panel == NULL) {
