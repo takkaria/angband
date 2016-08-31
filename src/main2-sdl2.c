@@ -2294,11 +2294,11 @@ static void handle_menu_font_cave(struct window *window,
 
 	struct subwindow *subwindow = button->info.data.subval;
 
-	struct button_info info_perm = {
+	struct button_info info_map = {
 		BUTTON_DATA_SUBVAL, {.subval = subwindow}, BUTTON_GROUP_MENU
 	};
 
-	struct button_info info_temp = {
+	struct button_info info_game = {
 		BUTTON_DATA_WINVAL, {.winval = subwindow->window}, BUTTON_GROUP_MENU
 	};
 
@@ -2310,8 +2310,8 @@ static void handle_menu_font_cave(struct window *window,
 		NULL : "Game";
 
 	struct menu_elem elems[] = {
-		{caption_map, info_perm, render_button_menu_simple, handle_menu_font_subwindow},
-		{caption_game, info_temp, render_button_menu_simple, handle_menu_font_window}
+		{caption_map, info_map, render_button_menu_simple, handle_menu_font_subwindow},
+		{caption_game, info_game, render_button_menu_simple, handle_menu_font_window}
 	};
 
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
