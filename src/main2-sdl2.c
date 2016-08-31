@@ -2303,12 +2303,12 @@ static void handle_menu_font_cave(struct window *window,
 	};
 
 	const char *caption_map = "Map";
-	const char *caption_other = subwindow->window->temporary.number > 0 ?
+	const char *caption_game = subwindow->window->temporary.number > 0 ?
 		NULL : "Other";
 
 	struct menu_elem elems[] = {
 		{caption_map, info_perm, render_button_menu_simple, handle_menu_font_subwindow},
-		{caption_other, info_temp, render_button_menu_simple, handle_menu_font_window}
+		{caption_game, info_temp, render_button_menu_simple, handle_menu_font_window}
 	};
 
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
