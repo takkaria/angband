@@ -2694,7 +2694,7 @@ static bool is_rect_in_rect(const SDL_Rect *small, const SDL_Rect *big)
 		&& small->y + small->h <= big->y + big->h;
 }
 
-static void fit_rect_in_rect_by_hw(SDL_Rect *small, const SDL_Rect *big)
+static void fit_rect_in_rect_by_wh(SDL_Rect *small, const SDL_Rect *big)
 {
 	if (small->x < big->x) {
 		small->w -= big->x - small->x;
@@ -2985,7 +2985,7 @@ static void do_sizing(struct window *window, int x, int y)
 	int bottom = size_state->top  ? 0 : newy;
 
 	resize_rect(&rect, left, top, right, bottom);
-	fit_rect_in_rect_by_hw(&rect, &window->inner_rect);
+	fit_rect_in_rect_by_wh(&rect, &window->inner_rect);
 
 	if (is_ok_col_row(size_state->subwindow,
 				&rect,
