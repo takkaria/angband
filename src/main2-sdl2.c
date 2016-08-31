@@ -2899,10 +2899,9 @@ static void handle_last_resize_event(int num_events, const SDL_Event *events)
 
 	for (int i = num_events - 1; i >= 0; i--) {
 		if (events[i].window.event == SDL_WINDOWEVENT_RESIZED) {
-			const SDL_WindowEvent event = events[i].window;
-			struct window *window = get_window_by_id(event.windowID);
+			struct window *window = get_window_by_id(events[i].window.windowID);
 			assert(window != NULL);
-			resize_window(window, event.data1, event.data2);
+			resize_window(window, events[i].window.data1, events[i].window.data2);
 			return;
 		}
 	}
