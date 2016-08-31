@@ -2370,8 +2370,8 @@ static void handle_menu_alpha(struct window *window,
 
 	/* Add one for DEFAULT_ALPHA_LOWEST itself, and one FOR DEFAULT_ALPHA_FULL
 	 * if it was truncated (by integer division) */
-	struct menu_elem elems[(100 - DEFAULT_ALPHA_LOWEST) / DEFAULT_ALPHA_STEP +
-		1 + ((100 - DEFAULT_ALPHA_LOWEST) % DEFAULT_ALPHA_STEP == 0 ? 0 : 1)];
+	struct menu_elem elems[1 + ((100 - DEFAULT_ALPHA_LOWEST) / DEFAULT_ALPHA_STEP) +
+		((100 - DEFAULT_ALPHA_LOWEST) % DEFAULT_ALPHA_STEP == 0 ? 0 : 1)];
 
 	for (size_t i = 0; i < N_ELEMENTS(elems); i++) {
 		int alpha = ALPHA_PERCENT(DEFAULT_ALPHA_LOWEST + i * DEFAULT_ALPHA_STEP);
