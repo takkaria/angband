@@ -2841,7 +2841,9 @@ static bool handle_menu_mousebuttondown(struct window *window,
 		const SDL_MouseButtonEvent *mouse)
 {
 	if (window->move_state.active || window->size_state.active) {
-		struct subwindow *subwindow = get_subwindow_by_xy(window, mouse->x, mouse->y, false);
+		struct subwindow *subwindow =
+			get_subwindow_by_xy(window, mouse->x, mouse->y, false);
+
 		if (subwindow != NULL
 				&& is_rect_in_rect(&subwindow->full_rect, &window->inner_rect))
 		{
