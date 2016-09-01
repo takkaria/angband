@@ -3589,7 +3589,6 @@ static void refresh_display_terms(void)
 static void term_event(void *user, bool wait)
 {
 	struct subwindow *subwindow = user;
-	assert(subwindow != NULL);
 
 	if (!get_event() && wait) {
 		while (true) {
