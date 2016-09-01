@@ -3646,7 +3646,6 @@ static void term_pop_new(void *user)
 static void term_cursor(void *user, int col, int row)
 {
 	struct subwindow *subwindow = user;
-	assert(subwindow != NULL);
 
 	render_cursor(subwindow, col, row);
 }
@@ -3654,7 +3653,6 @@ static void term_cursor(void *user, int col, int row)
 static void term_big_map_cursor(void *user, int col, int row)
 {
 	struct subwindow *subwindow = user;
-	assert(subwindow != NULL);
 
 	render_big_map_cursor(subwindow, col, row);
 }
