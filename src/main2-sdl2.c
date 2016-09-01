@@ -3423,7 +3423,7 @@ static bool handle_keydown(const SDL_KeyboardEvent *key)
 		}
 	}
 
-	if (ch) {
+	if (ch != 0) {
 		if (mods & KC_MOD_CONTROL && !(mods & KC_MOD_KEYPAD)) {
 			ch = KTRL(ch);
 			if (!MODS_INCLUDE_CONTROL(ch)) {
