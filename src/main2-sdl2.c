@@ -3911,9 +3911,10 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 
 	assert(subwindow != NULL);
 
+	load_graphics(window, mode);
+
 	if (mode->grafID != GRAPHICS_NONE) {
 		subwindow->use_graphics = true;
-		load_graphics(window, mode);
 	} else {
 		subwindow->use_graphics = false;
 	}
@@ -3928,6 +3929,7 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	}
 
 	Term_push(subwindow->term);
+	Term_clear();
 	Term_resize(subwindow->cols, subwindow->rows);
 	Term_flush_output();
 	Term_pop();

@@ -196,35 +196,37 @@ static void grid_get_monster(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 			/* TODO remove */
 			*attr = da;
 			*ch = dc;
-		} else if (OPT(purple_uniques)
+		} else {
+			if (OPT(purple_uniques)
 				&& rf_has(mon->race->flags, RF_UNIQUE))
-		{
-			/* Turn uniques purple if desired (violet, actually) */
-			*attr = COLOUR_VIOLET;
-			*ch = dc;
-		} else if (rf_has(mon->race->flags, RF_ATTR_MULTI)
-				|| rf_has(mon->race->flags, RF_ATTR_FLICKER)
-				|| rf_has(mon->race->flags, RF_ATTR_RAND))
-		{
-			/* Multi-hued monster */
-			*attr = mon->attr ? mon->attr : da;
-			*ch = dc;
-		} else if (!flags_test(mon->race->flags, RF_SIZE,
-					RF_ATTR_CLEAR, RF_CHAR_CLEAR, FLAG_END))
-		{
-			/* Normal monster (not "clear" in any way) */
-			*attr = da;
-			*ch = dc;
-		} else if (rf_has(mon->race->flags, RF_ATTR_CLEAR)) {
-			/* Normal char, Clear attr, monster */
-			*ch = dc;
-		} else if (rf_has(mon->race->flags, RF_CHAR_CLEAR)) {
-			/* Normal attr, Clear char, monster */
-			*attr = da;
-		}
+			{
+				/* Turn uniques purple if desired (violet, actually) */
+				*attr = COLOUR_VIOLET;
+				*ch = dc;
+			} else if (rf_has(mon->race->flags, RF_ATTR_MULTI)
+					|| rf_has(mon->race->flags, RF_ATTR_FLICKER)
+					|| rf_has(mon->race->flags, RF_ATTR_RAND))
+			{
+				/* Multi-hued monster */
+				*attr = mon->attr ? mon->attr : da;
+				*ch = dc;
+			} else if (!flags_test(mon->race->flags, RF_SIZE,
+						RF_ATTR_CLEAR, RF_CHAR_CLEAR, FLAG_END))
+			{
+				/* Normal monster (not "clear" in any way) */
+				*attr = da;
+				*ch = dc;
+			} else if (rf_has(mon->race->flags, RF_ATTR_CLEAR)) {
+				/* Normal char, Clear attr, monster */
+				*ch = dc;
+			} else if (rf_has(mon->race->flags, RF_CHAR_CLEAR)) {
+				/* Normal attr, Clear char, monster */
+				*attr = da;
+			}
 
-		/* Store the drawing attr so we can use it elsewhere */
-		mon->attr = *attr;
+			/* Store the drawing attr so we can use it elsewhere */
+			mon->attr = *attr;
+		}
 	}
 }
 
