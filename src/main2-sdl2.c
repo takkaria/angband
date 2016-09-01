@@ -966,13 +966,6 @@ static void redraw_window(struct window *window)
 	SDL_RenderPresent(window->renderer);
 }
 
-static void redraw_big_map(struct window *window)
-{
-	render_big_map(window);
-
-	SDL_RenderPresent(window->renderer);
-}
-
 static void redraw_all_windows(void)
 {
 	for (unsigned i = 0; i < MAX_WINDOWS; i++) {
@@ -3627,7 +3620,8 @@ static void term_big_map_redraw(void *user)
 {
 	struct subwindow *subwindow = user;
 
-	redraw_big_map(subwindow->window);
+	render_big_map(subwindow->window);
+	SDL_RenderPresent(subwindow->window->renderer);
 }
 
 static void term_delay(void *user, int msecs)
