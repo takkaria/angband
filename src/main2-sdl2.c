@@ -3668,12 +3668,12 @@ static void term_push_new(const struct term_hints *hints,
 	subwindow->cols = hints->width;
 	subwindow->rows = hints->height;
 
-	info->callbacks = default_callbacks;
+	struct term_callbacks callbacks = default_callbacks;
 
 	if (hints->purpose == TERM_PURPOSE_BIG_MAP) {
 		subwindow->big_map = true;
-		info->callbacks.redraw = term_big_map_redraw;
-		info->callbacks.cursor = term_big_map_cursor;
+		callbacks.redraw = term_big_map_redraw;
+		callbacks.cursor = term_big_map_cursor;
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 	}
 
@@ -3684,10 +3684,11 @@ static void term_push_new(const struct term_hints *hints,
 	load_subwindow(window, subwindow);
 	position_temporary_subwindow(subwindow, hints);
 
-	info->user   = subwindow;
-	info->blank  = default_blank_point;
-	info->width  = subwindow->cols;
-	info->height = subwindow->rows;
+	info->user      = subwindow;
+	info->blank     = default_blank_point;
+	info->width     = subwindow->cols;
+	info->height    = subwindow->rows;
+	info->callbacks = callbacks;
 }
 
 static void term_draw_text(const struct subwindow *subwindow,
