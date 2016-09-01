@@ -3489,7 +3489,8 @@ static bool handle_text_input(const SDL_TextInputEvent *input)
 
 	if (mods & KC_MOD_SHIFT) {
 		switch (ch) {
-			/* maybe the player pressed key on keypad? */
+			/* maybe the player pressed key on keypad?
+			 * then it should be handled by handle_keydown() */
 			case '0': /* fallthru */
 			case '1': /* fallthru */
 			case '2': /* fallthru */
