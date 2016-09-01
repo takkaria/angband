@@ -3100,7 +3100,6 @@ static bool handle_menu_windowevent(struct window *window,
 	}
 
 	redraw_status_bar_buttons(window);
-
 	handle_windowevent(event);
 
 	return false;
