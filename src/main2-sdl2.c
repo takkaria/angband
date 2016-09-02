@@ -4149,7 +4149,7 @@ static void adjust_subwindow_cave_default(const struct window *window,
 	subwindow->full_rect = rect;
 }
 
-static void adjust_subwindow_messages_default(const struct window *window,
+static void adjust_subwindow_message_line_default(const struct window *window,
 		struct subwindow *subwindow)
 {
 	SDL_Rect rect = {0};
@@ -4164,7 +4164,7 @@ static void adjust_subwindow_messages_default(const struct window *window,
 	subwindow->full_rect = rect;
 }
 
-static void adjust_subwindow_status_default(const struct window *window,
+static void adjust_subwindow_status_line_default(const struct window *window,
 		struct subwindow *subwindow)
 {
 	SDL_Rect rect = {0};
@@ -4179,7 +4179,7 @@ static void adjust_subwindow_status_default(const struct window *window,
 	subwindow->full_rect = rect;
 }
 
-static void adjust_subwindow_compact_default(const struct window *window,
+static void adjust_subwindow_player_compact_default(const struct window *window,
 		struct subwindow *subwindow)
 {
 	SDL_Rect rect = {0};
@@ -4196,7 +4196,7 @@ static void adjust_subwindow_compact_default(const struct window *window,
 	subwindow->full_rect = rect;
 }
 
-static void adjust_subwindow_other_default(const struct window *window,
+static void adjust_subwindow_permanent_default(const struct window *window,
 		struct subwindow *subwindow)
 {
 	SDL_Rect rect = {0};
@@ -4237,19 +4237,19 @@ static void adjust_subwindow_geometry_default(const struct window *window,
 			adjust_subwindow_cave_default(window, subwindow);
 			break;
 		case DISPLAY_MESSAGE_LINE:
-			adjust_subwindow_messages_default(window, subwindow);
+			adjust_subwindow_message_line_default(window, subwindow);
 			break;
 		case DISPLAY_STATUS_LINE:
-			adjust_subwindow_status_default(window, subwindow);
+			adjust_subwindow_status_line_default(window, subwindow);
 			break;
 		case DISPLAY_PLAYER_COMPACT:
-			adjust_subwindow_compact_default(window, subwindow);
+			adjust_subwindow_player_compact_default(window, subwindow);
 			break;
 		default:
 			if (subwindow->is_temporary) {
 				adjust_subwindow_temporary_default(window, subwindow);
 			} else {
-				adjust_subwindow_other_default(window, subwindow);
+				adjust_subwindow_permanent_default(window, subwindow);
 			}
 			break;
 	}
