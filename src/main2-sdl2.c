@@ -3979,7 +3979,6 @@ static void make_font_cache(const struct window *window, struct font *font)
 
 		SDL_DestroyTexture(texture);
 	}
-
 }
 
 static struct font *make_font(const struct window *window,
