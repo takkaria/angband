@@ -4696,7 +4696,6 @@ static void load_status_bar(struct window *window)
 	} else {
 		window->status_bar.font = make_font(window, DEFAULT_SYSTEM_FONT, 0);
 	}
-	assert(window->status_bar.font != NULL);
 
 	adjust_status_bar_geometry(window);
 
@@ -4815,7 +4814,6 @@ static void load_window(struct window *window)
 	} else {
 		window->game_font = make_font(window, DEFAULT_GAME_FONT, 0);
 	}
-	assert(window->game_font != NULL);
 
 	if (window->wallpaper.mode != WALLPAPER_DONT_SHOW) {
 		if (window->config == NULL) {
