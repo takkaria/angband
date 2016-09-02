@@ -4255,7 +4255,7 @@ static void adjust_subwindow_geometry_default(const struct window *window,
 	}
 }
 
-static bool adjust_subwindow_geometry(const struct window *window,
+static void adjust_subwindow_cell_size(const struct window *window,
 		struct subwindow *subwindow)
 {
 	if (subwindow->use_graphics) {
@@ -4270,7 +4270,13 @@ static bool adjust_subwindow_geometry(const struct window *window,
 		subwindow->cell_width = subwindow->font->ttf.glyph.w;
 		subwindow->cell_height = subwindow->font->ttf.glyph.h;
 	}
-	
+}
+
+static bool adjust_subwindow_geometry(const struct window *window,
+		struct subwindow *subwindow)
+{
+	adjust_subwindow_cell_size(window, subwindow);
+
 	if (!subwindow->loaded && subwindow->config == NULL) {
 		/* brand new subwindow */
 		adjust_subwindow_geometry_default(window, subwindow);
