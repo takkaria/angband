@@ -3818,6 +3818,7 @@ static void load_wallpaper(struct window *window, const char *path)
 		while (h < window->inner_rect.h / 4) {
 			h *= 2;
 		}
+
 		window->wallpaper.texture = make_subwindow_texture(window, w, h);
 		window->wallpaper.width = w;
 		window->wallpaper.height = h;
