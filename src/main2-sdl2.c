@@ -4705,7 +4705,8 @@ static void load_status_bar(struct window *window)
 	/* let's try renderer */
 	if (SDL_SetRenderDrawColor(window->renderer,
 				window->status_bar.color.r, window->status_bar.color.g,
-				window->status_bar.color.b, window->status_bar.color.a) != 0) {
+				window->status_bar.color.b, window->status_bar.color.a) != 0)
+	{
 		quit_fmt("cant set render color for status bar in window %u: %s",
 				window->index, SDL_GetError());
 	}
