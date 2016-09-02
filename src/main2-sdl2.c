@@ -4913,7 +4913,6 @@ static void wipe_window_aux_config(struct window *window)
 {
 	assert(window->config == NULL);
 	window->config = mem_zalloc(sizeof(*window->config));
-	assert(window->config != NULL);
 
 	const struct window *main_window = get_loaded_window(WINDOW_MAIN);
 	assert(main_window != NULL);
