@@ -4807,6 +4807,16 @@ static void load_window(struct window *window)
 	make_default_status_buttons(&window->status_bar);
 	set_window_delay(window);
 
+	assert(window->game_font == NULL);
+	if (window->config != NULL) {
+		window->game_font = make_font(window,
+				window->config->game_font_name,
+				window->config->game_font_size);
+	} else {
+		window->game_font = make_font(window, DEFAULT_GAME_FONT, 0);
+	}
+	assert(window->game_font != NULL);
+
 	if (window->wallpaper.mode != WALLPAPER_DONT_SHOW) {
 		if (window->config == NULL) {
 			load_default_wallpaper(window);
@@ -4819,16 +4829,6 @@ static void load_window(struct window *window)
 
 	if (window->graphics.id != GRAPHICS_NONE) {
 		load_graphics(window, get_graphics_mode(window->graphics.id));
-	}
-
-	if (window->game_font == NULL) {
-		if (window->config != NULL) {
-			window->game_font = make_font(window,
-					window->config->game_font_name,
-					window->config->game_font_size);
-		} else {
-			window->game_font = make_font(window, DEFAULT_GAME_FONT, 0);
-		}
 	}
 
 	render_clear(window, NULL, &window->color);
