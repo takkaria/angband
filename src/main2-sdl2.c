@@ -4806,7 +4806,6 @@ static void load_window(struct window *window)
 	make_default_status_buttons(&window->status_bar);
 	set_window_delay(window);
 
-	assert(window->game_font == NULL);
 	if (window->config != NULL) {
 		window->game_font = make_font(window,
 				window->config->game_font_name,
