@@ -5491,6 +5491,7 @@ static void free_window(struct window *window)
 
 	if (window->game_font != NULL) {
 		free_font(window->game_font);
+		window->game_font = NULL;
 	}
 
 	free_graphics(&window->graphics);
