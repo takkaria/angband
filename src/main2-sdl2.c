@@ -3811,7 +3811,7 @@ static void load_wallpaper(struct window *window, const char *path)
 		SDL_Rect dst = {0, 0, w, h};
 
 		/* make wallpaper 1/4 to 1/2 of the window's width and height
-		 * that would be 4 to 16 calls to RenderCopy in wallpaper rendering function */
+		 * that would be 9 to 16 calls to RenderCopy in wallpaper rendering function */
 		while (w < window->inner_rect.w / 4) {
 			w *= 2;
 		}
