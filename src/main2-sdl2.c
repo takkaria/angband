@@ -4924,7 +4924,7 @@ static void wipe_window_aux_config(struct window *window)
 	window->config->renderer_flags = rinfo.flags;
 	window->config->renderer_index = -1;
 
-	window->config->window_flags= SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+	window->config->window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
 
 	if (main_window->config == NULL) {
 		char path[4096];
