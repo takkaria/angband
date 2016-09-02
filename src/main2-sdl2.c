@@ -167,9 +167,6 @@
 #define REASONABLE_MAP_TILE_WIDTH 16
 #define REASONABLE_MAP_TILE_HEIGHT 16
 
-#define MIN_COLS_TEMPORARY 1
-#define MIN_ROWS_TEMPORARY 1
-
 /* some random numbers */
 #define DEFAULT_WINDOW_MINIMUM_W 198
 #define DEFAULT_WINDOW_MINIMUM_H 66
@@ -4103,7 +4100,8 @@ static void free_font(struct font *font)
 static int get_min_cols(const struct subwindow *subwindow)
 {
 	if (subwindow->is_temporary) {
-		return MIN_COLS_TEMPORARY;
+		assert(subwindow->cols > 0);
+		return subwindow->cols;
 	} else {
 		return get_term_info(subwindow->index)->min_cols;
 	}
@@ -4112,7 +4110,8 @@ static int get_min_cols(const struct subwindow *subwindow)
 static int get_min_rows(const struct subwindow *subwindow)
 {
 	if (subwindow->is_temporary) {
-		return MIN_ROWS_TEMPORARY;
+		assert(subwindow->rows > 0);
+		return subwindow->rows;
 	} else {
 		return get_term_info(subwindow->index)->min_rows;
 	}
