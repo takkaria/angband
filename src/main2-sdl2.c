@@ -43,6 +43,7 @@
 #define MAX_FONTS   128
 
 #define DEFAULT_DISPLAY 0
+#define DEFAULT_REFRESH_RATE 60
 
 #define INIT_SDL_FLAGS \
 	(SDL_INIT_VIDEO)
@@ -4790,8 +4791,8 @@ static void set_window_delay(struct window *window)
 	SDL_DisplayMode mode;
 	if (SDL_GetCurrentDisplayMode(display, &mode) != 0)
 	{
-		/* lets just guess; 60 fps is standard */
-		mode.refresh_rate = 60;
+		/* lets just guess */
+		mode.refresh_rate = DEFAULT_REFRESH_RATE;
 	}
 	/* delay in milliseconds; refresh rate in hz */
 	window->delay = 1000 / mode.refresh_rate;
