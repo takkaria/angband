@@ -4617,20 +4617,20 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 	rect.h = status_bar->full_rect.h;
 
 	callbacks.on_render = render_menu_button;
-	callbacks.on_event = handle_menu_button;
-	callbacks.on_menu = NULL;
+	callbacks.on_event  = handle_menu_button;
+	callbacks.on_menu   = NULL;
+	callbacks.on_click  = NULL;
 
-	info.type = BUTTON_DATA_NONE;
+	info.type  = BUTTON_DATA_NONE;
 	info.group = BUTTON_GROUP_MENU;
 	PUSH_BUTTON_LEFT_TO_RIGHT("Menu");
 
 	callbacks.on_render = render_subwindows_button;
-	callbacks.on_event = NULL;
+	callbacks.on_event  = NULL;
+	callbacks.on_click  = do_button_open_subwindow;
 
-	info.type = BUTTON_DATA_UVAL;
+	info.type  = BUTTON_DATA_UVAL;
 	info.group = BUTTON_GROUP_SUBWINDOWS;
-
-	callbacks.on_click = do_button_open_subwindow;
 
 	for (unsigned i = DISPLAY_CAVE, label = 1; i < DISPLAY_MAX; i++) {
 		/* We display optional subwindows here */
@@ -4655,11 +4655,11 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 	rect.h = status_bar->full_rect.h;
 
 	callbacks.on_render = render_button_movesize;
-	callbacks.on_click = do_button_movesize;
-	callbacks.on_event = NULL;
-	callbacks.on_menu = NULL;
+	callbacks.on_click  = do_button_movesize;
+	callbacks.on_event  = NULL;
+	callbacks.on_menu   = NULL;
 
-	info.type = BUTTON_DATA_IVAL;
+	info.type  = BUTTON_DATA_IVAL;
 	info.group = BUTTON_GROUP_MOVESIZE;
 
 	info.data.ival = BUTTON_MOVESIZE_MOVING;
