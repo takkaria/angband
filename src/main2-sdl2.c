@@ -4391,7 +4391,7 @@ static void position_subwindow_top_center(struct subwindow *subwindow,
 	}
 }
 
-static void position_subwindow_big_map(struct subwindow *subwindow)
+static void position_big_map_subwindow(struct subwindow *subwindow)
 {
 	subwindow->sizing_rect = subwindow->full_rect;
 
@@ -4427,7 +4427,7 @@ static void position_temporary_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints)
 {
 	if (subwindow->big_map) {
-		position_subwindow_big_map(subwindow);
+		position_big_map_subwindow(subwindow);
 	} else {
 		position_other_subwindow(subwindow, hints);
 	}
