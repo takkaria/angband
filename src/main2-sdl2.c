@@ -657,7 +657,7 @@ static void load_subwindow(struct window *window, struct subwindow *subwindow);
 static bool is_subwindow_loaded(unsigned index);
 static struct subwindow *transfer_subwindow(struct window *window, unsigned index);
 static struct subwindow *get_subwindow_by_xy(const struct window *window,
-		int x, int y, bool temporary);
+		int x, int y);
 static struct subwindow *get_subwindow_by_index(const struct window *window,
 		unsigned index, bool visible);
 static struct subwindow *get_subwindow_direct(unsigned index);
@@ -2833,9 +2833,9 @@ static bool handle_menu_mousebuttondown(struct window *window,
 {
 	if (window->move_state.active || window->size_state.active) {
 		struct subwindow *subwindow =
-			get_subwindow_by_xy(window, mouse->x, mouse->y, false);
+			get_subwindow_by_xy(window, mouse->x, mouse->y);
 
-		if (subwindow != NULL
+		if (subwindow != NULL && !subwindow->is_temporary
 				&& is_rect_in_rect(&subwindow->full_rect, &window->inner_rect))
 		{
 			if (window->move_state.active && !window->move_state.moving) {
@@ -3261,7 +3261,7 @@ static bool handle_mousebuttondown(const SDL_MouseButtonEvent *mouse)
 	struct window *window = get_window_by_id(mouse->windowID);
 	assert(window != NULL);
 
-	struct subwindow *subwindow = get_subwindow_by_xy(window, mouse->x, mouse->y, true);
+	struct subwindow *subwindow = get_subwindow_by_xy(window, mouse->x, mouse->y);
 	if (subwindow == NULL) {
 		/* not an error, the user clicked in some random place */
 		return false;
@@ -4509,30 +4509,26 @@ static struct subwindow *get_subwindow_by_index(const struct window *window,
 }
 
 static struct subwindow *get_subwindow_by_xy(const struct window *window,
-		int x, int y, bool temporary)
+		int x, int y)
 {
-	/* checking subwindows in z order */
+	/* checking subwindows in z order
+	 * temporary subwindows are always on top of permanent ones */
 
 	for (size_t i = window->temporary.number; i > 0; i--) {
 		struct subwindow *subwindow = window->temporary.subwindows[i - 1];
 
 		if (is_point_in_rect(x, y, &subwindow->full_rect)) {
-			/* temporary subwindows are always over permanent ones */
-			if (temporary) {
-				return subwindow;
-			} else {
-				return NULL;
-			}
+			return subwindow;
 		}
 	}
 
 	for (size_t i = window->permanent.number; i > 0; i--) {
 		struct subwindow *subwindow = window->permanent.subwindows[i - 1];
 
-		if (subwindow->visible) {
-			if (is_point_in_rect(x, y, &subwindow->full_rect)) {
-				return subwindow;
-			}
+		if (subwindow->visible
+				&& is_point_in_rect(x, y, &subwindow->full_rect))
+		{
+			return subwindow;
 		}
 	}
 
