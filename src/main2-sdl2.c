@@ -3944,8 +3944,7 @@ static void make_font_cache(const struct window *window, struct font *font)
 {
 	font->cache.texture = make_subwindow_texture(window,
 			(int) ASCII_CACHE_SIZE * font->ttf.glyph.w, font->ttf.glyph.h);
-	assert(font->cache.texture != NULL);
-		
+
 	/* fill texture with white transparent pixels */
 	SDL_Color white = {0xFF, 0xFF, 0xFF, 0};
 	render_clear(window, font->cache.texture, &white);
