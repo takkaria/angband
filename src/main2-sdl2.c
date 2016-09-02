@@ -1949,9 +1949,10 @@ static void handle_menu_tile_set(struct window *window,
 	graphics_mode *mode = get_graphics_mode(button->info.data.ival);
 	assert(mode != NULL);
 
-	reload_graphics(window, mode);
-
-	refresh_display_terms();
+	if (window->graphics.id != mode->grafID) {
+		reload_graphics(window, mode);
+		refresh_display_terms();
+	}
 }
 
 static void handle_menu_tile_sets(struct window *window,
