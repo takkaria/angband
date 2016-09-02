@@ -4984,7 +4984,6 @@ static void wipe_window(struct window *window, int display)
 	window->color = g_colors[DEFAULT_WINDOW_BG_COLOR];
 	window->alpha = DEFAULT_ALPHA_FULL;
 
-	window->status_bar.font = NULL;
 	window->game_font = NULL;
 
 	window->wallpaper.texture = NULL;
