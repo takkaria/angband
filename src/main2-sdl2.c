@@ -4687,19 +4687,15 @@ static void reload_status_bar(struct status_bar *status_bar)
 
 static void load_status_bar(struct window *window)
 {
-	if (window->status_bar.font == NULL) {
-		if (window->config != NULL) {
-			window->status_bar.font = make_font(window,
-					window->config->system_font_name,
-					window->config->system_font_size);
-		} else {
-			window->status_bar.font = make_font(window, DEFAULT_SYSTEM_FONT, 0);
-		}
-		assert(window->status_bar.font != NULL);
+	assert(window->status_bar.font == NULL);
+	if (window->config != NULL) {
+		window->status_bar.font = make_font(window,
+				window->config->system_font_name,
+				window->config->system_font_size);
 	} else {
-		quit_fmt("font '%s' already loaded in status bar in window %u",
-				window->status_bar.font->name, window->index);
+		window->status_bar.font = make_font(window, DEFAULT_SYSTEM_FONT, 0);
 	}
+	assert(window->status_bar.font != NULL);
 
 	adjust_status_bar_geometry(window);
 
