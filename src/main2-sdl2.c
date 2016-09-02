@@ -3984,7 +3984,7 @@ static struct font *make_font(const struct window *window,
 {
 	const struct font_info *info = find_font_info(name);
 	if (info == NULL) {
-		return NULL;
+		quit_fmt("cant find font '%s'!", name);
 	}
 
 	struct font *font = mem_zalloc(sizeof(*font));
