@@ -4738,9 +4738,7 @@ static void fit_subwindow_in_window(const struct window *window,
 
 static void resize_window(struct window *window, int w, int h)
 {
-	if (window->full_rect.w == w
-			&& window->full_rect.h == h)
-	{
+	if (window->full_rect.w == w && window->full_rect.h == h) {
 		return;
 	}
 
