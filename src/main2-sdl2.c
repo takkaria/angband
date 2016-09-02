@@ -4398,9 +4398,9 @@ static void position_subwindow_big_map(struct subwindow *subwindow)
 	fit_rect_in_rect_proportional(&subwindow->sizing_rect,
 			&subwindow->window->full_rect);
 
-	subwindow->sizing_rect.x =
+	subwindow->sizing_rect.x = subwindow->window->full_rect.x +
 		(subwindow->window->full_rect.w - subwindow->sizing_rect.w) / 2;
-	subwindow->sizing_rect.y =
+	subwindow->sizing_rect.y = subwindow->window->full_rect.y +
 		(subwindow->window->full_rect.h - subwindow->sizing_rect.h) / 2;
 }
 
