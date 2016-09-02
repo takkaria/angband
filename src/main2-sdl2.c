@@ -4590,7 +4590,7 @@ static bool do_button_open_subwindow(struct window *window,
 	return true;
 }
 
-static void close_status_bar_menu(struct status_bar *status_bar)
+static void free_status_bar_menu(struct status_bar *status_bar)
 {
 	if (status_bar->menu_panel != NULL) {
 		free_menu_panel(status_bar->menu_panel);
@@ -4672,7 +4672,7 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 
 static void reload_status_bar(struct status_bar *status_bar)
 {
-	close_status_bar_menu(status_bar);
+	free_status_bar_menu(status_bar);
 
 	SDL_DestroyTexture(status_bar->texture);
 	status_bar->texture = make_subwindow_texture(status_bar->window,
