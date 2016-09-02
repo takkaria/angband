@@ -4437,8 +4437,8 @@ static void sort_to_top_aux(struct window *window,
 		size_t *next, struct subwindow **subwindows, bool is_top, bool always_top)
 {
 	for (size_t i = 0; i < window->permanent.number; i++) {
-		if (window->permanent.subwindows[i]->is_top == is_top &&
-				window->permanent.subwindows[i]->always_top == always_top)
+		if (window->permanent.subwindows[i]->is_top == is_top
+				&& window->permanent.subwindows[i]->always_top == always_top)
 		{
 			subwindows[(*next)++] = window->permanent.subwindows[i];
 		}
