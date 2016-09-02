@@ -4375,9 +4375,8 @@ static void position_subwindow_top_center(struct subwindow *subwindow,
 	assert(message_line->window == subwindow->window);
 
 	/* center in in the window horizontally */
-	subwindow->full_rect.x = MAX(subwindow->full_rect.x,
-			subwindow->window->inner_rect.x +
-			(subwindow->window->inner_rect.w - subwindow->full_rect.w) / 2);
+	subwindow->full_rect.x = subwindow->window->inner_rect.x +
+		(subwindow->window->inner_rect.w - subwindow->full_rect.w) / 2;
 
 	/* put it under message line and 'snap' to it */
 	subwindow->full_rect.y =
