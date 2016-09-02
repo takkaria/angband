@@ -3802,7 +3802,6 @@ static void load_wallpaper(struct window *window, const char *path)
 	}
 
 	SDL_Texture *wallpaper = load_image(window, path);
-	assert(wallpaper != NULL);
 
 	if (window->wallpaper.mode == WALLPAPER_TILED) {
 		int w;
