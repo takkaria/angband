@@ -4729,6 +4729,7 @@ static void fit_subwindow_in_window(const struct window *window,
 		struct subwindow *subwindow)
 {
 	fit_rect_in_rect_by_xy(&subwindow->full_rect, &window->inner_rect);
+
 	if (!is_rect_in_rect(&subwindow->full_rect, &window->inner_rect)) {
 		subwindow->borders.error = true;
 		render_borders(subwindow);
