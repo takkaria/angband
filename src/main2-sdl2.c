@@ -4359,11 +4359,11 @@ static void position_subwindow_center(struct subwindow *subwindow,
 	const struct subwindow *cave = get_subwindow_direct(DISPLAY_CAVE);
 	assert(cave->window == subwindow->window);
 
-	subwindow->full_rect.x = MAX(cave->full_rect.x,
-			cave->full_rect.x + (cave->full_rect.w - subwindow->full_rect.w) / 2);
+	subwindow->full_rect.x = cave->full_rect.x +
+		(cave->full_rect.w - subwindow->full_rect.w) / 2;
 
-	subwindow->full_rect.y = MAX(cave->full_rect.y,
-			cave->full_rect.y + (cave->full_rect.h - subwindow->full_rect.h) / 2);
+	subwindow->full_rect.y = cave->full_rect.y +
+		(cave->full_rect.h - subwindow->full_rect.h) / 2;
 }
 
 static void position_subwindow_top_center(struct subwindow *subwindow,
