@@ -3896,15 +3896,12 @@ static void load_graphics(struct window *window, graphics_mode *mode)
 
 static void reload_graphics(struct window *window, graphics_mode *mode)
 {
-	if (mode == NULL) {
-		return;
-	}
+	assert(mode != NULL);
 
 	free_graphics(&window->graphics);
 
 	struct subwindow *subwindow =
 		get_subwindow_by_index(window, DISPLAY_CAVE, false);
-
 	assert(subwindow != NULL);
 
 	load_graphics(window, mode);
