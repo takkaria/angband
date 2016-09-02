@@ -4929,15 +4929,15 @@ static void wipe_window_aux_config(struct window *window)
 	if (main_window->config == NULL) {
 		char path[4096];
 		path_build(path, sizeof(path), DEFAULT_WALLPAPER_DIR, DEFAULT_WALLPAPER);
-		window->config->wallpaper_path = string_make(path);
+		window->config->wallpaper_path   = string_make(path);
 		window->config->system_font_name = string_make(DEFAULT_SYSTEM_FONT);
-		window->config->game_font_name = string_make(DEFAULT_GAME_FONT);
+		window->config->game_font_name   = string_make(DEFAULT_GAME_FONT);
 	} else {
-		window->config->wallpaper_path = string_make(main_window->config->wallpaper_path);
+		window->config->wallpaper_path   = string_make(main_window->config->wallpaper_path);
 		window->config->system_font_name = string_make(main_window->config->system_font_name);
 		window->config->system_font_size = main_window->config->system_font_size;
-		window->config->game_font_name = string_make(main_window->config->game_font_name);
-		window->config->game_font_size = main_window->config->game_font_size;
+		window->config->game_font_name   = string_make(main_window->config->game_font_name);
+		window->config->game_font_size   = main_window->config->game_font_size;
 	}
 
 	int display = SDL_GetWindowDisplayIndex(main_window->window);
