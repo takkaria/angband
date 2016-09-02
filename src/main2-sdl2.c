@@ -4567,9 +4567,9 @@ static bool do_button_open_subwindow(struct window *window,
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_SUBWINDOWS, BUTTON_DATA_UVAL);
 
 	unsigned index = button->info.data.uval;
-	struct subwindow *subwindow = NULL;
-	
-	subwindow = get_subwindow_by_index(window, index, false);
+	struct subwindow *subwindow =
+		get_subwindow_by_index(window, index, false);
+
 	if (subwindow != NULL) {
 		subwindow->visible = !subwindow->visible;
 		if (subwindow->visible) {
