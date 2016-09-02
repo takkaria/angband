@@ -3793,6 +3793,8 @@ static SDL_Texture *load_image(const struct window *window, const char *path)
 
 static void load_wallpaper(struct window *window, const char *path)
 {
+	assert(window->wallpaper.texture == NULL);
+
 	if (window->wallpaper.mode == WALLPAPER_DONT_SHOW) {
 		return;
 	}
