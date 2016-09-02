@@ -4342,6 +4342,7 @@ static void position_subwindow_exact(struct subwindow *subwindow,
 		prev_top = get_subwindow_direct(DISPLAY_CAVE);
 	}
 
+	assert(prev_top->loaded);
 	assert(prev_top->window == subwindow->window);
 
 	subwindow->full_rect.x = prev_top->full_rect.x +
@@ -4357,6 +4358,7 @@ static void position_subwindow_center(struct subwindow *subwindow,
 	(void) hints;
 
 	const struct subwindow *cave = get_subwindow_direct(DISPLAY_CAVE);
+	assert(cave->loaded);
 	assert(cave->window == subwindow->window);
 
 	subwindow->full_rect.x = cave->full_rect.x +
@@ -4372,6 +4374,7 @@ static void position_subwindow_top_center(struct subwindow *subwindow,
 	(void) hints;
 
 	const struct subwindow *message_line = get_subwindow_direct(DISPLAY_MESSAGE_LINE);
+	assert(message_line->loaded);
 	assert(message_line->window == subwindow->window);
 
 	/* center in in the window horizontally */
