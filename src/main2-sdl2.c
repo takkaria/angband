@@ -3992,9 +3992,9 @@ static struct font *make_font(const struct window *window,
 	struct font *font = mem_zalloc(sizeof(*font));
 
 	font->index = info->index;
-	font->path = string_make(info->path);
-	font->name = string_make(info->name);
-	font->size = size;
+	font->path  = string_make(info->path);
+	font->name  = string_make(info->name);
+	font->size  = size;
 
 	font->cache.texture = NULL;
 
