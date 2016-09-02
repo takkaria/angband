@@ -3794,13 +3794,10 @@ static SDL_Texture *load_image(const struct window *window, const char *path)
 static void load_wallpaper(struct window *window, const char *path)
 {
 	assert(window->wallpaper.texture == NULL);
+	assert(window->wallpaper.mode != WALLPAPER_INVALID);
 
 	if (window->wallpaper.mode == WALLPAPER_DONT_SHOW) {
 		return;
-	}
-
-	if (window->wallpaper.mode == WALLPAPER_INVALID) {
-		quit_fmt("invalid wallpaper mode in window %u", window->index);
 	}
 
 	SDL_Texture *wallpaper = load_image(window, path);
