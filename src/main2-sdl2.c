@@ -3755,7 +3755,6 @@ static void term_draw(void *user,
 		int col, int row, int n_points, struct term_point *points)
 {
 	struct subwindow *subwindow = user;
-	assert(subwindow != NULL);
 
 	const struct graphics *graphics = &subwindow->window->graphics;
 
