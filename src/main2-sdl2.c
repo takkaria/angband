@@ -4475,9 +4475,7 @@ static void bring_to_top(struct window *window, struct subwindow *subwindow)
 	}
 
 	assert(found_subwindow_in_window);
-
 	subwindow->is_top = true;
-
 	sort_to_top(window);
 }
 
