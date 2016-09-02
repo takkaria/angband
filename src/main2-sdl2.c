@@ -5371,10 +5371,8 @@ static void free_button_bank(struct button_bank *button_bank)
 
 static void free_status_bar(struct status_bar *status_bar)
 {
-	if (status_bar->menu_panel != NULL) {
-		free_menu_panel(status_bar->menu_panel);
-		status_bar->menu_panel = NULL;
-	}
+	free_status_bar_menu(status_bar);
+
 	if (status_bar->button_bank.buttons != NULL) {
 		free_button_bank(&status_bar->button_bank);
 	}
