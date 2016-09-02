@@ -4677,7 +4677,6 @@ static void reload_status_bar(struct status_bar *status_bar)
 	SDL_DestroyTexture(status_bar->texture);
 	status_bar->texture = make_subwindow_texture(status_bar->window,
 			status_bar->full_rect.w, status_bar->full_rect.h);
-	assert(status_bar->texture != NULL);
 
 	free_button_bank(&status_bar->button_bank);
 	make_button_bank(&status_bar->button_bank);
