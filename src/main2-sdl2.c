@@ -4959,9 +4959,7 @@ static void wipe_window(struct window *window, int display)
 {
 	{
 		const unsigned index = window->index;
-
 		memset(window, 0, sizeof(*window));
-
 		window->index = index;
 	}
 
@@ -5256,9 +5254,7 @@ static void wipe_subwindow(struct subwindow *subwindow)
 	{
 		const unsigned index = subwindow->index;
 		const bool is_temporary = subwindow->is_temporary;
-
 		memset(subwindow, 0, sizeof(*subwindow));
-
 		subwindow->index = index;
 		subwindow->is_temporary = is_temporary;
 	}
