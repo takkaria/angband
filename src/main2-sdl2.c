@@ -3796,6 +3796,7 @@ static void load_wallpaper(struct window *window, const char *path)
 	if (window->wallpaper.mode == WALLPAPER_DONT_SHOW) {
 		return;
 	}
+
 	if (window->wallpaper.mode == WALLPAPER_INVALID) {
 		quit_fmt("invalid wallpaper mode in window %u", window->index);
 	}
