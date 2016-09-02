@@ -3901,9 +3901,6 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	}
 
 	free_graphics(&window->graphics);
-	memset(&window->graphics, 0, sizeof(window->graphics));
-	window->graphics.texture = NULL;
-	window->graphics.id = GRAPHICS_NONE;
 
 	struct subwindow *subwindow =
 		get_subwindow_by_index(window, DISPLAY_CAVE, false);
@@ -5429,8 +5426,12 @@ static void free_graphics(struct graphics *graphics)
 {
 	if (graphics->texture != NULL) {
 		SDL_DestroyTexture(graphics->texture);
-		graphics->texture = NULL;
 	}
+
+	memset(graphics, 0, sizeof(*graphics));
+
+	graphics->id = GRAPHICS_NONE;
+	graphics->texture = NULL;
 }
 
 static void free_subwindow_config(struct subwindow_config *config)
