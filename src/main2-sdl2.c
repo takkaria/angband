@@ -4747,8 +4747,8 @@ static void resize_window(struct window *window, int w, int h)
 
 	adjust_status_bar_geometry(window);
 	adjust_window_geometry(window);
-	
 	clear_all_borders(window);
+
 	for (size_t i = 0; i < window->permanent.number; i++) {
 		fit_subwindow_in_window(window, window->permanent.subwindows[i]);
 	}
