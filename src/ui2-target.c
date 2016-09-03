@@ -704,7 +704,7 @@ static uint32_t draw_path_get_color(int x, int y)
 	uint32_t color = COLOUR_WHITE;
 
 	struct monster *mon = square_monster(cave, y, x);
-	struct object *obj = square_object(cave_k, y, x);
+	struct object *obj = square_object(player->cave, y, x);
 
 	if (mon && mflag_has(mon->mflag, MFLAG_VISIBLE)) {
 		if (rf_has(mon->race->flags, RF_UNAWARE)) {
