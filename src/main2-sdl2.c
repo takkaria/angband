@@ -5677,7 +5677,8 @@ static void init_globals(void)
 	assert(N_ELEMENTS(g_term_info) == N_ELEMENTS(g_permanent_subwindows));
 
 	for (size_t i = 0; i < N_ELEMENTS(g_permanent_subwindows); i++) {
-		g_permanent_subwindows[i].index = g_term_info[i].index;
+		assert(g_term_info[i].index == i);
+		g_permanent_subwindows[i].index = i;
 	}
 
 	for (size_t i = 0; i < N_ELEMENTS(g_shadow_stack.subwindows); i++) {
