@@ -4911,6 +4911,8 @@ static void start_window(struct window *window)
 
 static void wipe_window_aux_config(struct window *window)
 {
+	assert(!window->loaded);
+
 	assert(window->config == NULL);
 	window->config = mem_zalloc(sizeof(*window->config));
 
