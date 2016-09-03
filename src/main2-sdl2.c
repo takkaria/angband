@@ -5166,7 +5166,6 @@ static struct subwindow *transfer_subwindow(struct window *window, unsigned inde
 
 	struct font *new_font = make_font(subwindow->window,
 			subwindow->font->name, subwindow->font->size);
-	assert(new_font != NULL);
 	free_font(subwindow->font);
 	subwindow->font = new_font;
 
