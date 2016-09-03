@@ -59,21 +59,6 @@ bool get_curse_action(struct menu *menu, const ui_event *event, int index)
 }
 
 /**
- * Show spell long description when browsing
- */
-static void curse_menu_browser(int index, void *data, const region reg)
-{
-	struct curse **choice = data;
-
-	struct text_out_info info = {
-		.pad = 1,
-	};
-
-	Term_cursor_to_xy(reg.x, reg.y + reg.h);
-	text_out(info, "\n%s", choice[index]->desc);
-}
-
-/**
  * Display list of curses to choose from
  */
 struct curse *curse_menu(struct object *obj)
@@ -113,7 +98,6 @@ struct curse *curse_menu(struct object *obj)
 	menu_setpriv(menu, count, available);
 	menu->header = "Remove which curse?";
 	menu->selections = lower_case;
-	menu->browse_hook = curse_menu_browser;
 	mnflag_on(menu->flags, MN_PVT_TAGS);
 
 	/* Set up the item list variables */
@@ -121,7 +105,7 @@ struct curse *curse_menu(struct object *obj)
 
 	struct term_hints hints = {
 		.width = MAX(length + 1, strlen(menu->header)),
-		.height = count + 3,
+		.height = count + 1,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
