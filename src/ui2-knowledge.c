@@ -1563,6 +1563,7 @@ static const char *rune_group_text[] = {
 	"Resists",
 	"Brands",
 	"Slays",
+	"Curses",
 	"Other",
 	NULL
 };
