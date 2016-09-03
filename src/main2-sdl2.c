@@ -6274,7 +6274,7 @@ static bool read_config_file(void)
 
 	char line[1024];
 	struct parser *parser = init_parse_config();
-	errr error = 0;
+	errr error = PARSE_ERROR_NONE;
 
 	while (file_getl(config, line, sizeof(line))) {
 		error = parser_parse(parser, line);
