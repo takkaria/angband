@@ -5475,7 +5475,6 @@ static void free_window(struct window *window)
 	for (size_t i = 0; i < N_ELEMENTS(window->permanent.subwindows); i++) {
 		assert(window->permanent.subwindows[i] == NULL);
 	}
-
 	for (size_t i = 0; i < N_ELEMENTS(window->temporary.subwindows); i++) {
 		assert(window->temporary.subwindows[i] == NULL);
 	}
@@ -5486,7 +5485,6 @@ static void free_window(struct window *window)
 		SDL_DestroyTexture(window->wallpaper.texture);
 		window->wallpaper.texture = NULL;
 	}
-
 	if (window->game_font != NULL) {
 		free_font(window->game_font);
 		window->game_font = NULL;
@@ -5498,12 +5496,10 @@ static void free_window(struct window *window)
 		SDL_DestroyRenderer(window->renderer);
 		window->renderer = NULL;
 	}
-
 	if (window->window != NULL) {
 		SDL_DestroyWindow(window->window);
 		window->window = NULL;
 	}
-
 	if (window->config != NULL) {
 		free_window_config(window->config);
 		window->config = NULL;
