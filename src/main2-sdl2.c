@@ -5003,10 +5003,10 @@ static void wipe_window(struct window *window, int display)
 	window->inited = true;
 }
 
-static void dump_subwindow(const struct subwindow *subwindow, ang_file *config)
+static void dump_subwindow(const struct subwindow *subwindow, ang_file *config_file)
 {
 #define DUMP_SUBWINDOW(sym, fmt, ...) \
-	file_putf(config, "subwindow-" sym ":%u:" fmt "\n", subwindow->index, __VA_ARGS__)
+	file_putf(config_file, "subwindow-" sym ":%u:" fmt "\n", subwindow->index, __VA_ARGS__)
 
 	DUMP_SUBWINDOW("window", "%u", subwindow->window->index);
 	DUMP_SUBWINDOW("full-rect", "%d:%d:%d:%d",
@@ -5025,13 +5025,13 @@ static void dump_subwindow(const struct subwindow *subwindow, ang_file *config)
 
 #undef DUMP_SUBWINDOW
 
-	file_put(config, "\n");
+	file_put(config_file, "\n");
 }
 
-static void dump_window(const struct window *window, ang_file *config)
+static void dump_window(const struct window *window, ang_file *config_file)
 {
 #define DUMP_WINDOW(sym, fmt, ...) \
-	file_putf(config, "window-" sym ":%u:" fmt "\n", window->index, __VA_ARGS__)
+	file_putf(config_file, "window-" sym ":%u:" fmt "\n", window->index, __VA_ARGS__)
 
 	DUMP_WINDOW("display", "%d", SDL_GetWindowDisplayIndex(window->window));
 
@@ -5070,12 +5070,12 @@ static void dump_window(const struct window *window, ang_file *config)
 
 #undef DUMP_WINDOW
 
-	file_put(config, "\n");
+	file_put(config_file, "\n");
 
 	for (size_t i = 0; i < window->permanent.number; i++) {
 		struct subwindow *subwindow = window->permanent.subwindows[i];
 		if (subwindow->visible) {
-			dump_subwindow(subwindow, config);
+			dump_subwindow(subwindow, config_file);
 		}
 	}
 }
