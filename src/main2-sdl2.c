@@ -6116,10 +6116,9 @@ static enum parser_error config_subwindow_font(struct parser *parser)
 	int size = parser_getint(parser, "size");
 
 	if (find_font_info(name) == NULL) {
-		/* TODO maybe its not really an error? the font file was
-		 * probably just deleted and now the ui wont event start... */
 		return PARSE_ERROR_INVALID_VALUE;
 	}
+
 	subwindow->config->font_name = string_make(name);
 	subwindow->config->font_size = size;
 
