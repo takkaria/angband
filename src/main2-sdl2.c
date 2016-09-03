@@ -5232,6 +5232,7 @@ static void load_subwindow(struct window *window,
 
 static void load_term(struct subwindow *subwindow)
 {
+	assert(subwindow->loaded);
 	assert(!subwindow->linked);
 
 	struct term_create_info info = {
