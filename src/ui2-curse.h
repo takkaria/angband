@@ -17,4 +17,9 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 
+#ifndef UI2_CURSE_H
+#define UI2_CURSE_H
+
 bool textui_get_curse(struct curse **choice, struct object *obj);
+
+#endif /* UI2_CURSE_H */
