@@ -523,8 +523,8 @@ static bool store_sell(struct store_context *context)
 	}
 
 	/* Cannot remove cursed objects */
-	if (object_is_equipped(player->body, obj) && cursed_p(obj->flags)) {
-		msg("Hmmm, it seems to be cursed.");
+	if (object_is_equipped(player->body, obj) && !object_can_takeoff(obj)) {
+		msg("Hmmm, it seems to be stuck.");
 		return false;
 	}
 
