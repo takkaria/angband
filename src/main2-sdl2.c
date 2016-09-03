@@ -5007,6 +5007,7 @@ static void dump_subwindow(const struct subwindow *subwindow, ang_file *config)
 {
 #define DUMP_SUBWINDOW(sym, fmt, ...) \
 	file_putf(config, "subwindow-" sym ":%u:" fmt "\n", subwindow->index, __VA_ARGS__)
+
 	DUMP_SUBWINDOW("window", "%u", subwindow->window->index);
 	DUMP_SUBWINDOW("full-rect", "%d:%d:%d:%d",
 			subwindow->full_rect.x, subwindow->full_rect.y,
@@ -5021,7 +5022,9 @@ static void dump_subwindow(const struct subwindow *subwindow, ang_file *config)
 	DUMP_SUBWINDOW("alpha", "%u", subwindow->color.a);
 	DUMP_SUBWINDOW("graphics", "%s",
 			subwindow->use_graphics ? "true" : "false");
+
 #undef DUMP_SUBWINDOW
+
 	file_put(config, "\n");
 }
 
@@ -5029,6 +5032,7 @@ static void dump_window(const struct window *window, ang_file *config)
 {
 #define DUMP_WINDOW(sym, fmt, ...) \
 	file_putf(config, "window-" sym ":%u:" fmt "\n", window->index, __VA_ARGS__)
+
 	DUMP_WINDOW("display", "%d", SDL_GetWindowDisplayIndex(window->window));
 
 	int x;
@@ -5050,6 +5054,7 @@ static void dump_window(const struct window *window, ang_file *config)
 	} else {
 		DUMP_WINDOW("wallpaper-path", "%s", "default");
 	}
+
 	DUMP_WINDOW("wallpaper-mode", "%s",
 			window->wallpaper.mode == WALLPAPER_DONT_SHOW ? "none"     :
 			window->wallpaper.mode == WALLPAPER_TILED     ? "tiled"    :
@@ -5062,7 +5067,9 @@ static void dump_window(const struct window *window, ang_file *config)
 			window->game_font->size, window->game_font->name);
 
 	DUMP_WINDOW("graphics-id", "%d", window->graphics.id);
+
 #undef DUMP_WINDOW
+
 	file_put(config, "\n");
 
 	for (size_t i = 0; i < window->permanent.number; i++) {
