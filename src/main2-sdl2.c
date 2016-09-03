@@ -5795,7 +5795,6 @@ static struct subwindow *get_new_subwindow(unsigned index)
 static struct window *get_new_window(unsigned index)
 {
 	struct window *window = get_window_direct(index);
-
 	assert(window != NULL);
 	assert(!window->inited);
 	assert(!window->loaded);
