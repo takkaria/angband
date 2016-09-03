@@ -4641,6 +4641,7 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 			label++;
 		}
 	}
+
 #undef PUSH_BUTTON_LEFT_TO_RIGHT
 
 #define PUSH_BUTTON_RIGHT_TO_LEFT(cap) \
@@ -4668,6 +4669,7 @@ static void make_default_status_buttons(struct status_bar *status_bar)
 
 	info.data.ival = BUTTON_MOVESIZE_SIZING;
 	PUSH_BUTTON_RIGHT_TO_LEFT("Size");
+
 #undef PUSH_BUTTON_RIGHT_TO_LEFT
 }
 
@@ -4788,8 +4790,7 @@ static void set_window_delay(struct window *window)
 	}
 
 	SDL_DisplayMode mode;
-	if (SDL_GetCurrentDisplayMode(display, &mode) != 0)
-	{
+	if (SDL_GetCurrentDisplayMode(display, &mode) != 0) {
 		/* lets just guess */
 		mode.refresh_rate = DEFAULT_REFRESH_RATE;
 	}
