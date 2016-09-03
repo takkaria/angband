@@ -5677,8 +5677,7 @@ static void init_globals(void)
 	assert(N_ELEMENTS(g_term_info) == N_ELEMENTS(g_permanent_subwindows));
 
 	for (size_t i = 0; i < N_ELEMENTS(g_permanent_subwindows); i++) {
-		assert(g_term_info[i].index == i);
-		g_permanent_subwindows[i].index = i;
+		g_permanent_subwindows[i].index = g_term_info[i].index;
 	}
 
 	for (size_t i = 0; i < N_ELEMENTS(g_shadow_stack.subwindows); i++) {
@@ -5699,11 +5698,24 @@ static void init_globals(void)
 
 static const struct term_info *get_term_info(enum display_term_index index)
 {
-	assert(index >= 0);
-	assert(index < N_ELEMENTS(g_term_info));
-	assert(g_term_info[index].index == index);
+	struct term_info *info = NULL;
 
-	return &g_term_info[index];
+	if (index < N_ELEMENTS(g_term_info)
+			&& g_term_info[index].index == index)
+	{
+		info = &g_term_info[index];
+	} else {
+		for (size_t i = 0; i < N_ELEMENTS(g_term_info); i++) {
+			if (g_term_info[i].index == index) {
+				info = &g_term_info[i];
+				break;
+			}
+		}
+	}
+
+	assert(info != NULL);
+
+	return info;
 }
 
 static bool is_subwindow_loaded(unsigned index)
