@@ -5679,12 +5679,10 @@ static void init_globals(void)
 	for (size_t i = 0; i < N_ELEMENTS(g_permanent_subwindows); i++) {
 		g_permanent_subwindows[i].index = g_term_info[i].index;
 	}
-
 	for (size_t i = 0; i < N_ELEMENTS(g_shadow_stack.subwindows); i++) {
 		g_shadow_stack.subwindows[i].is_temporary = true;
 		g_shadow_stack.subwindows[i].index = DISPLAY_MAX + i;
 	}
-
 	for (size_t i = 0; i < N_ELEMENTS(g_windows); i++) {
 		g_windows[i].index = i;
 	}
@@ -5750,7 +5748,6 @@ static struct subwindow *get_new_temporary_subwindow(void)
 	assert(g_shadow_stack.number < N_ELEMENTS(g_shadow_stack.subwindows));
 
 	struct subwindow *subwindow = &g_shadow_stack.subwindows[g_shadow_stack.number];
-
 	assert(!subwindow->loaded);
 	assert(!subwindow->inited);
 	assert(!subwindow->linked);
@@ -5816,7 +5813,6 @@ static struct window *get_window_direct(unsigned index)
 static struct window *get_loaded_window(unsigned index)
 {
 	struct window *window = get_window_direct(index);
-
 	assert(window != NULL);
 
 	if (window->loaded) {
@@ -5924,7 +5920,6 @@ static enum parser_error config_window_display(struct parser *parser)
 	wipe_window(window, display);
 
 	window->config = mem_zalloc(sizeof(*window->config));
-
 	window->config->window_flags = SDL_WINDOW_RESIZABLE;
 
 	return PARSE_ERROR_NONE;
@@ -5944,6 +5939,7 @@ static enum parser_error config_window_fullscreen(struct parser *parser)
 	} else {
 		return PARSE_ERROR_INVALID_VALUE;
 	}
+
 	return PARSE_ERROR_NONE;
 }
 
@@ -6078,6 +6074,7 @@ static enum parser_error config_subwindow_window(struct parser *parser)
 	if (subwindow->inited) {
 		return PARSE_ERROR_NON_SEQUENTIAL_RECORDS;
 	}
+
 	wipe_subwindow(subwindow);
 
 	unsigned windex = parser_getuint(parser, "windex");
