@@ -5160,11 +5160,9 @@ static struct subwindow *transfer_subwindow(struct window *window, unsigned inde
 	SDL_DestroyTexture(subwindow->texture);
 	subwindow->texture = make_subwindow_texture(window,
 			subwindow->full_rect.w, subwindow->full_rect.h);
-	assert(subwindow->texture != NULL);
 
 	SDL_DestroyTexture(subwindow->aux_texture);
 	subwindow->aux_texture = make_subwindow_texture(window, 1, 1);
-	assert(subwindow->aux_texture != NULL);
 
 	struct font *new_font = make_font(subwindow->window,
 			subwindow->font->name, subwindow->font->size);
