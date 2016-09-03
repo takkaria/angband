@@ -120,6 +120,7 @@ ANGFILES = \
 	mon-timed.o \
 	mon-util.o \
 	obj-chest.o \
+	obj-curse.o \
 	obj-desc.o \
 	obj-gear.o \
 	obj-ignore.o \
@@ -164,6 +165,7 @@ ANGFILES = \
 	ui2-birth.o \
 	ui2-command.o \
 	ui2-context.o \
+	ui2-curse.o \
 	ui2-death.o \
 	ui2-display.o \
 	ui2-event.o \
