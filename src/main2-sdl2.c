@@ -5683,7 +5683,7 @@ static void init_globals(void)
 
 	for (size_t i = 0; i < N_ELEMENTS(g_shadow_stack.subwindows); i++) {
 		g_shadow_stack.subwindows[i].is_temporary = true;
-		g_shadow_stack.subwindows[i].index = DISPLAY_MAX;
+		g_shadow_stack.subwindows[i].index = DISPLAY_MAX + i;
 	}
 
 	for (size_t i = 0; i < N_ELEMENTS(g_windows); i++) {
