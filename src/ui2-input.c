@@ -31,6 +31,7 @@
 #include "target.h"
 #include "ui2-command.h"
 #include "ui2-context.h"
+#include "ui2-curse.h"
 #include "ui2-display.h"
 #include "ui2-help.h"
 #include "ui2-keymap.h"
@@ -885,6 +886,7 @@ void textui_input_init(void)
 	get_spell_from_book_hook = textui_get_spell_from_book;
 	get_spell_hook = textui_get_spell;
 	get_item_hook = textui_get_item;
+	get_curse_hook = textui_get_curse;
 	get_panel_hook = textui_get_panel;
 	panel_contains_hook = textui_panel_contains;
 	map_is_visible_hook = textui_map_is_visible;
