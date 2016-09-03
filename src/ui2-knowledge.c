@@ -839,12 +839,12 @@ static void get_artifact_display_name(char *o_name, size_t size, int a_idx)
 	struct object *known_obj = &known_body;
 
 	make_fake_artifact(obj, &a_info[a_idx]);
-	object_wipe(known_obj);
+	object_wipe(known_obj, true);
 	object_copy(known_obj, obj);
 	obj->known = known_obj;
 	object_desc(o_name, size, obj, ODESC_PREFIX | ODESC_BASE | ODESC_SPOIL);
-	object_wipe(known_obj);
-	object_wipe(obj);
+	object_wipe(known_obj, false);
+	object_wipe(obj, true);
 }
 
 /**
@@ -950,8 +950,8 @@ static void desc_art_fake(int a_idx)
 			ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL);
 
 	if (fake) {
-		object_wipe(obj);
-		object_wipe(known_obj);
+		object_wipe(known_obj, false);
+		object_wipe(obj, true);
 	}
 
 	region area = {0, 0, 0, 0};
@@ -1183,7 +1183,7 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 			int tval[N_ELEMENTS(object_text_order)] = {0};
 
 			/* Note the tvals which are possible for this ego */
-			for (struct ego_poss_item *poss = ego->poss_items; poss; poss = poss->next) {
+			for (struct poss_item *poss = ego->poss_items; poss; poss = poss->next) {
 				struct object_kind *kind = &k_info[poss->kidx];
 				tval[obj_group_order[kind->tval]]++;
 			}
