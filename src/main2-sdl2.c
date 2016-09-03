@@ -5193,7 +5193,6 @@ static void load_subwindow(struct window *window,
 		} else {
 			subwindow->font = make_font(window, DEFAULT_FONT, 0);
 		}
-		assert(subwindow->font != NULL);
 	}
 
 	if (!adjust_subwindow_geometry(window, subwindow)) {
@@ -5203,12 +5202,10 @@ static void load_subwindow(struct window *window,
 
 	subwindow->texture = make_subwindow_texture(window,
 			subwindow->full_rect.w, subwindow->full_rect.h);
-	assert(subwindow->texture != NULL);
 
 	/* just a pixel for sizing rect; temporary subwindows shouldn't be resized */
 	if (!subwindow->is_temporary) {
 		subwindow->aux_texture = make_subwindow_texture(window, 1, 1);
-		assert(subwindow->aux_texture != NULL);
 	}
 
 	/* same testing sequence as for status bar */
