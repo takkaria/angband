@@ -5554,10 +5554,11 @@ static void init_font_info(const char *directory)
 			i++;
 		}
 	}
-	assert(i > 0);
 
+	assert(i > 0);
 	sort(g_font_info, i, sizeof(g_font_info[0]), sort_cb_font_info);
 
+	/* now that the font files are sorted, assign the indexes */
 	for (size_t j = 0; j < i; j++) {
 		g_font_info[j].index = j;
 	}
