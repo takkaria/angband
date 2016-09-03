@@ -22,8 +22,9 @@
 #include "effects.h"
 #include "init.h"
 #include "obj-gear.h"
-#include "obj-pile.h"
+#include "obj-knowledge.h"
 #include "obj-make.h"
+#include "obj-pile.h"
 #include "obj-power.h"
 #include "obj-slays.h"
 #include "obj-tval.h"
@@ -280,7 +281,7 @@ static struct ego_item *ego_find_random(struct object *obj, int level)
 
 	alloc_entry *table = alloc_ego_table;
 	struct ego_item *ego;
-	struct ego_poss_item *poss;
+	struct poss_item *poss;
 
 	/* Go through all possible ego items and find ones which fit this item */
 	for (i = 0; i < alloc_ego_size; i++) {
@@ -301,9 +302,6 @@ static struct ego_item *ego_find_random(struct object *obj, int level)
             ood_chance = MAX(2, (ego->alloc_min - level) / 3);
             if (!one_in_(ood_chance)) continue;
         }
-
-		/* XXX Ignore cursed items for now */
-		if (cursed_p(ego->flags)) continue;
 
 		for (poss = ego->poss_items; poss; poss = poss->next)
 			if (poss->kidx == obj->kind->kidx) {
@@ -380,9 +378,10 @@ void ego_apply_magic(struct object *obj, int level)
 	of_union(obj->flags, obj->ego->flags);
 	of_diff(obj->flags, obj->ego->flags_off);
 
-	/* Add slays and brands */
+	/* Add slays, brands and curses */
 	copy_slay(&obj->slays, obj->ego->slays);
 	copy_brand(&obj->brands, obj->ego->brands);
+	copy_curse(&obj->curses, obj->ego->curses, true);
 
 	/* Add resists */
 	for (i = 0; i < ELEM_MAX; i++) {
@@ -484,6 +483,7 @@ void copy_artifact_data(struct object *obj, const struct artifact *art)
 	of_union(obj->flags, art->flags);
 	copy_slay(&obj->slays, art->slays);
 	copy_brand(&obj->brands, art->brands);
+	copy_curse(&obj->curses, art->curses, false);
 	for (i = 0; i < ELEM_MAX; i++) {
 		/* Take the larger of artifact and base object resist levels */
 		obj->el_info[i].res_level =
@@ -683,14 +683,10 @@ bool make_fake_artifact(struct object *obj, struct artifact *artifact)
 
 	/* Create the artifact */
 	object_prep(obj, kind, 0, MAXIMISE);
-
-	/* Save the name */
 	obj->artifact = artifact;
-
-	/* Extract the fields */
 	copy_artifact_data(obj, artifact);
+	apply_curse_knowledge(obj);
 
-	/* Success */
 	return (true);
 }
 
@@ -795,9 +791,10 @@ void object_prep(struct object *obj, struct object_kind *k, int lev,
 	obj->to_d = randcalc(k->to_d, lev, rand_aspect);
 	obj->to_a = randcalc(k->to_a, lev, rand_aspect);
 
-	/* Default slays and brands */
+	/* Default slays, brands and curses */
 	copy_slay(&obj->slays, k->slays);
 	copy_brand(&obj->brands, k->brands);
+	copy_curse(&obj->curses, k->curses, true);
 
 	/* Default resists */
 	for (i = 0; i < ELEM_MAX; i++) {
@@ -807,6 +804,23 @@ void object_prep(struct object *obj, struct object_kind *k, int lev,
 	}
 }
 
+/**
+ * Attempt to apply curses to an object, with a corresponding increase in
+ * generation level of the object
+ */
+void apply_curse(struct object *obj, int *lev)
+{
+	int pick = randint1(z_info->curse_max - 1);
+	int power = 10 * m_bonus(9, *lev);
+	if (!curses[pick].poss[obj->tval]) {
+		return;
+	}
+	append_curse(&obj->curses, pick, power);
+	*lev += randint0(power / 10);
+	while(one_in_(100 - power)) {
+		apply_curse(obj, lev);
+	}
+}
 
 /**
  * Applying magic to an object, which includes creating ego-items, and applying
@@ -1092,7 +1106,11 @@ struct object *make_object(struct chunk *c, int lev, bool good, bool great,
 	/* Make the object, prep it and apply magic */
 	new_obj = object_new();
 	object_prep(new_obj, kind, lev, RANDOMISE);
+	if (one_in_(20) && tval_is_wearable(new_obj)) {
+		apply_curse(new_obj, &lev);
+	}
 	apply_magic(new_obj, lev, true, good, great, extra_roll);
+	apply_curse_knowledge(new_obj);
 
 	/* Generate multiple items */
 	if (kind->gen_mult_prob >= randint1(100))
@@ -1106,7 +1124,7 @@ struct object *make_object(struct chunk *c, int lev, bool good, bool great,
 		*value = object_value_real(new_obj, new_obj->number, false);
 
 	/* Boost of 20% per level OOD for uncursed objects */
-	if (!cursed_p(new_obj->flags) && (kind->alloc_min > c->depth)) {
+	if ((!new_obj->curses) && (kind->alloc_min > c->depth)) {
 		if (value) *value += (kind->alloc_min - c->depth) * (*value / 5);
 	}
 
@@ -1131,7 +1149,7 @@ void acquirement(int y1, int x1, int level, int num, bool great)
 		nice_obj->origin_depth = player->depth;
 
 		/* Drop the object */
-		drop_near(cave, nice_obj, 0, y1, x1, true);
+		drop_near(cave, &nice_obj, 0, y1, x1, true);
 	}
 }
 

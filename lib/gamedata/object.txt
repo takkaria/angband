@@ -122,19 +122,27 @@
 
 
 
-##### Non-kind (contains the "pile" picture) #####
+##### Non-kind (things treated like objects) #####
 
 name:0:<pile>
-type:0
+type:none
 graphics:&:w
 
+name:1:<unknown item>
+type:none
+graphics:*:r
 
+name:2:<unknown treasure>
+type:none
+graphics:*:o
 
-##### Various Stuff #####
+name:3:<curse object>
+type:none
+graphics:*:v
 
-### 1
+##### Lights #####
 
-name:2:& Wooden Torch~
+name:5:& Wooden Torch~
 graphics:~:u
 type:light
 properties:1:22:2
@@ -142,7 +150,7 @@ alloc:70:1 to 40
 combat:0:1d1:0:0:0
 flags:BURNS_OUT | LIGHT_1 | EASY_KNOW
 
-name:3:& Lantern~
+name:6:& Lantern~
 graphics:~:U
 type:light
 properties:3:50:35
@@ -150,7 +158,7 @@ alloc:70:5 to 100
 combat:0:1d1:0:0:0
 flags:TAKES_FUEL | EASY_KNOW | LIGHT_2 | IGNORE_FIRE
 
-name:4:& Flask~ of oil
+name:7:& Flask~ of oil
 graphics:!:y
 type:flask
 properties:1:20:3
@@ -163,15 +171,9 @@ desc: a maximum of 15000 turns of light.
 desc:  When thrown, it is considered lit, so it does more than nominal
 desc: damage (which occurs even against creatures resistant to fire).
 
-name:6:<unknown item>
-type:0
-graphics:*:r
+### 8
 
-name:7:<unknown treasure>
-type:0
-graphics:*:o
-
-
+### 9
 
 ##### Food #####
 
@@ -1474,7 +1476,8 @@ graphics:=:d
 type:ring
 properties:5:2:1000
 alloc:20:10 to 50
-flags:TELEPORT | EASY_KNOW
+flags:EASY_KNOW
+curse:teleportation:100
 values:SPEED[2]
 
 name:217:Reckless Attacks
@@ -1692,7 +1695,8 @@ graphics:":d
 type:amulet
 properties:10:3:10
 alloc:20:10 to 40
-flags:TELEPORT | EASY_KNOW
+flags:EASY_KNOW
+curse:teleportation:100
 
 name:248:Slow Digestion
 graphics:":d
@@ -1876,25 +1880,27 @@ power:15
 effect:ENCHANT:TOAC
 dice:2+1d3
 
-## Removed in 3.4 until curses are redone
+
 name:275:Remove Curse
 graphics:?:w
 type:scroll
 properties:10:5:100
-#A:16:10 to 100
+alloc:16:10 to 100
 pile:25:2
 power:8
 effect:REMOVE_CURSE
+dice:20+d20
 
-## Removed in 3.4 until curses are redone
+
 name:276:*Remove Curse*
 graphics:?:w
 type:scroll
 properties:50:5:8000
-#A:16:50 to 100
+alloc:16:50 to 100
 pile:25:2
 power:20
-effect:REMOVE_ALL_CURSE
+effect:REMOVE_CURSE
+dice:50+d50
 
 ### 277
 
@@ -3365,16 +3371,16 @@ power:10
 effect:TIMED_INC:FAST:5
 dice:20+2d10
 
-## Remove in 3.4 until curses are redone
 name:422:Remove Curse
 graphics:_:d
 type:staff
 properties:40:50:500
-#A:20:40 to 100
+alloc:20:40 to 100
 combat:0:1d2:0:0:0
 charges:4+d3
 power:8
 effect:REMOVE_CURSE
+dice:20+d20
 
 name:423:the Magi
 graphics:_:d

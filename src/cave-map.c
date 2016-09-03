@@ -115,7 +115,7 @@ void map_info(unsigned y, unsigned x, struct grid_data *g)
 	}
 
 	/* Use known feature */
-	g->f_idx = cave_k->squares[y][x].feat;
+	g->f_idx = player->cave->squares[y][x].feat;
 	if (f_info[g->f_idx].mimic)
 		g->f_idx = f_info[g->f_idx].mimic;
 
@@ -139,7 +139,7 @@ void map_info(unsigned y, unsigned x, struct grid_data *g)
     }
 
 	/* Objects */
-	for (obj = square_object(cave_k, y, x); obj; obj = obj->next) {
+	for (obj = square_object(player->cave, y, x); obj; obj = obj->next) {
 		if (obj->kind == unknown_gold_kind) {
 			g->unseen_money = true;
 		} else if (obj->kind == unknown_item_kind) {
@@ -215,7 +215,7 @@ void square_note_spot(struct chunk *c, int y, int x)
 	if (!square_isseen(c, y, x)) return;
 
 	/* Make the player know precisely what is on this grid */
-	floor_pile_know(c, y, x);
+	square_know_pile(c, y, x);
 
 	if (square_isknown(c, y, x))
 		return;
@@ -449,10 +449,11 @@ void wiz_light(struct chunk *c, bool full)
 			}
 
 			/* Memorize objects */
-			if (full)
-				floor_pile_know(c, y, x);
-			else
-				floor_pile_sense(c, y, x);
+			if (full) {
+				square_know_pile(c, y, x);
+			} else {
+				square_sense_pile(c, y, x);
+			}
 
 			/* Forget unprocessed, unknown grids in the mapping area */
 			if (!square_ismark(c, y, x) && square_isnotknown(c, y, x))
@@ -716,7 +717,7 @@ void cave_update_flow(struct chunk *c)
 /**
  * Make map features known, except wall/lava surrounded by wall/lava
  */
-void cave_known(void)
+void cave_known(struct player *p)
 {
 	int y, x;
 	for (y = 0; y < cave->height; y++) {
@@ -739,7 +740,7 @@ void cave_known(void)
 
 			/* Internal walls not known */
 			if (count < 8)
-				cave_k->squares[y][x].feat = cave->squares[y][x].feat;
+				p->cave->squares[y][x].feat = cave->squares[y][x].feat;
 		}
 	}
 }

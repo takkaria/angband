@@ -26,6 +26,7 @@ enum rune_variety {
 	RUNE_VAR_RESIST,
 	RUNE_VAR_BRAND,
 	RUNE_VAR_SLAY,
+	RUNE_VAR_CURSE,
 	RUNE_VAR_FLAG
 };
 
@@ -54,6 +55,7 @@ void rune_set_note(size_t i, const char *inscription);
 
 bool player_knows_brand(struct player *p, struct brand *b);
 bool player_knows_slay(struct player *p, struct slay *s);
+bool player_knows_curse(struct player *p, struct curse *c);
 bool player_knows_ego(struct player *p, struct ego_item *ego);
 bool object_effect_is_known(const struct object *obj);
 bool object_is_known_artifact(const struct object *obj);
@@ -66,9 +68,15 @@ bool object_flag_is_known(const struct object *obj, int flag);
 bool object_element_is_known(const struct object *obj, int element);
 
 void object_set_base_known(struct object *obj);
+void apply_curse_knowledge(struct object *obj);
+void object_sense(struct player *p, struct object *obj);
+void object_see(struct player *p, struct object *obj);
+void object_touch(struct player *p, struct object *obj);
 void player_know_object(struct player *p, struct object *obj);
 void update_player_object_knowledge(struct player *p);
 
+void player_learn_flag(struct player *p, int flag);
+void player_learn_curse(struct player *p, struct curse *curse);
 void player_learn_everything(struct player *p);
 
 void equip_learn_on_defend(struct player *p);

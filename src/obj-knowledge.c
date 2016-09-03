@@ -17,12 +17,14 @@
  */
 
 #include "angband.h"
+#include "cave.h"
 #include "init.h"
 #include "object.h"
 #include "obj-desc.h"
 #include "obj-gear.h"
 #include "obj-ignore.h"
 #include "obj-knowledge.h"
+#include "obj-pile.h"
 #include "obj-properties.h"
 #include "obj-slays.h"
 #include "obj-tval.h"
@@ -115,39 +117,57 @@ static void init_rune(void)
 	for (i = 0; i < OF_MAX; i++) {
 		if (obj_flag_type(i) == OFT_NONE) continue;
 		if (obj_flag_type(i) == OFT_LIGHT) continue;
-		if (obj_flag_type(i) == OFT_CURSE) continue;
 		if (obj_flag_type(i) == OFT_DIG) continue;
 		count++;
 	}
-	for (i = 0; i < OBJ_MOD_MAX; i++)
+	for (i = 0; i < OBJ_MOD_MAX; i++) {
 		count++;
-	for (i = 0; i <= ELEM_HIGH_MAX; i++)
+	}
+	for (i = 0; i <= ELEM_HIGH_MAX; i++) {
 		count++;
-	for (b = game_brands; b; b = b->next)
+	}
+	for (b = game_brands; b; b = b->next) {
 		count++;
-	for (s = game_slays; s; s = s->next)
+	}
+	for (s = game_slays; s; s = s->next) {
 		count++;
+	}
+	for (i = 1; i < z_info->curse_max; i++) {
+		if (curses[i].name) {
+			count++;
+		}
+	}
 
 	/* Now allocate and fill the rune list */
 	rune_max = count;
 	rune_list = mem_zalloc(rune_max * sizeof(struct rune));
 	count = 0;
-	for (i = 0; i < COMBAT_RUNE_MAX; i++)
+	for (i = 0; i < COMBAT_RUNE_MAX; i++) {
 		rune_list[count++] = (struct rune) { RUNE_VAR_COMBAT, i, 0, c_rune[i] };
-	for (i = 0; i < OBJ_MOD_MAX; i++)
+	}
+	for (i = 0; i < OBJ_MOD_MAX; i++) {
 		rune_list[count++] = (struct rune) { RUNE_VAR_MOD, i, 0, m_rune[i] };
-	for (i = 0; i <= ELEM_HIGH_MAX; i++)
+	}
+	for (i = 0; i <= ELEM_HIGH_MAX; i++) {
 		rune_list[count++] = (struct rune) { RUNE_VAR_RESIST, i, 0, e_rune[i] };
-	for (b = game_brands; b; b = b->next)
+	}
+	for (b = game_brands; b; b = b->next) {
 		rune_list[count++] =
 			(struct rune) { RUNE_VAR_BRAND, brands++, 0, b->name};
-	for (s = game_slays; s; s = s->next)
+	}
+	for (s = game_slays; s; s = s->next) {
 		rune_list[count++] =
 			(struct rune) { RUNE_VAR_SLAY, slays++, 0, s->name };
+	}
+	for (i = 1; i < z_info->curse_max; i++) {
+		if (curses[i].name) {
+			rune_list[count++] =
+				(struct rune) { RUNE_VAR_CURSE, i, 0, curses[i].name };
+		}
+	}
 	for (i = 0; i < OF_MAX; i++) {
 		if (obj_flag_type(i) == OFT_NONE) continue;
 		if (obj_flag_type(i) == OFT_LIGHT) continue;
-		if (obj_flag_type(i) == OFT_CURSE) continue;
 		if (obj_flag_type(i) == OFT_DIG) continue;
 
 		rune_list[count++] = (struct rune)
@@ -268,6 +288,16 @@ bool player_knows_rune(struct player *p, size_t i)
 				return true;
 			break;
 		}
+		/* Curse runes */
+		case RUNE_VAR_CURSE: {
+			struct curse *curse;
+			for (curse = p->obj_k->curses; curse; curse = curse->next) {
+				if (r->index == lookup_curse(curse->name)) {
+					return true;
+				}
+			}
+			break;
+		}
 		/* Flag runes */
 		case RUNE_VAR_FLAG: {
 			if (of_has(p->obj_k->flags, r->index))
@@ -293,6 +323,8 @@ char *rune_name(size_t i)
 		return format("%s brand", r->name);
 	else if (r->variety == RUNE_VAR_SLAY)
 		return format("slay %s", r->name);
+	else if (r->variety == RUNE_VAR_CURSE)
+		return format("%s curse", r->name);
 	else if (r->variety == RUNE_VAR_RESIST)
 		return format("resist %s", r->name);
 	else
@@ -352,6 +384,11 @@ char *rune_desc(size_t i)
 			assert(s != NULL);
 
 			return format("Object makes the player's attacks against %s more powerful.", r->name);
+			break;
+		}
+		/* Curse runes */
+		case RUNE_VAR_CURSE: {
+			return curses[r->index].desc;
 			break;
 		}
 		/* Flag runes */
@@ -433,6 +470,26 @@ bool player_knows_slay(struct player *p, struct slay *s)
 }
 
 /**
+ * Check if a curse is known to the player
+ *
+ * \param p is the player
+ * \param c is the curse
+ */
+bool player_knows_curse(struct player *p, struct curse *c)
+{
+	struct curse *c_check = p->obj_k->curses;
+	while (c_check) {
+		/* Name needs to be the same */
+		if (streq(c_check->name, c->name)) {
+			return true;
+		}
+		c_check = c_check->next;
+	}
+
+	return false;
+}
+
+/**
  * Check if an ego item type is known to the player
  *
  * \param p is the player
@@ -443,6 +500,7 @@ bool player_knows_ego(struct player *p, struct ego_item *ego)
 	int i;
 	struct brand *b;
 	struct slay *s;
+	struct curse *c;
 
 	if (!ego) return false;
 
@@ -467,6 +525,10 @@ bool player_knows_ego(struct player *p, struct ego_item *ego)
 	/* All slays known */
 	for (s = ego->slays; s; s = s->next)
 		if (!player_knows_slay(p, s)) return false;
+
+	/* All curses known */
+	for (c = ego->curses; c; c = c->next)
+		if (!player_knows_curse(p, c)) return false;
 
 	return true;
 }
@@ -521,10 +583,15 @@ bool object_is_in_store(const struct object *obj)
  */
 bool object_has_standard_to_h(const struct object *obj)
 {
-	if (tval_is_body_armor(obj) && !randcalc_varies(obj->kind->to_h))
+	/* Hack for curse object structures */
+	if (!obj->kind) {
+		return true;
+	}
+	if (tval_is_body_armor(obj) && !randcalc_varies(obj->kind->to_h)) {
 		return (obj->to_h == obj->kind->to_h.base);
-	else
+	} else {
 		return (obj->to_h == 0);
+	}
 }
 
 /**
@@ -577,6 +644,14 @@ bool object_has_rune(const struct object *obj, int rune_no)
 					return true;
 			break;
 		}
+		/* Curse runes */
+		case RUNE_VAR_CURSE: {
+			struct curse *c;
+			for (c = obj->curses; c; c = c->next)
+				if (streq(c->name, r->name))
+					return true;
+			break;
+		}
 		/* Flag runes */
 		case RUNE_VAR_FLAG: {
 			if (of_has(obj->flags, r->index))
@@ -623,6 +698,10 @@ bool object_runes_known(const struct object *obj)
 
 	/* Not all slays known */
 	if (!slays_are_equal(obj->slays, obj->known->slays))
+		return false;
+
+	/* Not all curses known */
+	if (!curses_are_equal(obj->curses, obj->known->curses))
 		return false;
 
 	/* Not all flags known */
@@ -731,6 +810,154 @@ void object_set_base_known(struct object *obj)
 }
 
 /**
+ * Add knowledge to curse objects
+ */
+void apply_curse_knowledge(struct object *obj)
+{
+	struct curse *curse = obj->curses;
+	while (curse) {
+		curse->obj->known = object_new();
+		curse->obj->known->kind = curse_object_kind;
+		curse->obj->known->sval = lookup_sval(0, "<curse object>");
+		player_know_object(player, curse->obj);
+		curse = curse->next;
+	}
+}
+
+/**
+ * Gain knowledge based on sensing an object on the floor
+ */
+void object_sense(struct player *p, struct object *obj)
+{
+	struct object *known_obj = p->cave->objects[obj->oidx];
+	int y = obj->iy;
+	int x = obj->ix;
+
+	/* Make new sensed objects where necessary */
+	if (known_obj == NULL) {
+		/* Make and list the new object */
+		struct object *new_obj = object_new();
+		p->cave->objects[obj->oidx] = new_obj;
+		new_obj->oidx = obj->oidx;
+		obj->known = new_obj;
+		new_obj->number = 1;
+
+		/* Give it a fake kind */
+		if (tval_is_money(obj)) {
+			new_obj->kind = unknown_gold_kind;
+		} else {
+			new_obj->kind = unknown_item_kind;
+		}
+
+		/* Attach it to the current floor pile */
+		new_obj->iy = y;
+		new_obj->ix = x;
+		pile_insert_end(&p->cave->squares[y][x].obj, new_obj);
+	}
+}
+
+
+
+/**
+ * Gain knowledge based on seeing an object on the floor
+ */
+void object_see(struct player *p, struct object *obj)
+{
+	struct object *known_obj = p->cave->objects[obj->oidx];
+	int y = obj->iy;
+	int x = obj->ix;
+
+	/* Make new known objects, fully know sensed ones, relocate old ones */
+	if (known_obj == NULL) {
+		/* Make and/or list the new object */
+		struct object *new_obj;
+
+		/* Check whether we need to make a new one or list the old one */
+		if (obj->known) {
+			new_obj = obj->known;
+		} else {
+			new_obj = object_new();
+			obj->known = new_obj;
+			object_set_base_known(obj);
+		}
+		p->cave->objects[obj->oidx] = new_obj;
+		new_obj->oidx = obj->oidx;
+
+		/* Attach it to the current floor pile */
+		new_obj->iy = y;
+		new_obj->ix = x;
+		new_obj->number = obj->number;
+		if (!square_holds_object(p->cave, y, x, new_obj)) {
+			pile_insert_end(&p->cave->squares[y][x].obj, new_obj);
+		}
+	} else if (known_obj->kind != obj->kind) {
+		int iy = known_obj->iy;
+		int ix = known_obj->ix;
+
+		/* Make sure knowledge is correct */
+		assert(known_obj == obj->known);
+
+		/* Detach from any old pile (possibly the correct one) */
+		if (iy && ix && square_holds_object(p->cave, iy, ix, known_obj)) {
+			square_excise_object(p->cave, iy, ix, known_obj);
+		}
+
+		/* Copy over actual details */
+		object_set_base_known(obj);
+
+		/* Attach it to the current floor pile */
+		known_obj->iy = y;
+		known_obj->ix = x;
+		known_obj->held_m_idx = 0;
+		if (!square_holds_object(p->cave, y, x, known_obj)) {
+			pile_insert_end(&p->cave->squares[y][x].obj, known_obj);
+		}
+	} else if (!square_holds_object(p->cave, y, x, known_obj)) {
+		int iy = known_obj->iy;
+		int ix = known_obj->ix;
+
+		/* Make sure knowledge is correct */
+		assert(known_obj == obj->known);
+		known_obj->number = obj->number;
+
+		/* Detach from any old pile */
+		if (iy && ix && square_holds_object(p->cave, iy, ix, known_obj)) {
+			square_excise_object(p->cave, iy, ix, known_obj);
+		}
+
+		/* Attach it to the current floor pile */
+		known_obj->iy = y;
+		known_obj->ix = x;
+		known_obj->held_m_idx = 0;
+		pile_insert_end(&p->cave->squares[y][x].obj, known_obj);
+	}
+}
+
+/**
+ * Gain knowledge based on being an the same square as an object
+ */
+void object_touch(struct player *p, struct object *obj)
+{
+	player_know_object(p, obj);
+
+	/* Get the dice, and the pval for anything but chests */
+	obj->known->dd = obj->dd * p->obj_k->dd;
+	obj->known->ds = obj->ds * p->obj_k->ds;
+	obj->known->ac = obj->ac * p->obj_k->ac;
+	if (!tval_is_chest(obj))
+		obj->known->pval = obj->pval;
+
+	/* Automatically notice artifacts, mark as assessed */
+	obj->known->artifact = obj->artifact;
+	obj->known->notice |= OBJ_NOTICE_ASSESSED;
+
+	/* Log artifacts if found */
+	if (obj->artifact)
+		history_add_artifact(obj->artifact, true, true);
+}
+
+
+/**
  * Transfer player object knowledge to an object
  *
  * \param p is the player
@@ -741,6 +968,7 @@ void player_know_object(struct player *p, struct object *obj)
 	int i, flag;
 	struct brand *b;
 	struct slay *s;
+	struct curse *c;
 	bool seen = true;
 
 	/* Unseen or only sensed objects don't get any ID */
@@ -765,6 +993,18 @@ void player_know_object(struct player *p, struct object *obj)
 			obj->known->el_info[i].res_level = obj->el_info[i].res_level;
 			obj->known->el_info[i].flags = obj->el_info[i].flags;
 		}
+
+	/* Set object flags */
+	for (flag = of_next(p->obj_k->flags, FLAG_START); flag != FLAG_END;
+		 flag = of_next(p->obj_k->flags, flag + 1)) {
+		if (of_has(obj->flags, flag))
+			of_on(obj->known->flags, flag);
+	}
+
+	/* Curse object structures are finished now */
+	if (!obj->kind) {
+		return;
+	}
 
 	/* Reset brands */
 	free_brand(obj->known->brands);
@@ -800,11 +1040,25 @@ void player_know_object(struct player *p, struct object *obj)
 		}
 	}
 
-	/* Set object flags */
-	for (flag = of_next(p->obj_k->flags, FLAG_START); flag != FLAG_END;
-		 flag = of_next(p->obj_k->flags, flag + 1)) {
-		if (of_has(obj->flags, flag))
-			of_on(obj->known->flags, flag);
+	/* Reset curses */
+	free_curse(obj->known->curses, false);
+	obj->known->curses = NULL;
+	for (c = obj->curses; c; c = c->next) {
+		/* Update knowledge of the curse object first */
+		player_know_object(p, c->obj);
+		if (player_knows_curse(p, c)) {
+			/* Copy */
+			struct curse *new_c = mem_zalloc(sizeof *new_c);
+			new_c->name = string_make(c->name);
+			if (c->obj) {
+				new_c->obj = c->obj->known;
+			}
+			new_c->power = c->power;
+
+			/* Attach the new curse */
+			new_c->next = obj->known->curses;
+			obj->known->curses = new_c;
+		}
 	}
 
 	/* Set ego type, jewellery type if known */
@@ -977,6 +1231,31 @@ static void player_learn_rune(struct player *p, size_t i, bool message)
 			}
 			break;
 		}
+		/* Curse runes */
+		case RUNE_VAR_CURSE: {
+			int j;
+			struct curse *c;
+			for (j = 1; j < z_info->curse_max; j++) {
+				c = &curses[j];
+				if (curses[j].name && streq(curses[j].name, r->name)) {
+					break;
+				}
+			}
+			assert(j < z_info->curse_max);
+
+			/* If the curse was unknown, add it to known curses */
+			if (!player_knows_curse(p, c)) {
+				/* Copy the name flag */
+				struct curse *new_c = mem_zalloc(sizeof *new_c);
+				new_c->name = string_make(c->name);
+
+				/* Attach the new curse */
+				new_c->next = p->obj_k->curses;
+				p->obj_k->curses = new_c;
+				learned = true;
+			}
+			break;
+		}
 		/* Flag runes */
 		case RUNE_VAR_FLAG: {
 			if (of_on(p->obj_k->flags, r->index))
@@ -1001,6 +1280,27 @@ static void player_learn_rune(struct player *p, size_t i, bool message)
 }
 
 /**
+ * Learn a flag
+ */
+void player_learn_flag(struct player *p, int flag)
+{
+	player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), true);
+	update_player_object_knowledge(p);
+}
+
+/**
+ * Learn a curse
+ */
+void player_learn_curse(struct player *p, struct curse *curse)
+{
+	int index = rune_index(RUNE_VAR_CURSE, lookup_curse(curse->name));
+	if (index >= 0) {
+		player_learn_rune(p, index, true);
+	}
+	update_player_object_knowledge(p);
+}
+
+/**
  * Learn absolutely everything
  *
  * \param p is the player
@@ -1011,226 +1311,6 @@ void player_learn_everything(struct player *p)
 
 	for (i = 0; i < rune_max; i++)
 		player_learn_rune(p, i, false);
-}
-
-/**
- * ------------------------------------------------------------------------
- * Functions for learning about equipment properties
- * These functions are for gaining object knowledge from the behaviour of 
- * the player's equipment
- * ------------------------------------------------------------------------ */
-/**
- * Learn things which happen on defending.
- *
- * \param p is the player
- */
-void equip_learn_on_defend(struct player *p)
-{
-	int i;
-
-	if (p->obj_k->to_a) return;
-
-	for (i = 0; i < p->body.count; i++) {
-		struct object *obj = slot_object(p, i);
-		if (obj) {
-			assert(obj->known);
-			if (obj->to_a) {
-				int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_A);
-				player_learn_rune(p, index, true);
-			}
-			if (p->obj_k->to_a) return;
-		}
-	}
-}
-
-/**
- * Learn to-hit bonus on making a ranged attack.
- * Does not apply to weapon or bow
- *
- * \param p is the player
- */
-void equip_learn_on_ranged_attack(struct player *p)
-{
-	int i;
-
-	if (p->obj_k->to_h) return;
-
-	for (i = 0; i < p->body.count; i++) {
-		struct object *obj = slot_object(p, i);
-		if (i == slot_by_name(p, "weapon")) continue;
-		if (i == slot_by_name(p, "shooting")) continue;
-		if (obj) {
-			assert(obj->known);
-			if (!object_has_standard_to_h(obj)) {
-				int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_H);
-				player_learn_rune(p, index, true);
-			}
-			if (p->obj_k->to_h) return;
-		}
-	}
-
-	return;
-}
-
-
-/**
- * Learn things which happen on making a melee attack.
- * Does not apply to bow
- *
- * \param p is the player
- */
-void equip_learn_on_melee_attack(struct player *p)
-{
-	int i;
-
-	if (p->obj_k->to_h && p->obj_k->to_d)
-		return;
-
-	for (i = 0; i < p->body.count; i++) {
-		struct object *obj = slot_object(p, i);
-		if (i == slot_by_name(p, "shooting")) continue;
-		if (obj) {
-			assert(obj->known);
-			if (!object_has_standard_to_h(obj)) {
-				int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_H);
-				player_learn_rune(p, index, true);
-			}
-			if (obj->to_d) {
-				int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_D);
-				player_learn_rune(p, index, true);
-			}
-			if (p->obj_k->to_h && p->obj_k->to_d) return;
-		}
-	}
-
-	return;
-}
-
-
-/**
- * Learn a given object flag on wielded items.
- *
- * \param p is the player
- * \param flag is the flag to notice
- */
-void equip_learn_flag(struct player *p, int flag)
-{
-	int i;
-
-	/* No flag or already known */
-	if (!flag) return;
-	if (of_has(p->obj_k->flags, flag)) return;
-
-	/* All wielded items eligible */
-	for (i = 0; i < p->body.count; i++) {
-		struct object *obj = slot_object(p, i);
-		if (!obj) continue;
-		assert(obj->known);
-
-		/* Does the object have the flag? */
-		if (of_has(obj->flags, flag)) {
-			char o_name[80];
-			object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
-
-			/* Message */
-			flag_message(flag, o_name);
-
-			/* Learn the flag */
-			player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), true);
-			return;
-		} else if (!object_fully_known(obj)) {
-			/* Objects not fully known yet get marked as having had a chance
-			 * to display the flag */
-			of_on(obj->known->flags, flag);
-		}
-	}
-}
-
-/**
- * Learn the elemental resistance properties on wielded items.
- *
- * \param p is the player
- * \param element is the element to notice
- */
-void equip_learn_element(struct player *p, int element)
-{
-	int i;
-
-	/* Invalid element or element already known */
-	if (element < 0 || element >= ELEM_MAX) return;
-	if (p->obj_k->el_info[element].res_level == 1) return;
-
-	/* All wielded items eligible */
-	for (i = 0; i < p->body.count; i++) {
-		struct object *obj = slot_object(p, i);
-		if (!obj) continue;
-		assert(obj->known);
-
-		/* Does the object affect the player's resistance to the element? */
-		if (obj->el_info[element].res_level != 0) {
-			char o_name[80];
-			object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
-
-			/* Message */
-			msg("Your %s glows.", o_name);
-
-			/* Learn the element properties */
-			player_learn_rune(p, rune_index(RUNE_VAR_RESIST, element), true);
-			return;
-		} else if (!object_fully_known(obj)) {
-			/* Objects not fully known yet get marked as having had a chance
-			 * to display the element */
-			obj->known->el_info[element].res_level = 1;
-			obj->known->el_info[element].flags = obj->el_info[element].flags;
-		}
-	}
-}
-
-/**
- * Learn things that would be noticed in time.
- *
- * \param p is the player
- */
-void equip_learn_after_time(struct player *p)
-{
-	int i, flag;
-	bitflag f[OF_SIZE], timed_mask[OF_SIZE];
-
-	/* Get the timed flags */
-	create_mask(timed_mask, true, OFID_TIMED, OFT_MAX);
-
-	/* Get the unknown timed flags, and return if there are none */
-	object_flags(p->obj_k, f);
-	of_negate(f);
-	of_inter(timed_mask, f);
-	if (of_is_empty(timed_mask)) return;
-
-	/* All wielded items eligible */
-	for (i = 0; i < p->body.count; i++) {
-		char o_name[80];
-		struct object *obj = slot_object(p, i);
-		if (!obj) continue;
-		assert(obj->known);
-
-		/* Get the unknown timed flags for this object */
-		object_flags(obj, f);
-		of_inter(f, timed_mask);
-
-		/* Attempt to learn every flag */
-		object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
-		for (flag = of_next(f, FLAG_START); flag != FLAG_END;
-			 flag = of_next(f, flag + 1)) {
-			if (!of_has(p->obj_k->flags, flag))
-				flag_message(flag, o_name);
-			player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), true);
-		}
-
-		if (!object_fully_known(obj)) {
-			/* Objects not fully known yet get marked as having had a chance
-			 * to display all the timed flags */
-			of_union(obj->known->flags, timed_mask);
-		}
-	}
 }
 
 /**
@@ -1312,6 +1392,159 @@ void mod_message(struct object *obj, int mod)
 	}
 }
 
+void object_curses_find_to_a(struct player *p, struct object *obj)
+{
+	struct curse *curse = obj->curses;
+	int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_A);
+	while (curse) {
+		struct object *test_obj = curse->obj;
+		if (test_obj->to_a != 0) {
+			player_learn_rune(p, index, true);
+
+			/* Learn the curse */
+			index = rune_index(RUNE_VAR_CURSE, lookup_curse(curse->name));
+			if (index >= 0) {
+				player_learn_rune(p, index, true);
+			}
+		}
+		curse = curse->next;
+	}
+}
+
+void object_curses_find_to_h(struct player *p, struct object *obj)
+{
+	struct curse *curse = obj->curses;
+	int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_H);
+	while (curse) {
+		struct object *test_obj = curse->obj;
+		if (test_obj->to_h != 0) {
+			player_learn_rune(p, index, true);
+
+			/* Learn the curse */
+			index = rune_index(RUNE_VAR_CURSE, lookup_curse(curse->name));
+			if (index >= 0) {
+				player_learn_rune(p, index, true);
+			}
+		}
+		curse = curse->next;
+	}
+}
+
+void object_curses_find_to_d(struct player *p, struct object *obj)
+{
+	struct curse *curse = obj->curses;
+	int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_D);
+	while (curse) {
+		struct object *test_obj = curse->obj;
+		if (test_obj->to_d != 0) {
+			player_learn_rune(p, index, true);
+
+			/* Learn the curse */
+			index = rune_index(RUNE_VAR_CURSE, lookup_curse(curse->name));
+			if (index >= 0) {
+				player_learn_rune(p, index, true);
+			}
+		}
+		curse = curse->next;
+	}
+}
+
+bool object_curses_find_flags(struct player *p, struct object *obj,
+							  bitflag *test_flags)
+{
+	struct curse *curse = obj->curses;
+	char o_name[80];
+	bool new = false;
+
+	object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
+	while (curse) {
+		struct object *test_obj = curse->obj;
+		int index = rune_index(RUNE_VAR_CURSE, lookup_curse(curse->name));
+		bitflag f[OF_SIZE];
+		int flag;
+
+		/* Get all the relevant flags */
+		object_flags(test_obj, f);
+		of_inter(f, test_flags);
+		for (flag = of_next(f, FLAG_START); flag != FLAG_END;
+			 flag = of_next(f, flag + 1)) {
+			/* Learn any new flags */
+			if (!of_has(p->obj_k->flags, flag)) {
+				new = true;
+				player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), true);
+				if (p->upkeep->playing) {
+					flag_message(flag, o_name);
+				}
+
+				/* Learn the curse */
+				if (index >= 0) {
+					player_learn_rune(p, index, true);
+				}
+			}
+		}
+		curse = curse->next;
+	}
+
+	return new;
+}
+
+void object_curses_find_modifiers(struct player *p, struct object *obj)
+{
+	struct curse *curse = obj->curses;
+
+	while (curse) {
+		struct object *test_obj = curse->obj;
+		int index = rune_index(RUNE_VAR_CURSE, lookup_curse(curse->name));
+		int i;
+
+		/* Learn all modifiers */
+		for (i = 0; i < OBJ_MOD_MAX; i++) {
+			if (test_obj->modifiers[i] && !p->obj_k->modifiers[i]) {
+				player_learn_rune(p, rune_index(RUNE_VAR_MOD, i), true);
+				if (p->upkeep->playing) {
+					mod_message(obj, i);
+				}
+
+				/* Learn the curse */
+				if (index >= 0) {
+					player_learn_rune(p, index, true);
+				}
+			}
+		}
+		curse = curse->next;
+	}
+}
+
+bool object_curses_find_element(struct player *p, struct object *obj,
+								int element)
+{
+	struct curse *curse = obj->curses;
+	char o_name[80];
+	bool new = false;
+
+	object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
+	while (curse) {
+		struct object *test_obj = curse->obj;
+		int index = rune_index(RUNE_VAR_CURSE, lookup_curse(curse->name));
+
+		/* Does the object affect the player's resistance to the element? */
+		if (test_obj->el_info[element].res_level != 0) {
+			new = true;
+			msg("Your %s glows.", o_name);
+
+			/* Learn the element properties */
+			player_learn_rune(p, rune_index(RUNE_VAR_RESIST, element), true);
+
+			/* Learn the curse */
+			if (index >= 0) {
+				player_learn_rune(p, index, true);
+			}
+		}
+		curse = curse->next;
+	}
+	return new;
+}
+
 /**
  * Get a random unknown rune from an object
  *
@@ -1323,6 +1556,7 @@ int object_find_unknown_rune(struct player *p, struct object *obj)
 {
 	size_t i, num = 0;
 	int *poss_runes = mem_zalloc(rune_max * sizeof(int));
+	int chosen = -1;
 
 	if (object_runes_known(obj)) return -1;
 
@@ -1331,9 +1565,12 @@ int object_find_unknown_rune(struct player *p, struct object *obj)
 			poss_runes[num++] = i;
 
 	/* Grab a random rune from among the unknowns  */
-	if (num) return poss_runes[randint0(num)];
+	if (num) {
+		chosen = poss_runes[randint0(num)];
+	}
 
-	return -1;
+	mem_free(poss_runes);
+	return chosen;
 }
 
 /**
@@ -1362,16 +1599,19 @@ void object_learn_unknown_rune(struct player *p, struct object *obj)
  */
 void object_learn_on_wield(struct player *p, struct object *obj)
 {
-	bitflag f[OF_SIZE], f2[OF_SIZE], obvious_mask[OF_SIZE];
+	bitflag f[OF_SIZE], obvious_mask[OF_SIZE];
 	int i, flag;
+	char o_name[80];
 
 	assert(obj->known);
+	object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
 
 	/* Check the worn flag */
-	if (obj->known->notice & OBJ_NOTICE_WORN)
+	if (obj->known->notice & OBJ_NOTICE_WORN) {
 		return;
-	else
+	} else {
 		obj->known->notice |= OBJ_NOTICE_WORN;
+	}
 
 	/* Worn means tried (for flavored wearables) */
 	object_flavor_tried(obj);
@@ -1380,10 +1620,12 @@ void object_learn_on_wield(struct player *p, struct object *obj)
 	create_mask(obvious_mask, true, OFID_WIELD, OFT_MAX);
 
 	/* Make sustains obvious for items with that stat bonus */
-	for (i = 0; i < STAT_MAX; i++)
+	for (i = 0; i < STAT_MAX; i++) {
 		/* Sustains are the first flags, stats are the first modifiers */
-		if ((obj_flag_type(i + 1) == OFT_SUST) && obj->modifiers[i])
+		if ((obj_flag_type(i + 1) == OFT_SUST) && obj->modifiers[i]) {
 			of_on(obvious_mask, i + 1);
+		}
+	}
 
 	/* Special case FA, needed for mages wielding gloves */
 	if (player_has(p, PF_CUMBER_GLOVE) && obj->tval == TV_GLOVES &&
@@ -1391,37 +1633,32 @@ void object_learn_on_wield(struct player *p, struct object *obj)
 		!kf_has(obj->kind->kind_flags, KF_SPELLS_OK))
 		of_on(obvious_mask, OF_FREE_ACT);
 
-	/* Extract the flags */
-	object_flags(obj, f);
-
-	/* Find obvious flags - curses left for special message later */
-	create_mask(f2, false, OFT_CURSE, OFT_MAX);
-	of_diff(obvious_mask, f2);
-
 	/* Learn about obvious, previously unknown flags */
+	object_flags(obj, f);
 	of_inter(f, obvious_mask);
 	for (flag = of_next(f, FLAG_START); flag != FLAG_END;
 		 flag = of_next(f, flag + 1)) {
-		char o_name[80];
-		if (of_has(p->obj_k->flags, flag)) continue;
-		object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
-
-		/* Learn the flag */
-		player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), true);
-
-		/* Message */
-		if (p->upkeep->playing) flag_message(flag, o_name);
+		if (!of_has(p->obj_k->flags, flag)) {
+			player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), true);
+			if (p->upkeep->playing) {
+				flag_message(flag, o_name);
+			}
+		}
 	}
 
 	/* Learn all modifiers */
-	for (i = 0; i < OBJ_MOD_MAX; i++)
+	for (i = 0; i < OBJ_MOD_MAX; i++) {
 		if (obj->modifiers[i] && !p->obj_k->modifiers[i]) {
-			/* Message */
-			if (p->upkeep->playing) mod_message(obj, i);
-
-			/* Learn the mod */
 			player_learn_rune(p, rune_index(RUNE_VAR_MOD, i), true);
+			if (p->upkeep->playing) {
+				mod_message(obj, i);
+			}
 		}
+	}
+
+	/* Learn curses */
+	object_curses_find_flags(p, obj, obvious_mask);
+	object_curses_find_modifiers(p, obj);
 
 	/* If the object isn't fully known, known object gets the obvious flags */
 	if (!object_fully_known(obj))
@@ -1521,6 +1758,240 @@ void missile_learn_on_ranged_attack(struct player *p, struct object *obj)
 	if (obj->to_d) {
 		int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_D);
 		player_learn_rune(p, index, true);
+	}
+	object_curses_find_to_h(p, obj);
+	object_curses_find_to_d(p, obj);
+}
+
+/**
+ * ------------------------------------------------------------------------
+ * Functions for learning about equipment properties
+ * These functions are for gaining object knowledge from the behaviour of
+ * the player's equipment
+ * ------------------------------------------------------------------------ */
+/**
+ * Learn things which happen on defending.
+ *
+ * \param p is the player
+ */
+void equip_learn_on_defend(struct player *p)
+{
+	int i;
+
+	if (p->obj_k->to_a) return;
+
+	for (i = 0; i < p->body.count; i++) {
+		struct object *obj = slot_object(p, i);
+		if (obj) {
+			assert(obj->known);
+			if (obj->to_a) {
+				int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_A);
+				player_learn_rune(p, index, true);
+			}
+			object_curses_find_to_a(p, obj);
+			if (p->obj_k->to_a) return;
+		}
+	}
+}
+
+/**
+ * Learn to-hit bonus on making a ranged attack.
+ * Does not apply to weapon or bow
+ *
+ * \param p is the player
+ */
+void equip_learn_on_ranged_attack(struct player *p)
+{
+	int i;
+
+	if (p->obj_k->to_h) return;
+
+	for (i = 0; i < p->body.count; i++) {
+		struct object *obj = slot_object(p, i);
+		if (i == slot_by_name(p, "weapon")) continue;
+		if (i == slot_by_name(p, "shooting")) continue;
+		if (obj) {
+			assert(obj->known);
+			if (!object_has_standard_to_h(obj)) {
+				int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_H);
+				player_learn_rune(p, index, true);
+			}
+			object_curses_find_to_h(p, obj);
+			if (p->obj_k->to_h) return;
+		}
+	}
+
+	return;
+}
+
+
+/**
+ * Learn things which happen on making a melee attack.
+ * Does not apply to bow
+ *
+ * \param p is the player
+ */
+void equip_learn_on_melee_attack(struct player *p)
+{
+	int i;
+
+	if (p->obj_k->to_h && p->obj_k->to_d)
+		return;
+
+	for (i = 0; i < p->body.count; i++) {
+		struct object *obj = slot_object(p, i);
+		if (i == slot_by_name(p, "shooting")) continue;
+		if (obj) {
+			assert(obj->known);
+			if (!object_has_standard_to_h(obj)) {
+				int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_H);
+				player_learn_rune(p, index, true);
+			}
+			if (obj->to_d) {
+				int index = rune_index(RUNE_VAR_COMBAT, COMBAT_RUNE_TO_D);
+				player_learn_rune(p, index, true);
+			}
+			object_curses_find_to_h(p, obj);
+			object_curses_find_to_d(p, obj);
+			if (p->obj_k->to_h && p->obj_k->to_d) return;
+		}
+	}
+
+	return;
+}
+
+
+/**
+ * Learn a given object flag on wielded items.
+ *
+ * \param p is the player
+ * \param flag is the flag to notice
+ */
+void equip_learn_flag(struct player *p, int flag)
+{
+	int i;
+	bitflag f[OF_SIZE];
+	of_wipe(f);
+	of_on(f, flag);
+
+	/* No flag or already known */
+	if (!flag) return;
+	if (of_has(p->obj_k->flags, flag)) return;
+
+	/* All wielded items eligible */
+	for (i = 0; i < p->body.count; i++) {
+		struct object *obj = slot_object(p, i);
+		if (!obj) continue;
+		assert(obj->known);
+
+		/* Does the object have the flag? */
+		if (of_has(obj->flags, flag)) {
+			char o_name[80];
+			object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
+			flag_message(flag, o_name);
+			player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), true);
+			return;
+		} else if (object_curses_find_flags(p, obj, f)) {
+			return;
+		} else if (!object_fully_known(obj)) {
+			/* Objects not fully known yet get marked as having had a chance
+			 * to display the flag */
+			of_on(obj->known->flags, flag);
+		}
+	}
+}
+
+/**
+ * Learn the elemental resistance properties on wielded items.
+ *
+ * \param p is the player
+ * \param element is the element to notice
+ */
+void equip_learn_element(struct player *p, int element)
+{
+	int i;
+
+	/* Invalid element or element already known */
+	if (element < 0 || element >= ELEM_MAX) return;
+	if (p->obj_k->el_info[element].res_level == 1) return;
+
+	/* All wielded items eligible */
+	for (i = 0; i < p->body.count; i++) {
+		struct object *obj = slot_object(p, i);
+		if (!obj) continue;
+		assert(obj->known);
+
+		/* Does the object affect the player's resistance to the element? */
+		if (obj->el_info[element].res_level != 0) {
+			char o_name[80];
+			object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
+
+			/* Message */
+			msg("Your %s glows.", o_name);
+
+			/* Learn the element properties */
+			player_learn_rune(p, rune_index(RUNE_VAR_RESIST, element), true);
+			return;
+		} else if (object_curses_find_element(p, obj, element)) {
+			return;
+		} else if (!object_fully_known(obj)) {
+			/* Objects not fully known yet get marked as having had a chance
+			 * to display the element */
+			obj->known->el_info[element].res_level = 1;
+			obj->known->el_info[element].flags = obj->el_info[element].flags;
+		}
+	}
+}
+
+/**
+ * Learn things that would be noticed in time.
+ *
+ * \param p is the player
+ */
+void equip_learn_after_time(struct player *p)
+{
+	int i, flag;
+	bitflag f[OF_SIZE], timed_mask[OF_SIZE];
+
+	/* Get the timed flags */
+	create_mask(timed_mask, true, OFID_TIMED, OFT_MAX);
+
+	/* Get the unknown timed flags, and return if there are none */
+	object_flags(p->obj_k, f);
+	of_negate(f);
+	of_inter(timed_mask, f);
+	if (of_is_empty(timed_mask)) return;
+
+	/* All wielded items eligible */
+	for (i = 0; i < p->body.count; i++) {
+		char o_name[80];
+		struct object *obj = slot_object(p, i);
+
+		if (!obj) continue;
+		assert(obj->known);
+		object_desc(o_name, sizeof(o_name), obj, ODESC_BASE);
+
+		/* Get the unknown timed flags for this object */
+		object_flags(obj, f);
+		of_inter(f, timed_mask);
+
+		/* Attempt to learn every flag */
+		for (flag = of_next(f, FLAG_START); flag != FLAG_END;
+			 flag = of_next(f, flag + 1)) {
+			if (!of_has(p->obj_k->flags, flag)) {
+				flag_message(flag, o_name);
+			}
+			player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), true);
+		}
+
+		/* Learn curses */
+		object_curses_find_flags(p, obj, timed_mask);
+
+		if (!object_fully_known(obj)) {
+			/* Objects not fully known yet get marked as having had a chance
+			 * to display all the timed flags */
+			of_union(obj->known->flags, timed_mask);
+		}
 	}
 }
 

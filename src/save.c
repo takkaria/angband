@@ -69,6 +69,7 @@ static void wr_item(const struct object *obj)
 	size_t i;
 	struct brand *b;
 	struct slay *s;
+	struct curse *c;
 
 	wr_u16b(0xffff);
 	wr_byte(ITEM_VERSION);
@@ -139,6 +140,18 @@ static void wr_item(const struct object *obj)
 		wr_s16b(s->race_flag);
 		wr_s16b(s->multiplier);
 		wr_byte(s->next ? 1 : 0);
+	}
+
+	/* Write a sentinel byte */
+	wr_byte(obj->curses ? 1 : 0);
+	for (c = obj->curses; c; c = c->next) {
+		wr_string(c->name);
+		wr_item(c->obj);
+		wr_s16b(c->power);
+		wr_byte(c->next ? 1 : 0);
+	}
+	if (obj->known) {
+		obj->known->curses = NULL;
 	}
 
 	for (i = 0; i < ELEM_MAX; i++) {
@@ -566,6 +579,7 @@ void wr_misc(void)
 	size_t i;
 	struct brand *b;
 	struct slay *s;
+	struct curse *c;
 
 	/* Random artifact seed */
 	wr_u32b(seed_randart);
@@ -618,6 +632,13 @@ void wr_misc(void)
 		wr_s16b(s->race_flag);
 		wr_s16b(s->multiplier);
 		wr_byte(s->next ? 1 : 0);
+	}
+
+	/* Curses */
+	wr_byte(player->obj_k->curses ? 1 : 0);
+	for (c = player->obj_k->curses; c; c = c->next) {
+		wr_string(c->name);
+		wr_byte(c->next ? 1 : 0);
 	}
 
 	/* Combat data */
@@ -892,7 +913,7 @@ void wr_dungeon(void)
 
 	/* Write caves */
 	wr_dungeon_aux(cave);
-	wr_dungeon_aux(cave_k);
+	wr_dungeon_aux(player->cave);
 
 	/* Compact the monsters */
 	compact_monsters(0);
@@ -902,19 +923,19 @@ void wr_dungeon(void)
 void wr_objects(void)
 {
 	wr_objects_aux(cave);
-	wr_objects_aux(cave_k);
+	wr_objects_aux(player->cave);
 }
 
 void wr_monsters(void)
 {
 	wr_monsters_aux(cave);
-	wr_monsters_aux(cave_k);
+	wr_monsters_aux(player->cave);
 }
 
 void wr_traps(void)
 {
 	wr_traps_aux(cave);
-	wr_traps_aux(cave_k);
+	wr_traps_aux(player->cave);
 }
 
 /*

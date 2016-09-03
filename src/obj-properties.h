@@ -74,8 +74,7 @@ enum object_flag_type {
 	OFT_MISC,		/* a good property, suitable for ego items */
 	OFT_LIGHT,		/* applicable only to light sources */
 	OFT_MELEE,		/* applicable only to melee weapons */
-	OFT_CURSE,		/* a "sticky" curse */
-	OFT_BAD,		/* an undesirable flag that isn't a curse */
+	OFT_BAD,		/* an undesirable flag */
 	OFT_DIG,		/* applicable only to diggers */
 
 	OFT_MAX
@@ -163,7 +162,6 @@ struct object_mod {
  * ------------------------------------------------------------------------
  * Functions
  * ------------------------------------------------------------------------ */
-bool cursed_p(const bitflag *f);
 void create_mask(bitflag *f, bool id, ...);
 s32b flag_power(int flag);
 void log_flags(bitflag *f, ang_file *log_file);

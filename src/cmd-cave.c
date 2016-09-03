@@ -1021,7 +1021,7 @@ void move_player(int dir, bool disarm)
 			event_signal(EVENT_LEAVE_STORE);
 			event_remove_handler_type(EVENT_LEAVE_STORE);
 		} else {
-			floor_pile_know(cave, y, x);
+			square_know_pile(cave, y, x);
 			cmdq_push(CMD_AUTOPICKUP);
 		}
 
@@ -1230,7 +1230,7 @@ void do_cmd_hold(struct command *cmd)
 	search();
 
 	/* Pick things up, not using extra energy */
-	do_autopickup();
+	do_autopickup(player);
 
 	/* Enter a store if we are on one, otherwise look at the floor */
 	if (square_isshop(cave, player->py, player->px)) {
@@ -1246,7 +1246,7 @@ void do_cmd_hold(struct command *cmd)
 		player->upkeep->energy_use = 0;
 	} else {
 	    event_signal(EVENT_SEEFLOOR);
-		floor_pile_know(cave, player->py, player->px);
+		square_know_pile(cave, player->py, player->px);
 	}
 }
 

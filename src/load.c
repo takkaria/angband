@@ -185,6 +185,21 @@ static struct object *rd_item(void)
 		rd_byte(&tmp8u);
 	}
 
+	/* Read curses */
+	rd_byte(&tmp8u);
+	while (tmp8u) {
+		char buf_local[40];
+		struct curse *c = mem_zalloc(sizeof *c);
+		rd_string(buf_local, sizeof(buf_local));
+		c->name = string_make(buf_local);
+		c->obj = rd_item();
+		rd_s16b(&tmp16s);
+		c->power = tmp16s;
+		c->next = obj->curses;
+		obj->curses = c;
+		rd_byte(&tmp8u);
+	}
+
 	for (i = 0; i < elem_max; i++) {
 		rd_s16b(&obj->el_info[i].res_level);
 		rd_byte(&obj->el_info[i].flags);
@@ -209,7 +224,6 @@ static struct object *rd_item(void)
 	/* Save the inscription */
 	rd_string(buf, sizeof(buf));
 	if (buf[0]) obj->note = quark_add(buf);
-
 
 	/* Lookup item kind */
 	obj->kind = lookup_kind(obj->tval, obj->sval);
@@ -936,6 +950,18 @@ int rd_misc(void)
 		rd_byte(&tmp8u);
 	}
 
+	/* Read curses */
+	rd_byte(&tmp8u);
+	while (tmp8u) {
+		char buf[40];
+		struct curse *c = mem_zalloc(sizeof *c);
+		rd_string(buf, sizeof(buf));
+		c->name = string_make(buf);
+		c->next = player->obj_k->curses;
+		player->obj_k->curses = c;
+		rd_byte(&tmp8u);
+	}
+
 	/* Combat data */
 	rd_s16b(&player->obj_k->ac);
 	rd_s16b(&player->obj_k->to_a);
@@ -1377,7 +1403,7 @@ int rd_dungeon(void)
 	character_dungeon = true;
 
 	/* Read known cave */
-	if (rd_dungeon_aux(&cave_k))
+	if (rd_dungeon_aux(&player->cave))
 		return 1;
 
 	return 0;
@@ -1391,7 +1417,7 @@ int rd_objects(void)
 {
 	if (rd_objects_aux(rd_item, cave))
 		return -1;
-	if (rd_objects_aux(rd_item, cave_k))
+	if (rd_objects_aux(rd_item, player->cave))
 		return -1;
 
 	return 0;
@@ -1400,9 +1426,10 @@ int rd_objects(void)
 /**
  * Read the monster list - wrapper functions
  */
-int rd_monsters (void)
+int rd_monsters(void)
 {
 	int i;
+	struct object *obj;
 
 	/* Only if the player's alive */
 	if (player->is_dead)
@@ -1410,13 +1437,31 @@ int rd_monsters (void)
 
 	if (rd_monsters_aux(cave))
 		return -1;
-	if (rd_monsters_aux(cave_k))
+	if (rd_monsters_aux(player->cave))
 		return -1;
 
+	/* Add curse info for all objects */
+	if (cave) {
+		for (i = 0; i < cave->obj_max; i++) {
+			if (cave->objects[i]) {
+				apply_curse_knowledge(cave->objects[i]);
+			}
+		}
+	}
+	for (obj = player->gear; obj; obj = obj->next) {
+		apply_curse_knowledge(obj);
+	}
+	for (i = 0; i < MAX_STORES; i++) {
+		struct store *s = &stores[i];
+		for (obj = s->stock; obj; obj = obj->next) {
+			apply_curse_knowledge(obj);
+		}
+	}
+
 	/* Associate known objects */
-	for (i = 0; i < cave_k->obj_max; i++)
-		if (cave->objects[i] && cave_k->objects[i])
-			cave->objects[i]->known = cave_k->objects[i];
+	for (i = 0; i < player->cave->obj_max; i++)
+		if (cave->objects[i] && player->cave->objects[i])
+			cave->objects[i]->known = player->cave->objects[i];
 
 	return 0;
 }
@@ -1428,7 +1473,7 @@ int rd_traps(void)
 {
 	if (rd_traps_aux(cave))
 		return -1;
-	if (rd_traps_aux(cave_k))
+	if (rd_traps_aux(player->cave))
 		return -1;
 	return 0;
 }

@@ -32,6 +32,7 @@
 #include "project.h"
 #include "target.h"
 #include "trap.h"
+#include "ui-display.h"
 #include "ui-input.h"
 #include "ui-keymap.h"
 #include "ui-map.h"
@@ -806,7 +807,7 @@ static int draw_path(u16b path_n, struct loc *path_g, wchar_t *c, int *a,
 		int y = path_g[i].y;
 		int x = path_g[i].x;
 		struct monster *mon = square_monster(cave, y, x);
-		struct object *obj = square_object(cave_k, y, x);
+		struct object *obj = square_object(player->cave, y, x);
 
 		/*
 		 * As path[] is a straight line and the screen is oblong,
@@ -839,8 +840,8 @@ static int draw_path(u16b path_n, struct loc *path_g, wchar_t *c, int *a,
 			/* Known objects are yellow. */
 			colour = COLOUR_YELLOW;
 
-		else if ((!square_isprojectable(cave, y, x) &&
-				  square_isknown(cave, y, x)) || square_isseen(cave, y, x))
+		else if (!square_isprojectable(cave, y, x) &&
+				  (square_isknown(cave, y, x) || square_isseen(cave, y, x)))
 			/* Known walls are blue. */
 			colour = COLOUR_BLUE;
 
@@ -961,7 +962,7 @@ bool target_set_interactive(int mode, int x, int y)
 	target_set_monster(0);
 
 	/* Prevent animations */
-	msg_flag = true;
+	disallow_animations();
 
 	/* Calculate the window location for the help prompt */
 	Term_get_size(&wid, &hgt);
@@ -1475,7 +1476,7 @@ bool target_set_interactive(int mode, int x, int y)
 	mem_free(path_char);
 
 	/* Allow animations again */
-	msg_flag = false;
+	allow_animations();
 
 	/* Failure to set target */
 	if (!target_is_set()) return (false);

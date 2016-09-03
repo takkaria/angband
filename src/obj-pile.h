@@ -49,8 +49,6 @@ typedef enum
 } object_floor_t;
 
 struct object *object_new(void);
-void list_object(struct chunk *c, struct object *obj);
-void delist_object(struct chunk *c, struct object *obj);
 void object_delete(struct object **obj_address);
 void object_pile_free(struct object *obj);
 
@@ -66,14 +64,14 @@ bool object_similar(const struct object *obj1, const struct object *obj2,
 					object_stack_t mode);
 void object_absorb_partial(struct object *obj1, struct object *obj2);
 void object_absorb(struct object *obj1, struct object *obj2);
-void object_wipe(struct object *obj);
+void object_wipe(struct object *obj, bool free_curse_objects);
 void object_copy(struct object *obj1, const struct object *obj2);
 void object_copy_amt(struct object *dest, struct object *src, int amt);
 struct object *object_split(struct object *src, int amt);
 struct object *floor_object_for_use(struct object *obj, int num, bool message,
 									bool *none_left);
 bool floor_carry(struct chunk *c, int y, int x, struct object *drop, bool last);
-void drop_near(struct chunk *c, struct object *dropped, int chance, int y,
+void drop_near(struct chunk *c, struct object **dropped, int chance, int y,
 			   int x, bool verbose);
 void push_object(int y, int x);
 void floor_item_charges(struct object *obj);
@@ -83,5 +81,3 @@ int scan_distant_floor(struct object **items, int max_size, int y, int x);
 int scan_items(struct object **item_list, size_t item_list_max, int mode,
 			   item_tester tester);
 bool item_is_available(struct object *obj);
-void floor_pile_sense(struct chunk *c, int y, int x);
-void floor_pile_know(struct chunk *c, int y, int x);

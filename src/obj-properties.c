@@ -1,5 +1,5 @@
 /**
- * \file src/obj-properties.c
+ * \file obj-properties.c
  * \brief functions to deal with object flags and modifiers
  *
  * Copyright (c) 2014 Chris Carr, Nick McConnell
@@ -16,7 +16,9 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 #include "angband.h"
+#include "object.h"
 #include "obj-gear.h"
+#include "obj-pile.h"
 
 /**
  * Details of the different object flags in the game.
@@ -46,11 +48,11 @@ static const char *flag_names[] =
 {
 	"NONE",
 	#define STAT(a, b, c, d, e, f, g, h, i) #c,
-    #include "list-stats.h"
-    #undef STAT
+	#include "list-stats.h"
+	#undef STAT
 	#define OF(a, b, c, d, e, f) #a,
-    #include "list-object-flags.h"
-    #undef OF
+	#include "list-object-flags.h"
+	#undef OF
     ""
 };
 
@@ -61,11 +63,11 @@ static const char *flag_names[] =
 static const struct object_mod object_mod_table[] =
 {
 	#define STAT(a, b, c, d, e, f, g, h, i) { OBJ_MOD_##a, b, e, h },
-    #include "list-stats.h"
-    #undef STAT
-    #define OBJ_MOD(a, b, c, d) { OBJ_MOD_##a, b, c, d },
-    #include "list-object-modifiers.h"
-    #undef OBJ_MOD
+	#include "list-stats.h"
+	#undef STAT
+	#define OBJ_MOD(a, b, c, d) { OBJ_MOD_##a, b, c, d },
+	#include "list-object-modifiers.h"
+	#undef OBJ_MOD
 };
 
 /**
@@ -74,12 +76,12 @@ static const struct object_mod object_mod_table[] =
 static const char *mod_names[] =
 {
 	#define STAT(a, b, c, d, e, f, g, h, i) #a,
-    #include "list-stats.h"
-    #undef STAT
-    #define OBJ_MOD(a, b, c, d) #a,
-    #include "list-object-modifiers.h"
-    #undef OBJ_MOD
-    ""
+	#include "list-stats.h"
+	#undef STAT
+	#define OBJ_MOD(a, b, c, d) #a,
+	#include "list-object-modifiers.h"
+	#undef OBJ_MOD
+	""
 };
 
 /**
@@ -112,20 +114,6 @@ void create_mask(bitflag *f, bool id, ...)
 
 	return;
 }
-
-/**
- * Determine whether a flagset includes any curse flags.
- */
-bool cursed_p(const bitflag *f)
-{
-	bitflag f2[OF_SIZE];
-
-	of_wipe(f2);
-	create_mask(f2, false, OFT_CURSE, OFT_MAX);
-
-	return of_is_inter(f, f2);
-}
-
 
 /**
  * Log the names of a flagset to a file.
@@ -166,7 +154,6 @@ s16b flag_slot_mult(int flag, int slot)
 	case OFT_SUST:
 	case OFT_PROT:
 	case OFT_BAD:
-	case OFT_CURSE:
 	case OFT_DIG: return 1;
 		/* Light-specific */
 	case OFT_LIGHT: return (slot_type_is(slot, EQUIP_LIGHT)) ? 1 : 0;

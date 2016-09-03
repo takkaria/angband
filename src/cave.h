@@ -201,10 +201,9 @@ extern int FEAT_PERM;
 extern int FEAT_LAVA;
 
 
-/* Real cave */
+/* Current level */
 extern struct chunk *cave;
-/* Known cave */
-extern struct chunk *cave_k;
+/* Stored levels */
 extern struct chunk **chunk_list;
 extern u16b chunk_list_max;
 
@@ -316,6 +315,8 @@ struct trap *square_trap(struct chunk *c, int y, int x);
 bool square_holds_object(struct chunk *c, int y, int x, struct object *obj);
 void square_excise_object(struct chunk *c, int y, int x, struct object *obj);
 void square_excise_pile(struct chunk *c, int y, int x);
+void square_sense_pile(struct chunk *c, int y, int x);
+void square_know_pile(struct chunk *c, int y, int x);
 
 void square_set_feat(struct chunk *c, int y, int x, int feat);
 
@@ -358,6 +359,9 @@ void square_unmark(struct chunk *c, int y, int x);
 void set_terrain(void);
 struct chunk *cave_new(int height, int width);
 void cave_free(struct chunk *c);
+void list_object(struct chunk *c, struct object *obj);
+void delist_object(struct chunk *c, struct object *obj);
+void object_lists_check_integrity(struct chunk *c, struct chunk *c_k);
 void scatter(struct chunk *c, int *yp, int *xp, int y, int x, int d, bool need_los);
 
 struct monster *cave_monster(struct chunk *c, int idx);
@@ -369,6 +373,6 @@ int count_feats(int *y, int *x, bool (*test)(struct chunk *cave, int y, int x), 
 void cave_generate(struct chunk **c, struct player *p);
 bool is_quest(int level);
 
-void cave_known(void);
+void cave_known(struct player *p);
 
 #endif /* !CAVE_H */

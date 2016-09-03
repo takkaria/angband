@@ -285,7 +285,8 @@ void mods_to_fake_pvals(struct artifact *a)
  */
 static s32b artifact_power(int a_idx, bool translate)
 {
-	struct object obj, known_obj;
+	struct object *obj = object_new();
+	struct object *known_obj = object_new();
 	char buf[256];
 	bool fail = false;
 	s32b power;
@@ -294,22 +295,26 @@ static s32b artifact_power(int a_idx, bool translate)
 	file_putf(log_file, "Artifact index is %d\n", a_idx);
 
 	if (translate) fake_pvals_to_mods(&a_info[a_idx]);
-	if (!make_fake_artifact(&obj, &a_info[a_idx]))
+	if (!make_fake_artifact(obj, &a_info[a_idx]))
 		fail = true;
 	if (translate) mods_to_fake_pvals(&a_info[a_idx]);
 
-	if (fail) return 0;
+	if (fail) {
+		object_delete(&known_obj);
+		object_delete(&obj);
+		return 0;
+	}
 
-	object_copy(&known_obj, &obj);
-	obj.known = &known_obj;
-	object_desc(buf, 256 * sizeof(char), &obj,
+	object_copy(known_obj, obj);
+	obj->known = known_obj;
+	object_desc(buf, 256 * sizeof(char), obj,
 				ODESC_PREFIX | ODESC_FULL | ODESC_SPOIL);
 	file_putf(log_file, "%s\n", buf);
 
-	power = object_power(&obj, verbose, log_file);
+	power = object_power(obj, verbose, log_file);
 
-	object_wipe(&known_obj);
-	object_wipe(&obj);
+	object_delete(&known_obj);
+	object_delete(&obj);
 	return power;
 }
 
@@ -571,8 +576,6 @@ static void remove_contradictory(struct artifact *art)
 		art->modifiers[OBJ_MOD_BLOWS] = 0;
 	}
 
-	if (of_has(art->flags, OF_LIGHT_CURSE))
-		of_off(art->flags, OF_BLESSED);
 	if (of_has(art->flags, OF_DRAIN_EXP))
 		of_off(art->flags, OF_HOLD_LIFE);
 }
@@ -2348,12 +2351,15 @@ static void try_supercharge(struct artifact *art, s32b target_power)
  */
 static void do_curse(struct artifact *art)
 {
+	int num = randint1(2);
+	int max_tries = 20;
+
 	if (one_in_(7))
 		of_on(art->flags, OF_AGGRAVATE);
 	if (one_in_(4))
 		of_on(art->flags, OF_DRAIN_EXP);
 	if (one_in_(7))
-		of_on(art->flags, OF_TELEPORT);
+		of_on(art->flags, OF_NO_TELEPORT);
 
 	if ((fake_pval[0] > 0) && one_in_(2))
 		fake_pval[0] = -fake_pval[0];
@@ -2364,15 +2370,16 @@ static void do_curse(struct artifact *art)
 	if ((art->to_d > 0) && one_in_(4))
 		art->to_d = -art->to_d;
 
-	if (of_has(art->flags, OF_LIGHT_CURSE)) {
-		if (one_in_(2)) of_on(art->flags, OF_HEAVY_CURSE);
-		return;
+	while (num) {
+		int pick = randint1(z_info->curse_max - 1);
+		int power = 10 * m_bonus(9, player->depth);
+		if (!curses[pick].poss[art->tval]) {
+			max_tries--;
+			continue;
+		}
+		append_curse(&art->curses, pick, power);
+		num--;
 	}
-
-	of_on(art->flags, OF_LIGHT_CURSE);
-
-	if (one_in_(4))
-		of_on(art->flags, OF_HEAVY_CURSE);
 }
 
 /**

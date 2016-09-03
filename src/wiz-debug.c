@@ -29,6 +29,7 @@
 #include "monster.h"
 #include "obj-desc.h"
 #include "obj-gear.h"
+#include "obj-knowledge.h"
 #include "obj-make.h"
 #include "obj-pile.h"
 #include "obj-power.h"
@@ -518,6 +519,7 @@ static struct object *wiz_create_item_object_from_kind(struct object_kind *kind)
 
 		/* Apply magic (no messages, no artifacts) */
 		apply_magic(obj, player->depth, false, false, false, false);
+		apply_curse_knowledge(obj);
 	}
 
 	return obj;
@@ -547,12 +549,9 @@ static struct object *wiz_create_item_object_from_artifact(struct artifact *art)
 
 	/* Create the artifact */
 	object_prep(obj, kind, art->alloc_min, RANDOMISE);
-
-	/* Save the artifact type */
 	obj->artifact = art;
-
-	/* Extract the fields */
 	copy_artifact_data(obj, art);
+	apply_curse_knowledge(obj);
 
 	/* Mark that the artifact has been created. */
 	art->created = true;
@@ -575,7 +574,7 @@ static void wiz_create_item_drop_object(struct object *obj)
 	obj->origin_depth = player->depth;
 
 	/* Drop the object from heaven */
-	drop_near(cave, obj, 0, player->py, player->px, true);
+	drop_near(cave, &obj, 0, player->py, player->px, true);
 }
 
 /**
@@ -942,19 +941,19 @@ static void wiz_reroll_item(struct object *obj)
 		} else if (ch == 'n' || ch == 'N') {
 			/* Apply normal magic, but first clear object */
 			changed = true;
-			object_wipe(new);
+			object_wipe(new, true);
 			object_prep(new, obj->kind, player->depth, RANDOMISE);
 			apply_magic(new, player->depth, false, false, false, false);
 		} else if (ch == 'g' || ch == 'G') {
 			/* Apply good magic, but first clear object */
 			changed = true;
-			object_wipe(new);
+			object_wipe(new, true);
 			object_prep(new, obj->kind, player->depth, RANDOMISE);
 			apply_magic(new, player->depth, false, true, false, false);
 		} else if (ch == 'e' || ch == 'E') {
 			/* Apply great magic, but first clear object */
 			changed = true;
-			object_wipe(new);
+			object_wipe(new, true);
 			object_prep(new, obj->kind, player->depth, RANDOMISE);
 			apply_magic(new, player->depth, false, true, true, false);
 		}
@@ -973,6 +972,7 @@ static void wiz_reroll_item(struct object *obj)
 
 		/* Copy over - slays and brands OK, pile info needs restoring */
 		object_copy(obj, new);
+		apply_curse_knowledge(obj);
 		obj->prev = prev;
 		obj->next = next;
 		obj->known = known_obj;
@@ -1202,22 +1202,7 @@ static void wiz_quantity_item(struct object *obj, bool carried)
  */
 static void wiz_tweak_curse(struct object *obj)
 {
-	if (cursed_p(obj->flags)) {
-		bitflag f[OF_SIZE];
-		msg("Resetting existing curses.");
-
-		create_mask(f, false, OFT_CURSE, OFT_MAX);
-		of_diff(obj->flags, f);
-	}
-
-	if (get_check("Set light curse? "))
-		flags_set(obj->flags, OF_SIZE, OF_LIGHT_CURSE, FLAG_END);
-	else if (get_check("Set heavy curse? "))
-		flags_set(obj->flags, OF_SIZE, OF_LIGHT_CURSE, OF_HEAVY_CURSE,
-				  FLAG_END);
-	else if (get_check("Set permanent curse? "))
-		flags_set(obj->flags, OF_SIZE, OF_LIGHT_CURSE, OF_HEAVY_CURSE,
-				  OF_PERMA_CURSE, FLAG_END);
+	// DO SOMETHING - NRM
 }
 
 
@@ -1362,8 +1347,15 @@ void wiz_cheat_death(void)
  */
 static void do_cmd_wiz_cure_all(void)
 {
+	int i;
+
 	/* Remove curses */
-	(void)remove_all_curse();
+	for (i = 0; i < player->body.count; i++) {
+		if (player->body.slots[i].obj) {
+			free_curse(player->body.slots[i].obj->curses, true);
+			player->body.slots[i].obj->curses = NULL;
+		}
+	}
 
 	/* Restore stats */
 	effect_simple(EF_RESTORE_STAT, "0", STAT_STR, 0, 0, NULL);
@@ -1794,6 +1786,7 @@ static void wiz_test_kind(int tval)
 
 			/* Apply magic (no messages, no artifacts) */
 			apply_magic(obj, player->depth, false, false, false, false);
+			apply_curse_knowledge(obj);
 
 			/* Mark as cheat, and where created */
 			obj->origin = ORIGIN_CHEAT;
@@ -1805,7 +1798,7 @@ static void wiz_test_kind(int tval)
 		obj->known = known_obj;
 
 		/* Drop the object from heaven */
-		drop_near(cave, obj, 0, py, px, true);
+		drop_near(cave, &obj, 0, py, px, true);
 	}
 
 	msg("Done.");

@@ -1376,12 +1376,12 @@ static void get_artifact_display_name(char *o_name, size_t namelen, int a_idx)
 	struct object *obj = &body, *known_obj = &known_body;
 
 	make_fake_artifact(obj, &a_info[a_idx]);
-	object_wipe(known_obj);
+	object_wipe(known_obj, true);
 	object_copy(known_obj, obj);
 	obj->known = known_obj;
 	object_desc(o_name, namelen, obj, ODESC_PREFIX | ODESC_BASE | ODESC_SPOIL);
-	object_wipe(known_obj);
-	object_wipe(obj);
+	object_wipe(known_obj, false);
+	object_wipe(obj, true);
 }
 
 /**
@@ -1481,8 +1481,8 @@ static void desc_art_fake(int a_idx)
 	object_desc(header, sizeof(header), obj,
 			ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL);
 	if (fake) {
-		object_wipe(obj);
-		object_wipe(known_obj);
+		object_wipe(known_obj, false);
+		object_wipe(obj, true);
 	}
 
 	textui_textblock_show(tb, area, header);
@@ -1676,7 +1676,7 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 		if (ego->everseen || OPT(cheat_xtra)) {
 			size_t j;
 			int *tval = mem_zalloc(N_ELEMENTS(object_text_order) * sizeof(int));
-			struct ego_poss_item *poss;
+			struct poss_item *poss;
 
 			/* Note the tvals which are possible for this ego */
 			for (poss = ego->poss_items; poss; poss = poss->next) {
@@ -1810,6 +1810,7 @@ static void desc_obj_fake(int k_idx)
 
 	/* Create the artifact */
 	object_prep(obj, kind, 0, EXTREMIFY);
+	apply_curse_knowledge(obj);
 
 	/* It's fully known */
 	if (kind->aware || !kind->flavor)
@@ -2033,6 +2034,7 @@ static const char *rune_group_text[] =
 	"Resists",
 	"Brands",
 	"Slays",
+	"Curses",
 	"Other",
 	NULL
 };

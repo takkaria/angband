@@ -241,11 +241,15 @@ void object_flags(const struct object *obj, bitflag flags[OF_SIZE])
 void object_flags_known(const struct object *obj, bitflag flags[OF_SIZE])
 {
 	object_flags(obj, flags);
-
 	of_inter(flags, obj->known->flags);
 
-	if (object_flavor_is_aware(obj))
+	if (!obj->kind) {
+		return;
+	}
+
+	if (object_flavor_is_aware(obj)) {
 		of_union(flags, obj->kind->flags);
+	}
 
 	if (obj->ego && easy_know(obj)) {
 		of_union(flags, obj->ego->flags);
@@ -572,7 +576,7 @@ bool obj_can_study(const struct object *obj)
 /* Can only take off non-cursed items */
 bool obj_can_takeoff(const struct object *obj)
 {
-	return !cursed_p((bitflag *)obj->flags);
+	return !obj_has_flag(obj, OF_STICKY);
 }
 
 /* Can only put on wieldable items */
@@ -591,6 +595,21 @@ bool obj_can_fire(const struct object *obj)
 bool obj_has_inscrip(const struct object *obj)
 {
 	return (obj->note ? true : false);
+}
+
+bool obj_has_flag(const struct object *obj, int flag)
+{
+	struct curse *c = obj->curses;
+	if (of_has(obj->flags, flag)) {
+		return true;
+	}
+	while (c) {
+		if (of_has(c->obj->flags, flag)) {
+			return true;
+		}
+		c = c->next;
+	}
+	return false;
 }
 
 bool obj_is_useable(const struct object *obj)

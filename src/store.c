@@ -1172,6 +1172,7 @@ static bool store_create_random(struct store *store)
 
 		/* Apply some "low-level" magic (no artifacts) */
 		apply_magic(obj, level, false, false, false, false);
+		apply_curse_knowledge(obj);
 
 		/* Reject if item is 'damaged' (i.e. negative mods) */
 		if (tval_is_weapon(obj)) {
@@ -1244,6 +1245,7 @@ static struct object *store_create_item(struct store *store,
 
 	/* Create a new object of the chosen kind */
 	object_prep(obj, kind, 0, RANDOMISE);
+	apply_curse_knowledge(obj);
 
 	/* Know everything the player knows, no origin yet */
 	obj->known = known_obj;
@@ -1821,9 +1823,9 @@ void do_cmd_sell(struct command *cmd)
 	if (cmd_get_quantity(cmd, "quantity", &amt, obj->number) != CMD_OK)
 		return;
 
-	/* Cannot remove cursed objects */
-	if (object_is_equipped(player->body, obj) && cursed_p(obj->flags)) {
-		msg("Hmmm, it seems to be cursed.");
+	/* Cannot remove stickied objects */
+	if (object_is_equipped(player->body, obj) && !obj_can_takeoff(obj)) {
+		msg("Hmmm, it seems to be stuck.");
 		return;
 	}
 
@@ -1942,9 +1944,9 @@ void do_cmd_stash(struct command *cmd)
 		return;
 	}
 
-	/* Cannot remove cursed objects */
-	if (object_is_equipped(player->body, obj) && cursed_p(obj->flags)) {
-		msg("Hmmm, it seems to be cursed.");
+	/* Cannot remove stickied objects */
+	if (object_is_equipped(player->body, obj) && !obj_can_takeoff(obj)) {
+		msg("Hmmm, it seems to be stuck.");
 		return;
 	}	
 
