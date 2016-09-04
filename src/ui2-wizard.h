@@ -1,5 +1,5 @@
 /**
- * \file wizard.h
+ * \file ui2-wizard.h
  * \brief Debug mode commands, stats collection, spoiler generation
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
@@ -16,19 +16,19 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 
-#ifndef INCLUDED_WIZARD_H
-#define INCLUDED_WIZARD_H
+#ifndef UI2_WIZARD_H
+#define UI2_WIZARD_H
 
-/* wiz-debug.c */
+/* ui2-wiz-debug.c */
 void wiz_cheat_death(void);
-void get_debug_command(void);
+void wiz_debug_command(void);
 
-/* wiz-stats.c */
+/* ui2-wiz-stats.c */
 void stats_collect(void);
 void disconnect_stats(void);
 void pit_stats(void);
 
-/* wiz-spoil.c */
+/* ui2-wiz-spoil.c */
 void do_cmd_spoilers(void);
 
-#endif /* !INCLUDED_WIZARD_H */
+#endif /* UI2_WIZARD_H */
