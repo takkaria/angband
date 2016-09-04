@@ -63,7 +63,8 @@
 /* Logfile to store results in */
 static ang_file *stats_log = NULL;
 
- /* this is the size of arrays used to calculate mean and std_dev.
+ /**
+  * this is the size of arrays used to calculate mean and std_dev.
   * these values will be calculated over the first TRIES_SIZE attempts
   * or less if TRIES_SIZE is less than tries
   */
@@ -71,7 +72,7 @@ static ang_file *stats_log = NULL;
  #define MAX_LVL 101
  
  /* default for number of tries */
-int tries=50;
+int tries = 50;
 /* the simulation number that we are on */
 int iter;
 /* amount to add each time an item comes up */
@@ -88,7 +89,6 @@ static int art_it[TRIES_SIZE];
 /*** handle gold separately ***/
 /* gold */
 static double gold_total[MAX_LVL], gold_floor[MAX_LVL], gold_mon[MAX_LVL];
-
 
 typedef enum stat_code
 {
@@ -196,12 +196,9 @@ typedef enum stat_code
 	ST_8TH_BOOKS,
 	ST_9TH_BOOKS,
 	ST_END
-}	
-stat_code;
+} stat_code;
 
-
-struct stat_data
-{
+struct stat_data {
 	stat_code st;
 	char *name;
 };
@@ -337,11 +334,9 @@ typedef enum stat_first_find
 	ST_FF_BOOK8,
 	ST_FF_BOOK9,
 	ST_FF_END
-}	
-stat_first_find;
+} stat_first_find;
 
-struct stat_ff_data
-{
+struct stat_ff_data {
 	stat_first_find st_ff;
 	stat_code st;
 	char *name;
@@ -381,14 +376,11 @@ static double art_shal[MAX_LVL], art_ave[MAX_LVL], art_ood[MAX_LVL];
 /* where normal artifacts come from */
 static double art_mon[MAX_LVL], art_uniq[MAX_LVL], art_floor[MAX_LVL], art_vault[MAX_LVL], art_mon_vault[MAX_LVL];
 
-
-
 /* monster info */
 static double mon_total[MAX_LVL], mon_ood[MAX_LVL], mon_deadly[MAX_LVL];
 
 /* unique info */
 static double uniq_total[MAX_LVL], uniq_ood[MAX_LVL], uniq_deadly[MAX_LVL];
-
 
 /* set everything to 0.0 to begin */
 static void init_stat_vals()
@@ -447,9 +439,8 @@ static void add_stats(stat_code st, bool vault, bool mon, int number)
 	
 	/* add to the total from monsters */
 	if (mon) stat_all[st][1][lvl] += addval * number;
-
 }	
-	
+
 /*
  * This will get data on an object
  * It gets a lot of stuff, pretty much everything that I
@@ -460,7 +451,6 @@ static void add_stats(stat_code st, bool vault, bool mon, int number)
 static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 						 bool uniq)
 {
-
 	bool vault = square_isvault(cave, y, x);
 	int number = obj->number;
 	static int lvl;
@@ -488,10 +478,8 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 			first_find(ST_FF_FA);
 		}
 
-
 	/* has see invis */
 	if (of_has(obj->flags, OF_SEE_INVIS)){
-
 		add_stats(ST_SI_EQUIPMENT, vault, mon, number);
 		first_find(ST_FF_SI);
 	}
@@ -499,8 +487,8 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
  	if ((obj->el_info[ELEM_ACID].res_level == 1) ||
 		(obj->el_info[ELEM_ELEC].res_level == 1) ||
 		(obj->el_info[ELEM_COLD].res_level == 1) ||
-		(obj->el_info[ELEM_FIRE].res_level == 1)){
-
+		(obj->el_info[ELEM_FIRE].res_level == 1))
+	{
 			add_stats(ST_RESIST_EQUIPMENT, vault, mon, number);
 	}
 
@@ -512,27 +500,24 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		add_stats(ST_RBASE_EQUIPMENT, vault, mon, number);
 
 	/* has resist poison */
-	if (obj->el_info[ELEM_POIS].res_level == 1){
-
+	if (obj->el_info[ELEM_POIS].res_level == 1) {
 		add_stats(ST_RPOIS_EQUIPMENT, vault, mon, number);
 		first_find(ST_FF_RPOIS);
 		
 	}
 	/* has resist nexus */
-	if (obj->el_info[ELEM_NEXUS].res_level == 1){
-
+	if (obj->el_info[ELEM_NEXUS].res_level == 1) {
 		add_stats(ST_RNEXUS_EQUIPMENT, vault, mon, number);
 		first_find(ST_FF_RNEXUS);
 	}
 	/* has resist blind */
 	if (of_has(obj->flags, OF_PROT_BLIND)){
-
 		add_stats(ST_RBLIND_EQUIPMENT, vault, mon, number);
 		first_find(ST_FF_RBLIND);
 	}
 
 	/* has resist conf */
-	if (of_has(obj->flags, OF_PROT_CONF)){
+	if (of_has(obj->flags, OF_PROT_CONF)) {
 
 		add_stats(ST_RCONF_EQUIPMENT, vault, mon, number);
 		first_find(ST_FF_RCONF);
@@ -543,14 +528,12 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		add_stats(ST_SPEED_EQUIPMENT, vault, mon, number);
 
 	/* has telepathy */
-	if (of_has(obj->flags, OF_TELEPATHY)){
-
+	if (of_has(obj->flags, OF_TELEPATHY)) {
 		add_stats(ST_TELEP_EQUIPMENT, vault, mon, number);
 		first_find(ST_FF_TELEP);
 	}
 
 	switch(obj->tval){
-
 		/* armor */
 		case TV_BOOTS:
 		case TV_GLOVES:
@@ -561,7 +544,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		case TV_SOFT_ARMOR:
 		case TV_HARD_ARMOR:
 		case TV_DRAG_ARMOR:{
-
 			/* do not include artifacts */
 			if (obj->artifact) break;
 
@@ -596,7 +578,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 
 			if (obj->curses)
 				add_stats(ST_CURSED_ARMOR, vault, mon, number);
-
 			break;
 		}
 
@@ -605,7 +586,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		case TV_HAFTED:
 		case TV_POLEARM:
 		case TV_SWORD:{
-
 			/* do not include artifacts */
 			if (obj->artifact) break;
 
@@ -678,15 +658,12 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 				/* is uber need to fix ACB
 				if ((of_has(obj->flags, OF_SLAY_EVIL)) || (obj->modifiers[OBJ_MOD_BLOWS] > 0))
 				add_stats(ST_UBWE, vault, mon, number); */
-
 			}
-
 			break;
 		}
 
 		/* launchers */
 		case TV_BOW:{
-
 			/* do not include artifacts */
 			if (obj->artifact) break;
 
@@ -732,7 +709,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 
 		/* potion */
 		case TV_POTION:{
-
 			/* Add total amounts */
 			add_stats(ST_POTIONS, vault, mon, number);
 
@@ -762,7 +738,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 
 		/* scrolls */
 		case TV_SCROLL:{
-
 			/* add total amounts */
 			add_stats(ST_SCROLLS, vault, mon, number);
 
@@ -782,7 +757,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 
 		/* rods */
 		case TV_ROD:{
-
 			/* add to total */
 			add_stats(ST_RODS, vault, mon, number);
 
@@ -805,7 +779,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 
 		/* staves */
 		case TV_STAFF:{
-
 			add_stats(ST_STAVES, vault, mon, number);
 
 			if (strstr(obj->kind->name, "Speed")) {
@@ -825,7 +798,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		}
 
 		case TV_WAND:{
-
 			add_stats(ST_WANDS, vault, mon, number);
 
 			if (strstr(obj->kind->name, "Teleport Other"))
@@ -834,7 +806,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		}
 
 		case TV_RING:{
-
 			add_stats(ST_RINGS, vault, mon, number);
 
 			/* is it cursed */
@@ -866,13 +837,10 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 			} else if (strstr(obj->kind->name, "Power")) {
 				add_stats(ST_ONE_RINGS, vault, mon, number);
 			}
-
-
 			break;
 		}
 
 		case TV_AMULET:{
-
 			add_stats(ST_AMULETS, vault, mon, number);
 
 			if (strstr(obj->kind->name, "Wisdom")) {
@@ -895,7 +863,6 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		case TV_SHOT:
 		case TV_ARROW:
 		case TV_BOLT:{
-
 			add_stats(ST_AMMO, vault, mon, number);
 
 			/* check if bad, average, good */
@@ -932,81 +899,67 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		/* prayer books and magic books have the same probability 
 		   only track one of them */
 		case TV_MAGIC_BOOK:{
-
 			switch(obj->sval){
-
 				/* svals begin at 0 and end at 8 */
 				case 0:{
-
 					add_stats(ST_1ST_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK1);
 					break;
 				}
 
 				case 1:{
-
 					add_stats(ST_2ND_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK2);
 					break;
 				}
 
 				case 2:{
-
 					add_stats(ST_3RD_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK3);
 					break;
 				}
 
 				case 3:{
-
 					add_stats(ST_4TH_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK4);
 					break;
 				}
 
 				case 4:{
-
 					add_stats(ST_5TH_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK5);
 					break;
 				}
 
 				case 5:{
-
 					add_stats(ST_6TH_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK6);
 					break;
 				}
 
 				case 6:{
-
 					add_stats(ST_7TH_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK7);
 					break;
 				}
 
 				case 7:{
-
 					add_stats(ST_8TH_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK8);
 					break;
 				}
 
 				case 8:{
-
 					add_stats(ST_9TH_BOOKS, vault, mon, number);
 					first_find(ST_FF_BOOK9);
 					break;
 				}
-
-
 			}
 			break;
 		}
 	}
 	/* check to see if we have an artifact */
-	if (obj->artifact){
-
+	if (obj->artifact) {
 		/* add to artifact level total */
 		art_total[lvl] += addval;
 
@@ -1031,7 +984,7 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 
 		/* check to see if it's a special artifact */
 		if ((obj->tval == TV_LIGHT) || (obj->tval == TV_AMULET)
-			|| (obj->tval == TV_RING)){
+			|| (obj->tval == TV_RING)) {
 
 			/* increment special artifact counter */
 			art_spec[lvl] += addval;
@@ -1046,7 +999,7 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 			if (uniq) art_uniq[lvl] += addval;
 
 			/* was it in a vault? */
-			if (vault){
+			if (vault) {
 
 				/* did a monster drop it ?*/
 				if ((mon) || (uniq)) art_mon_vault[lvl] += addval;
@@ -1061,8 +1014,7 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 	}
 
 	/* Get info on gold. */
-	if (obj->tval == TV_GOLD){
-
+	if (obj->tval == TV_GOLD) {
 		int temp = obj->pval;
 		gold_temp = temp;
 	    gold_total[lvl] += (gold_temp / tries);
@@ -1071,10 +1023,7 @@ static void get_obj_data(const struct object *obj, int y, int x, bool mon,
 		if ((mon) || (uniq)) gold_mon[lvl] += (gold_temp / tries);
 		else gold_floor[lvl] += (gold_temp / tries);
 	}
-
 }
-
-
 
 /* 
  * A rewrite of monster death that gets rid of some features
@@ -1121,8 +1070,6 @@ void monster_death_stats(int m_idx)
 	/* Forget objects */
 	mon->held_obj = NULL;
 }
-
-
 
 /**
  * This will collect stats on a monster avoiding all unique monsters.
@@ -1183,7 +1130,6 @@ static bool stats_monster(struct monster *mon, int i)
 	/* success */
 	return true;
 }
-
 
 /**
  * Print heading infor for the file
@@ -1260,8 +1206,6 @@ static void print_stats(int lvl)
 	for (i=ST_BEGIN; i<ST_END; i++){	
 		file_putf(stats_log, "%s%f From Monsters: %f In Vaults: %f \n",	stat_message[i].name, stat_all[i][0][lvl], stat_all[i][1][lvl], stat_all[i][2][lvl]);
 	}	
-
-
 }
 
 /**
@@ -1290,14 +1234,12 @@ static void mean_and_stdv(int array[TRIES_SIZE])
 
 	/* Print to file */
 	file_putf(stats_log," mean: %f  std-dev: %f \n",mean,stdev);
-
 }
 
 /**
  * Calculated the probability of finding an item by a specific level,
  * and print it to the output file
  */
-
 static void prob_of_find(double stat[MAX_LVL])
 {
 	static int lvl, tmpcount;
@@ -1391,8 +1333,6 @@ static void post_process_stats(void)
 	file_putf(stats_log,"mb9: %f\n",total(b9_total));
 	*/
 }
-
-
 
 /**
  * Scans the dungeon for objects
@@ -1656,7 +1596,8 @@ void stats_collect(void)
 		exit(1);
 	}
 
-	/* Turn on auto-more.  This will clear prompts for items
+	/*
+	 * Turn on auto-more.  This will clear prompts for items
 	 * that drop under the player, or that can't fit on the 
 	 * floor due to too many items.  This is a very small amount
 	 * of items, even on deeper levels, so it's not worth worrying

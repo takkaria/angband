@@ -43,17 +43,16 @@
 #include "project.h"
 #include "target.h"
 #include "trap.h"
-#include "ui-command.h"
-#include "ui-event.h"
-#include "ui-display.h"
-#include "ui-help.h"
-#include "ui-input.h"
-#include "ui-map.h"
-#include "ui-menu.h"
-#include "ui-prefs.h"
-#include "ui-target.h"
-#include "wizard.h"
-
+#include "ui2-command.h"
+#include "ui2-event.h"
+#include "ui2-display.h"
+#include "ui2-help.h"
+#include "ui2-input.h"
+#include "ui2-map.h"
+#include "ui2-menu.h"
+#include "ui2-prefs.h"
+#include "ui2-target.h"
+#include "ui2-wizard.h"
 
 static void gf_display(struct menu *m, int type, bool cursor,
 		int row, int col, int wid)
@@ -109,13 +108,6 @@ static void wiz_gf_demo(void)
 	menu_select(m, 0, false);
 	screen_load();
 }
-
-
-
-
-
-
-
 
 /**
  * This is a nice utility function; it determines if a (NULL-terminated)
@@ -180,8 +172,6 @@ static void do_cmd_wiz_hack_ben(void)
 	prt_map();
 }
 
-
-
 /**
  * Output part of a bitflag set in binary format.
  */
@@ -239,7 +229,6 @@ static void do_cmd_keylog(void) {
 	screen_load();
 }
 
-
 /**
  * Teleport to the requested target
  */
@@ -262,8 +251,6 @@ static void do_cmd_wiz_bamf(void)
 	else
 		effect_simple(EF_TELEPORT_TO, "0", y, x, 0, NULL);
 }
-
-
 
 /**
  * Aux function for "do_cmd_wiz_change()"
@@ -338,7 +325,6 @@ static void do_cmd_wiz_change_aux(void)
 		player_exp_lose(player, player->exp - tmp_long, false);
 }
 
-
 /**
  * Change player stats, gold and experience.
  */
@@ -350,7 +336,6 @@ static void do_cmd_wiz_change(void)
 	/* Redraw everything */
 	do_cmd_redraw();
 }
-
 
 /**
  * Wizard routines for creating objects and modifying them
@@ -401,7 +386,6 @@ static void do_cmd_wiz_change(void)
  * This "feature" may induce crashes or other nasty effects.
  */
 
-
 /**
  * Display an item's properties
  */
@@ -450,8 +434,6 @@ static void wiz_display_item(const struct object *obj, bool all)
 	prt_binary(f, 0, 22, j, '*', 28);
 	prt_binary(obj->known->flags, 0, 23, j, '+', 28);
 }
-
-
 
 /** Object creation code **/
 static bool choose_artifact = false;
@@ -798,7 +780,6 @@ static const menu_iter wiz_create_item_menu =
 	NULL
 };
 
-
 /**
  * Choose and create an instance of an artifact or object kind
  */
@@ -847,7 +828,6 @@ static void wiz_create_item(bool art)
 	/* Redraw map */
 	player->upkeep->redraw |= (PR_MAP | PR_ITEMLIST);
 	handle_stuff(player);
-
 }
 
 /**
@@ -903,7 +883,6 @@ static void wiz_tweak_item(struct object *obj)
 	WIZ_TWEAK(to_h);
 	WIZ_TWEAK(to_d);
 }
-
 
 /**
  * Apply magic to an item or turn it into an artifact. -Bernd-
@@ -994,12 +973,10 @@ static void wiz_reroll_item(struct object *obj)
 	mem_free(new);
 }
 
-
 /*
  * Maximum number of rolls
  */
 #define TEST_ROLL 100000
-
 
 /**
  * Try to create an item again. Output some statistics.    -Bernd-
@@ -1150,7 +1127,6 @@ static void wiz_statistics(struct object *obj, int level)
 	if (obj->artifact) obj->artifact->created = true;
 }
 
-
 /**
  * Change the quantity of an item
  */
@@ -1194,7 +1170,6 @@ static void wiz_quantity_item(struct object *obj, bool carried)
 	}
 }
 
-
 /**
  * Tweak the cursed status of an object.
  *
@@ -1204,9 +1179,6 @@ static void wiz_tweak_curse(struct object *obj)
 {
 	// DO SOMETHING - NRM
 }
-
-
-
 
 /**
  * Play with an item. Options include:
@@ -1444,7 +1416,6 @@ static void do_cmd_wiz_jump(void)
 	cmdq_push(CMD_HOLD);
 }
 
-
 /**
  * Become aware of all object flavors
  */
@@ -1511,7 +1482,6 @@ static void do_cmd_rerate(void)
 	msg("Current Life Rating is %d/100.", percent);
 }
 
-
 /**
  * Summon some creatures
  */
@@ -1522,7 +1492,6 @@ static void do_cmd_wiz_summon(int num)
 	for (i = 0; i < num; i++)
 		effect_simple(EF_SUMMON, "1", 0, 0, 0, NULL);
 }
-
 
 /**
  * Summon a creature of the specified type
@@ -1553,8 +1522,6 @@ static void do_cmd_wiz_named(struct monster_race *r, bool slp)
 	}
 }
 
-
-
 /**
  * Delete all nearby monsters
  */
@@ -1580,7 +1547,6 @@ static void do_cmd_wiz_zap(int d)
 	/* Update monster list window */
 	player->upkeep->redraw |= PR_MONLIST;
 }
-
 
 /**
  * Query square flags - needs alteration if list-square-flags.h changes
@@ -1854,7 +1820,6 @@ static void do_cmd_wiz_advance(void)
 
 	/* Hack -- update */
 	handle_stuff(player);
-
 }
 
 /**

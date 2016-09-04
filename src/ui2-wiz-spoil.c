@@ -38,18 +38,16 @@
 #include "wizard.h"
 #include "z-file.h"
 
-
 /**
  * ------------------------------------------------------------------------
  * Item Spoilers by Ben Harrison (benh@phial.com)
- * ------------------------------------------------------------------------ */
-
+ * ------------------------------------------------------------------------
+ */
 
 /**
  * The spoiler file being created
  */
 static ang_file *fh = NULL;
-
 
 /**
  * Write out `n' of the character `c' to the spoiler file
@@ -76,8 +74,6 @@ static void spoiler_underline(ang_file *fh, const char *str, char c)
 	spoiler_out_n_chars(fh, strlen(str), c);
 	file_writec(fh, '\n');
 }
-
-
 
 /**
  * The basic items categorized by type
@@ -128,10 +124,6 @@ static const grouper group_item[] =
 
 	{ 0, "" }
 };
-
-
-
-
 
 /**
  * Describe the kind
@@ -187,7 +179,6 @@ static void kind_info(char *buf, size_t buf_len, char *dam, size_t dam_len,
 	object_delete(&known_obj);
 	object_delete(&obj);
 }
-
 
 /**
  * Create a spoiler file for items
@@ -295,15 +286,13 @@ static void spoil_obj_desc(const char *fname)
 	msg("Successfully created a spoiler file.");
 }
 
-
-
 /**
  * ------------------------------------------------------------------------
  * Artifact Spoilers by: randy@PICARD.tamu.edu (Randy Hutson)
  *
  * (Mostly) rewritten in 2002 by Andi Sidwell and Robert Ruehlmann.
- * ------------------------------------------------------------------------ */
-
+ * ------------------------------------------------------------------------
+ */
 
 /**
  * The artifacts categorized by type
@@ -333,7 +322,6 @@ static const grouper group_artifact[] =
 
 	{ 0, NULL }
 };
-
 
 /**
  * Create a spoiler file for artifacts
@@ -441,11 +429,12 @@ static void spoil_artifact(const char *fname)
 	msg("Successfully created a spoiler file.");
 }
 
-
 /**
  * ------------------------------------------------------------------------
  * Brief monster spoilers
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
+
 /**
  * Create a brief spoiler file for monsters
  */
@@ -559,14 +548,11 @@ static void spoil_mon_desc(const char *fname)
 	msg("Successfully created a spoiler file.");
 }
 
-
-
-
 /**
  * ------------------------------------------------------------------------
  * Monster spoilers originally by: smchorse@ringer.cs.utsa.edu (Shawn McHorse)
- * ------------------------------------------------------------------------ */
-
+ * ------------------------------------------------------------------------
+ */
 
 /**
  * Create a spoiler file for monsters (-SHAWN-)
@@ -682,6 +668,7 @@ static void spoiler_menu_act(const char *title, int row)
 }
 
 static struct menu *spoil_menu;
+
 static menu_action spoil_actions[] =
 {
 	{ 0, 0, "Brief Object Info (obj-desc.spo)",		spoiler_menu_act },
@@ -689,7 +676,6 @@ static menu_action spoil_actions[] =
 	{ 0, 0, "Brief Monster Info (mon-desc.spo)",	spoiler_menu_act },
 	{ 0, 0, "Full Monster Info (mon-info.spo)",		spoiler_menu_act },
 };
-
 
 /**
  * Create Spoiler files
