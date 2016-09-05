@@ -1,5 +1,5 @@
 /**
- * \file wiz-spoil.c
+ * \file ui2-wiz-spoil.c
  * \brief Spoiler generation
  *
  * Copyright (c) 1997 Ben Harrison, and others
@@ -31,11 +31,11 @@
 #include "obj-tval.h"
 #include "obj-util.h"
 #include "object.h"
-#include "ui-input.h"
-#include "ui-knowledge.h"
-#include "ui-menu.h"
-#include "ui-mon-lore.h"
-#include "wizard.h"
+#include "ui2-input.h"
+#include "ui2-knowledge.h"
+#include "ui2-menu.h"
+#include "ui2-mon-lore.h"
+#include "ui2-wizard.h"
 #include "z-file.h"
 
 /**
@@ -52,15 +52,18 @@ static ang_file *fh = NULL;
 /**
  * Write out `n' of the character `c' to the spoiler file
  */
-static void spoiler_out_n_chars(ang_file *fh, int n, char c)
+static void spoiler_out_n_chars(ang_file *fh, unsigned n, char c)
 {
-	while (--n >= 0) file_writec(fh, c);
+	while (n > 0) {
+		file_writec(fh, c);
+		n--;
+	}
 }
 
 /**
- * Write out `n' blank lines to the spoiler file
+ * Write out `n' newlines to the spoiler file
  */
-static void spoiler_blanklines(ang_file *fh, int n)
+static void spoiler_blanklines(ang_file *fh, unsigned n)
 {
 	spoiler_out_n_chars(fh, n, '\n');
 }
@@ -78,69 +81,62 @@ static void spoiler_underline(ang_file *fh, const char *str, char c)
 /**
  * The basic items categorized by type
  */
-static const grouper group_item[] =
-{
-	{ TV_SHOT,		"Ammo" },
-	{ TV_ARROW,		  NULL },
-	{ TV_BOLT,		  NULL },
-
-	{ TV_BOW,		"Bows" },
-
-	{ TV_SWORD,		"Weapons" },
-	{ TV_POLEARM,	  NULL },
-	{ TV_HAFTED,	  NULL },
-	{ TV_DIGGING,	  NULL },
-
-	{ TV_SOFT_ARMOR,	"Armour (Body)" },
-	{ TV_HARD_ARMOR,	  NULL },
-	{ TV_DRAG_ARMOR,	  NULL },
-
-	{ TV_CLOAK,		"Armour (Misc)" },
-	{ TV_SHIELD,	  NULL },
-	{ TV_HELM,		  NULL },
-	{ TV_CROWN,		  NULL },
-	{ TV_GLOVES,	  NULL },
-	{ TV_BOOTS,		  NULL },
-
-	{ TV_AMULET,	"Amulets" },
-	{ TV_RING,		"Rings" },
-
-	{ TV_SCROLL,	"Scrolls" },
-	{ TV_POTION,	"Potions" },
-	{ TV_FOOD,		"Food" },
-	{ TV_MUSHROOM,	"Mushrooms" },
-
-	{ TV_ROD,		"Rods" },
-	{ TV_WAND,		"Wands" },
-	{ TV_STAFF,		"Staffs" },
-
-	{ TV_MAGIC_BOOK,	"Books (Mage)" },
-	{ TV_PRAYER_BOOK,	"Books (Priest)" },
-
-	{ TV_CHEST,		"Chests" },
-
-	{ TV_LIGHT,		  "Lights and fuel" },
-	{ TV_FLASK,		  NULL },
-
-	{ 0, "" }
+static const grouper group_item[] = {
+	{TV_SHOT,        "Ammo"},
+	{TV_ARROW,        NULL},
+	{TV_BOLT,         NULL},
+	{TV_BOW,         "Bows"},
+	{TV_SWORD,       "Weapons"},
+	{TV_POLEARM,      NULL},
+	{TV_HAFTED,       NULL},
+	{TV_DIGGING,      NULL},
+	{TV_SOFT_ARMOR,  "Armour (Body)"},
+	{TV_HARD_ARMOR,   NULL},
+	{TV_DRAG_ARMOR,   NULL},
+	{TV_CLOAK,       "Armour (Misc)"},
+	{TV_SHIELD,       NULL},
+	{TV_HELM,         NULL},
+	{TV_CROWN,        NULL},
+	{TV_GLOVES,       NULL},
+	{TV_BOOTS,        NULL},
+	{TV_AMULET,      "Amulets"},
+	{TV_RING,        "Rings"},
+	{TV_SCROLL,      "Scrolls"},
+	{TV_POTION,      "Potions"},
+	{TV_FOOD,        "Food"},
+	{TV_MUSHROOM,    "Mushrooms"},
+	{TV_ROD,         "Rods"},
+	{TV_WAND,        "Wands"},
+	{TV_STAFF,       "Staffs"},
+	{TV_MAGIC_BOOK,  "Books (Mage)"},
+	{TV_PRAYER_BOOK, "Books (Priest)"},
+	{TV_CHEST,       "Chests"},
+	{TV_LIGHT,       "Lights and fuel"},
+	{TV_FLASK,        NULL},
+	{0,              ""}
 };
 
 /**
  * Describe the kind
  */
-static void kind_info(char *buf, size_t buf_len, char *dam, size_t dam_len,
-					  char *wgt, size_t wgt_len, int *lev, s32b *val, int k)
+static void kind_info(int k_idx,
+		char *buf, size_t buf_size,
+		char *dam, size_t dam_size,
+		char *wgt, size_t wgt_size,
+		int *lev, s32b *val)
 {
-	struct object_kind *kind = &k_info[k];
-	struct object *obj = object_new(), *known_obj = object_new();
-	int i;
+	struct object_kind *kind = &k_info[k_idx];
+	struct object *obj = object_new();
+	struct object *known_obj = object_new();
 
 	/* Prepare a fake item */
 	object_prep(obj, kind, 0, MAXIMISE);
 
 	/* Cancel bonuses */
-	for (i = 0; i < OBJ_MOD_MAX; i++)
+	for (int i = 0; i < OBJ_MOD_MAX; i++) {
 		obj->modifiers[i] = 0;
+	}
+
 	obj->to_a = 0;
 	obj->to_h = 0;
 	obj->to_d = 0;
@@ -156,25 +152,23 @@ static void kind_info(char *buf, size_t buf_len, char *dam, size_t dam_len,
 	(*val) = object_value(obj, 1, false);
 
 	/* Description (too brief) */
-	if (buf)
-		object_desc(buf, buf_len, obj, ODESC_BASE | ODESC_SPOIL);
+	if (buf && buf_size > 0) {
+		object_desc(buf, buf_size, obj, ODESC_BASE | ODESC_SPOIL);
+	}
 
 	/* Weight */
-	if (wgt)
-		strnfmt(wgt, wgt_len, "%3d.%d", obj->weight / 10, obj->weight % 10);
-
-	/* Hack */
-	if (!dam)
-		return;
-
-	/* Misc info */
-	dam[0] = '\0';
+	if (wgt && wgt_size > 0) {
+		strnfmt(wgt, wgt_size, "%3d.%d", obj->weight / 10, obj->weight % 10);
+	}
 
 	/* Damage */
-	if (tval_is_ammo(obj) || tval_is_melee_weapon(obj))
-		strnfmt(dam, dam_len, "%dd%d", obj->dd, obj->ds);
-	else if (tval_is_armor(obj))
-		strnfmt(dam, dam_len, "%d", obj->ac);
+	if (dam && dam_size > 0) {
+		if (tval_is_ammo(obj) || tval_is_melee_weapon(obj)) {
+			strnfmt(dam, dam_size, "%dd%d", obj->dd, obj->ds);
+		} else if (tval_is_armor(obj)) {
+			strnfmt(dam, dam_size, "%d", obj->ac);
+		}
+	}
 
 	object_delete(&known_obj);
 	object_delete(&obj);
@@ -185,19 +179,12 @@ static void kind_info(char *buf, size_t buf_len, char *dam, size_t dam_len,
  */
 static void spoil_obj_desc(const char *fname)
 {
-	int i, k, s, t, n = 0;
-	u16b who[200];
-	char buf[1024];
-	char wgt[80];
-	char dam[80];
-	const char *format = "%-51s  %7s%6s%4s%9s\n";
-
 	/* Open the file */
-	path_build(buf, sizeof(buf), ANGBAND_DIR_USER, fname);
-	fh = file_open(buf, MODE_WRITE, FTYPE_TEXT);
+	char file_name[4096];
+	path_build(file_name, sizeof(file_name), ANGBAND_DIR_USER, fname);
+	fh = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
-	/* Oops */
-	if (!fh) {
+	if (fh == NULL) {
 		msg("Cannot create spoiler file.");
 		return;
 	}
@@ -206,30 +193,35 @@ static void spoil_obj_desc(const char *fname)
 	file_putf(fh, "Spoiler File -- Basic Items (%s)\n\n\n", buildid);
 
 	/* More Header */
-	file_putf(fh, format, "Description", "Dam/AC", "Wgt", "Lev", "Cost");
-	file_putf(fh, format, "----------------------------------------",
-	        "------", "---", "---", "----");
+	const char *format = "%-51s  %7s%6s%4s%9s\n";
+	file_putf(fh, format,
+			"Description", "Dam/AC", "Wgt", "Lev", "Cost");
+	file_putf(fh, format,
+			"----------------------------------------",
+			"------", "---", "---", "----");
+
+	u16b who[200];
 
 	/* List the groups */
-	for (i = 0; true; i++) {
+	for (int i = 0, n = 0; group_item[i].tval != 0; i++) {
 		/* Write out the group title */
-		if (group_item[i].name) {
-			/* Hack -- bubble-sort by cost and then level */
-			for (s = 0; s < n - 1; s++) {
-				for (t = 0; t < n - 1; t++) {
+		if (group_item[i].name != NULL) {
+			/* Bubble sort by cost and then level */
+			for (int s = 0; s < n - 1; s++) {
+				for (int t = 0; t < n - 1; t++) {
 					int i1 = t;
 					int i2 = t + 1;
 
-					int e1;
-					int e2;
+					int lev1;
+					int lev2;
 
-					s32b t1;
-					s32b t2;
+					s32b val1;
+					s32b val2;
 
-					kind_info(NULL, 0, NULL, 0, NULL, 0, &e1, &t1, who[i1]);
-					kind_info(NULL, 0, NULL, 0, NULL, 0, &e2, &t2, who[i2]);
+					kind_info(who[i1], NULL, 0, NULL, 0, NULL, 0, &lev1, &val1);
+					kind_info(who[i2], NULL, 0, NULL, 0, NULL, 0, &lev2, &val2);
 
-					if ((t1 > t2) || ((t1 == t2) && (e1 > e2))) {
+					if (val1 > val2 || (val1 == val2 && lev1 > lev2)) {
 						int tmp = who[i1];
 						who[i1] = who[i2];
 						who[i2] = tmp;
@@ -238,52 +230,55 @@ static void spoil_obj_desc(const char *fname)
 			}
 
 			/* Spoil each item */
-			for (s = 0; s < n; s++) {
-				int e;
-				s32b v;
+			for (int s = 0; s < n; s++) {
+				char buf[80];
+				char wgt[80];
+				char dam[80];
+
+				int lev;
+				s32b val;
 
 				/* Describe the kind */
-				kind_info(buf, sizeof(buf), dam, sizeof(dam), wgt, sizeof(wgt),
-						  &e, &v, who[s]);
+				kind_info(who[s],
+						buf, sizeof(buf),
+						dam, sizeof(dam),
+						wgt, sizeof(wgt),
+						&lev, &val);
 
-				/* Dump it */
-				file_putf(fh, "  %-51s%7s%6s%4d%9ld\n", buf, dam, wgt, e,
-						  (long)(v));
+				file_putf(fh, "  %-51s%7s%6s%4d%9ld\n",
+						buf, dam, wgt, lev, (long) val);
 			}
 
 			/* Start a new set */
 			n = 0;
 
 			/* Notice the end */
-			if (!group_item[i].tval) break;
-
-			/* Start a new set */
-			file_putf(fh, "\n\n%s\n\n", group_item[i].name);
+			if (group_item[i].tval != 0) {
+				file_putf(fh, "\n\n%s\n\n", group_item[i].name);
+			}
 		}
 
 		/* Get legal item types */
-		for (k = 1; k < z_info->k_max; k++) {
+		for (int k = 1; k < z_info->k_max; k++) {
 			struct object_kind *kind = &k_info[k];
 
-			/* Skip wrong tvals */
-			if (kind->tval != group_item[i].tval) continue;
+			/* Skip wrong tvals and instant artefacts */
+			if (kind->tval == group_item[i].tval
+					&& !kf_has(kind->kind_flags, KF_INSTA_ART))
+			{
 
-			/* Hack -- Skip instant-artifacts */
-			if (kf_has(kind->kind_flags, KF_INSTA_ART)) continue;
-
-			/* Save the index */
-			who[n++] = k;
+				/* Save the index */
+				who[n] = k;
+				n++;
+			}
 		}
 	}
 
-	/* Check for errors */
 	if (!file_close(fh)) {
 		msg("Cannot close spoiler file.");
-		return;
+	} else {
+		msg("Successfully created a spoiler file.");
 	}
-
-	/* Message */
-	msg("Successfully created a spoiler file.");
 }
 
 /**
@@ -297,30 +292,25 @@ static void spoil_obj_desc(const char *fname)
 /**
  * The artifacts categorized by type
  */
-static const grouper group_artifact[] =
-{
-	{ TV_SWORD,         "Edged Weapons" },
-	{ TV_POLEARM,       "Polearms" },
-	{ TV_HAFTED,        "Hafted Weapons" },
-	{ TV_BOW,           "Bows" },
-	{ TV_DIGGING,       "Diggers" },
-
-	{ TV_SOFT_ARMOR,    "Body Armor" },
-	{ TV_HARD_ARMOR,    NULL },
-	{ TV_DRAG_ARMOR,    NULL },
-
-	{ TV_CLOAK,         "Cloaks" },
-	{ TV_SHIELD,        "Shields" },
-	{ TV_HELM,          "Helms/Crowns" },
-	{ TV_CROWN,         NULL },
-	{ TV_GLOVES,        "Gloves" },
-	{ TV_BOOTS,         "Boots" },
-
-	{ TV_LIGHT,         "Light Sources" },
-	{ TV_AMULET,        "Amulets" },
-	{ TV_RING,          "Rings" },
-
-	{ 0, NULL }
+static const grouper group_artifact[] = {
+	{TV_SWORD,         "Edged Weapons"},
+	{TV_POLEARM,       "Polearms"},
+	{TV_HAFTED,        "Hafted Weapons"},
+	{TV_BOW,           "Bows"},
+	{TV_DIGGING,       "Diggers"},
+	{TV_SOFT_ARMOR,    "Body Armor"},
+	{TV_HARD_ARMOR,     NULL},
+	{TV_DRAG_ARMOR,     NULL},
+	{TV_CLOAK,         "Cloaks"},
+	{TV_SHIELD,        "Shields"},
+	{TV_HELM,          "Helms/Crowns"},
+	{TV_CROWN,          NULL},
+	{TV_GLOVES,        "Gloves"},
+	{TV_BOOTS,         "Boots"},
+	{TV_LIGHT,         "Light Sources"},
+	{TV_AMULET,        "Amulets"},
+	{TV_RING,          "Rings"},
+	{0, NULL }
 };
 
 /**
@@ -328,14 +318,11 @@ static const grouper group_artifact[] =
  */
 static void spoil_artifact(const char *fname)
 {
-	int i, j;
-	char buf[1024];
-
 	/* Build the filename */
-	path_build(buf, sizeof(buf), ANGBAND_DIR_USER, fname);
-	fh = file_open(buf, MODE_WRITE, FTYPE_TEXT);
+	char file_name[4096];
+	path_build(file_name, sizeof(file_name), ANGBAND_DIR_USER, fname);
+	fh = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
-	/* Oops */
 	if (!fh) {
 		msg("Cannot create spoiler file.");
 		return;
@@ -347,7 +334,7 @@ static void spoil_artifact(const char *fname)
 	file_putf(fh, "\nRandart seed is %u\n", seed_randart);
 
 	/* List the artifacts by tval */
-	for (i = 0; group_artifact[i].tval; i++) {
+	for (int i = 0; group_artifact[i].tval; i++) {
 		/* Write out the group title */
 		if (group_artifact[i].name) {
 			spoiler_blanklines(fh, 2);
@@ -356,18 +343,17 @@ static void spoil_artifact(const char *fname)
 		}
 
 		/* Now search through all of the artifacts */
-		for (j = 1; j < z_info->a_max; ++j) {
-			struct artifact *art = &a_info[j];
-			char buf2[80];
-			char *temp;
-			struct object *obj, *known_obj;
+		for (int a = 1; a < z_info->a_max; a++) {
+			struct artifact *art = &a_info[a];
 
 			/* We only want objects in the current group */
-			if (art->tval != group_artifact[i].tval) continue;
+			if (art->tval != group_artifact[i].tval) {
+				continue;
+			}
 
 			/* Get local object */
-			obj = object_new();
-			known_obj = object_new();
+			struct object *obj = object_new();
+			struct object *known_obj = object_new();
 
 			/* Attempt to "forge" the artifact */
 			if (!make_fake_artifact(obj, art)) {
@@ -379,15 +365,17 @@ static void spoil_artifact(const char *fname)
 			/* Grab artifact name */
 			object_copy(known_obj, obj);
 			obj->known = known_obj;
-			object_desc(buf2, sizeof(buf2), obj, ODESC_PREFIX |
+
+			char buf[80];
+			object_desc(buf, sizeof(buf), obj, ODESC_PREFIX |
 				ODESC_COMBAT | ODESC_EXTRA | ODESC_SPOIL);
 
 			/* Print name and underline */
-			spoiler_underline(fh, buf2, '-');
+			spoiler_underline(fh, buf, '-');
 
 			/* Temporarily blank the artifact flavour text - spoilers
 			   spoil the mechanics, not the atmosphere. */
-			temp = obj->artifact->text;
+			char *temp = obj->artifact->text;
 			obj->artifact->text = NULL;
 
 			/* Write out the artifact description to the spoiler file */
@@ -398,8 +386,8 @@ static void spoil_artifact(const char *fname)
 
 			/*
 			 * Determine the minimum and maximum depths an
-			 * artifact can appear, its rarity, its weight, and
-			 * its power rating.
+			 * artifact can appear, its rarity, its weight,
+			 * and its power rating.
 			 */
 			file_putf(fh,
 					"\nMin Level %u, Max Level %u, Generation chance %u, Power %d, %d.%d lbs\n",
@@ -410,7 +398,9 @@ static void spoil_artifact(const char *fname)
 					art->weight / 10,
 					art->weight % 10);
 
-			if (OPT(birth_randarts)) file_putf(fh, "%s.\n", art->text);
+			if (OPT(birth_randarts)) {
+				file_putf(fh, "%s.\n", art->text);
+			}
 
 			/* Terminate the entry */
 			spoiler_blanklines(fh, 2);
@@ -419,14 +409,11 @@ static void spoil_artifact(const char *fname)
 		}
 	}
 
-	/* Check for errors */
 	if (!file_close(fh)) {
 		msg("Cannot close spoiler file.");
-		return;
+	} else {
+		msg("Successfully created a spoiler file.");
 	}
-
-	/* Message */
-	msg("Successfully created a spoiler file.");
 }
 
 /**
@@ -440,25 +427,11 @@ static void spoil_artifact(const char *fname)
  */
 static void spoil_mon_desc(const char *fname)
 {
-	int i, n = 0;
-
-	char buf[1024];
-
-	char nam[80];
-	char lev[80];
-	char rar[80];
-	char spd[80];
-	char ac[80];
-	char hp[80];
-	char exp[80];
-
-	u16b *who;
-
 	/* Build the filename */
-	path_build(buf, sizeof(buf), ANGBAND_DIR_USER, fname);
-	fh = file_open(buf, MODE_WRITE, FTYPE_TEXT);
+	char file_name[1024];
+	path_build(file_name, sizeof(file_name), ANGBAND_DIR_USER, fname);
+	fh = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
-	/* Oops */
 	if (!fh) {
 		msg("Cannot create spoiler file.");
 		return;
@@ -475,77 +448,78 @@ static void spoil_mon_desc(const char *fname)
 	        "----", "---", "---", "---", "--", "--", "-----------");
 
 	/* Allocate the "who" array */
-	who = mem_zalloc(z_info->r_max * sizeof(u16b));
+	u16b *who = mem_zalloc(z_info->r_max * sizeof(*who));
 
 	/* Scan the monsters (except the ghost) */
-	for (i = 1; i < z_info->r_max - 1; i++) {
+	int n_who = 0;
+	for (int i = 1; i < z_info->r_max - 1; i++) {
 		struct monster_race *race = &r_info[i];
-
-		/* Use that monster */
-		if (race->name) who[n++] = (u16b)i;
+		if (race->name) {
+			who[n_who] = i;
+			n_who++;
+		}
 	}
 
 	/* Sort the array by dungeon depth of monsters */
-	sort(who, n, sizeof(*who), cmp_monsters);
+	sort(who, n_who, sizeof(*who), cmp_monsters);
 
 	/* Scan again */
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n_who; i++) {
 		struct monster_race *race = &r_info[who[i]];
 		const char *name = race->name;
 
 		/* Get the "name" */
-		if (rf_has(race->flags, RF_QUESTOR))
+		char nam[80];
+		if (rf_has(race->flags, RF_QUESTOR)) {
 			strnfmt(nam, sizeof(nam), "[Q] %s", name);
-		else if (rf_has(race->flags, RF_UNIQUE))
+		} else if (rf_has(race->flags, RF_UNIQUE)) {
 			strnfmt(nam, sizeof(nam), "[U] %s", name);
-		else
+		} else {
 			strnfmt(nam, sizeof(nam), "The %s", name);
+		}
 
 		/* Level */
+		char lev[80];
 		strnfmt(lev, sizeof(lev), "%d", race->level);
 
 		/* Rarity */
+		char rar[80];
 		strnfmt(rar, sizeof(rar), "%d", race->rarity);
 
 		/* Speed */
-		if (race->speed >= 110)
+		char spd[80];
+		if (race->speed >= 110) {
 			strnfmt(spd, sizeof(spd), "+%d", (race->speed - 110));
-		else
+		} else {
 			strnfmt(spd, sizeof(spd), "-%d", (110 - race->speed));
+		}
 
 		/* Armor Class */
+		char ac[80];
 		strnfmt(ac, sizeof(ac), "%d", race->ac);
 
 		/* Hitpoints */
+		char hp[80];
 		strnfmt(hp, sizeof(hp), "%d", race->avg_hp);
 
 		/* Experience */
-		strnfmt(exp, sizeof(exp), "%ld", (long)(race->mexp));
-
-		/* Hack -- use visual instead */
-		strnfmt(exp, sizeof(exp), "%s '%c'", attr_to_text(race->d_attr),
-				race->d_char);
+		char exp[80];
+		strnfmt(exp, sizeof(exp), "%ld", (long) race->mexp);
 
 		/* Dump the info */
 		file_putf(fh, "%-40.40s%4s%4s%6s%8s%4s  %11.11s\n",
 		        nam, lev, rar, spd, hp, ac, exp);
 	}
 
-	/* End it */
 	file_putf(fh, "\n");
 
-	/* Free the "who" array */
 	mem_free(who);
 
-
-	/* Check for errors */
 	if (!file_close(fh)) {
 		msg("Cannot close spoiler file.");
-		return;
+	} else {
+		msg("Successfully created a spoiler file.");
 	}
-
-	/* Worked */
-	msg("Successfully created a spoiler file.");
 }
 
 /**
@@ -559,15 +533,11 @@ static void spoil_mon_desc(const char *fname)
  */
 static void spoil_mon_info(const char *fname)
 {
-	char buf[1024];
-	int i, n;
-	u16b *who;
-	int count = 0;
-	textblock *tb = NULL;
 
 	/* Open the file */
-	path_build(buf, sizeof(buf), ANGBAND_DIR_USER, fname);
-	fh = file_open(buf, MODE_WRITE, FTYPE_TEXT);
+	char file_name[4096];
+	path_build(file_name, sizeof(file_name), ANGBAND_DIR_USER, fname);
+	fh = file_open(file_name, MODE_WRITE, FTYPE_TEXT);
 
 	if (!fh) {
 		msg("Cannot create spoiler file.");
@@ -575,7 +545,7 @@ static void spoil_mon_info(const char *fname)
 	}
 
 	/* Dump the header */
-	tb = textblock_new();
+	textblock *tb = textblock_new();
 	textblock_append(tb, "Monster Spoilers for %s\n", buildid);
 	textblock_append(tb, "------------------------------------------\n\n");
 	textblock_to_file(tb, fh, 0, 75);
@@ -583,32 +553,35 @@ static void spoil_mon_info(const char *fname)
 	tb = NULL;
 
 	/* Allocate the "who" array */
-	who = mem_zalloc(z_info->r_max * sizeof(u16b));
+	u16b *who = mem_zalloc(z_info->r_max * sizeof(*who));
 
 	/* Scan the monsters */
-	for (i = 1; i < z_info->r_max; i++) {
+	int n_who = 0;
+	for (int i = 1; i < z_info->r_max; i++) {
 		struct monster_race *race = &r_info[i];
-
-		/* Use that monster */
-		if (race->name) who[count++] = (u16b)i;
+		if (race->name) {
+			who[n_who] = i;
+			n_who++;
+		}
 	}
 
-	sort(who, count, sizeof(*who), cmp_monsters);
+	sort(who, n_who, sizeof(*who), cmp_monsters);
 
 	/* List all monsters in order. */
-	for (n = 0; n < count; n++) {
-		int r_idx = who[n];
+	for (int i = 0; i < n_who; i++) {
+		int r_idx = who[i];
 		const struct monster_race *race = &r_info[r_idx];
 		const struct monster_lore *lore = &l_list[r_idx];
-		tb = textblock_new();
+		textblock *tb = textblock_new();
 
 		/* Line 1: prefix, name, color, and symbol */
-		if (rf_has(race->flags, RF_QUESTOR))
+		if (rf_has(race->flags, RF_QUESTOR)) {
 			textblock_append(tb, "[Q] ");
-		else if (rf_has(race->flags, RF_UNIQUE))
+		} else if (rf_has(race->flags, RF_UNIQUE)) {
 			textblock_append(tb, "[U] ");
-		else
+		} else {
 			textblock_append(tb, "The ");
+		}
 
 		/* As of 3.5, race->name and race->text are stored as UTF-8 strings;
 		 * there is no conversion from the source edit files. */
@@ -623,10 +596,11 @@ static void spoil_mon_info(const char *fname)
 		textblock_append(tb, "Lev:%d  ", race->level);
 		textblock_append(tb, "Rar:%d  ", race->rarity);
 
-		if (race->speed >= 110)
+		if (race->speed >= 110) {
 			textblock_append(tb, "Spd:+%d  ", (race->speed - 110));
-		else
+		} else {
 			textblock_append(tb, "Spd:-%d  ", (110 - race->speed));
+		}
 
 		textblock_append(tb, "Hp:%d  ", race->avg_hp);
 		textblock_append(tb, "Ac:%d  ", race->ac);
@@ -641,56 +615,60 @@ static void spoil_mon_info(const char *fname)
 		tb = NULL;
 	}
 
-	/* Free the "who" array */
 	mem_free(who);
 
-	/* Check for errors */
 	if (!file_close(fh)) {
 		msg("Cannot close spoiler file.");
-		return;
+	} else {
+		msg("Successfully created a spoiler file.");
 	}
-
-	msg("Successfully created a spoiler file.");
 }
 
-static void spoiler_menu_act(const char *title, int row)
+static void spoiler_menu_act(const char *title, int index)
 {
-	if (row == 0)
-		spoil_obj_desc("obj-desc.spo");
-	else if (row == 1)
-		spoil_artifact("artifact.spo");
-	else if (row == 2)
-		spoil_mon_desc("mon-desc.spo");
-	else if (row == 3)
-		spoil_mon_info("mon-info.spo");
+	(void) title;
+
+	switch (index) {
+		case 0: spoil_obj_desc("obj-desc.spo"); break;
+		case 1: spoil_artifact("artifact.spo"); break;
+		case 2: spoil_mon_desc("mon-desc.spo"); break;
+		case 3: spoil_mon_info("mon-info.spo"); break;
+
+		default:
+			 break;
+	}
 
 	event_signal(EVENT_MESSAGE_FLUSH);
 }
 
-static struct menu *spoil_menu;
-
-static menu_action spoil_actions[] =
-{
-	{ 0, 0, "Brief Object Info (obj-desc.spo)",		spoiler_menu_act },
-	{ 0, 0, "Brief Artifact Info (artifact.spo)",	spoiler_menu_act },
-	{ 0, 0, "Brief Monster Info (mon-desc.spo)",	spoiler_menu_act },
-	{ 0, 0, "Full Monster Info (mon-info.spo)",		spoiler_menu_act },
+static menu_action spoil_actions[] = {
+	{0, 0, "Brief Object Info (obj-desc.spo)",   spoiler_menu_act},
+	{0, 0, "Brief Artifact Info (artifact.spo)", spoiler_menu_act},
+	{0, 0, "Brief Monster Info (mon-desc.spo)",  spoiler_menu_act},
+	{0, 0, "Full Monster Info (mon-info.spo)",   spoiler_menu_act},
 };
 
 /**
- * Create Spoiler files
+ * Create spoiler files
  */
 void do_cmd_spoilers(void)
 {
-	if (!spoil_menu) {
-		spoil_menu = menu_new_action(spoil_actions, N_ELEMENTS(spoil_actions));
-		spoil_menu->selections = lower_case;
-		spoil_menu->title = "Create spoilers";
-	}
+	struct menu *menu = menu_new_action(spoil_actions, N_ELEMENTS(spoil_actions));
 
-	screen_save();
-	clear_from(0);
-	menu_layout(spoil_menu, &SCREEN_REGION);
-	menu_select(spoil_menu, 0, false);
-	screen_load();
+	menu->selections = lower_case;
+	menu->title = "Create spoilers";
+
+	struct term_hints hints = {
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = 2 + N_ELEMENTS(spoil_actions),
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_MENU
+	};
+	Term_push_new(&hints);
+	menu_layout_term(menu);
+
+	menu_select(menu);
+
+	Term_pop();
+	menu_free(menu);
 }
