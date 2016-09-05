@@ -1,5 +1,5 @@
 /**
- * \file wiz-debug.c
+ * \file ui2-wiz-debug.c
  * \brief Debug mode commands
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
