@@ -1407,7 +1407,9 @@ static void display_explosion(game_event_type type,
 			/* Delay to show this radius appearing */
 			if (drawn || drawing) {
 				Term_redraw_screen();
-				Term_delay(op_ptr->delay_factor);
+				if (op_ptr->delay_factor > 0) {
+					Term_delay(op_ptr->delay_factor);
+				}
 			}
 
 			new_radius = false;
@@ -1467,7 +1469,9 @@ static void display_bolt(game_event_type type,
 
 		Term_flush_output();
 		Term_redraw_screen();
-		Term_delay(op_ptr->delay_factor);
+		if (op_ptr->delay_factor > 0) {
+			Term_delay(op_ptr->delay_factor);
+		}
 
 		event_signal_point(EVENT_MAP, new.x, new.y);
 
@@ -1481,7 +1485,9 @@ static void display_bolt(game_event_type type,
 		}
 	} else if (drawing) {
 		/* Delay for consistency */
-		Term_delay(op_ptr->delay_factor);
+		if (op_ptr->delay_factor > 0) {
+			Term_delay(op_ptr->delay_factor);
+		}
 	}
 
 	Term_pop();
@@ -1511,7 +1517,9 @@ static void display_missile(game_event_type type,
 
 		Term_flush_output();
 		Term_redraw_screen();
-		Term_delay(op_ptr->delay_factor);
+		if (op_ptr->delay_factor > 0) {
+			Term_delay(op_ptr->delay_factor);
+		}
 
 		event_signal_point(EVENT_MAP, coords.x, coords.y);
 
