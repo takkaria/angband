@@ -1173,48 +1173,44 @@ void wiz_cheat_death(void)
 
 	player->is_dead = false;
 
-	/* Restore hit & spell points */
+	/* Restore hit and spell points */
 	player->chp = player->mhp;
 	player->chp_frac = 0;
 	player->csp = player->msp;
 	player->csp_frac = 0;
 
 	/* Healing */
-	(void)player_clear_timed(player, TMD_BLIND, true);
-	(void)player_clear_timed(player, TMD_CONFUSED, true);
-	(void)player_clear_timed(player, TMD_POISONED, true);
-	(void)player_clear_timed(player, TMD_AFRAID, true);
-	(void)player_clear_timed(player, TMD_PARALYZED, true);
-	(void)player_clear_timed(player, TMD_IMAGE, true);
-	(void)player_clear_timed(player, TMD_STUN, true);
-	(void)player_clear_timed(player, TMD_CUT, true);
+	player_clear_timed(player, TMD_BLIND,     true);
+	player_clear_timed(player, TMD_CONFUSED,  true);
+	player_clear_timed(player, TMD_POISONED,  true);
+	player_clear_timed(player, TMD_AFRAID,    true);
+	player_clear_timed(player, TMD_PARALYZED, true);
+	player_clear_timed(player, TMD_IMAGE,     true);
+	player_clear_timed(player, TMD_STUN,      true);
+	player_clear_timed(player, TMD_CUT,       true);
 
 	/* Prevent starvation */
 	player_set_food(player, PY_FOOD_MAX - 1);
 
 	/* Cancel recall */
-	if (player->word_recall)
-	{
-		/* Message */
+	if (player->word_recall) {
 		msg("A tension leaves the air around you...");
 		event_signal(EVENT_MESSAGE_FLUSH);
 
-		/* Hack -- Prevent recall */
+		/* Prevent recall */
 		player->word_recall = 0;
 	}
 
 	/* Cancel deep descent */
-	if (player->deep_descent)
-	{
-		/* Message */
+	if (player->deep_descent) {
 		msg("The air around you stops swirling...");
 		event_signal(EVENT_MESSAGE_FLUSH);
 
-		/* Hack -- Prevent recall */
+		/* Prevent recall */
 		player->deep_descent = 0;
 	}
 
-	/* Note cause of death XXX XXX XXX */
+	/* Note cause of death */
 	my_strcpy(player->died_from, "Cheating death", sizeof(player->died_from));
 
 	/* Back to the town */
