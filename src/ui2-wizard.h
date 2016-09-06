@@ -21,7 +21,7 @@
 
 /* ui2-wiz-debug.c */
 void wiz_cheat_death(void);
-void wiz_debug_command(void);
+void get_debug_command(void);
 
 /* ui2-wiz-stats.c */
 void stats_collect(void);
