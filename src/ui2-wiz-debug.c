@@ -1432,6 +1432,8 @@ static void do_cmd_wiz_summon_monster(void)
 		player->upkeep->redraw |= (PR_MAP | PR_MONLIST);
 	}
 
+	clear_prompt();
+
 	if (race) {
 		do_cmd_wiz_named_monster(race, true);
 	} else {
@@ -1699,6 +1701,8 @@ static void do_cmd_wiz_wipe_recall(void)
 			}
 		}
 
+		clear_prompt();
+
 		/* Did we find a valid monster? */
 		if (race != NULL) {
 			wipe_monster_lore(race, get_lore(race));
@@ -1740,6 +1744,8 @@ static void do_cmd_wiz_monster_recall(void)
 				race = lookup_monster(name); 
 			}
 		}
+
+		clear_prompt();
 
 		if (race != NULL) {
 			cheat_monster_lore(race, get_lore(race));
@@ -1904,11 +1910,13 @@ void do_cmd_wiz_effect(void)
 			index = effect_lookup(name);
 		}
 	}
+	clear_prompt();
 
 	show_prompt("Enter damage dice (eg 1+2d6M2): ", false);
 	if (!askfor_aux(dice, sizeof(dice), NULL)) {
 		my_strcpy(dice, "0", sizeof(dice));
 	}
+	clear_prompt();
 
 	int p1 = 0;
 	show_prompt("Enter name or number for first parameter: ", false);
@@ -1919,6 +1927,7 @@ void do_cmd_wiz_effect(void)
 			p1 = 0;
 		}
 	}
+	clear_prompt();
 
 	int p2 = get_quantity("Enter second parameter: ", 100);
 	int p3 = get_quantity("Enter third parameter: ", 100);
