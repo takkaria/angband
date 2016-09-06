@@ -1406,8 +1406,8 @@ static void display_explosion(game_event_type type,
 			Term_flush_output();
 			/* Delay to show this radius appearing */
 			if (drawn || drawing) {
-				Term_redraw_screen();
 				if (op_ptr->delay_factor > 0) {
+					Term_redraw_screen();
 					Term_delay(op_ptr->delay_factor);
 				}
 			}
@@ -1430,7 +1430,9 @@ static void display_explosion(game_event_type type,
 
 		/* Flush the explosion */
 		Term_flush_output();
-		Term_redraw_screen();
+		if (op_ptr->delay_factor > 0) {
+			Term_redraw_screen();
+		}
 	}
 
 	Term_pop();
@@ -1468,15 +1470,17 @@ static void display_bolt(game_event_type type,
 		print_rel(DISPLAY_TERM(user)->index, attr, ch, new);
 
 		Term_flush_output();
-		Term_redraw_screen();
 		if (op_ptr->delay_factor > 0) {
+			Term_redraw_screen();
 			Term_delay(op_ptr->delay_factor);
 		}
 
 		event_signal_point(EVENT_MAP, new.x, new.y);
 
 		Term_flush_output();
-		Term_redraw_screen();
+		if (op_ptr->delay_factor > 0) {
+			Term_redraw_screen();
+		}
 
 		/* Display "beam" grids */
 		if (beam) {
@@ -1516,15 +1520,17 @@ static void display_missile(game_event_type type,
 		print_rel(DISPLAY_TERM(user)->index, object_attr(obj), object_char(obj), coords);
 
 		Term_flush_output();
-		Term_redraw_screen();
 		if (op_ptr->delay_factor > 0) {
+			Term_redraw_screen();
 			Term_delay(op_ptr->delay_factor);
 		}
 
 		event_signal_point(EVENT_MAP, coords.x, coords.y);
 
 		Term_flush_output();
-		Term_redraw_screen();
+		if (op_ptr->delay_factor > 0) {
+			Term_redraw_screen();
+		}
 	}
 
 	Term_pop();
