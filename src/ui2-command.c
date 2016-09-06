@@ -30,8 +30,7 @@
 #include "ui2-map.h"
 #include "ui2-options.h"
 #include "ui2-output.h"
-
-/* TODO UI2 #include "wizard.h" */
+#include "ui2-wizard.h"
 
 /**
  * Redraw the screen
@@ -116,7 +115,7 @@ void textui_cmd_debug(void)
 		player->noscore |= NOSCORE_DEBUG;
 	}
 
-	/* TODO UI2 get_debug_command(); */
+	get_debug_command();
 }
 
 /**

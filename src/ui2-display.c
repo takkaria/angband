@@ -55,8 +55,7 @@
 #include "ui2-prefs.h"
 #include "ui2-store.h"
 #include "ui2-term.h"
-
-/* TODO UI2 #include "wizard.h" */
+#include "ui2-wizard.h"
 
 struct display_term {
 	enum display_term_index index;
@@ -1998,7 +1997,7 @@ static void cheat_death(game_event_type type, game_event_data *data, void *user)
 	msg("You invoke wizard mode and cheat death.");
 	event_signal(EVENT_MESSAGE_FLUSH);
 
-	/* TODO UI2 wiz_cheat_death(); */
+	wiz_cheat_death();
 }
 
 static void check_panel(game_event_type type, game_event_data *data, void *user)
