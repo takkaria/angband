@@ -732,6 +732,11 @@ struct state_info {
 	uint32_t attr;
 };
 
+/*
+ * Note that sizeof(str) is strlen(str) + 1, which is
+ * what we want (to avoid having to print space after
+ * every str - see update_statusline()).
+ */
 #define STATE_INFO(value, str, attr) \
 	{ (value), (str), sizeof(str), (attr) }
 
