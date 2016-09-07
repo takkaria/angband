@@ -1120,7 +1120,7 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 	const int width = Term_width();
 
-	Term_erase_line(0, 0);
+	Term_clear();
 
 	struct loc coords = {0, 0};
 	for (size_t i = 0; i < N_ELEMENTS(status_handlers) && coords.x < width; i++) {
