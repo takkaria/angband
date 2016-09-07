@@ -1290,7 +1290,8 @@ static void animate(game_event_type type, game_event_data *data, void *user)
 	do_animation();
 }
 
-static void redraw_when_running(game_event_type type, game_event_data *data, void *user)
+static void redraw_when_running(game_event_type type,
+		game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
