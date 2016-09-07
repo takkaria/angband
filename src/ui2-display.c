@@ -80,8 +80,8 @@ static void display_terms_check(void);
 	((struct display_term *) (void_ptr))
 
 /**
- * There are a few functions installed to be triggered by several 
- * of the basic player events.  For convenience, these have been grouped 
+ * There are a few functions installed to be triggered by several
+ * of the basic player events.  For convenience, these have been grouped
  * in this list.
  */
 
@@ -638,7 +638,7 @@ static void prt_dex(struct loc coords)   { prt_stat(STAT_DEX, coords); }
 static void prt_wis(struct loc coords)   { prt_stat(STAT_WIS, coords); }
 static void prt_int(struct loc coords)   { prt_stat(STAT_INT, coords); }
 static void prt_con(struct loc coords)   { prt_stat(STAT_CON, coords); }
-static void prt_race(struct loc coords)  { prt_field(player->race->name, coords); } 
+static void prt_race(struct loc coords)  { prt_field(player->race->name, coords); }
 static void prt_class(struct loc coords) { prt_field(player->class->name, coords); }
 
 /**
@@ -1006,7 +1006,7 @@ static size_t prt_level_feeling(struct loc coords)
 		}
 	}
 
-	/** 
+	/**
 	 * Convert monster feeling to a symbol easier to parse for a human.
 	 * 0 -> ? . Monster feeling should never be 0, but we check it just in case.
 	 * 1 to 9 are feelings from omens of death to quiet, paceful.
@@ -1052,7 +1052,7 @@ static size_t prt_study(struct loc coords)
 		return 0;
 	}
 
-	uint32_t attr = player_book_has_unlearned_spells(player) ? 
+	uint32_t attr = player_book_has_unlearned_spells(player) ?
 		COLOUR_WHITE : COLOUR_L_DARK;
 	char *str = format("Study (%d)", player->upkeep->new_spells);
 
@@ -1204,7 +1204,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
  */
 
 static byte flicker = 0;
-static byte color_flicker[MAX_COLORS][3] = 
+static byte color_flicker[MAX_COLORS][3] =
 {
 	{COLOUR_DARK, COLOUR_L_DARK, COLOUR_L_RED},
 	{COLOUR_WHITE, COLOUR_L_WHITE, COLOUR_L_BLUE},
@@ -1547,7 +1547,7 @@ static void display_missile(game_event_type type,
  */
 
 /**
- * True when we're supposed to display the equipment in the inventory 
+ * True when we're supposed to display the equipment in the inventory
  * window, or vice-versa.
  */
 static bool flip_inven;
@@ -2436,7 +2436,7 @@ void init_terms(void)
 {
 	display_terms_check();
 
-	/* 
+	/*
 	 * This term is always on the stack;
 	 * this is necessary because the rest of textui depends
 	 * on the fact that term callbacks can always be invoked
