@@ -165,7 +165,7 @@ static void message_more(int x)
 		inkey_any();
 	}
 
-	Term_erase_line(0, 0);
+	Term_clear();
 }
 
 /**
