@@ -361,29 +361,34 @@ static void prt_level(struct loc coords)
  */
 static void prt_exp(struct loc coords)
 {
-	char out_val[32];
-	bool lev50 = player->lev == 50;
+	const bool lev50 = player->lev == 50;
 
-	long long xp = player->exp;
-
-	/* Calculate XP for next level */
-	if (!lev50) {
-		xp = ((long long) player_exp[player->lev - 1] * player->expfact / 100LL) -
-			player->exp;
-	}
-
-	/* Format XP */
-	strnfmt(out_val, sizeof(out_val), "%8lld", xp);
-
-	if (player->exp >= player->max_exp) {
-		put_str((lev50 ? "EXP" : "NXT"), coords);
-		coords.x += 4;
-		c_put_str(COLOUR_L_GREEN, out_val, coords);
+	long long xp;
+	if (lev50) {
+		xp = player->exp;
 	} else {
-		put_str((lev50 ? "Exp" : "Nxt"), coords);
-		coords.x += 4;
-		c_put_str(COLOUR_YELLOW, out_val, coords);
+		long long next_level_xp =
+			((long long) player_exp[player->lev - 1] * player->expfact / 100LL);
+
+		xp = next_level_xp - player->exp;
 	}
+
+	char xp_str[32];
+	strnfmt(xp_str, sizeof(xp_str), "%8lld", xp);
+
+	char *label;
+	uint32_t attr;
+	if (player->exp >= player->max_exp) {
+		label = lev50 ? "EXP" : "NXT";
+		attr = COLOUR_L_GREEN;
+	} else {
+		label = lev50 ? "Exp" : "Nxt";
+		attr = COLOUR_YELLOW;
+	}
+
+	put_str(label, coords);
+	coords.x += 4;
+	c_put_str(attr, xp_str, coords);
 }
 
 /**
