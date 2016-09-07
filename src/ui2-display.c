@@ -342,7 +342,6 @@ static void prt_level(struct loc coords)
 
 	char *label;
 	uint32_t attr;
-
 	if (player->lev >= player->max_lev) {
 		label = "LEVEL ";
 		attr = COLOUR_L_GREEN;
