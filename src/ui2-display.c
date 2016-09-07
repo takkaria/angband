@@ -1239,14 +1239,14 @@ static byte color_flicker[MAX_COLORS][3] =
 
 static byte get_flicker(byte a)
 {
-	switch(flicker % 3) {
+	switch (flicker % 3) {
 		case 1:
 			return color_flicker[a][1];
 		case 2:
 			return color_flicker[a][2];
+		default:
+			return a;
 	}
-
-	return a;
 }
 
 /**
