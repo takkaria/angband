@@ -355,15 +355,11 @@ static void prt_level(struct loc coords)
 	c_put_str(attr, tmp, coords);
 }
 
-/**
- * Display the experience
- */
-static void prt_exp(struct loc coords)
+static void prt_exp_aux(char *buf, size_t buf_size, bool max_level)
 {
-	const bool lev50 = player->lev == 50;
-
 	long long xp;
-	if (lev50) {
+
+	if (max_level) {
 		xp = player->exp;
 	} else {
 		long long next_level_xp =
@@ -372,8 +368,18 @@ static void prt_exp(struct loc coords)
 		xp = next_level_xp - player->exp;
 	}
 
-	char xp_str[32];
-	strnfmt(xp_str, sizeof(xp_str), "%8lld", xp);
+	strnfmt(buf, buf_size, "%8lld", xp);
+}
+
+/**
+ * Display the experience
+ */
+static void prt_exp(struct loc coords)
+{
+	const bool lev50 = player->lev == 50;
+
+	char xp[32];
+	prt_exp_aux(xp, sizeof(xp), lev50);
 
 	char *label;
 	uint32_t attr;
@@ -387,7 +393,7 @@ static void prt_exp(struct loc coords)
 
 	put_str(label, coords);
 	coords.x += 4;
-	c_put_str(attr, xp_str, coords);
+	c_put_str(attr, xp, coords);
 }
 
 /**
