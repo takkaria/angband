@@ -720,7 +720,7 @@ static void hp_colour_change(game_event_type type,
 	(void) user;
 
 	if (OPT(hp_changes_color) && use_graphics == GRAPHICS_NONE) {
-		square_light_spot(cave, player->py, player->px);
+		event_signal_point(EVENT_MAP, player->px, player->py);
 	}
 }
 
