@@ -678,7 +678,7 @@ static const struct side_handler_t {
 	{ NULL,        21, 0 },
 	{ prt_health,  12, EVENT_MONSTERHEALTH },
 	{ NULL,        20, 0 },
-	{ prt_speed,   13, EVENT_PLAYERSPEED }, /* Slow (-NN) / Fast (+NN) */
+	{ prt_speed,   13, EVENT_PLAYERSPEED },  /* Slow (-NN) / Fast (+NN) */
 	{ prt_depth,   14, EVENT_DUNGEONLEVEL }, /* Lev NNN / NNNN ft */
 };
 
