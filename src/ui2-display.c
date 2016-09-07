@@ -195,8 +195,7 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 	wchar_t buf[1024];
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
 
-	if (dt->coords.x > 0 && dt->coords.x + len > wrap)
-	{
+	if (dt->coords.x > 0 && dt->coords.x + len > wrap) {
 		message_more(dt->coords.x);
 		dt->coords.x = 0;
 	}
