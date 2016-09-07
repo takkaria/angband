@@ -434,13 +434,13 @@ static void prt_equippy(struct loc coords)
  */
 static void prt_ac(struct loc coords)
 {
-	char tmp[32];
+	char buf[32];
 
 	put_str("Cur AC ", coords);
 	coords.x += 7;
-	strnfmt(tmp, sizeof(tmp),
+	strnfmt(buf, sizeof(buf),
 			"%5d", player->known_state.ac + player->known_state.to_a);
-	c_put_str(COLOUR_L_GREEN, tmp, coords);
+	c_put_str(COLOUR_L_GREEN, buf, coords);
 }
 
 /**
