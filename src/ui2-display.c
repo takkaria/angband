@@ -616,7 +616,7 @@ static void prt_speed(struct loc coords)
 	char buf[32] = {0};
 
 	if (type) {
-		strnfmt(buf, sizeof(buf), "%s (%+d)", type, (speed - 110));
+		strnfmt(buf, sizeof(buf), "%s (%+d)", type, speed - 110);
 	}
 
 	c_put_str(attr, format("%-10s", buf), coords);
