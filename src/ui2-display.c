@@ -231,9 +231,6 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 	Term_pop();
 }
 
-/*
- * Get a term from its index
- */
 /**
  * Flush the output before displaying for emphasis
  */
