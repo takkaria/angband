@@ -338,18 +338,22 @@ static void prt_title(struct loc coords)
 static void prt_level(struct loc coords)
 {
 	char tmp[32];
-
 	strnfmt(tmp, sizeof(tmp), "%6d", player->lev);
 
+	char *label;
+	uint32_t attr;
+
 	if (player->lev >= player->max_lev) {
-		put_str("LEVEL ", coords);
-		coords.x += 6;
-		c_put_str(COLOUR_L_GREEN, tmp, coords);
+		label = "LEVEL ";
+		attr = COLOUR_L_GREEN;
 	} else {
-		put_str("Level ", coords);
-		coords.x += 6;
-		c_put_str(COLOUR_YELLOW, tmp, coords);
+		label = "Level ";
+		attr = COLOUR_YELLOW;
 	}
+
+	put_str(label, coords);
+	coords.x += 6;
+	c_put_str(attr, tmp, coords);
 }
 
 /**
