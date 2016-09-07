@@ -284,8 +284,6 @@ void message_skip_more(void)
  */
 static void prt_field(const char *info, struct loc coords)
 {
-	Term_erase_line(coords.x, coords.y);
-	/* Dump the info itself */
 	c_put_str(COLOUR_L_BLUE, info, coords);
 }
 
@@ -415,17 +413,13 @@ static void prt_gold(struct loc coords)
 static void prt_equippy(struct loc coords)
 {
 	for (int i = 0; i < player->body.count; i++, coords.x++) {
-		wchar_t ch = ' ';
-		uint32_t attr = COLOUR_WHITE;
-
 		struct object *obj = slot_object(player, i);
 
 		if (obj) {
-			ch = object_char(obj);
-			attr = object_attr(obj);
+			wchar_t ch = object_char(obj);
+			uint32_t attr = object_attr(obj);
+			Term_addwc(coords.x, coords.y, attr, ch);
 		}
-
-		Term_addwc(coords.x, coords.y, attr, ch);
 	}
 }
 
@@ -477,7 +471,7 @@ static void prt_sp(struct loc coords)
 
 	/* Do not show mana unless we should have some */
 	if (player_has(player, PF_NO_MANA)
-			|| (player->lev < player->class->magic.spell_first))
+			|| player->lev < player->class->magic.spell_first)
 	{
 		return;
 	}
@@ -570,9 +564,7 @@ static void prt_health(struct loc coords)
 	const struct monster *mon = player->upkeep->health_who;
 
 	/* Not tracking */
-	if (!mon) {
-		/* Erase the health bar */
-		Term_erase(coords.x, coords.y, 12);
+	if (mon == NULL) {
 		return;
 	}
 
@@ -613,13 +605,11 @@ static void prt_speed(struct loc coords)
 		type = "Slow";
 	}
 
-	char buf[32] = {0};
-
 	if (type) {
+		char buf[32] = {0};
 		strnfmt(buf, sizeof(buf), "%s (%+d)", type, speed - 110);
+		c_put_str(attr, format("%-10s", buf), coords);
 	}
-
-	c_put_str(attr, format("%-10s", buf), coords);
 }
 
 /**
@@ -706,6 +696,7 @@ static void update_sidebar(game_event_type type,
 		/* If this is high enough priority, display it */
 		if (handler->priority < height) {
 			if (handler->type == type && handler->hook != NULL) {
+				Term_erase_line(coords.x, coords.y);
 				handler->hook(coords);
 			}
 			coords.y++;
