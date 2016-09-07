@@ -632,6 +632,31 @@ void clear_from(int row)
  * ------------------------------------------------------------------------
  */
 
+/*
+ * Get term's offsets, width and height as a region
+ */
+static void get_term_region(enum display_term_index index, region *reg)
+{
+	struct loc coords;
+	display_term_get_coords(index, &coords);
+	reg->x = coords.x;
+	reg->y = coords.y;
+
+	int width;
+	int height;
+	display_term_get_size(index, &width, &height);
+	reg->w = width;
+	reg->h = height;
+}
+
+/*
+ * Get a panel; a viewport into Angband's dungeon
+ */
+void get_cave_region(region *reg)
+{
+	get_term_region(DISPLAY_CAVE, reg);
+}
+
 /**
  * A Hengband-like 'window' function, that draws a surround box in ASCII art.
  */
@@ -662,16 +687,15 @@ void window_make(struct loc start, struct loc end)
 	}
 }
 
-static void panel_fix_coords(enum display_term_index index, struct loc *coords)
+/*
+ * Ensure that coords are valid coordinates of Angband's dungeon
+ */
+static void panel_fix_coords(struct loc *coords, region panel)
 {
-	int width;
-	int height;
-	display_term_get_size(index, &width, &height);
-
 	const int curx = coords->x;
 	const int cury = coords->y;
-	const int maxx = cave->width - width;
-	const int maxy = cave->height - height;
+	const int maxx = cave->width - panel.w;
+	const int maxy = cave->height - panel.h;
 
 	coords->x = MAX(0, MIN(curx, maxx));
 	coords->y = MAX(0, MIN(cury, maxy));
@@ -679,12 +703,32 @@ static void panel_fix_coords(enum display_term_index index, struct loc *coords)
 
 bool panel_should_modify(enum display_term_index index, struct loc new_coords)
 {
-	panel_fix_coords(index, &new_coords);
+	region panel;
+	get_term_region(index, &panel);
 
-	struct loc old_coords;
-	display_term_get_coords(index, &old_coords);
+	panel_fix_coords(&new_coords, panel);
 
-	return old_coords.x != new_coords.x || old_coords.y != new_coords.y;
+	return panel.x != new_coords.x || panel.y != new_coords.y;
+}
+
+/*
+ * This is the function that actually modifies x and y offsets of a term.
+ * Parameter "panel" must be valid;
+ * x and y must be coords of a display_term,
+ * w and h must be term's width and height
+ */
+static bool modify_panel_int(enum display_term_index index,
+		struct loc new_coords, region panel)
+{
+	panel_fix_coords(&new_coords, panel);
+
+	if (panel.x != new_coords.x || panel.y != new_coords.y) {
+		display_term_set_coords(index, new_coords);
+		player->upkeep->redraw |= PR_MAP;
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /**
@@ -695,52 +739,45 @@ bool panel_should_modify(enum display_term_index index, struct loc new_coords)
  */
 bool modify_panel(enum display_term_index index, struct loc new_coords)
 {
-	panel_fix_coords(index, &new_coords);
+	region panel;
+	get_term_region(index, &panel);
 
-	struct loc old_coords;
-	display_term_get_coords(index, &old_coords);
-
-	if (old_coords.x != new_coords.x || old_coords.y != new_coords.y) {
-		display_term_set_coords(index, new_coords);
-		player->upkeep->redraw |= PR_MAP;
-		return true;
-	} else {
-		return false;
-	}
+	return modify_panel_int(index, new_coords, panel);
 }
 
 static void verify_panel_int(enum display_term_index index, bool centered)
 {
-	int w;
-	int h;
-	display_term_get_size(index, &w, &h);
+	/* Term region ("panel") */
+	region t;
+	get_term_region(index, &t);
 
-	struct loc t;
-	display_term_get_coords(index, &t);
+	/* New coords (about to be modified) */
+	struct loc n = {t.x, t.y};
 
+	/* Player coords (just to save some keystrokes) */
 	struct loc p = {player->px, player->py};
 
 	/* center screen horizontally
-	 * when off-center and not running
+	 * when '@' is off-center and not running
 	 * OR
-	 * when SCROLL_DISTANCE grids from top/bottom edge */
-	if ((centered && !player->upkeep->running && p.x != t.x + w / 2)
-			|| (p.x < t.x + SCROLL_DISTANCE || p.x >= t.x + w - SCROLL_DISTANCE))
+	 * when '@' is less than SCROLL_DISTANCE grids from top/bottom edge */
+	if ((centered && !player->upkeep->running && p.x != t.x + t.w / 2)
+			|| (p.x < t.x + SCROLL_DISTANCE || p.x >= t.x + t.w - SCROLL_DISTANCE))
 	{
-		t.x = p.x - w / 2;
+		n.x = p.x - t.w / 2;
 	}
 
 	/* center screen vertically
-	 * when off-center and not running
+	 * when '@' is off-center and not running
 	 * OR
-	 * when SCROLL_DISTANCE grids from top/bottom edge */
-	if ((centered && !player->upkeep->running && p.y != t.y + h / 2)
-			|| (p.y < t.y + SCROLL_DISTANCE || p.y >= t.y + h - SCROLL_DISTANCE))
+	 * when '@' is less than SCROLL_DISTANCE grids from top/bottom edge */
+	if ((centered && !player->upkeep->running && p.y != t.y + t.h / 2)
+			|| (p.y < t.y + SCROLL_DISTANCE || p.y >= t.y + t.h - SCROLL_DISTANCE))
 	{
-		t.y = p.y - h / 2;
+		n.y = p.y - t.h / 2;
 	}
 
-	modify_panel(index, t);
+	modify_panel_int(index, n, t);
 }
 
 /**
@@ -749,20 +786,16 @@ static void verify_panel_int(enum display_term_index index, bool centered)
  */
 bool change_panel(enum display_term_index index, int dir)
 {
-	int width;
-	int height;
-	display_term_get_size(index, &width, &height);
-
-	struct loc old_coords;
-	display_term_get_coords(index, &old_coords);
+	region panel;
+	get_term_region(index, &panel);
 
 	/* Shift by half a panel */
 	struct loc new_coords = {
-		.x = old_coords.x + ddx[dir] * width / 2,
-		.y = old_coords.y + ddy[dir] * height / 2
+		.x = panel.x + ddx[dir] * panel.w / 2,
+		.y = panel.y + ddy[dir] * panel.w / 2
 	};
 
-	return modify_panel(index, new_coords);
+	return modify_panel_int(index, new_coords, panel);
 }
 
 /**
@@ -792,41 +825,26 @@ void center_panel(enum display_term_index index)
  */
 bool adjust_panel(enum display_term_index index, struct loc coords)
 {
-	int width;
-	int height;
-	display_term_get_size(index, &width, &height);
+	region panel;
+	get_term_region(index, &panel);
 
-	struct loc t;
-	display_term_get_coords(index, &t);
+	/* New panel's offsets */
+	struct loc n = {panel.x, panel.y};
 
-	while (t.x + width <= coords.x) {
-		t.x += width / 2;
+	while (n.x + panel.w <= coords.x) {
+		n.x += panel.w / 2;
 	}
-	while (t.x > coords.x) {
-		t.x -= width / 2;
+	while (n.x > coords.x) {
+		n.x -= panel.w / 2;
 	}
-	while (t.y + height <= coords.y) {
-		t.y += height / 2;
+	while (n.y + panel.h <= coords.y) {
+		n.y += panel.h / 2;
 	}
-	while (t.y > coords.y) {
-		t.y -= height / 2;
+	while (n.y > coords.y) {
+		n.y -= panel.h / 2;
 	}
 
-	return modify_panel(index, t);
-}
-
-void get_cave_region(region *reg)
-{
-	struct loc coords;
-	display_term_get_coords(DISPLAY_CAVE, &coords);
-	reg->x = coords.x;
-	reg->y = coords.y;
-
-	int width;
-	int height;
-	display_term_get_size(DISPLAY_CAVE, &width, &height);
-	reg->w = width;
-	reg->h = height;
+	return modify_panel_int(index, n, panel);
 }
 
 void textui_get_panel(int *min_y, int *min_x, int *max_y, int *max_x)
