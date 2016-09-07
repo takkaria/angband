@@ -62,11 +62,6 @@ struct display_term {
 
 	term term;
 
-	int min_w;
-	int min_h;
-	int max_w;
-	int max_h;
-
 	struct loc coords;
 	const char *name;
 	bool required;
@@ -2366,24 +2361,6 @@ void display_term_destroy(enum display_term_index index)
 	memset(&dt->coords, 0, sizeof(dt->coords));
 }
 
-void display_term_get_min_size(enum display_term_index index,
-		int *min_width, int *min_height)
-{
-	struct display_term *dt = display_term_get(index);
-
-	*min_width = dt->min_w;
-	*min_height = dt->min_h;
-}
-
-void display_term_get_max_size(enum display_term_index index,
-		int *max_width, int *max_height)
-{
-	struct display_term *dt = display_term_get(index);
-
-	*max_width = dt->max_w;
-	*max_height = dt->max_h;
-}
-
 void display_term_get_size(enum display_term_index index,
 		int *width, int *height)
 {
@@ -2467,10 +2444,6 @@ static struct display_term display_terms[] = {
 		{ \
 			.index = DISPLAY_ ##i, \
 			.term = NULL, \
-			.min_w = (minw), \
-			.min_h = (minh), \
-			.max_w = (maxw), \
-			.max_h = (maxh), \
 			.coords = {0}, \
 			.name = (desc), \
 			.required = (req) \

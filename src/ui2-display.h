@@ -47,10 +47,6 @@ struct display_term_vars *display_term_get_vars(enum display_term_index i);
 
 void display_term_get_size(enum display_term_index i,
 		int *width, int *height);
-void display_term_get_min_size(enum display_term_index i,
-		int *min_width, int *min_height);
-void display_term_get_max_size(enum display_term_index i,
-		int *max_width, int *max_height);
 
 void display_term_get_coords(enum display_term_index i, struct loc *coords);
 void display_term_set_coords(enum display_term_index i, struct loc coords);
