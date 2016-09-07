@@ -467,7 +467,7 @@ static void prt_sp(struct loc coords)
 {
 	char cur_sp[32];
 	char max_sp[32];
-	uint32_t color = player_sp_attr(player);
+	uint32_t attr = player_sp_attr(player);
 
 	/* Do not show mana unless we should have some */
 	if (player_has(player, PF_NO_MANA)
@@ -481,7 +481,7 @@ static void prt_sp(struct loc coords)
 
 	/* Show mana */
 	strnfmt(cur_sp, sizeof(cur_sp), "%4d", player->csp);
-	c_put_str(color, cur_sp, coords);
+	c_put_str(attr, cur_sp, coords);
 	coords.x += 4;
 
 	c_put_str(COLOUR_WHITE, "/", coords);
