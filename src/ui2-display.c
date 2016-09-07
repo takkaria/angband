@@ -444,13 +444,13 @@ static void prt_hp(struct loc coords)
 {
 	char cur_hp[32];
 	char max_hp[32];
-	uint32_t color = player_hp_attr(player);
+	uint32_t attr = player_hp_attr(player);
 
 	put_str("HP ", coords);
 	coords.x += 3;
 
 	strnfmt(cur_hp, sizeof(cur_hp), "%4d", player->chp);
-	c_put_str(color, cur_hp, coords);
+	c_put_str(attr, cur_hp, coords);
 	coords.x += 4;
 
 	c_put_str(COLOUR_WHITE, "/", coords);
