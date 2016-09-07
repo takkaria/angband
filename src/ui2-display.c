@@ -497,6 +497,12 @@ static void prt_sp(struct loc coords)
 	c_put_str(COLOUR_L_GREEN, max_sp, coords);
 }
 
+/* Tracking an unseen, hallucinatory, or dead (?) monster */
+#define MONSTER_HEALTH_UNKNOWN(mon) \
+	(!mflag_has((mon)->mflag, MFLAG_VISIBLE) \
+	 || player->timed[TMD_IMAGE] \
+	 || (mon)->hp < 0)
+
 /**
  * Calculate the monster bar color separately, for ports.
  */
@@ -508,11 +514,7 @@ uint32_t monster_health_attr(const struct monster *mon)
 	if (!mon) {
 		/* Not tracking */
 		attr = COLOUR_DARK;
-	} else if (!mflag_has(mon->mflag, MFLAG_VISIBLE)
-			|| mon->hp < 0
-			|| player->timed[TMD_IMAGE])
-	{
-		/* The monster health is unknown */
+	} else if (MONSTER_HEALTH_UNKNOWN(mon)) {
 		attr = COLOUR_WHITE;
 	} else {
 		/* Extract the percent of health */
@@ -576,12 +578,7 @@ static void prt_health(struct loc coords)
 
 	uint32_t attr = monster_health_attr(mon);
 
-	/* Tracking an unseen, hallucinatory, or dead monster */
-	if (!mflag_has(mon->mflag, MFLAG_VISIBLE) /* Unseen */
-			|| player->timed[TMD_IMAGE]       /* Hallucination */
-			|| mon->hp < 0)                   /* Dead (?) */
-	{
-		/* The monster health is unknown */
+	if (MONSTER_HEALTH_UNKNOWN(mon)) {
 		Term_adds(coords.x, coords.y, 12, attr, "[----------]");
 	} else {
 		/* Extract the percent of health */
@@ -594,6 +591,8 @@ static void prt_health(struct loc coords)
 		Term_adds(coords.x + 1, coords.y, len, attr, "**********");
 	}
 }
+
+#undef MONSTER_HEALTH_UNKNOWN
 
 /**
  * Prints the speed of a character.
