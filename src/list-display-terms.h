@@ -19,7 +19,7 @@ DISPLAY(CAVE,           "Main",              1,     1,    80,    24,  INT_MAX,  
 DISPLAY(MESSAGE_LINE,   "Prompt line",      40,     1,    80,     1,  INT_MAX,        1,      true)
 
 DISPLAY(STATUS_LINE,    "Status line",      40,     1,    80,     1,  INT_MAX,        1,     false)
-DISPLAY(PLAYER_COMPACT, "Player (compact)", 12,    24,    12,    24,  INT_MAX,  INT_MAX,     false)
+DISPLAY(PLAYER_COMPACT, "Player (compact)", 12,     1,    12,    24,  INT_MAX,  INT_MAX,     false)
 DISPLAY(PLAYER_BASIC,   "Player (basic)",   72,    24,    72,    24,  INT_MAX,  INT_MAX,     false)
 DISPLAY(PLAYER_EXTRA,   "Player (extra)",   80,    24,    80,    24,  INT_MAX,  INT_MAX,     false)
 DISPLAY(INVEN,          "Inven/equip",      40,    24,    40,    24,  INT_MAX,  INT_MAX,     false)
