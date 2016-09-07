@@ -579,16 +579,16 @@ static void prt_health(struct loc coords)
 	uint32_t attr = monster_health_attr(mon);
 
 	if (MONSTER_HEALTH_UNKNOWN(mon)) {
-		Term_adds(coords.x, coords.y, 12, attr, "[----------]");
+		Term_addws(coords.x, coords.y, 12, attr, L"[----------]");
 	} else {
 		/* Extract the percent of health */
 		long long pct = 100LL * mon->hp / mon->maxhp;
 		/* Convert percent into health */
 		int len = (pct < 10) ? 1 : (pct < 90) ? (pct / 10 + 1) : 10;
 		/* Default to unknown */
-		Term_adds(coords.x, coords.y, 12, COLOUR_WHITE, "[----------]");
+		Term_addws(coords.x, coords.y, 12, COLOUR_WHITE, L"[----------]");
 		/* Dump the current health (use '*' symbols) */
-		Term_adds(coords.x + 1, coords.y, len, attr, "**********");
+		Term_addws(coords.x + 1, coords.y, len, attr, L"**********");
 	}
 }
 
