@@ -985,15 +985,16 @@ static size_t prt_level_feeling(struct loc coords)
 	 */
 
 	u16b obj_feeling = cave->feeling / 10;
+	assert(obj_feeling < N_ELEMENTS(obj_feeling_color));
+
 	uint32_t obj_feeling_color_print;
 	char obj_feeling_str[6];
 
 	if (cave->feeling_squares < z_info->feeling_need) {
-		my_strcpy(obj_feeling_str, "?", sizeof(obj_feeling_str));
 		obj_feeling_color_print = COLOUR_WHITE;
-	} else {
-		assert(obj_feeling < N_ELEMENTS(obj_feeling_color));
 
+		my_strcpy(obj_feeling_str, "?", sizeof(obj_feeling_str));
+	} else {
 		obj_feeling_color_print = obj_feeling_color[obj_feeling];
 
 		if (obj_feeling == 0) {
@@ -1038,9 +1039,9 @@ static size_t prt_level_feeling(struct loc coords)
 	coords.x++;
 
 	c_put_str(obj_feeling_color_print, obj_feeling_str, coords);
-	coords.x += strlen(obj_feeling_str) + 1;
+	coords.x += strlen(obj_feeling_str);
 
-	return coords.x - oldx;
+	return coords.x - oldx + 1; /* Add one to "append" a space at the end */
 }
 
 /**
