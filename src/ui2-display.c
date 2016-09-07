@@ -280,7 +280,7 @@ void message_skip_more(void)
  */
 
 /**
- * Print character info at given row, column in a 13 char field
+ * Print character info at given coordinates
  */
 static void prt_field(const char *info, struct loc coords)
 {
