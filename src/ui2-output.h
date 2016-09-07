@@ -124,7 +124,6 @@ bool change_panel(enum display_term_index i, int dir);
 void verify_panel(enum display_term_index i);
 void center_panel(enum display_term_index i);
 
-void window_make(struct loc start, struct loc end);
 void clear_from(int row);
 
 bool textui_map_is_visible(void);

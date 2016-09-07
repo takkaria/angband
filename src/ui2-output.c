@@ -657,36 +657,6 @@ void get_cave_region(region *reg)
 	get_term_region(DISPLAY_CAVE, reg);
 }
 
-/**
- * A Hengband-like 'window' function, that draws a surround box in ASCII art.
- */
-void window_make(struct loc start, struct loc end)
-{
-	region to_clear = {
-		.x = start.x,
-		.y = start.y,
-		.w = end.x - start.x,
-		.h = end.y - start.y
-	};
-
-	region_erase(to_clear);
-
-	Term_addwc(start.x, start.y, COLOUR_WHITE, L'+');
-	Term_addwc(end.x, start.y, COLOUR_WHITE, L'+');
-	Term_addwc(start.x, end.y, COLOUR_WHITE, L'+');
-	Term_addwc(end.x, end.y, COLOUR_WHITE, L'+');
-
-	for (int x = start.x + 1; x < end.x; x++) {
-		Term_addwc(x, start.y, COLOUR_WHITE, L'-');
-		Term_addwc(x, end.y, COLOUR_WHITE, L'-');
-	}
-
-	for (int y = start.y + 1; y < end.y; y++) {
-		Term_addwc(start.x, y, COLOUR_WHITE, L'|');
-		Term_addwc(end.x, y, COLOUR_WHITE, L'|');
-	}
-}
-
 /*
  * Ensure that coords are valid coordinates of Angband's dungeon
  */
