@@ -2028,16 +2028,13 @@ static void see_floor_items(game_event_type type,
 	(void) data;
 	(void) user;
 
-	int floor_max = z_info->floor_size;
-	struct object **floor_list = mem_zalloc(floor_max * sizeof(*floor_list));
-	int floor_num = 0;
-	bool blind = (player->timed[TMD_BLIND] || no_light());
+	const bool blind = player->timed[TMD_BLIND] || no_light();
+	const int floor_max = z_info->floor_size;
 
-	const char *p = "see";
-	bool can_pickup = false;
+	struct object **floor_list = mem_zalloc(floor_max * sizeof(*floor_list));
 
 	/* Scan all visible, sensed objects in the grid */
-	floor_num = scan_floor(floor_list, floor_max,
+	int floor_num = scan_floor(floor_list, floor_max,
 			OFLOOR_SENSE | OFLOOR_VISIBLE, NULL);
 	if (floor_num == 0) {
 		mem_free(floor_list);
@@ -2045,6 +2042,7 @@ static void see_floor_items(game_event_type type,
 	}
 
 	/* Can we pick any up? */
+	bool can_pickup = false;
 	for (int i = 0; i < floor_num; i++) {
 	    if (inven_carry_okay(floor_list[i])) {
 			can_pickup = true;
@@ -2057,6 +2055,7 @@ static void see_floor_items(game_event_type type,
 		struct object *obj = floor_list[0];
 		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 
+		const char *p = "see";
 		if (!can_pickup) {
 			p = "have no room for";
 		} else if (blind) {
@@ -2073,6 +2072,7 @@ static void see_floor_items(game_event_type type,
 		event_signal(EVENT_MESSAGE_FLUSH);
 		msg("You %s %s.", p, o_name);
 	} else {
+		const char *p = "see";
 		if (!can_pickup) {
 			p = "have no room for the following objects";
 		} else if (blind) {
