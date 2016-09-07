@@ -215,7 +215,11 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 		Term_addws(0, 0, split, color, ws);
 		message_more(split + 1);
 
-		ws += split;
+		if (ws[split] == L' ') {
+			split++;
+		}
+
+		ws  += split;
 		len -= split;
 	}
 
