@@ -102,9 +102,6 @@ typedef struct {
 	/* Handles optional extra actions */
 	void (*xtra_act)(struct keypress key, int index);
 
-	/* Does this kind have visual editing? */
-	bool is_visual;
-
 } member_funcs;
 
 /**
@@ -742,7 +739,6 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 		.xattr = m_xattr,
 		.xtra_prompt = recall_prompt,
 		.xtra_act = NULL,
-		.is_visual = false
 	};
 
 	int m_count = count_known_monsters();
@@ -1070,7 +1066,6 @@ static void do_cmd_knowledge_artifacts(const char *name, int row)
 		.xattr = NULL,
 		.xtra_prompt = recall_prompt, 
 		.xtra_act = NULL,
-		.is_visual = false
 	};
 
 	int *artifacts = mem_zalloc(z_info->a_max * sizeof(int));
@@ -1166,7 +1161,6 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 		.xattr = NULL,
 		.xtra_prompt = recall_prompt,
 		.xtra_act = NULL,
-		.is_visual = false
 	};
 
 	int e_count = 0;
@@ -1518,7 +1512,6 @@ void textui_browse_object_knowledge(const char *name, int row)
 		.xattr = o_xattr,
 		.xtra_prompt = o_xtra_prompt,
 		.xtra_act = o_xtra_act,
-		.is_visual = false
 	};
 
 	int o_count = 0;
@@ -1685,7 +1678,6 @@ static void do_cmd_knowledge_runes(const char *name, int row)
 		.xattr = NULL,
 		.xtra_prompt = rune_xtra_prompt,
 		.xtra_act = rune_xtra_act,
-		.is_visual = false
 	};
 
 	int rune_count = 0;
@@ -1867,7 +1859,6 @@ static void do_cmd_knowledge_features(const char *name, int row)
 		.xattr = f_xattr,
 		.xtra_prompt = feat_prompt,
 		.xtra_act = f_xtra_act,
-		.is_visual = false
 	};
 
 	int f_count = 0;
@@ -2074,7 +2065,6 @@ static void do_cmd_knowledge_traps(const char *name, int row)
 		.xattr = t_xattr,
 		.xtra_prompt = trap_prompt,
 		.xtra_act = t_xtra_act,
-		.is_visual = false
 	};
 
 	int t_count = 0;
