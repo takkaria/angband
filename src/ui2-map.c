@@ -406,8 +406,6 @@ static void free_priority_grid(byte **priority_grid)
 /**
  * Display a map of the dungeon in the active term.
  * The map may be scaled if the term is too small for the whole dungeon.
- * If "py" and "px" are not NULL, then returns the screen location at which
- * the player was displayed, so the cursor can be moved to that location,
  */
 static void view_map_aux(void)
 {
