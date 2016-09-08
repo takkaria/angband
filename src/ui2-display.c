@@ -1561,7 +1561,7 @@ static void update_equip_subwindow(game_event_type type,
 }
 
 /**
- * Flip "inven" and "equip" in any sub-windows
+ * Flip "inven" and "equip" in corresponding sub-windows
  */
 void toggle_inven_equip(void)
 {
