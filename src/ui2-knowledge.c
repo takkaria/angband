@@ -209,7 +209,7 @@ static void knowledge_screen_prompt(member_funcs o_funcs, int index)
 }
 
 static void knowledge_screen_summary(group_funcs g_funcs,
-		int g_cur, int *o_list, int o_count_cur, int offset, region reg)
+		int g_cursor, int *o_list, int o_count_cur, int offset, region reg)
 {
 	if (g_funcs.summary) {
 		struct loc loc = {
@@ -217,7 +217,7 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 			.y = reg.y + reg.h
 		};
 
-		g_funcs.summary(g_cur, o_list, o_count_cur, offset, loc);
+		g_funcs.summary(g_cursor, o_list, o_count_cur, offset, loc);
 	}
 }
 
@@ -398,15 +398,15 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	/* Currenly selected panel; 0 is groups panel, 1 is objects panel */
 	int panel = 0;
 
-	int g_old = -1;      /* old group list position */
-	int g_cur =  0;      /* current group list position */
-	int o_cur =  0;      /* current object list position */
-	int o_count_cur = 0; /* number of objects in current group */
+	int g_old_cursor = -1; /* old group list position */
+	int g_cursor     =  0; /* current group list position */
+	int o_cursor     =  0; /* current object list position */
+	int o_count_cur  =  0; /* number of objects in current group */
 
 	/* These are swapped in parallel whenever
 	 * the actively browsing menu changes */
-	int *active_cursor = &g_cur;
-	int *inactive_cursor = &o_cur;
+	int *active_cursor = &g_cursor;
+	int *inactive_cursor = &o_cursor;
 	struct menu *active_menu = &group_menu;
 	struct menu *inactive_menu = &object_menu;
 
@@ -415,16 +415,16 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 
 	while (!stop && g_count) {
 
-		if (g_cur != g_old) {
-			g_old = g_cur;
-			o_cur = 0;
-			o_count_cur = g_offsets[g_cur + 1] - g_offsets[g_cur];
-			menu_set_filter(&object_menu, o_list + g_offsets[g_cur], o_count_cur);
-			group_menu.cursor = g_cur;
-			object_menu.cursor = o_cur;
+		if (g_cursor != g_old_cursor) {
+			g_old_cursor = g_cursor;
+			o_cursor = 0;
+			o_count_cur = g_offsets[g_cursor + 1] - g_offsets[g_cursor];
+			menu_set_filter(&object_menu, o_list + g_offsets[g_cursor], o_count_cur);
+			group_menu.cursor = g_cursor;
+			object_menu.cursor = o_cursor;
 		}
 
-		int index = o_list[g_offsets[g_cur] + o_cur];
+		int index = o_list[g_offsets[g_cursor] + o_cursor];
 
 		if (swap) {
 			SWAP(active_menu, inactive_menu);
@@ -439,8 +439,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		knowledge_screen_draw_header(title_region, g_name_max_len,
 				active_menu == &group_menu, active_menu == &object_menu,
 				other_fields);
-		knowledge_screen_summary(g_funcs,
-				g_cur, o_list, o_count_cur, g_offsets[g_cur], object_menu.active);
+		knowledge_screen_summary(g_funcs, g_cursor,
+				o_list, o_count_cur, g_offsets[g_cursor], object_menu.active);
 		knowledge_screen_prompt(o_funcs, index);
 
 		menu_refresh(inactive_menu);
