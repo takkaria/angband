@@ -1489,15 +1489,15 @@ static void display_missile(game_event_type type,
 	Term_push(DISPLAY_TERM(user)->term);
 
 	struct object *obj = data->missile.obj;
-	bool seen = data->missile.seen;
-	struct loc coords = {
+	struct loc coords  = {
 		.x = data->missile.x,
 		.y = data->missile.y
 	};
 
 	/* Only do visuals if the player can "see" the missile */
-	if (seen) {
-		print_rel(DISPLAY_TERM(user)->index, object_attr(obj), object_char(obj), coords);
+	if (data->missile.seen) {
+		print_rel(DISPLAY_TERM(user)->index,
+				object_attr(obj), object_char(obj), coords);
 
 		Term_flush_output();
 		if (op_ptr->delay_factor > 0) {
@@ -1506,11 +1506,7 @@ static void display_missile(game_event_type type,
 		}
 
 		event_signal_point(EVENT_MAP, coords.x, coords.y);
-
 		Term_flush_output();
-		if (op_ptr->delay_factor > 0) {
-			Term_redraw_screen();
-		}
 	}
 
 	Term_pop();
