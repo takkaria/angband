@@ -1943,9 +1943,6 @@ static void new_level_display_update(game_event_type type,
 	player->upkeep->update |= (PU_BONUS | PU_HP | PU_SPELLS);
 	/* Calculate torch radius */
 	player->upkeep->update |= (PU_TORCH);
-
-	update_stuff(player);
-
 	/* Fully update the visuals (and monster distances) */
 	player->upkeep->update |= (PU_UPDATE_VIEW | PU_DISTANCE);
 	/* Fully update the flow */
