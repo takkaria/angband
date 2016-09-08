@@ -43,7 +43,6 @@ void display_term_init(enum display_term_index i, term t);
 void display_term_destroy(enum display_term_index i);
 
 const char *display_term_get_name(enum display_term_index i);
-struct display_term_vars *display_term_get_vars(enum display_term_index i);
 
 void display_term_get_size(enum display_term_index i,
 		int *width, int *height);
