@@ -167,12 +167,6 @@ static const char *recall_prompt(int index)
 	return ", 'r' to recall";
 }
 
-#define SWAP(a, b) do { \
-	void *swapspace = (a); \
-	(a) = (b); \
-	(b) = swapspace; \
-} while (0)
-
 static ui_event knowledge_screen_event(struct menu *active_menu)
 {
 	ui_event in = inkey_simple();
@@ -328,6 +322,16 @@ static int set_g_names(const int *g_list, int g_count,
 	return group_name_len;
 }
 
+#define SWAP_MENUS(a, b) do { \
+	void *swapspace = (a); \
+	(a) = (b); \
+	(b) = swapspace; \
+} while (0)
+
+#define SWAP_PANEL(p) do { \
+	(p) = (p) == 0 ? 1 : 0; \
+} while (0)
+
 /**
  * Interactive group by.
  * Recognises inscriptions, graphical symbols, lore
@@ -425,9 +429,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		int index = o_list[g_offsets[g_cursor] + o_cursor];
 
 		if (swap) {
-			SWAP(active_menu, inactive_menu);
-			SWAP(active_cursor, inactive_cursor);
-			panel = 1 - panel;
+			SWAP_MENUS(active_menu, inactive_menu);
+			SWAP_MENUS(active_cursor, inactive_cursor);
+			SWAP_PANEL(panel);
 			swap = false;
 		}
 
@@ -458,9 +462,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			case EVT_MOUSE:
 				/* Change active panels */
 				if (mouse_in_region(event.mouse, inactive_menu->active)) {
-					SWAP(active_menu, inactive_menu);
-					SWAP(active_cursor, inactive_cursor);
-					panel = 1 - panel;
+					SWAP_MENUS(active_menu, inactive_menu);
+					SWAP_MENUS(active_cursor, inactive_cursor);
+					SWAP_PANEL(panel);
 				}
 				break;
 
@@ -504,6 +508,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 
 	Term_pop();
 }
+
+#undef SWAP_MENUS
+#undef SWAP_PANEL
 
 /**
  * ------------------------------------------------------------------------
