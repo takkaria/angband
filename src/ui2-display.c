@@ -1434,10 +1434,6 @@ static void display_bolt(game_event_type type,
 
 	Term_push(DISPLAY_TERM(user)->term);
 
-	int gf_type = data->bolt.gf_type;
-	bool drawing = data->bolt.drawing;
-	bool seen = data->bolt.seen;
-	bool beam = data->bolt.beam;
 	struct loc old = {
 		.x = data->bolt.ox,
 		.y = data->bolt.oy
@@ -1447,11 +1443,11 @@ static void display_bolt(game_event_type type,
 		.y = data->bolt.y
 	};
 
-	/* Only do visuals if the player can "see" the bolt */
-	if (seen) {
-		uint32_t attr;
+	/* Only do visuals if the player can see the bolt */
+	if (data->bolt.seen) {
 		wchar_t ch;
-		bolt_pict(old, new, gf_type, &attr, &ch);
+		uint32_t attr;
+		bolt_pict(old, new, data->bolt.gf_type, &attr, &ch);
 
 		print_rel(DISPLAY_TERM(user)->index, attr, ch, new);
 
@@ -1463,17 +1459,15 @@ static void display_bolt(game_event_type type,
 
 		event_signal_point(EVENT_MAP, new.x, new.y);
 
-		Term_flush_output();
-		if (op_ptr->delay_factor > 0) {
-			Term_redraw_screen();
-		}
-
 		/* Display "beam" grids */
-		if (beam) {
-			bolt_pict(new, new, gf_type, &attr, &ch);
+		if (data->bolt.beam) {
+			bolt_pict(new, new, data->bolt.gf_type, &attr, &ch);
 			print_rel(DISPLAY_TERM(user)->index, attr, ch, new);
 		}
-	} else if (drawing) {
+
+		Term_flush_output();
+
+	} else if (data->bolt.drawing) {
 		/* Delay for consistency */
 		if (op_ptr->delay_factor > 0) {
 			Term_delay(op_ptr->delay_factor);
