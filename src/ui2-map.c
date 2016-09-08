@@ -409,7 +409,7 @@ static void free_priority_grid(byte **priority_grid)
  * If "py" and "px" are not NULL, then returns the screen location at which
  * the player was displayed, so the cursor can be moved to that location,
  */
-static void view_map_aux(int *px, int *py)
+static void view_map_aux(void)
 {
 	/* Desired map height */
 	int width;
@@ -458,6 +458,10 @@ static void view_map_aux(int *px, int *py)
 		}
 	}
 
+	if (priority_grid != NULL) {
+		free_priority_grid(priority_grid);
+	}
+
 	/* Player location */
 	int col = player->px * term_width / cave_width;
 	int row = player->py * term_height / cave_height;
@@ -476,16 +480,13 @@ static void view_map_aux(int *px, int *py)
 	/* Draw the player */
 	Term_set_point(col, row, other);
 
-	if (px != NULL) {
-		*px = col;
-	}
-	if (py != NULL) {
-		*py = row;
-	}
+	/* Draw cursor */
+	Term_cursor_to_xy(col, row);
+	Term_cursor_visible(true);
 
-	if (priority_grid != NULL) {
-		free_priority_grid(priority_grid);
-	}
+	Term_flush_output();
+
+	inkey_any();
 }
 
 /*
@@ -499,16 +500,6 @@ void do_cmd_view_map(void)
 		.purpose = TERM_PURPOSE_BIG_MAP
 	};
 	Term_push_new(&hints);
-
-	int px;
-	int py;
-	view_map_aux(&px, &py);
-
-	Term_cursor_to_xy(px, py);
-	Term_cursor_visible(true);
-	Term_flush_output();
-
-	inkey_any();
-
+	view_map_aux();
 	Term_pop();
 }
