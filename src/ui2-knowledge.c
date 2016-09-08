@@ -282,7 +282,7 @@ static void knowledge_screen_regions(region *title, region *group, region *objec
 	group->w = g_name_max_len;
 	group->h = -2;
 
-	object->x = group->w + 3;
+	object->x = g_name_max_len + 3;
 	object->y = 4;
 	object->w = 0;
 	object->h = summary ? -3 : -2;
