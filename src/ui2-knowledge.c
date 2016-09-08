@@ -280,7 +280,7 @@ static void knowledge_screen_regions(region *title, region *group, region *objec
 }
 
 static int set_g_lists(int *o_list, int o_count,
-		int *g_list, int *g_offset, group_funcs g_funcs)
+		int *g_list, int *g_offsets, group_funcs g_funcs)
 {
 	int g_count = 0;
 
@@ -288,14 +288,14 @@ static int set_g_lists(int *o_list, int o_count,
 		int g = g_funcs.group(o_list[o]);
 
 		if (prev_g != g) {
-			g_offset[g_count] = o;
+			g_offsets[g_count] = o;
 			g_list[g_count] = g;
 			prev_g = g;
 			g_count++;
 		}
 	}
 
-	g_offset[g_count] = o_count;
+	g_offsets[g_count] = o_count;
 	g_list[g_count] = -1;
 
 	return g_count;
@@ -337,8 +337,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 
 	/* Sort everything into group order */
 	int *g_list = mem_zalloc((g_max + 1) * sizeof(*g_list));
-	int *g_offset = mem_zalloc((g_max + 1) * sizeof(*g_offset));
-	int g_count = set_g_lists(o_list, o_count, g_list, g_offset, g_funcs);
+	int *g_offsets = mem_zalloc((g_max + 1) * sizeof(*g_offsets));
+	int g_count = set_g_lists(o_list, o_count, g_list, g_offsets, g_funcs);
 
 	/* The compact set of group names, in display order */
 	const char **g_names = mem_zalloc(g_count * sizeof(*g_names));
@@ -407,13 +407,13 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		if (g_cur != g_old) {
 			g_old = g_cur;
 			o_cur = 0;
-			g_o_count = g_offset[g_cur + 1] - g_offset[g_cur];
-			menu_set_filter(&object_menu, o_list + g_offset[g_cur], g_o_count);
+			g_o_count = g_offsets[g_cur + 1] - g_offsets[g_cur];
+			menu_set_filter(&object_menu, o_list + g_offsets[g_cur], g_o_count);
 			group_menu.cursor = g_cur;
 			object_menu.cursor = o_cur;
 		}
 
-		int index = o_list[g_offset[g_cur] + o_cur];
+		int index = o_list[g_offsets[g_cur] + o_cur];
 
 		if (swap) {
 			SWAP(active_menu, inactive_menu);
@@ -426,7 +426,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 				active_menu == &group_menu, active_menu == &object_menu,
 				other_fields);
 		knowledge_screen_summary(g_funcs,
-				g_cur, o_list, g_o_count, g_offset[g_cur], object_menu.active);
+				g_cur, o_list, g_o_count, g_offsets[g_cur], object_menu.active);
 		knowledge_screen_prompt(o_funcs, index);
 
 		menu_refresh(inactive_menu);
@@ -487,7 +487,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	}
 
 	mem_free(g_names);
-	mem_free(g_offset);
+	mem_free(g_offsets);
 
 	Term_pop();
 }
