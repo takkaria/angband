@@ -289,7 +289,7 @@ static void knowledge_screen_regions(region *title, region *group, region *objec
 }
 
 static int set_g_lists(int *o_list, int o_count,
-		int *g_list, int *g_offsets, group_funcs g_funcs)
+		int *g_list, int *g_offsets, int g_max, group_funcs g_funcs)
 {
 	int g_count = 0;
 
@@ -303,6 +303,8 @@ static int set_g_lists(int *o_list, int o_count,
 			g_count++;
 		}
 	}
+
+	assert(g_count < g_max);
 
 	g_offsets[g_count] = o_count;
 	g_list[g_count] = -1;
@@ -348,7 +350,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	int *g_list    = mem_zalloc((g_max + 1) * sizeof(*g_list));
 	int *g_offsets = mem_zalloc((g_max + 1) * sizeof(*g_offsets));
 
-	int g_count = set_g_lists(o_list, o_count, g_list, g_offsets, g_funcs);
+	int g_count = set_g_lists(o_list, o_count,
+			g_list, g_offsets, g_max + 1, g_funcs);
 
 	/* The compact set of group names, in display order */
 	const char **g_names = mem_zalloc(g_count * sizeof(*g_names));
