@@ -185,13 +185,6 @@ static ui_event knowledge_screen_event(struct menu *active_menu)
 	return in;
 }
 
-static void knowledge_screen_recall(member_funcs o_funcs, int index)
-{
-	if (index >= 0) {
-		o_funcs.lore(index);
-	}
-}
-
 static void knowledge_screen_prompt(member_funcs o_funcs, int index)
 {
 	struct loc loc = {0, Term_height() - 1};
@@ -453,7 +446,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		switch (event.type) {
 			case EVT_KBRD:
 				if (event.key.code == 'r' || event.key.code == 'R') {
-					knowledge_screen_recall(o_funcs, index);
+					o_funcs.lore(index);
 				} else if (o_funcs.xtra_act) {
 					o_funcs.xtra_act(event.key, index);
 				}
@@ -480,7 +473,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 				if (panel == 0) {
 					swap = true;
 				} else if (panel == 1) {
-					knowledge_screen_recall(o_funcs, index);
+					o_funcs.lore(index);
 				}
 				break;
 
