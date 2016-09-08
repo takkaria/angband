@@ -1308,16 +1308,14 @@ static void redraw_when_running(game_event_type type,
  */
 void idle_update(void)
 {
-	if (!character_dungeon
-			|| !OPT(animate_flicker)
-			|| use_graphics != GRAPHICS_NONE)
+	if (character_dungeon
+			&& OPT(animate_flicker)
+			&& use_graphics == GRAPHICS_NONE)
 	{
-		return;
+		do_animation();
+		redraw_stuff(player);
+		Term_redraw_screen();
 	}
-
-	do_animation();
-	redraw_stuff(player);
-	Term_redraw_screen();
 }
 
 /**
