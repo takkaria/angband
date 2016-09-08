@@ -60,8 +60,8 @@
  * abstract classes represented by member_funcs and group_funcs.
  *
  * After the knowledge menus are various knowledge functions - message review;
- * inventory, equipment, monster and object lists; symbol lookup; and the 
- * "locate" command which scrolls the screen around the current dungeon level.
+ * inventory, equipment, monster and object lists; and the "locate" command
+ * which scrolls the screen around the current dungeon level.
  */
 
 typedef struct {
