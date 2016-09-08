@@ -140,9 +140,7 @@ static int default_group_id(int index)
  */
 static int feat_order(int feat)
 {
-	struct feature *f = &f_info[feat];
-
-	switch (f->d_char) {
+	switch (f_info[feat].d_char) {
 		case L'.':             return 0;
 		case L'\'': case L'+': return 1;
 		case L'<':  case L'>': return 2;
