@@ -253,7 +253,7 @@ static void knowledge_screen_draw_frame(const char *title,
 			x < g_name_max_len + 1;
 			x++)
 	{
-		Term_addwc(x, y, g_attr, '=');
+		Term_addwc(x, y, g_attr, L'=');
 	}
 
 	/* Print divider for object menu */
@@ -261,14 +261,14 @@ static void knowledge_screen_draw_frame(const char *title,
 			x < ANGBAND_TERM_STANDARD_WIDTH;
 			x++)
 	{
-		Term_addwc(x, y, o_attr, '=');
+		Term_addwc(x, y, o_attr, L'=');
 	}
 
 	for (int y = title_region.y + title_region.h + 2, z = Term_height() - 2;
 			y < z;
 			y++)
 	{
-		Term_addwc(g_name_max_len + 1, y, COLOUR_WHITE, '|');
+		Term_addwc(g_name_max_len + 1, y, COLOUR_WHITE, L'|');
 	}
 }
 
