@@ -102,20 +102,21 @@ static void grid_get_light(const struct grid_data *g,
 	}
 }
 
-static void grid_get_terrain(const struct grid_data *g, uint32_t *attr)
+static void grid_get_terrain(const struct grid_data *g,
+		const struct term_point *point, uint32_t *attr)
 {
 	if (use_graphics == GRAPHICS_NONE) {
 		/* Hybrid or block walls */
 		if (feat_is_wall(g->f_idx)) {
 			if (OPT(hybrid_walls)) {
-				*attr = BG_DARK;
+				*attr = COLOUR_SHADE;
 			} else if (OPT(solid_walls)) {
-				*attr = BG_SAME;
+				*attr = point->fg_attr;
 			} else {
-				*attr = BG_BLACK;
+				*attr = COLOUR_DARK;
 			}
 		} else {
-			*attr = BG_BLACK;
+			*attr = COLOUR_DARK;
 		}
 	} else {
 		*attr = 0;
@@ -317,14 +318,14 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 	point->bg_attr = attr;
 	point->bg_char = ch;
 
-	grid_get_terrain(g, &point->terrain_attr);
-
 	grid_get_trap(g, &attr, &ch);
 	grid_get_object(g, &attr, &ch);
 	grid_get_creature(g, &attr, &ch);
 
 	point->fg_attr = attr;
 	point->fg_char = ch;
+
+	grid_get_terrain(g, point, &point->terrain_attr);
 
 	/* TODO UI2 set some flags */
 	tpf_wipe(point->flags);

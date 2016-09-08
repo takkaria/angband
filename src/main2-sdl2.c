@@ -3693,22 +3693,7 @@ static void term_push_new(const struct term_hints *hints,
 static void term_draw_text(const struct subwindow *subwindow,
 		SDL_Rect rect, const struct term_point *point)
 {
-	SDL_Color bg;
-	switch (point->terrain_attr) {
-		case BG_BLACK:
-			bg = subwindow->color;
-			break;
-		case BG_SAME:
-			bg = g_colors[point->fg_attr];
-			break;
-		case BG_DARK:
-			bg = g_colors[DEFAULT_SHADE_COLOR];
-			break;
-		default:
-			bg = g_colors[DEFAULT_ERROR_COLOR];
-			break;
-	}
-
+	SDL_Color bg = g_colors[point->terrain_attr];
 	bg.a = subwindow->color.a;
 
 	render_fill_rect(subwindow->window,
