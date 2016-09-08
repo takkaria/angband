@@ -1365,74 +1365,56 @@ static void display_explosion(game_event_type type,
 
 	Term_push(DISPLAY_TERM(user)->term);
 
-	bool new_radius = false;
-	bool drawn = false;
-
-	int gf_type = data->explosion.gf_type;
+	int gf_type   = data->explosion.gf_type;
+	bool drawing  = data->explosion.drawing;
 	int num_grids = data->explosion.num_grids;
-	int *distance_to_grid = data->explosion.distance_to_grid;
-	bool drawing = data->explosion.drawing;
+
+	int *distance_to_grid  = data->explosion.distance_to_grid;
 	bool *player_sees_grid = data->explosion.player_sees_grid;
 	struct loc *blast_grid = data->explosion.blast_grid;
 
+	bool drawn = false;
+
 	/* Draw the blast from inside out */
 	for (int i = 0; i < num_grids; i++) {
-		/* Extract the location */
-		struct loc coords = {
-			.x = blast_grid[i].x,
-			.y = blast_grid[i].y
-		};
-
 		/* Only do visuals if the player can see the blast */
 		if (player_sees_grid[i]) {
-			uint32_t attr;
-			wchar_t ch;
-
-			drawn = true;
-
 			/* Obtain the explosion pict */
-			bolt_pict(coords, coords, gf_type, &attr, &ch);
+			wchar_t ch;
+			uint32_t attr;
+			bolt_pict(blast_grid[i], blast_grid[i], gf_type, &attr, &ch);
 
 			/* Just display the pict, ignoring what was under it */
-			print_rel(DISPLAY_TERM(user)->index, attr, ch, coords);
+			print_rel(DISPLAY_TERM(user)->index, attr, ch, blast_grid[i]);
+
+			drawn = true;
 		}
 
-		/* Check for new radius, taking care not to overrun array */
 		if (i == num_grids - 1
 				|| distance_to_grid[i + 1] > distance_to_grid[i])
 		{
-			new_radius = true;
-		}
-
-		/* We have all the grids at the current radius, so draw it */
-		if (new_radius) {
-			/* Flush all the grids at this radius */
-			Term_flush_output();
-			/* Delay to show this radius appearing */
+			/* We have all the grids at the current radius, so draw it */
 			if (drawn || drawing) {
+				Term_flush_output();
+
 				if (op_ptr->delay_factor > 0) {
 					Term_redraw_screen();
 					Term_delay(op_ptr->delay_factor);
 				}
 			}
-
-			new_radius = false;
 		}
 	}
 
 	if (drawn) {
 		/* Erase the explosion drawn above */
 		for (int i = 0; i < num_grids; i++) {
-			int x = blast_grid[i].x;
-			int y = blast_grid[i].y;
-
 			/* Erase visible, valid grids */
 			if (player_sees_grid[i]) {
-				event_signal_point(EVENT_MAP, x, y);
+				event_signal_point(EVENT_MAP,
+						blast_grid[i].x, blast_grid[i].y);
 			}
 		}
 
-		/* Flush the explosion */
 		Term_flush_output();
 		if (op_ptr->delay_factor > 0) {
 			Term_redraw_screen();
