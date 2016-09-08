@@ -1194,6 +1194,9 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 			/* Count and put into the list */
 			for (size_t g = 0; g < TV_MAX; g++) {
 				int group = obj_group_order[g];
+				if (group < 0) {
+					continue;
+				}
 
 				/* Ignore duplicates */
 				if (g > 0 && e_count > 0
