@@ -221,10 +221,10 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 	}
 }
 
-static void knowledge_screen_draw_header(region title_region, int g_name_max_len,
+static void knowledge_screen_draw_header(region reg, int g_name_max_len,
 		bool group_menu, bool object_menu, const char *other_fields)
 {
-	struct loc loc = {0, title_region.y + title_region.h};
+	struct loc loc = {0, reg.y + reg.h};
 
 	c_prt(group_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Group", loc);
 
@@ -239,32 +239,32 @@ static void knowledge_screen_draw_header(region title_region, int g_name_max_len
 
 static void knowledge_screen_draw_frame(const char *title,
 		bool group_menu, bool object_menu,
-		const char *other_fields, region title_region, int g_name_max_len)
+		const char *other_fields, region reg, int g_name_max_len)
 {
-	region_erase(title_region);
+	region_erase(reg);
 
-	prt(format("Knowledge - %s", title), loc(title_region.x, title_region.y));
+	prt(format("Knowledge - %s", title), loc(reg.x, reg.y));
 
 	uint32_t g_attr = group_menu ? COLOUR_WHITE : COLOUR_L_DARK;
 	uint32_t o_attr = object_menu ? COLOUR_WHITE : COLOUR_L_DARK;
 
 	/* Print divider for group menu */
-	for (int x = 0, y = title_region.y + title_region.h + 1;
-			x < g_name_max_len + 1;
+	for (int x = 0, y = reg.y + reg.h + 1, z = g_name_max_len + 1;
+			x < z;
 			x++)
 	{
 		Term_addwc(x, y, g_attr, L'=');
 	}
 
 	/* Print divider for object menu */
-	for (int x = g_name_max_len + 2, y = title_region.y + title_region.h + 1;
+	for (int x = g_name_max_len + 2, y = reg.y + reg.h + 1;
 			x < ANGBAND_TERM_STANDARD_WIDTH;
 			x++)
 	{
 		Term_addwc(x, y, o_attr, L'=');
 	}
 
-	for (int y = title_region.y + title_region.h + 2, z = Term_height() - 2;
+	for (int y = reg.y + reg.h + 2, z = Term_height() - 2;
 			y < z;
 			y++)
 	{
