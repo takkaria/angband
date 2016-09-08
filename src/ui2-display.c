@@ -1522,7 +1522,7 @@ static void display_missile(game_event_type type,
  * True when we're supposed to display the equipment in the inventory
  * window, or vice-versa.
  */
-static bool flip_inven;
+static bool flip_inven_equip;
 
 static void update_inven_subwindow(game_event_type type,
 		game_event_data *data, void *user)
@@ -1532,7 +1532,7 @@ static void update_inven_subwindow(game_event_type type,
 
 	Term_push(DISPLAY_TERM(user)->term);
 
-	if (!flip_inven) {
+	if (!flip_inven_equip) {
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 	} else {
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
@@ -1550,7 +1550,7 @@ static void update_equip_subwindow(game_event_type type,
 
 	Term_push(DISPLAY_TERM(user)->term);
 
-	if (!flip_inven) {
+	if (!flip_inven_equip) {
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 	} else {
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
@@ -1566,13 +1566,13 @@ static void update_equip_subwindow(game_event_type type,
 void toggle_inven_equip(void)
 {
 	/* Change the actual setting */
-	flip_inven = !flip_inven;
+	flip_inven_equip = !flip_inven_equip;
 
 	struct display_term *inven = display_term_get(DISPLAY_INVEN);
 	if (inven->term != NULL) {
 		Term_push(inven->term);
 
-		if (flip_inven) {
+		if (flip_inven_equip) {
 			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 		} else {
 			show_inven(OLIST_WINDOW | OLIST_WEIGHT, NULL);
@@ -1586,7 +1586,7 @@ void toggle_inven_equip(void)
 	if (equip->term != NULL) {
 		Term_push(equip->term);
 
-		if (flip_inven) {
+		if (flip_inven_equip) {
 			show_inven(OLIST_WINDOW | OLIST_WEIGHT, NULL);
 		} else {
 			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
