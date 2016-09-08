@@ -1706,7 +1706,7 @@ static void update_player_basic_subwindow(game_event_type type,
 
 	Term_push(DISPLAY_TERM(user)->term);
 
-	display_player(PLAYER_DISPLAY_MODE_STANDARD);
+	display_player(PLAYER_DISPLAY_MODE_BASIC);
 
 	Term_flush_output();
 	Term_pop();
@@ -1723,7 +1723,7 @@ static void update_player_extra_subwindow(game_event_type type,
 
 	Term_push(DISPLAY_TERM(user)->term);
 
-	display_player(PLAYER_DISPLAY_MODE_SPECIAL);
+	display_player(PLAYER_DISPLAY_MODE_EXTRA);
 
 	Term_flush_output();
 	Term_pop();

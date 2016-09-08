@@ -856,9 +856,9 @@ void display_player(enum player_display_mode mode)
 
 	display_player_stat_info();
 
-	if (mode == PLAYER_DISPLAY_MODE_STANDARD) {
+	if (mode == PLAYER_DISPLAY_MODE_BASIC) {
 		display_player_xtra_info();
-	} else if (mode == PLAYER_DISPLAY_MODE_SPECIAL) {
+	} else if (mode == PLAYER_DISPLAY_MODE_EXTRA) {
 		struct panel *p = panels[0].panel();
 		display_panel(p, panels[0].align_left, panels[0].bounds);
 		panel_free(p);
@@ -884,7 +884,7 @@ static void write_character_dump(ang_file *file)
 
 	file_putf(file, "  [%s Character Dump]\n\n", buildid);
 
-	display_player(PLAYER_DISPLAY_MODE_STANDARD);
+	display_player(PLAYER_DISPLAY_MODE_BASIC);
 
 	for (int y = 1; y < 23; y++) {
 		char *b = buf;
@@ -907,7 +907,7 @@ static void write_character_dump(ang_file *file)
 
 	file_put(file, "\n");
 
-	display_player(PLAYER_DISPLAY_MODE_SPECIAL);
+	display_player(PLAYER_DISPLAY_MODE_EXTRA);
 
 	for (int y = 11; y < 20; y++) {
 		char *b = buf;

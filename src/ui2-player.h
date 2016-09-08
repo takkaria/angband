@@ -8,9 +8,9 @@
 
 enum player_display_mode {
 	/* Standard display with skills/history */
-	PLAYER_DISPLAY_MODE_STANDARD,
+	PLAYER_DISPLAY_MODE_BASIC,
 	/* Special display with equipment flags */
-	PLAYER_DISPLAY_MODE_SPECIAL
+	PLAYER_DISPLAY_MODE_EXTRA
 };
 
 void display_player_stat_info(void);

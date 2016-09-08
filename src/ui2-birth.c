@@ -691,7 +691,7 @@ static enum birth_stage roller_command(bool first_call)
 	static bool prev_roll = false;
 
 	/* Display the player - a bit cheaty, but never mind. */
-	display_player(PLAYER_DISPLAY_MODE_STANDARD);
+	display_player(PLAYER_DISPLAY_MODE_BASIC);
 
 	if (first_call) {
 		prev_roll = false;
@@ -1198,7 +1198,7 @@ int textui_do_birth(void)
 				break;
 
 			case BIRTH_QUICKSTART:
-				display_player(PLAYER_DISPLAY_MODE_STANDARD);
+				display_player(PLAYER_DISPLAY_MODE_BASIC);
 				next = textui_birth_quickstart();
 				if (next == BIRTH_COMPLETE) {
 					done = true;
@@ -1262,7 +1262,7 @@ int textui_do_birth(void)
 
 			case BIRTH_NAME_CHOICE:
 				if (prev < BIRTH_NAME_CHOICE) {
-					display_player(PLAYER_DISPLAY_MODE_STANDARD);
+					display_player(PLAYER_DISPLAY_MODE_BASIC);
 				}
 				next = get_name_command();
 				if (next == BIRTH_BACK) {
@@ -1272,7 +1272,7 @@ int textui_do_birth(void)
 
 			case BIRTH_HISTORY_CHOICE:
 				if (prev < BIRTH_HISTORY_CHOICE) {
-					display_player(PLAYER_DISPLAY_MODE_STANDARD);
+					display_player(PLAYER_DISPLAY_MODE_BASIC);
 				}
 				next = get_history_command();
 				if (next == BIRTH_BACK) {
@@ -1282,7 +1282,7 @@ int textui_do_birth(void)
 
 			case BIRTH_FINAL_CONFIRM:
 				if (prev < BIRTH_FINAL_CONFIRM) {
-					display_player(PLAYER_DISPLAY_MODE_STANDARD);
+					display_player(PLAYER_DISPLAY_MODE_BASIC);
 				}
 				next = get_confirm_command();
 				if (next == BIRTH_BACK) {
