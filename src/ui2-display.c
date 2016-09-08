@@ -2358,6 +2358,14 @@ void display_term_get_coords(enum display_term_index index, struct loc *coords)
 	*coords = dt->coords;
 }
 
+void display_term_rel_coords(enum display_term_index index, struct loc *coords)
+{
+	struct display_term *dt = display_term_get(index);
+
+	coords->x -= dt->coords.x;
+	coords->y -= dt->coords.y;
+}
+
 void display_term_set_coords(enum display_term_index index, struct loc coords)
 {
 	struct display_term *dt = display_term_get(index);

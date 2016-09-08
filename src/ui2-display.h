@@ -48,6 +48,9 @@ struct display_term_vars *display_term_get_vars(enum display_term_index i);
 void display_term_get_size(enum display_term_index i,
 		int *width, int *height);
 
+/* Given absolute coords, calculate ones that are relative to display_term */
+void display_term_rel_coords(enum display_term_index i, struct loc *coords);
+
 void display_term_get_coords(enum display_term_index i, struct loc *coords);
 void display_term_set_coords(enum display_term_index i, struct loc coords);
 

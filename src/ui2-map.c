@@ -325,12 +325,8 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 
 void move_cursor_relative(enum display_term_index index, struct loc coords)
 {
-	struct loc offset;
-	display_term_get_coords(index, &offset);
-
 	/* Calculate relative coordinates */
-	coords.x -= offset.x;
-	coords.y -= offset.y;
+	display_term_rel_coords(index, &coords);
 
 	display_term_push(index);
 	Term_cursor_to_xy(coords.x, coords.y);
@@ -340,12 +336,8 @@ void move_cursor_relative(enum display_term_index index, struct loc coords)
 void print_rel(enum display_term_index index,
 		uint32_t attr, wchar_t ch, struct loc coords)
 {
-	struct loc offset;
-	display_term_get_coords(index, &offset);
-
 	/* Calculate relative coordinates */
-	coords.x -= offset.x;
-	coords.y -= offset.y;
+	display_term_rel_coords(index, &coords);
 
 	display_term_push(index);
 
