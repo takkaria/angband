@@ -358,10 +358,9 @@ void print_map(enum display_term_index index)
 {
 	int width;
 	int height;
-	display_term_get_size(index, &width, &height);
-
 	struct loc offset;
-	display_term_get_coords(index, &offset);
+
+	display_term_get_area(index, &offset, &width, &height);
 
 	display_term_push(index);
 

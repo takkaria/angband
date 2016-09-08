@@ -637,14 +637,14 @@ void clear_from(int row)
  */
 static void get_term_region(enum display_term_index index, region *reg)
 {
-	struct loc coords;
-	display_term_get_coords(index, &coords);
-	reg->x = coords.x;
-	reg->y = coords.y;
-
 	int width;
 	int height;
-	display_term_get_size(index, &width, &height);
+	struct loc coords;
+
+	display_term_get_area(index, &coords, &width, &height);
+
+	reg->x = coords.x;
+	reg->y = coords.y;
 	reg->w = width;
 	reg->h = height;
 }

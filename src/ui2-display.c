@@ -2373,6 +2373,13 @@ void display_term_set_coords(enum display_term_index index, struct loc coords)
 	dt->coords = coords;
 }
 
+void display_term_get_area(enum display_term_index index,
+		struct loc *coords, int *width, int *height)
+{
+	display_term_get_coords(index, coords);
+	display_term_get_size(index, width, height);
+}
+
 void display_term_push(enum display_term_index index)
 {
 	struct display_term *dt = display_term_get(index);

@@ -53,6 +53,9 @@ void display_term_rel_coords(enum display_term_index i, struct loc *coords);
 void display_term_get_coords(enum display_term_index i, struct loc *coords);
 void display_term_set_coords(enum display_term_index i, struct loc coords);
 
+void display_term_get_area(enum display_term_index i,
+		struct loc *coords, int *width, int *height);
+
 void display_term_push(enum display_term_index i);
 void display_term_pop(void);
 
