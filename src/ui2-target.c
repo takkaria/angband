@@ -1137,10 +1137,10 @@ static void target_free_select_handle_mouse(ui_event event,
 	} else if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 		int term_width;
 		int term_height;
-		display_term_get_size(DISPLAY_CAVE, &term_width, &term_height);
-
 		struct loc offset;
-		display_term_get_coords(DISPLAY_CAVE, &offset);
+
+		display_term_get_area(DISPLAY_CAVE,
+				&offset, &term_width, &term_height);
 
 		/* scroll the map to, resp., west, east, north or south */
 		if (event.mouse.x < SCROLL_DISTANCE) {

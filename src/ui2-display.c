@@ -2329,21 +2329,6 @@ void display_term_destroy(enum display_term_index index)
 	memset(&dt->coords, 0, sizeof(dt->coords));
 }
 
-void display_term_get_size(enum display_term_index index,
-		int *width, int *height)
-{
-	struct display_term *dt = display_term_get(index);
-
-	if (dt->term != NULL) {
-		Term_push(dt->term);
-		Term_get_size(width, height);
-		Term_pop();
-	} else {
-		*width = 0;
-		*height = 0;
-	}
-}
-
 const char *display_term_get_name(enum display_term_index index)
 {
 	struct display_term *dt = display_term_get(index);
@@ -2376,8 +2361,19 @@ void display_term_set_coords(enum display_term_index index, struct loc coords)
 void display_term_get_area(enum display_term_index index,
 		struct loc *coords, int *width, int *height)
 {
-	display_term_get_coords(index, coords);
-	display_term_get_size(index, width, height);
+	struct display_term *dt = display_term_get(index);
+
+	if (dt->term != NULL) {
+		Term_push(dt->term);
+		Term_get_size(width, height);
+		Term_pop();
+	} else {
+		*width = 0;
+		*height = 0;
+	}
+
+	coords->x = dt->coords.x;
+	coords->y = dt->coords.y;
 }
 
 void display_term_push(enum display_term_index index)
