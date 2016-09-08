@@ -38,14 +38,11 @@ static void hallucinatory_monster(uint32_t *attr, wchar_t *ch)
 	while (true) {
 		/* Select a random monster */
 		struct monster_race *race = &r_info[randint0(z_info->r_max)];
-		if (!race->name) {
-			continue;
+		if (race->name) {
+			*attr = monster_x_attr[race->ridx];
+			*ch = monster_x_char[race->ridx];
+			return;
 		}
-		
-		*attr = monster_x_attr[race->ridx];
-		*ch = monster_x_char[race->ridx];
-
-		return;
 	}
 }
 
