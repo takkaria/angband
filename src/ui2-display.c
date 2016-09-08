@@ -704,8 +704,8 @@ static void update_sidebar(game_event_type type,
 
 /**
  * Redraw player, since the player's color indicates approximate health.  Note
- * that using this command is only for when graphics mode is off, as
- * otherwise it causes the character to be a black square.
+ * that using this command is only for when graphics mode is off, since
+ * tiles don't support that (yet)
  */
 static void hp_colour_change(game_event_type type,
 		game_event_data *data, void *user)
