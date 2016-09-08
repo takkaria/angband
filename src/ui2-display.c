@@ -2362,15 +2362,11 @@ void display_term_get_area(enum display_term_index index,
 		struct loc *coords, int *width, int *height)
 {
 	struct display_term *dt = display_term_get(index);
+	assert(dt->term != NULL);
 
-	if (dt->term != NULL) {
-		Term_push(dt->term);
-		Term_get_size(width, height);
-		Term_pop();
-	} else {
-		*width = 0;
-		*height = 0;
-	}
+	Term_push(dt->term);
+	Term_get_size(width, height);
+	Term_pop();
 
 	coords->x = dt->coords.x;
 	coords->y = dt->coords.y;
