@@ -762,7 +762,7 @@ bool change_panel(enum display_term_index index, int dir)
 	/* Shift by half a panel */
 	struct loc new_coords = {
 		.x = panel.x + ddx[dir] * panel.w / 2,
-		.y = panel.y + ddy[dir] * panel.w / 2
+		.y = panel.y + ddy[dir] * panel.h / 2
 	};
 
 	return modify_panel_int(index, new_coords, panel);
