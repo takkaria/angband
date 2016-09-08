@@ -2088,10 +2088,8 @@ static void process_character_pref_files(void)
 	char buf[1024];
 	strnfmt(buf, sizeof(buf), "%s.prf", player_safe_name(player, true));
 
-	bool found = process_pref_file(buf, true, true);
-
 	/* Try pref file using savefile name if we fail using character name */
-	if (!found) {
+	if (!process_pref_file(buf, true, true)) {
 		int filename_index = path_filename_index(savefile);
 		char filename[128];
 
