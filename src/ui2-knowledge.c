@@ -359,8 +359,6 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	int g_name_max_len = set_g_names(g_list, g_count, g_names, g_funcs);
 	g_name_max_len = MIN(g_name_max_len, 20);
 
-	mem_free(g_list);
-
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -439,7 +437,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		knowledge_screen_draw_header(title_region, g_name_max_len,
 				active_menu == &group_menu, active_menu == &object_menu,
 				other_fields);
-		knowledge_screen_summary(g_funcs, g_cursor,
+		knowledge_screen_summary(g_funcs, g_list[g_cursor],
 				o_list, o_count_cur, g_offsets[g_cursor], object_menu.active);
 		knowledge_screen_prompt(o_funcs, index);
 
@@ -500,6 +498,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		prt(format("No %s known.", title), loc);
 	}
 
+	mem_free(g_list);
 	mem_free(g_names);
 	mem_free(g_offsets);
 
