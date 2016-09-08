@@ -1849,12 +1849,11 @@ static void splashscreen_note(game_event_type type,
 	int height;
 	Term_get_size(&width, &height);
 
-	const int last_line = ANGBAND_TERM_STANDARD_HEIGHT - 1;
-	assert(height >= last_line);
+	const int last_line = height - 1;
 
 	char *str = format("[%s]", data->message.msg);
-	Term_erase_line(0, (height - last_line) / 5 + last_line);
-	Term_adds((width - strlen(str)) / 2, (height - last_line) / 5 + last_line,
+	Term_erase_line(0, last_line);
+	Term_adds((width - strlen(str)) / 2, last_line,
 			width, COLOUR_WHITE, str);
 
 	Term_flush_output();
@@ -1883,12 +1882,7 @@ static void show_splashscreen(game_event_type type,
 	ang_file *fp = file_open(buf, MODE_READ, FTYPE_TEXT);
 
 	if (fp) {
-		/* Centre the splashscreen - assume news.txt has width 80, height 24 */
-		struct text_out_info info = {
-			.indent = (Term_width() - ANGBAND_TERM_STANDARD_WIDTH) / 2
-		};
-
-		Term_cursor_to_xy(0, (Term_height() - (ANGBAND_TERM_STANDARD_HEIGHT - 1)) / 5);
+		Term_cursor_to_xy(0, 0);
 
 		/* Dump the file to the screen */
 		while (file_getl(fp, buf, sizeof(buf))) {
@@ -1898,6 +1892,7 @@ static void show_splashscreen(game_event_type type,
 				strnfmt(version_marker, sizeof(buf) - pos, "%-8s", buildver);
 			}
 
+			struct text_out_info info = {0};
 			text_out_e(info, "%s", buf);
 			text_out(info, "\n");
 		}
