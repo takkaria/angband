@@ -2408,7 +2408,7 @@ void init_display(void)
 /* Array of display terms */
 
 static struct display_term display_terms[] = {
-	#define DISPLAY(i, desc, minw, minh, defc, defr, maxw, maxh, req) \
+	#define DISPLAY(i, desc, minc, minr, defc, defr, maxc, maxr, req) \
 		{ \
 			.index = DISPLAY_ ##i, \
 			.term = NULL, \
