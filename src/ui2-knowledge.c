@@ -398,9 +398,6 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	/* Currenly selected panel; 0 is groups panel, 1 is objects panel */
 	int panel = 0;
 
-	bool swap = false;
-	bool stop = false;
-
 	int g_old = -1;    /* old group list position */
 	int g_cur =  0;    /* current group list position */
 	int o_cur =  0;    /* current object list position */
@@ -412,6 +409,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	int *inactive_cursor = &o_cur;
 	struct menu *active_menu = &group_menu;
 	struct menu *inactive_menu = &object_menu;
+
+	bool swap = false;
+	bool stop = false;
 
 	while (!stop && g_count) {
 
