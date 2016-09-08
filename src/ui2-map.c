@@ -33,31 +33,31 @@
 #include "ui2-prefs.h"
 #include "ui2-term.h"
 
-static void hallucinatory_monster(uint32_t *attr, wchar_t *ch)
+static void hallucinatory_monster(struct term_point *point)
 {
 	while (true) {
 		/* Select a random monster */
 		struct monster_race *race = &r_info[randint0(z_info->r_max)];
 		if (race->name) {
-			*attr = monster_x_attr[race->ridx];
-			*ch = monster_x_char[race->ridx];
+			point->fg_attr = monster_x_attr[race->ridx];
+			point->fg_char = monster_x_char[race->ridx];
 			return;
 		}
 	}
 }
 
-static void hallucinatory_object(uint32_t *attr, wchar_t *ch)
+static void hallucinatory_object(struct term_point *point)
 {
-	*attr = 0;
-	*ch = 0;
+	point->fg_attr = 0;
+	point->fg_char = 0;
 
-	while (*attr == 0 || *ch == 0) {
+	while (point->fg_attr == 0 || point->fg_char == 0) {
 		/* Select a random object */
 		struct object_kind *kind = &k_info[randint1(z_info->k_max - 1)];
 
 		if (kind->name) {
-			*attr = kind_x_attr[kind->kidx];
-			*ch = kind_x_char[kind->kidx];
+			point->fg_attr = kind_x_attr[kind->kidx];
+			point->fg_char = kind_x_char[kind->kidx];
 		}
 	}
 }
@@ -68,7 +68,7 @@ static void hallucinatory_object(uint32_t *attr, wchar_t *ch)
  * We should probably have better handling of stacked traps, but that can
  * wait until we do, in fact, have stacked traps under normal conditions.
  */
-static void grid_get_trap(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+static void grid_get_trap(const struct grid_data *g, struct term_point *point)
 {
 	if (!g->trap || g->hallucinate) {
 		return;
@@ -79,100 +79,87 @@ static void grid_get_trap(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 	if (trf_has(g->trap->flags, TRF_VISIBLE)
 			|| trf_has(g->trap->flags, TRF_RUNE))
 	{
-		*attr = trap_x_attr[g->lighting][g->trap->kind->tidx];
-		*ch = trap_x_char[g->lighting][g->trap->kind->tidx];
+		point->fg_attr = trap_x_attr[g->lighting][g->trap->kind->tidx];
+		point->fg_char = trap_x_char[g->lighting][g->trap->kind->tidx];
 	}
 }
 
-static void grid_get_light(const struct grid_data *g,
-		struct feature *feat, uint32_t *attr)
-{
-	enum grid_light_level light = g->lighting;
-
-	if (tf_has(feat->flags, TF_TORCH)) {
-		/* If it's a floor tile then we'll tint based on lighting. */
-		if (light == LIGHTING_TORCH) {
-			*attr = COLOUR_YELLOW;
-		} else if (light == LIGHTING_DARK || light == LIGHTING_LIT) {
-			*attr = COLOUR_L_DARK;
-		}
-	} else if (light == LIGHTING_DARK || light == LIGHTING_LIT) {
-		/* If it's another kind of tile, only tint when unlit. */
-		*attr = COLOUR_L_DARK;
-	}
-}
-
-static void grid_get_terrain(const struct grid_data *g,
-		const struct term_point *point, uint32_t *attr)
+static void grid_get_terrain(const struct grid_data *g, struct term_point *point)
 {
 	if (use_graphics == GRAPHICS_NONE) {
 		/* Hybrid or block walls */
 		if (feat_is_wall(g->f_idx)) {
 			if (OPT(hybrid_walls)) {
-				*attr = COLOUR_SHADE;
+				point->terrain_attr = COLOUR_SHADE;
 			} else if (OPT(solid_walls)) {
-				*attr = point->fg_attr;
+				point->terrain_attr = point->fg_attr;
 			} else {
-				*attr = COLOUR_DARK;
+				point->terrain_attr = COLOUR_DARK;
 			}
 		} else {
-			*attr = COLOUR_DARK;
+			point->terrain_attr = COLOUR_DARK;
 		}
-	} else {
-		*attr = 0;
 	}
 }
 
 /**
  * Apply text lighting effects
  */
-static void grid_get_attr(const struct grid_data *g, uint32_t *attr)
+static void grid_get_light(const struct grid_data *g, struct term_point *point)
 {
+	if (feat_is_treasure(g->f_idx)) {
+		return;
+	}
+
 	struct feature *feat = &f_info[g->f_idx];
 
-	if (!feat_is_treasure(g->f_idx)) {
-		/* Only apply lighting effects when the attr is white
-		 * and it's a floor or wall */
-		if (*attr == COLOUR_WHITE
-				&& (tf_has(feat->flags, TF_FLOOR) || feat_is_wall(g->f_idx)))
-		{
-			grid_get_light(g, feat, attr);
-
-		} else if (feat_is_magma(g->f_idx) || feat_is_quartz(g->f_idx)) {
-			if (!g->in_view) {
-				*attr = COLOUR_L_DARK;
-			}
+	/* Only apply lighting effects when the attr is white  and it's a floor or wall */
+	if (point->fg_attr == COLOUR_WHITE
+			&& (tf_has(feat->flags, TF_FLOOR) || feat_is_wall(g->f_idx)))
+	{
+		if (tf_has(feat->flags, TF_TORCH) && g->lighting == LIGHTING_TORCH) {
+			/* If it's a floor tile list by a torch then we'll make it yellow */
+			point->fg_attr = COLOUR_YELLOW;
+		} else if (g->lighting == LIGHTING_DARK || g->lighting == LIGHTING_LIT) {
+			/* If it's another kind of tile, only tint when unlit. */
+			point->fg_attr = COLOUR_L_DARK;
+		}
+	} else if (feat_is_magma(g->f_idx) || feat_is_quartz(g->f_idx)) {
+		if (!g->in_view) {
+			point->fg_attr = COLOUR_L_DARK;
 		}
 	}
 }
 
-static void grid_get_object(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+static void grid_get_object(const struct grid_data *g,
+		struct term_point *point)
 {
 	if (g->unseen_money) {
 		/* money gets an orange star */
-		*attr = object_kind_attr(unknown_gold_kind);
-		*ch = object_kind_char(unknown_gold_kind);
+		point->fg_attr = object_kind_attr(unknown_gold_kind);
+		point->fg_char = object_kind_char(unknown_gold_kind);
 	} else if (g->unseen_object) {	
 		/* Everything else gets a red star */    
-		*attr = object_kind_attr(unknown_item_kind);
-		*ch = object_kind_char(unknown_item_kind);
+		point->fg_attr = object_kind_attr(unknown_item_kind);
+		point->fg_char = object_kind_char(unknown_item_kind);
 	} else if (g->first_kind) {
 		if (g->hallucinate) {
 			/* Just pick a random object to display. */
-			hallucinatory_object(attr, ch);
+			hallucinatory_object(point);
 		} else if (g->multiple_objects) {
 			/* Get the "pile" feature instead */
-			*attr = object_kind_attr(pile_kind);
-			*ch = object_kind_char(pile_kind);
+			point->fg_attr = object_kind_attr(pile_kind);
+			point->fg_char = object_kind_char(pile_kind);
 		} else {
 			/* Normal attr and char */
-			*attr = object_kind_attr(g->first_kind);
-			*ch = object_kind_char(g->first_kind);
+			point->fg_attr = object_kind_attr(g->first_kind);
+			point->fg_char = object_kind_char(g->first_kind);
 		}
 	}
 }
 
-static void grid_get_monster(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+static void grid_get_monster(const struct grid_data *g,
+		struct term_point *point)
 {
 	if (g->m_idx == 0) {
 		return;
@@ -180,7 +167,7 @@ static void grid_get_monster(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 
 	if (g->hallucinate) {
 		/* Just pick a random monster to display. */
-		hallucinatory_monster(attr, ch);
+		hallucinatory_monster(point);
 	} else if (!is_mimicking(cave_monster(cave, g->m_idx)))	{
 		struct monster *mon = cave_monster(cave, g->m_idx);
 
@@ -190,45 +177,46 @@ static void grid_get_monster(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 
 		/* Special handling of attrs and/or chars */
 		if (da & 0x80) {
-			/* Special attr/char codes */
+			/* Graphical attr/char codes */
 			/* TODO remove */
-			*attr = da;
-			*ch = dc;
+			point->fg_attr = da;
+			point->fg_char = dc;
 		} else {
 			if (OPT(purple_uniques)
 				&& rf_has(mon->race->flags, RF_UNIQUE))
 			{
 				/* Turn uniques purple if desired (violet, actually) */
-				*attr = COLOUR_VIOLET;
-				*ch = dc;
+				point->fg_attr = COLOUR_VIOLET;
+				point->fg_char = dc;
 			} else if (rf_has(mon->race->flags, RF_ATTR_MULTI)
 					|| rf_has(mon->race->flags, RF_ATTR_FLICKER)
 					|| rf_has(mon->race->flags, RF_ATTR_RAND))
 			{
 				/* Multi-hued monster */
-				*attr = mon->attr ? mon->attr : da;
-				*ch = dc;
+				point->fg_attr = mon->attr ? mon->attr : da;
+				point->fg_char = dc;
 			} else if (!flags_test(mon->race->flags, RF_SIZE,
 						RF_ATTR_CLEAR, RF_CHAR_CLEAR, FLAG_END))
 			{
 				/* Normal monster (not "clear" in any way) */
-				*attr = da;
-				*ch = dc;
+				point->fg_attr = da;
+				point->fg_char = dc;
 			} else if (rf_has(mon->race->flags, RF_ATTR_CLEAR)) {
-				/* Normal char, Clear attr, monster */
-				*ch = dc;
+				/* Normal char, clear attr, monster */
+				point->fg_char = dc;
 			} else if (rf_has(mon->race->flags, RF_CHAR_CLEAR)) {
-				/* Normal attr, Clear char, monster */
-				*attr = da;
+				/* Normal attr, clear char, monster */
+				point->fg_attr = da;
 			}
 
 			/* Store the drawing attr so we can use it elsewhere */
-			mon->attr = *attr;
+			mon->attr = point->fg_attr;
 		}
 	}
 }
 
-static void grid_get_player(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+static void grid_get_player(const struct grid_data *g,
+		struct term_point *point)
 {
 	if (!g->is_player) {
 		return;
@@ -237,46 +225,47 @@ static void grid_get_player(struct grid_data *g, uint32_t *attr, wchar_t *ch)
 	struct monster_race *race = &r_info[0];
 
 	/* Player attr and char */
-	*attr = monster_x_attr[race->ridx];
-	*ch = monster_x_char[race->ridx];
+	point->fg_attr = monster_x_attr[race->ridx];
+	point->fg_char = monster_x_char[race->ridx];
 
-	if ((OPT(hp_changes_color)) && !(*attr & 0x80)) {
+	if (OPT(hp_changes_color) && !(point->fg_attr & 0x80)) {
 		switch (player->chp * 10 / player->mhp) {
 			case 10: case 9:
-				*attr = COLOUR_WHITE;
+				point->fg_attr = COLOUR_WHITE;
 				break;
 			case 8: case 7:
-				*attr = COLOUR_YELLOW;
+				point->fg_attr = COLOUR_YELLOW;
 				break;
 			case 6: case 5:
-				*attr = COLOUR_ORANGE;
+				point->fg_attr = COLOUR_ORANGE;
 				break;
 			case 4: case 3:
-				*attr = COLOUR_L_RED;
+				point->fg_attr = COLOUR_L_RED;
 				break;
 			case 2: case 1: case 0:
-				*attr = COLOUR_RED;
+				point->fg_attr = COLOUR_RED;
 				break;
 			default:
-				*attr = COLOUR_WHITE;
+				point->fg_attr = COLOUR_WHITE;
 				break;
 		}
 	}
 }
 
-static void grid_get_creature(struct grid_data *g, uint32_t *attr, wchar_t *ch)
+static void grid_get_creature(const struct grid_data *g,
+		struct term_point *point)
 {
 	if (g->m_idx > 0) {
-		grid_get_monster(g, attr, ch);
+		grid_get_monster(g, point);
 	} else if (g->is_player) {
-		grid_get_player(g, attr, ch);
+		grid_get_player(g, point);
 	}
 }
 
 /**
  * This function takes a pointer to a grid info struct describing the 
  * contents of a grid location (as obtained through the function map_info)
- * and fills in the character and attr pairs for display.
+ * and fills in the term_point struct for display.
  *
  * fg_attr and fg_char are filled with the attr/char pair for the monster,
  * object, trap or floor tile that is at the top of the grid
@@ -297,8 +286,8 @@ static void grid_get_creature(struct grid_data *g, uint32_t *attr, wchar_t *ch)
  * This is called pretty frequently, whenever a grid on the map display
  * needs updating, so don't overcomplicate it.
  *
- * The "zero" entry in the feature/object/monster arrays are
- * used to provide "special" attr/char codes, with "monster zero" being
+ * The zero entry in the feature/object/monster arrays are
+ * used to provide special attr/char codes, with "monster zero" being
  * used for the player attr/char, "object zero" being used for the "pile"
  * attr/char, and "feature zero" being used for the "darkness" attr/char.
  */
@@ -306,26 +295,29 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 {
 	struct feature *feat = &f_info[g->f_idx];
 
-	uint32_t attr = feat_x_attr[g->lighting][feat->fidx];
-	wchar_t ch = feat_x_char[g->lighting][feat->fidx];
+	if (use_graphics != GRAPHICS_NONE) {
+		/* Save the background for tiles */
+		point->bg_attr = feat_x_attr[g->lighting][feat->fidx];
+		point->bg_char = feat_x_char[g->lighting][feat->fidx];
+		/* In case the grid doesn't have anything else */
+		point->fg_attr = point->bg_attr;
+		point->fg_char = point->bg_char;
+	} else {
+		/* Text (non-tiles) mode doesn't actually use background information */
+		point->bg_attr = 0;
+		point->bg_char = 0;
 
-	/* Get the colour for ASCII */
-	if (use_graphics == GRAPHICS_NONE) {
-		grid_get_attr(g, &attr);
+		point->fg_attr = feat_x_attr[g->lighting][feat->fidx];
+		point->fg_char = feat_x_char[g->lighting][feat->fidx];
+
+		grid_get_light(g, point);
 	}
 
-	/* Save the terrain info for the transparency effects */
-	point->bg_attr = attr;
-	point->bg_char = ch;
+	grid_get_trap(g, point);
+	grid_get_object(g, point);
+	grid_get_creature(g, point);
 
-	grid_get_trap(g, &attr, &ch);
-	grid_get_object(g, &attr, &ch);
-	grid_get_creature(g, &attr, &ch);
-
-	point->fg_attr = attr;
-	point->fg_char = ch;
-
-	grid_get_terrain(g, point, &point->terrain_attr);
+	grid_get_terrain(g, point);
 
 	/* TODO UI2 set some flags */
 	tpf_wipe(point->flags);
