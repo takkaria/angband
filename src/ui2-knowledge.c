@@ -390,8 +390,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	bool stop = false;
 
 	int g_old = -1;    /* old group list position */
-	int g_cur = 0;     /* current group list position */
-	int o_cur = 0;     /* current object list position */
+	int g_cur =  0;    /* current group list position */
+	int o_cur =  0;    /* current object list position */
 	int g_o_count = 0; /* number of objects in current group */
 
 	/* These are swapped in parallel whenever
