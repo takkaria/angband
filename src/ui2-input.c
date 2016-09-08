@@ -362,14 +362,15 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 				bell("Illegal edit key!");
 				break;
 			}
-			if (*len + 1 < buflen) {
-				/* Clear the buffer if this is the first time round */
-				if (firsttime) {
-					buf[0] = 0;
-					*curs = 0;
-					*len = 0;
-				}
 
+			/* Clear the buffer if this is the first time round */
+			if (firsttime) {
+				buf[0] = 0;
+				*curs = 0;
+				*len = 0;
+			}
+
+			if (*len + 1 < buflen) {
 				if (*curs < *len) {
 					/* Move the rest of the buffer along to make room */
 					memmove(buf + *curs + 1, buf + *curs, *len - *curs);
