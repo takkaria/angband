@@ -1,5 +1,5 @@
 /**
- * \file ui-map.c
+ * \file ui2-map.c
  * \brief Writing level map info to the screen
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
