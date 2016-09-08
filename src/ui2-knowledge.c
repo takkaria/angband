@@ -336,12 +336,14 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	}
 
 	/* Sort everything into group order */
-	int *g_list = mem_zalloc((g_max + 1) * sizeof(*g_list));
+	int *g_list    = mem_zalloc((g_max + 1) * sizeof(*g_list));
 	int *g_offsets = mem_zalloc((g_max + 1) * sizeof(*g_offsets));
+
 	int g_count = set_g_lists(o_list, o_count, g_list, g_offsets, g_funcs);
 
 	/* The compact set of group names, in display order */
 	const char **g_names = mem_zalloc(g_count * sizeof(*g_names));
+
 	int g_name_max_len = set_g_names(g_list, g_count, g_names, g_funcs);
 	g_name_max_len = MIN(g_name_max_len, 20);
 
