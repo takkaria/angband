@@ -203,7 +203,7 @@ static void knowledge_screen_prompt(member_funcs o_funcs, int index)
 }
 
 static void knowledge_screen_summary(group_funcs g_funcs,
-		int g_cursor, int *o_list, int o_count_cur, int offset, region reg)
+		int group, int *o_list, int o_count_cur, int offset, region reg)
 {
 	if (g_funcs.summary) {
 		struct loc loc = {
@@ -211,7 +211,7 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 			.y = reg.y + reg.h
 		};
 
-		g_funcs.summary(g_cursor, o_list, o_count_cur, offset, loc);
+		g_funcs.summary(group, o_list, o_count_cur, offset, loc);
 	}
 }
 
