@@ -248,27 +248,24 @@ static void knowledge_screen_draw_frame(const char *title,
 	uint32_t g_attr = group_menu ? COLOUR_WHITE : COLOUR_L_DARK;
 	uint32_t o_attr = object_menu ? COLOUR_WHITE : COLOUR_L_DARK;
 
-	/* Print divider for group menu */
-	for (int x = 0, y = reg.y + reg.h + 1, z = g_name_max_len + 1;
-			x < z;
-			x++)
-	{
-		Term_addwc(x, y, g_attr, L'=');
-	}
+	const int x_div = g_name_max_len + 1;
+	const int y_div = reg.y + reg.h + 1;
 
-	/* Print divider for object menu */
-	for (int x = g_name_max_len + 2, y = reg.y + reg.h + 1;
-			x < ANGBAND_TERM_STANDARD_WIDTH;
-			x++)
-	{
-		Term_addwc(x, y, o_attr, L'=');
-	}
+	int width;
+	int height;
+	Term_get_size(&width, &height);
 
-	for (int y = reg.y + reg.h + 2, z = Term_height() - 2;
-			y < z;
-			y++)
-	{
-		Term_addwc(g_name_max_len + 1, y, COLOUR_WHITE, L'|');
+	/* Print horizontal divider for group menu */
+	for (int x = 0; x < x_div; x++) {
+		Term_addwc(x, y_div, g_attr, L'=');
+	}
+	/* Print horizontal divider for object menu */
+	for (int x = x_div + 1; x < width; x++) {
+		Term_addwc(x, y_div, o_attr, L'=');
+	}
+	/* Print vertical divider */
+	for (int y = y_div + 1, z = height - 2; y < z; y++) {
+		Term_addwc(x_div, y, COLOUR_WHITE, L'|');
 	}
 }
 
