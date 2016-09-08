@@ -398,10 +398,10 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	/* Currenly selected panel; 0 is groups panel, 1 is objects panel */
 	int panel = 0;
 
-	int g_old = -1;    /* old group list position */
-	int g_cur =  0;    /* current group list position */
-	int o_cur =  0;    /* current object list position */
-	int g_o_count = 0; /* number of objects in current group */
+	int g_old = -1;      /* old group list position */
+	int g_cur =  0;      /* current group list position */
+	int o_cur =  0;      /* current object list position */
+	int o_count_cur = 0; /* number of objects in current group */
 
 	/* These are swapped in parallel whenever
 	 * the actively browsing menu changes */
@@ -418,8 +418,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		if (g_cur != g_old) {
 			g_old = g_cur;
 			o_cur = 0;
-			g_o_count = g_offsets[g_cur + 1] - g_offsets[g_cur];
-			menu_set_filter(&object_menu, o_list + g_offsets[g_cur], g_o_count);
+			o_count_cur = g_offsets[g_cur + 1] - g_offsets[g_cur];
+			menu_set_filter(&object_menu, o_list + g_offsets[g_cur], o_count_cur);
 			group_menu.cursor = g_cur;
 			object_menu.cursor = o_cur;
 		}
@@ -440,7 +440,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 				active_menu == &group_menu, active_menu == &object_menu,
 				other_fields);
 		knowledge_screen_summary(g_funcs,
-				g_cur, o_list, g_o_count, g_offsets[g_cur], object_menu.active);
+				g_cur, o_list, o_count_cur, g_offsets[g_cur], object_menu.active);
 		knowledge_screen_prompt(o_funcs, index);
 
 		menu_refresh(inactive_menu);
