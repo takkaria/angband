@@ -221,10 +221,10 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 	}
 }
 
-static void knowledge_screen_draw_header(region reg, int g_name_max_len,
+static void knowledge_screen_draw_header(region title_region, int g_name_max_len,
 		bool group_menu, bool object_menu, const char *other_fields)
 {
-	struct loc loc = {0, reg.y + reg.h};
+	struct loc loc = {0, title_region.y + title_region.h};
 
 	c_prt(group_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Group", loc);
 
