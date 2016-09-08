@@ -237,19 +237,31 @@ static void knowledge_screen_draw_header(region reg, int g_name_max_len,
 	}
 }
 
-static void knowledge_screen_draw(const char *title,
+static void knowledge_screen_draw_frame(const char *title,
+		bool group_menu, bool object_menu,
 		const char *other_fields, region title_region, int g_name_max_len)
 {
 	region_erase(title_region);
 
 	prt(format("Knowledge - %s", title), loc(title_region.x, title_region.y));
 
-	/* Print dividers: horizontal and vertical */
+	uint32_t g_attr = group_menu ? COLOUR_WHITE : COLOUR_L_DARK;
+	uint32_t o_attr = object_menu ? COLOUR_WHITE : COLOUR_L_DARK;
+
+	/* Print divider for group menu */
 	for (int x = 0, y = title_region.y + title_region.h + 1;
+			x < g_name_max_len + 1;
+			x++)
+	{
+		Term_addwc(x, y, g_attr, '=');
+	}
+
+	/* Print divider for object menu */
+	for (int x = g_name_max_len + 2, y = title_region.y + title_region.h + 1;
 			x < ANGBAND_TERM_STANDARD_WIDTH;
 			x++)
 	{
-		Term_addwc(x, y, COLOUR_WHITE, '=');
+		Term_addwc(x, y, o_attr, '=');
 	}
 
 	for (int y = title_region.y + title_region.h + 2, z = Term_height() - 2;
@@ -401,9 +413,6 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	struct menu *active_menu = &group_menu;
 	struct menu *inactive_menu = &object_menu;
 
-	knowledge_screen_draw(title,
-			other_fields, title_region, g_name_max_len);
-
 	while (!stop && g_count) {
 
 		if (g_cur != g_old) {
@@ -424,6 +433,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			swap = false;
 		}
 
+		knowledge_screen_draw_frame(title,
+				active_menu == &group_menu, active_menu == &object_menu,
+				other_fields, title_region, g_name_max_len);
 		knowledge_screen_draw_header(title_region, g_name_max_len,
 				active_menu == &group_menu, active_menu == &object_menu,
 				other_fields);
