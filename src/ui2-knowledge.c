@@ -404,7 +404,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	int g_o_count = 0; /* number of objects in current group */
 
 	/* These are swapped in parallel whenever
-	 * the actively browsing changes */
+	 * the actively browsing menu changes */
 	int *active_cursor = &g_cur;
 	int *inactive_cursor = &o_cur;
 	struct menu *active_menu = &group_menu;
