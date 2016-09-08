@@ -414,9 +414,9 @@ static void view_map_aux(void)
 	int height;
 	Term_get_size(&width, &height);
 
-	const int cave_width = cave->width;
+	const int cave_width  = cave->width;
 	const int cave_height = cave->height;
-	const int term_width = MIN(width, cave_width);
+	const int term_width  = MIN(width, cave_width);
 	const int term_height = MIN(height, cave_height);
 
 	byte **priority_grid = NULL;
