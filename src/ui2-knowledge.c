@@ -762,24 +762,21 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 	for (int i = 0; i < z_info->r_max; i++) {
 		struct monster_race *race = &r_info[i];
 
-		if (!OPT(cheat_know) && !l_list[i].all_known && !l_list[i].sights) {
-			continue;
-		}
-		if (!race->name) {
-			continue;
-		}
+		if (race->name != NULL
+				&& (OPT(cheat_know) || l_list[i].all_known || l_list[i].sights))
+		{
+			for (size_t g = 0; g < N_ELEMENTS(monster_group) - 1; g++) {
 
-		for (size_t g = 0; g < N_ELEMENTS(monster_group) - 1; g++) {
+				if ((g == 0 && rf_has(race->flags, RF_UNIQUE))
+						|| (g > 0 && wcschr(monster_group[g].chars, race->d_char)))
+				{
+					monsters[m_count] = m_count;
 
-			if ((g == 0 && rf_has(race->flags, RF_UNIQUE))
-					|| (g > 0 && wcschr(monster_group[g].chars, race->d_char)))
-			{
-				monsters[m_count] = m_count;
+					default_join[m_count].index = i;
+					default_join[m_count].group = g;
 
-				default_join[m_count].index = i;
-				default_join[m_count].group = g;
-
-				m_count++;
+					m_count++;
+				}
 			}
 		}
 	}
