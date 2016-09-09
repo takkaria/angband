@@ -1098,7 +1098,6 @@ static void desc_ego_fake(int index)
 	int e_idx = default_item_id(index);
 	struct ego_item *ego = &e_info[e_idx];
 
-
 	/* List ego flags */
 	textblock *tb = object_info_ego(ego);
 
