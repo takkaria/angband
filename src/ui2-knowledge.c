@@ -514,12 +514,12 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 /**
  * Description of each monster group.
  */
-static struct
-{
+static struct {
 	const wchar_t *chars;
 	const char *name;
 } monster_group[] = {
 	{ (const wchar_t *) -1,   "Uniques" },
+
 	{ L"A",        "Ainur" },
 	{ L"a",        "Ants" },
 	{ L"b",        "Bats" },
@@ -565,7 +565,7 @@ static struct
 	{ L"Y",        "Yeti" },
 	{ L"Z",        "Zephyr Hounds" },
 	{ L"z",        "Zombies" },
-	{ NULL,        NULL }
+	{ NULL,         NULL }
 };
 
 /**
