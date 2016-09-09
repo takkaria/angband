@@ -1158,33 +1158,33 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 		struct ego_item *ego = &e_info[i];
 
 		if (ego->everseen || OPT(cheat_xtra)) {
-			int tval[N_ELEMENTS(object_text_order)] = {0};
+			int groups[N_ELEMENTS(object_text_order)] = {0};
 
 			/* Note the tvals which are possible for this ego */
 			for (struct poss_item *poss = ego->poss_items; poss; poss = poss->next) {
 				struct object_kind *kind = &k_info[poss->kidx];
-				tval[obj_group_order[kind->tval]]++;
+				groups[obj_group_order[kind->tval]]++;
 			}
 
 			/* Count and put into the list */
-			for (size_t g = 0; g < TV_MAX; g++) {
-				int group = obj_group_order[g];
-				if (group < 0) {
+			for (size_t t = 0; t < TV_MAX; t++) {
+				int g = obj_group_order[t];
+				if (g < 0) {
 					continue;
 				}
 
 				/* Ignore duplicates */
-				if (g > 0 && e_count > 0
-						&& group == default_join[e_count - 1].group
+				if (t > 0 && e_count > 0
+						&& g == default_join[e_count - 1].group
 						&& i == default_join[e_count - 1].index)
 				{
 					continue;
 				}
 
-				if (tval[group]) {
+				if (groups[g]) {
 					egoitems[e_count] = e_count;
 					default_join[e_count].index = i;
-					default_join[e_count].group = group;
+					default_join[e_count].group = g;
 					e_count++;
 				}
 			}
