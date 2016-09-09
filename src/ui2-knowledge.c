@@ -591,11 +591,11 @@ static void display_monster(int index, bool cursor, struct loc loc, int width)
 	/* Display monster symbol */
 	Term_addwc(66, loc.y, xa, xc);
 
-	loc.x = 68;
+	loc.x = 70;
 	if (rf_has(race->flags, RF_UNIQUE)) {
-		put_str(format("%s", (race->max_num == 0)?  " dead" : " alive"), loc);
+		put_str(format("%s", (race->max_num == 0)?  "dead" : "alive"), loc);
 	} else {
-		put_str(format("%5d", lore->pkills), loc);
+		put_str(format("%d", lore->pkills), loc);
 	}
 }
 
@@ -782,7 +782,7 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 	}
 
 	display_knowledge("monsters", monsters, m_count, r_funcs, m_funcs,
-			"                   Sym   Kills");
+			"                   Sym  Kills");
 
 	mem_free(default_join);
 	mem_free(monsters);
