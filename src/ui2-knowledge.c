@@ -90,12 +90,6 @@ typedef struct {
 	/* Displays lore for an index */
 	void (*lore)(int index);
 
-	/* Get character attr for index (by address) */
-	wchar_t *(*xchar)(int index);
-
-	/* Get color attr for index (by address) */
-	uint32_t *(*xattr)(int index);
-
 	/* Returns optional extra prompt */
 	const char *(*xtra_prompt)(int index);
 
@@ -631,16 +625,6 @@ static int m_cmp_race(const void *a, const void *b)
 	return strcmp(racea->name, raceb->name);
 }
 
-static wchar_t *m_xchar(int index)
-{
-	return &monster_x_char[default_join[index].index];
-}
-
-static uint32_t *m_xattr(int index)
-{
-	return &monster_x_attr[default_join[index].index];
-}
-
 static const char *race_name(int group)
 {
 	return monster_group[group].name;
@@ -744,8 +728,6 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 	member_funcs m_funcs = {
 		.display_member = display_monster,
 		.lore = mon_lore,
-		.xchar = m_xchar,
-		.xattr = m_xattr,
 		.xtra_prompt = recall_prompt,
 		.xtra_act = NULL,
 	};
@@ -1070,8 +1052,6 @@ static void do_cmd_knowledge_artifacts(const char *name, int row)
 	member_funcs art_f = {
 		.display_member = display_artifact,
 		.lore = desc_art_fake,
-		.xchar = NULL, 
-		.xattr = NULL,
 		.xtra_prompt = recall_prompt, 
 		.xtra_act = NULL,
 	};
@@ -1165,8 +1145,6 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 	member_funcs ego_f = {
 		.display_member = display_ego_item, 
 		.lore = desc_ego_fake, 
-		.xchar = NULL,
-		.xattr = NULL,
 		.xtra_prompt = recall_prompt,
 		.xtra_act = NULL,
 	};
@@ -1402,28 +1380,6 @@ static int obj2gid(int index)
 	return obj_group_order[k_info[index].tval];
 }
 
-static wchar_t *o_xchar(int index)
-{
-	struct object_kind *kind = objkind_byid(index);
-
-	if (!kind->flavor || kind->aware) {
-		return &kind_x_char[kind->kidx];
-	} else {
-		return &flavor_x_char[kind->flavor->fidx];
-	}
-}
-
-static uint32_t *o_xattr(int index)
-{
-	struct object_kind *kind = objkind_byid(index);
-
-	if (!kind->flavor || kind->aware) {
-		return &kind_x_attr[kind->kidx];
-	} else {
-		return &flavor_x_attr[kind->flavor->fidx];
-	}
-}
-
 /**
  * Display special prompt for object inscription.
  */
@@ -1519,8 +1475,6 @@ void textui_browse_object_knowledge(const char *name, int row)
 	member_funcs obj_f = {
 		.display_member = display_object,
 		.lore = desc_obj_fake,
-		.xchar = o_xchar,
-		.xattr = o_xattr,
 		.xtra_prompt = o_xtra_prompt,
 		.xtra_act = o_xtra_act,
 	};
@@ -1685,8 +1639,6 @@ static void do_cmd_knowledge_runes(const char *name, int row)
 	member_funcs rune_f = {
 		.display_member = display_rune,
 		.lore = rune_lore,
-		.xchar = NULL,
-		.xattr = NULL,
 		.xtra_prompt = rune_xtra_prompt,
 		.xtra_act = rune_xtra_act,
 	};
@@ -1789,16 +1741,6 @@ static const char *fkind_name(int group)
  */
 static enum grid_light_level f_uik_lighting = LIGHTING_LIT;
 
-static uint32_t *f_xattr(int index)
-{
-	return &feat_x_attr[f_uik_lighting][index];
-}
-
-static wchar_t *f_xchar(int index)
-{
-	return &feat_x_char[f_uik_lighting][index];
-}
-
 static void feat_lore(int index)
 {
 	struct feature *feat = &f_info[index];
@@ -1866,8 +1808,6 @@ static void do_cmd_knowledge_features(const char *name, int row)
 	member_funcs feat_f = {
 		.display_member = display_feature,
 		.lore = feat_lore,
-		.xchar = f_xchar,
-		.xattr = f_xattr,
 		.xtra_prompt = feat_prompt,
 		.xtra_act = f_xtra_act,
 	};
@@ -1994,16 +1934,6 @@ static const char *tkind_name(int group)
  */
 static enum grid_light_level t_uik_lighting = LIGHTING_LIT;
 
-static uint32_t *t_xattr(int index)
-{
-	return &trap_x_attr[t_uik_lighting][index];
-}
-
-static wchar_t *t_xchar(int index)
-{
-	return &trap_x_char[t_uik_lighting][index];
-}
-
 static void trap_lore(int index)
 {
 	struct trap_kind *trap = &trap_info[index];
@@ -2072,8 +2002,6 @@ static void do_cmd_knowledge_traps(const char *name, int row)
 	member_funcs trap_f = {
 		.display_member = display_trap,
 		.lore = trap_lore,
-		.xchar = t_xchar,
-		.xattr = t_xattr,
 		.xtra_prompt = trap_prompt,
 		.xtra_act = t_xtra_act,
 	};
