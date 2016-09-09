@@ -1146,11 +1146,12 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 		.xtra_act = NULL,
 	};
 
-	int e_count = 0;
-
 	int max_pairs = z_info->e_max * N_ELEMENTS(object_text_order);
+
 	int *egoitems = mem_zalloc(max_pairs * sizeof(*egoitems));
 	default_join = mem_zalloc(max_pairs * DEFAULT_JOIN_SIZE);
+
+	int e_count = 0;
 
 	/* Look at all the ego items */
 	for (int i = 0; i < z_info->e_max; i++)	{
