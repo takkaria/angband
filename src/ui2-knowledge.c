@@ -706,20 +706,18 @@ static int count_known_monsters(void)
 
 	for (int i = 0; i < z_info->r_max; i++) {
 		struct monster_race *race = &r_info[i];
-		if (!OPT(cheat_know) && !l_list[i].all_known && !l_list[i].sights) {
-			continue;
-		}
-		if (!race->name) {
-			continue;
-		}
 
-		if (rf_has(race->flags, RF_UNIQUE)) {
-			m_count++;
-		}
-
-		for (size_t g = 1; g < N_ELEMENTS(monster_group) - 1; g++) {
-			if (wcschr(monster_group[g].chars, race->d_char)) {
+		if (race->name != NULL
+				&& (OPT(cheat_know) || l_list[i].all_known || l_list[i].sights))
+		{
+			if (rf_has(race->flags, RF_UNIQUE)) {
 				m_count++;
+			}
+
+			for (size_t g = 1; g < N_ELEMENTS(monster_group) - 1; g++) {
+				if (wcschr(monster_group[g].chars, race->d_char)) {
+					m_count++;
+				}
 			}
 		}
 	}
