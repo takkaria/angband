@@ -752,12 +752,12 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 		.xtra_act = NULL,
 	};
 
-	int m_count = count_known_monsters();
+	const int m_count = count_known_monsters();
 
 	default_join = mem_zalloc(m_count * DEFAULT_JOIN_SIZE);
 	int *monsters = mem_zalloc(m_count * sizeof(*monsters));
 
-	m_count = 0;
+	int count = 0;
 
 	for (int i = 0; i < z_info->r_max; i++) {
 		struct monster_race *race = &r_info[i];
@@ -770,18 +770,20 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 				if ((g == 0 && rf_has(race->flags, RF_UNIQUE))
 						|| (g > 0 && wcschr(monster_group[g].chars, race->d_char)))
 				{
-					monsters[m_count] = m_count;
+					assert(count < m_count);
 
-					default_join[m_count].index = i;
-					default_join[m_count].group = g;
+					monsters[count] = count;
 
-					m_count++;
+					default_join[count].index = i;
+					default_join[count].group = g;
+
+					count++;
 				}
 			}
 		}
 	}
 
-	display_knowledge("monsters", monsters, m_count, r_funcs, m_funcs,
+	display_knowledge("monsters", monsters, count, r_funcs, m_funcs,
 			"                   Sym  Kills");
 
 	mem_free(default_join);
