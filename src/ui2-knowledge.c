@@ -843,9 +843,7 @@ static void display_artifact(int index, bool cursor, struct loc loc, int width)
 	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 	get_artifact_display_name(o_name, sizeof(o_name), index);
 
-	uint32_t attr = menu_row_style(true, cursor);
-
-	c_prt(attr, o_name, loc);
+	c_prt(menu_row_style(true, cursor), o_name, loc);
 }
 
 /**
