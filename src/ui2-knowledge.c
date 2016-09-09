@@ -1054,7 +1054,7 @@ static void do_cmd_knowledge_artifacts(const char *name, int row)
 		.xtra_act = NULL,
 	};
 
-	int *artifacts = mem_zalloc(z_info->a_max * sizeof(int));
+	int *artifacts = mem_zalloc(z_info->a_max * sizeof(*artifacts));
 
 	/* Collect valid artifacts */
 	int a_count = collect_known_artifacts(artifacts, z_info->a_max);
