@@ -1167,21 +1167,15 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 			}
 
 			/* Count and put into the list */
-			for (size_t t = 0; t < TV_MAX; t++) {
-				int g = obj_group_order[t];
-				if (g < 0) {
-					continue;
-				}
+			for (size_t tval = 0; tval < TV_MAX; tval++) {
+				int g = obj_group_order[tval];
 
-				/* Ignore duplicates */
-				if (t > 0 && e_count > 0
-						&& g == default_join[e_count - 1].group
-						&& i == default_join[e_count - 1].index)
+				if ((g >= 0 && groups[g] > 0)
+						/* Ignore duplicates */
+						&& (e_count == 0 || tval == 0
+							|| g != default_join[e_count - 1].group
+							|| i != default_join[e_count - 1].index))
 				{
-					continue;
-				}
-
-				if (groups[g]) {
 					egoitems[e_count] = e_count;
 					default_join[e_count].index = i;
 					default_join[e_count].group = g;
