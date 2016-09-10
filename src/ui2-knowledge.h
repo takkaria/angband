@@ -29,7 +29,6 @@ void do_cmd_equip(void);
 void do_cmd_quiver(void);
 void do_cmd_look(void);
 void do_cmd_locate(void);
-void do_cmd_query_symbol(void);
 void do_cmd_center_map(void);
 void do_cmd_monlist(void);
 void do_cmd_itemlist(void);
