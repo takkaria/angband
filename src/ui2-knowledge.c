@@ -951,21 +951,18 @@ static int a_cmp_tval(const void *a, const void *b)
 	const struct artifact *aa = &a_info[a_val];
 	const struct artifact *ab = &a_info[b_val];
 
-	/* Order by tval */
-	int ta = tval_to_group[aa->tval];
-	int tb = tval_to_group[ab->tval];
-	int c = ta - tb;
+	int ga = tval_to_group[aa->tval];
+	int gb = tval_to_group[ab->tval];
+	int c = ga - gb;
 	if (c != 0) {
 		return c;
 	}
 
-	/* Order by sval */
 	c = aa->sval - ab->sval;
 	if (c != 0) {
 		return c;
 	}
 
-	/* Order by name */
 	return strcmp(aa->name, ab->name);
 }
 
