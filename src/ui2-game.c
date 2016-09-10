@@ -478,22 +478,15 @@ void savefile_set_name(const char *fname)
  */
 void save_game(void)
 {
-	/* Disturb the player */
 	disturb(player, 1);
-
-	/* Clear messages */
 	event_signal(EVENT_MESSAGE_FLUSH);
-
-	/* Handle stuff */
 	handle_stuff(player);
 
-	/* Message */
 	show_prompt("Saving game...", false);
 
 	/* The player is not dead */
 	my_strcpy(player->died_from, "(saved)", sizeof(player->died_from));
 
-	/* Save the player */
 	if (savefile_save(savefile)) {
 		show_prompt("Saving game... done.", false);
 	} else {
@@ -522,14 +515,8 @@ void close_game(void)
 {
 	/* Tell the UI we're done with the world */
 	event_signal(EVENT_LEAVE_WORLD);
-
-	/* Handle stuff */
 	handle_stuff(player);
-
-	/* Flush the messages */
 	event_signal(EVENT_MESSAGE_FLUSH);
-
-	/* Flush the input */
 	event_signal(EVENT_INPUT_FLUSH);
 
 	/* Handle death or life */
@@ -543,11 +530,9 @@ void close_game(void)
 			event_signal(EVENT_MESSAGE_FLUSH);
 		}
 	} else {
-		/* Save the game */
 		save_game();
 	}
 
-	/* Wipe the monster list */
 	wipe_mon_list(cave, player);
 
 	/* Tell the UI we're done with the game state */
