@@ -2417,47 +2417,6 @@ static int cmp_level(const void *a, const void *b)
 	return cmp_mexp(a, b);
 }
 
-#if 0
-
-/*
- * Maybe that will be useful for something later?
- * it was used in do_cmd_query_symbol() (rip)
- */
-
-static int cmp_tkill(const void *a, const void *b)
-{
-	u16b ia = *(const u16b *) a;
-	u16b ib = *(const u16b *) b;
-
-	if (l_list[ia].tkills < l_list[ib].tkills) {
-		return -1;
-	}
-
-	if (l_list[ia].tkills > l_list[ib].tkills) {
-		return 1;
-	}
-
-	return cmp_level(a, b);
-}
-
-static int cmp_pkill(const void *a, const void *b)
-{
-	u16b ia = *(const u16b *) a;
-	u16b ib = *(const u16b *) b;
-
-	if (l_list[ia].pkills < l_list[ib].pkills) {
-		return -1;
-	}
-
-	if (l_list[ia].pkills > l_list[ib].pkills) {
-		return 1;
-	}
-
-	return cmp_tkill(a, b);
-}
-
-#endif
-
 int cmp_monsters(const void *a, const void *b)
 {
 	return cmp_level(a, b);
