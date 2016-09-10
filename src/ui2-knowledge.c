@@ -2168,7 +2168,6 @@ void do_cmd_messages(void)
 		show_prompt(format("Message recall (%d-%d of %d), offset %d",
 					current, current + m - 1, n_messages, offset), false);
 
-		/* Display help (not very informative) */
 		if (search[0]) {
 			prt("[Movement keys to navigate, '-' for next, '=' to find]", help_loc);
 		}
