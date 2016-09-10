@@ -285,17 +285,13 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 
 		case EVT_BUTTON: case EVT_KBRD:
 			if (textui_process_key(event.key, key)) {
-
 				if (*key == KC_ENTER) {
 					*cmd = textui_action_menu_choose();
 				} else {
 					*cmd = converted_list[KEYMAP_MODE_OPT][*key];
 				}
-				return *cmd != NULL;
-
-			} else {
-				return false;
 			}
+			return *cmd != NULL;
 
 		default:
 			return true; /* Silently ignore all other event types */
