@@ -2165,7 +2165,7 @@ void do_cmd_messages(void)
 		}
 
 		show_prompt(format("Message recall (%d-%d of %d), offset %d",
-					current, current + m - 1, n_messages, offset), false);
+					current + 1, current + m, n_messages, offset), false);
 
 		if (search[0]) {
 			prt("[Movement keys to navigate, '-' for older, '+' for newer, '=' to find]",
