@@ -366,21 +366,36 @@ void pre_turn_refresh(void)
 		return;
 	}
 
-	display_term_push(DISPLAY_CAVE);
+	static bool cursor_visible = false;
 
-	if (OPT(show_target) && target_sighted()) {
+	if (OPT(highlight_player)
+			|| (OPT(show_target) && target_sighted()))
+	{
 		struct loc loc;
+		if (OPT(show_target)) {
+			target_get(&loc.x, &loc.y);
+		} else {
+			loc.x = player->px;
+			loc.y = player->py;
+		}
 
-		target_get(&loc.x, &loc.y);
+		display_term_push(DISPLAY_CAVE);
 		move_cursor_relative(DISPLAY_CAVE, loc);
-		Term_cursor_visible(true);
+		if (!cursor_visible) {
+			cursor_visible = true;
+			Term_cursor_visible(true);
+		}
+		Term_flush_output();
+		display_term_pop();
 	} else {
-		Term_cursor_visible(false);
+		if (cursor_visible) {
+			display_term_push(DISPLAY_CAVE);
+			cursor_visible = false;
+			Term_cursor_visible(false);
+			Term_flush_output();
+			display_term_pop();
+		}
 	}
-
-	Term_flush_output();
-
-	display_term_pop();
 }
 
 /**
