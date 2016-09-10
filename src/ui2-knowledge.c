@@ -2146,9 +2146,8 @@ void do_cmd_messages(void)
 				str : format("%s <%dx>", str, count);
 
 			/* Apply horizontal scroll */
-			msg = (int) strlen(msg) >= offset ? msg + offset : "";
-
-			if (msg[0]) {
+			if ((int) strlen(msg) > offset) {
+				msg += offset;
 				/* Dump the messages, bottom to top */
 				Term_adds(0, last_msg_pos - m, term_width, attr, msg);
 
@@ -2173,7 +2172,7 @@ void do_cmd_messages(void)
 					help_loc);
 		}
 		else {
-			prt("[Movement keys to navigate, '=' to find, or ESCAPE to exit]",
+			prt("[Movement keys to navigate, '/' to find, or ESCAPE to exit]",
 					help_loc);
 		}
 
@@ -2185,13 +2184,11 @@ void do_cmd_messages(void)
 		if (event.type == EVT_MOUSE) {
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 				if (event.mouse.y <= term_height / 2) {
-					/* Go older if legal */
-					if (current + 20 < n_messages) {
-						current += 20;
-					}
+					/* Go older */
+					current = MIN(current + 20, n_messages - 1);
 				} else {
 					/* Go newer */
-					current = current >= 20 ? current - 20 : 0;
+					current = MAX(0, current - 20);
 				}
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 				more = false;
@@ -2202,7 +2199,7 @@ void do_cmd_messages(void)
 					more = false;
 					break;
 
-				case '=':
+				case '/':
 					/* Get the string to find */
 					show_prompt("Find: ", false);
 					if (!askfor_aux(search, sizeof(search), NULL)) {
@@ -2214,37 +2211,27 @@ void do_cmd_messages(void)
 					break;
 
 				case ARROW_LEFT: case '4':
-					offset = offset >= term_width / 4 ? offset - term_width / 4 : 0;
+					offset = MAX(0, offset - term_width / 4);
 					break;
 
 				case ARROW_RIGHT: case '6':
-					offset = offset + term_width / 4;
+					offset += term_width / 4;
 					break;
 
 				case ARROW_UP: case '8':
-					if (current + 1 < n_messages) {
-						current += 1;
-					}
+					current = MIN(current + 1, n_messages - 1);
 					break;
 
 				case ARROW_DOWN: case '2': case KC_ENTER:
-					if (current >= 1) {
-						current -= 1;
-					}
+					current = MAX(0, current - 1);
 					break;
 
-				case KC_PGUP: case 'p': case ' ':
-					if (current + 20 < n_messages) {
-						current += 20;
-					}
+				case KC_PGUP: case 'p':
+					current = MIN(current + 20, n_messages - 1);
 					break;
 
-				case KC_PGDOWN: case 'n':
-					if (current >= 20) {
-						current -= 20;
-					} else {
-						current = 0;
-					}
+				case KC_PGDOWN: case 'n': case ' ':
+					current = MAX(0, current - 20);
 					break;
 			}
 		}
