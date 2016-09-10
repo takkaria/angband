@@ -2283,12 +2283,11 @@ void do_cmd_item(int wrk)
  */
 void do_cmd_inven(void)
 {
-	if (player->upkeep->inven[0] == NULL) {
+	if (player->upkeep->inven[0] != NULL) {
+		do_cmd_item(USE_INVEN);
+	} else {
 		msg("You have nothing in your inventory.");
-		return;
 	}
-
-	do_cmd_item(USE_INVEN);
 }
 
 /**
@@ -2296,12 +2295,11 @@ void do_cmd_inven(void)
  */
 void do_cmd_equip(void)
 {
-	if (!player->upkeep->equip_cnt) {
+	if (player->upkeep->equip_cnt > 0) {
+		do_cmd_item(USE_EQUIP);
+	} else {
 		msg("You are not wielding or wearing anything.");
-		return;
 	}
-
-	do_cmd_item(USE_EQUIP);
 }
 
 /**
@@ -2309,12 +2307,11 @@ void do_cmd_equip(void)
  */
 void do_cmd_quiver(void)
 {
-	if (player->upkeep->quiver_cnt == 0) {
+	if (player->upkeep->quiver_cnt > 0) {
+		do_cmd_item(USE_QUIVER);
+	} else {
 		msg("You have nothing in your quiver.");
-		return;
 	}
-
-	do_cmd_item(USE_QUIVER);
 }
 
 /**
