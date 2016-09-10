@@ -282,7 +282,7 @@ static void help_display_rest(const struct help_file *help,
 
 	const char *prompt =
 		format("[%s, %s, line %d-%d/%d]",
-				buildid, help->caption, help->line, help->line + text_reg.h, help->next);
+				buildid, help->caption, help->line + 1, help->line + text_reg.h, help->next);
 
 	loc.x = term_reg.x;
 	loc.y = term_reg.y;
