@@ -1564,7 +1564,6 @@ static const char *rune_xtra_prompt(int index)
 	const char *no_insc = ", 'r'ecall, '{'";
 	const char *with_insc = ", 'r'ecall, '{', '}'";
 
-	/* Appropriate prompt */
 	return rune_note(index) ? with_insc : no_insc;
 }
 
