@@ -2383,45 +2383,6 @@ void do_cmd_locate(void)
 	verify_panel(DISPLAY_CAVE);
 }
 
-static int cmp_mexp(const void *a, const void *b)
-{
-	u16b ia = *(const u16b *) a;
-	u16b ib = *(const u16b *) b;
-
-	if (r_info[ia].mexp < r_info[ib].mexp) {
-		return -1;
-	}
-
-	if (r_info[ia].mexp > r_info[ib].mexp) {
-		return 1;
-	}
-
-	return
-		a < b ? -1 :
-		a > b ?  1 : 0;
-}
-
-static int cmp_level(const void *a, const void *b)
-{
-	u16b ia = *(const u16b *) a;
-	u16b ib = *(const u16b *) b;
-
-	if (r_info[ia].level < r_info[ib].level) {
-		return -1;
-	}
-
-	if (r_info[ia].level > r_info[ib].level) {
-		return 1;
-	}
-
-	return cmp_mexp(a, b);
-}
-
-int cmp_monsters(const void *a, const void *b)
-{
-	return cmp_level(a, b);
-}
-
 /**
  * Centers the map on the player
  */
