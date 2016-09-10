@@ -1855,13 +1855,11 @@ static int t_cmp_tkind(const void *a, const void *b)
 	const struct trap_kind *ta = &trap_info[a_val];
 	const struct trap_kind *tb = &trap_info[b_val];
 
-	/* Group by */
 	int c = trap_order(a_val) - trap_order(b_val);
 	if (c != 0) {
 		return c;
 	}
 
-	/* Order by name */
 	if (ta->name && tb->name) {
 		return strcmp(ta->name, tb->name);
 	} else if (ta->name) {
