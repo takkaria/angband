@@ -1466,9 +1466,9 @@ void textui_browse_object_knowledge(const char *name, int row)
 		.xtra_act = o_xtra_act,
 	};
 
-	int o_count = 0;
-
 	int *objects = mem_zalloc(z_info->k_max * sizeof(*objects));
+
+	int o_count = 0;
 
 	for (int i = 0; i < z_info->k_max; i++) {
 		struct object_kind *kind = &k_info[i];
@@ -1480,8 +1480,7 @@ void textui_browse_object_knowledge(const char *name, int row)
 				&& (!kf_has(kind->kind_flags, KF_INSTA_ART)
 					|| !artifact_is_known(get_artifact_from_kind(kind))))
 		{
-			int c = obj_group_order[k_info[i].tval];
-			if (c >= 0) {
+			if (obj_group_order[k_info[i].tval] >= 0) {
 				objects[o_count] = i;
 				o_count++;
 			}
