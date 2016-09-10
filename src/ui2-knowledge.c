@@ -2006,7 +2006,7 @@ void textui_knowledge_init(void)
 	menu->selections = lower_case;
 
 	/* initialize other static variables */
-	if (!tval_to_group) {
+	if (tval_to_group == NULL) {
 		tval_to_group = mem_zalloc((TV_MAX + 1) * sizeof(*tval_to_group));
 		atexit(cleanup_cmds);
 
