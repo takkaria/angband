@@ -951,7 +951,7 @@ static int a_cmp_tval(const void *a, const void *b)
 	const struct artifact *aa = &a_info[a_val];
 	const struct artifact *ab = &a_info[b_val];
 
-	/* Group by */
+	/* Order by tval */
 	int ta = obj_group_order[aa->tval];
 	int tb = obj_group_order[ab->tval];
 	int c = ta - tb;
@@ -959,12 +959,13 @@ static int a_cmp_tval(const void *a, const void *b)
 		return c;
 	}
 
-	/* Order by */
+	/* Order by sval */
 	c = aa->sval - ab->sval;
 	if (c != 0) {
 		return c;
 	}
 
+	/* Order by name */
 	return strcmp(aa->name, ab->name);
 }
 
