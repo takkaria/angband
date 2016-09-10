@@ -2169,10 +2169,12 @@ void do_cmd_messages(void)
 					current, current + m - 1, n_messages, offset), false);
 
 		if (search[0]) {
-			prt("[Movement keys to navigate, '-' for next, '=' to find]", help_loc);
+			prt("[Movement keys to navigate, '-' for older, '+' for newer, '=' to find]",
+					help_loc);
 		}
 		else {
-			prt("[Movement keys to navigate, '=' to find, or ESCAPE to exit]", help_loc);
+			prt("[Movement keys to navigate, '=' to find, or ESCAPE to exit]",
+					help_loc);
 		}
 
 		Term_flush_output();
@@ -2247,10 +2249,17 @@ void do_cmd_messages(void)
 			}
 		}
 
-		/* Find the next item */
 		if (event.key.code == '-' && search[0]) {
-			/* Scan messages */
+			/* Find a message older that the current one */
 			for (int i = current + 1; i < n_messages; i++) {
+				if (my_stristr(message_str(i), search)) {
+					current = i;
+					break;
+				}
+			}
+		} else if (event.key.code == '+' && search[0]) {
+			/* Find a message newer that the current one */
+			for (int i = current - 1; i >= 0; i--) {
 				if (my_stristr(message_str(i), search)) {
 					current = i;
 					break;
