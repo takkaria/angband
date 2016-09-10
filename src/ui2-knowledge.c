@@ -1681,6 +1681,7 @@ static void display_feature(int index, bool cursor, struct loc loc, int width)
 	/* Display symbols */
 	int x = 66;
 	int y = loc.y;
+#if 0
 	Term_addwc(x, y,
 	   feat_x_attr[LIGHTING_DARK][feat->fidx],
 	   feat_x_char[LIGHTING_DARK][feat->fidx]);
@@ -1695,6 +1696,7 @@ static void display_feature(int index, bool cursor, struct loc loc, int width)
 	   feat_x_attr[LIGHTING_TORCH][feat->fidx],
 	   feat_x_char[LIGHTING_TORCH][feat->fidx]);
 	x++;
+#endif
 
 	Term_addwc(x, y,
 			feat_x_attr[LIGHTING_LOS][feat->fidx],
