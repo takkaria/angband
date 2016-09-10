@@ -366,11 +366,6 @@ void pre_turn_refresh(void)
 		return;
 	}
 
-	/* Redraw map */
-	player->upkeep->redraw |= (PR_STATE);
-	player->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
-	handle_stuff(player);
-
 	display_term_push(DISPLAY_CAVE);
 
 	if (OPT(show_target) && target_sighted()) {
