@@ -298,7 +298,7 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 			}
 
 		default:
-			return true;
+			return true; /* Silently ignore all other event types */
 	}
 }
 
