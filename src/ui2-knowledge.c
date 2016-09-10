@@ -1628,10 +1628,10 @@ static void do_cmd_knowledge_runes(const char *name, int row)
 		.xtra_act = rune_xtra_act,
 	};
 
-	int rune_count = 0;
-
 	int rune_max = max_runes();
 	int *runes = mem_zalloc(rune_max * sizeof(*runes));
+
+	int rune_count = 0;
 
 	for (int i = 0; i < rune_max; i++) {
 		/* Ignore unknown runes */
