@@ -1295,9 +1295,16 @@ static void redraw_when_running(game_event_type type,
 {
 	(void) type;
 	(void) data;
-	(void) user;
 
 	if (player->upkeep->running) {
+		if (OPT(highlight_player)) {
+			struct loc loc = {player->px, player->py};
+
+			move_cursor_relative(DISPLAY_CAVE, loc);
+			Term_push(DISPLAY_TERM(user)->term);
+			Term_flush_output();
+			Term_pop();
+		}
 		Term_redraw_screen();
 	}
 }
@@ -2162,7 +2169,7 @@ static void ui_enter_world(game_event_type type,
 	event_add_handler(EVENT_PLAYERMOVED, check_panel, display_cave);
 
 	/* Redraw the display after player movement, to animate it */
-	event_add_handler(EVENT_PLAYERMOVED, redraw_when_running, NULL);
+	event_add_handler(EVENT_PLAYERMOVED, redraw_when_running, display_cave);
 
 	/* Take note of what's on the floor */
 	event_add_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
