@@ -1256,13 +1256,13 @@ static void display_object(int index, bool cursor, struct loc loc, int width)
 	if ((aware && kind_is_ignored_aware(kind))
 			|| (!aware && kind_is_ignored_unaware(kind)))
 	{
-		loc.x = 46;
+		loc.x = 47;
 		c_put_str(attr, "Yes", loc);
 	}
 
 	/* Show autoinscription if around */
 	if (inscrip) {
-		loc.x = 54;
+		loc.x = 55;
 		c_put_str(COLOUR_YELLOW, inscrip, loc);
 	}
 
