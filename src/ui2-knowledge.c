@@ -1812,6 +1812,7 @@ static void display_trap(int index, bool cursor, struct loc loc, int width)
 	/* Display symbols */
 	int x = 66;
 	int y = loc.y;
+#if 0
 	Term_addwc(x, y,
 			trap_x_attr[LIGHTING_DARK][trap->tidx],
 			trap_x_char[LIGHTING_DARK][trap->tidx]);
@@ -1826,7 +1827,7 @@ static void display_trap(int index, bool cursor, struct loc loc, int width)
 			trap_x_attr[LIGHTING_TORCH][trap->tidx],
 			trap_x_char[LIGHTING_TORCH][trap->tidx]);
 	x++;
-
+#endif
 	Term_addwc(x, y,
 			trap_x_attr[LIGHTING_LOS][trap->tidx],
 			trap_x_char[LIGHTING_LOS][trap->tidx]);
@@ -1877,11 +1878,6 @@ static const char *tkind_name(int group)
 	return trap_group_text[group];
 }
 
-/**
- * Disgusting hack to allow 4 in 1 editing of trap visuals
- */
-static enum grid_light_level t_uik_lighting = LIGHTING_LIT;
-
 static void trap_lore(int index)
 {
 	struct trap_kind *trap = &trap_info[index];
@@ -1898,37 +1894,6 @@ static void trap_lore(int index)
 
 		textblock_free(tb);
 		string_free(title);
-	}
-}
-
-static const char *trap_prompt(int index)
-{
-	(void) index;
-
-	return ", 'l' to cycle lighting";
-}
-
-/**
- * Special key actions for cycling lighting
- */
-static void t_xtra_act(struct keypress key, int index)
-{
-	(void) index;
-
-	if (key.code == 'l') {
-		switch (t_uik_lighting) {
-				case LIGHTING_LIT:   t_uik_lighting = LIGHTING_TORCH; break;
-                case LIGHTING_TORCH: t_uik_lighting = LIGHTING_LOS;   break;
-				case LIGHTING_LOS:   t_uik_lighting = LIGHTING_DARK;  break;
-				default:             t_uik_lighting = LIGHTING_LIT;   break;
-		}		
-	} else if (key.code == 'L') {
-		switch (t_uik_lighting) {
-				case LIGHTING_DARK: t_uik_lighting = LIGHTING_LOS;   break;
-                case LIGHTING_LOS:  t_uik_lighting = LIGHTING_TORCH; break;
-				case LIGHTING_LIT:  t_uik_lighting = LIGHTING_DARK;  break;
-				default:            t_uik_lighting = LIGHTING_LIT;   break;
-		}
 	}
 }
 
@@ -1950,13 +1915,13 @@ static void do_cmd_knowledge_traps(const char *name, int row)
 	member_funcs trap_f = {
 		.display_member = display_trap,
 		.lore = trap_lore,
-		.xtra_prompt = trap_prompt,
-		.xtra_act = t_xtra_act,
+		.xtra_prompt = NULL,
+		.xtra_act = NULL,
 	};
 
-	int t_count = 0;
-
 	int *traps = mem_zalloc(z_info->trap_max * sizeof(*traps));
+
+	int t_count = 0;
 
 	for (int i = 0; i < z_info->trap_max; i++) {
 		if (trap_info[i].name) {
@@ -1966,7 +1931,7 @@ static void do_cmd_knowledge_traps(const char *name, int row)
 	}
 
 	display_knowledge("traps", traps, t_count, tkind_f, trap_f,
-			"                    Sym");
+			"                   Sym");
 	mem_free(traps);
 }
 
