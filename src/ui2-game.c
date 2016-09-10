@@ -309,7 +309,6 @@ void textui_process_command(void)
 	int count = 0;
 
 	if (cmd_get(&cmd, &key, &count)) {
-
 		if (cmd != NULL) {
 			if (!key_confirm_command(key) || !cmd_prereq(cmd)) {
 				return;
@@ -321,7 +320,6 @@ void textui_process_command(void)
 				cmdq_push_repeat(cmd->cmd, count); /* Game command */
 			}
 		}
-
 	} else {
 		do_cmd_unknown();
 	}
