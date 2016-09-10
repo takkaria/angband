@@ -1330,7 +1330,6 @@ static int o_cmp_tval(const void *a, const void *b)
 	const struct object_kind *ka = &k_info[a_val];
 	const struct object_kind *kb = &k_info[b_val];
 
-	/* Group by */
 	int ta = obj_group_order[ka->tval];
 	int tb = obj_group_order[kb->tval];
 	int c = ta - tb;
@@ -1338,7 +1337,6 @@ static int o_cmp_tval(const void *a, const void *b)
 		return c;
 	}
 
-	/* Order by */
 	c = ka->aware - kb->aware;
 	if (c != 0) {
 		return -c; /* aware has low sort weight */
