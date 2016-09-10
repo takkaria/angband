@@ -389,14 +389,12 @@ void pre_turn_refresh(void)
 		}
 		move_cursor_relative(DISPLAY_CAVE, loc, true);
 		display_term_pop();
-	} else {
-		if (cursor_visible) {
-			display_term_push(DISPLAY_CAVE);
-			cursor_visible = false;
-			Term_cursor_visible(false);
-			Term_flush_output();
-			display_term_pop();
-		}
+	} else if (cursor_visible) {
+		display_term_push(DISPLAY_CAVE);
+		cursor_visible = false;
+		Term_cursor_visible(false);
+		Term_flush_output();
+		display_term_pop();
 	}
 }
 
