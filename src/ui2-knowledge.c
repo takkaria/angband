@@ -2212,11 +2212,11 @@ void do_cmd_messages(void)
 					break;
 
 				case ARROW_LEFT: case '4':
-					offset = offset >= term_width / 2 ? offset - term_width / 2 : 0;
+					offset = offset >= term_width / 4 ? offset - term_width / 4 : 0;
 					break;
 
 				case ARROW_RIGHT: case '6':
-					offset = offset + term_width / 2;
+					offset = offset + term_width / 4;
 					break;
 
 				case ARROW_UP: case '8':
