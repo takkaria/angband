@@ -400,14 +400,20 @@ void show_file(const char *name)
 			case '%':
 				help_goto_file(help);
 				break;
-			case ARROW_UP: case '8':
+			case ARROW_UP: case '8': case '=': 
 				help->line--;
 				break;
-			case ARROW_DOWN: case '2':
+			case ARROW_DOWN: case '2': case KC_ENTER: 
 				help->line++;
 				break;
 			case KC_PGUP: case '-':
 				help->line -= text_reg.h;
+				break;
+			case '+':
+				help->line += text_reg.h / 2;
+				break;
+			case '_':
+				help->line -= text_reg.h / 2;
 				break;
 			case KC_PGDOWN: case ' ':
 				help->line += text_reg.h;
