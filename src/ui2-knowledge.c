@@ -2134,10 +2134,9 @@ void do_cmd_messages(void)
 	bool more = true;
 
 	while (more) {
-		int m;
 		Term_clear();
 
-		/* Dump messages */
+		int m;
 		for (m = 0; m <= last_msg_pos && current + m < n_messages; m++) {
 			const char *str = message_str(current + m);
 			uint32_t attr = message_color(current + m);
