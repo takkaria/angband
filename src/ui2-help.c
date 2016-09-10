@@ -21,7 +21,7 @@
 #include "ui2-output.h"
 #include "ui2-term.h"
 
-void show_file(const char *name);
+static void show_file(const char *name);
 
 /* 80 characters, +1 for null byte */
 #define HELP_LINE_SIZE (80 + 1)
@@ -362,7 +362,7 @@ static void help_display_page(struct help_file *help, region reg)
 	}
 }
 
-void show_file(const char *name)
+static void show_file(const char *name)
 {
 	struct help_file *help = open_help_file(name);
 
@@ -430,10 +430,7 @@ void show_file(const char *name)
 	close_help_file(help);
 }
 
-/**
- * Peruse the on-line help
- */
-void do_cmd_help(void)
+void show_help(const char *name)
 {
 	struct term_hints hints = {
 		.width    = HELP_TERM_WIDTH,
@@ -442,8 +439,14 @@ void do_cmd_help(void)
 		.purpose  = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
-
-	show_file("help.hlp");
-
+	show_file(name);
 	Term_pop();
+}
+
+/**
+ * Peruse the on-line help
+ */
+void do_cmd_help(void)
+{
+	show_help("help.hlp");
 }

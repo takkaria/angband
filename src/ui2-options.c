@@ -128,15 +128,7 @@ static bool option_toggle_handle(struct menu *menu,
 		} else if (event->key.code == 't' || event->key.code == 'T') {
 			option_set(option_name(index), !op_ptr->opt[index]);
 		} else if (event->key.code == '?') {
-			struct term_hints hints = {
-				.width = ANGBAND_TERM_STANDARD_WIDTH,
-				.height = ANGBAND_TERM_STANDARD_HEIGHT,
-				.position = TERM_POSITION_CENTER,
-				.purpose = TERM_PURPOSE_TEXT
-			};
-			Term_push_new(&hints);
-			show_file(format("option.txt#%s", option_name(index)));
-			Term_pop();
+			show_help(format("option.txt#%s", option_name(index)));
 		} else {
 			return false;
 		}

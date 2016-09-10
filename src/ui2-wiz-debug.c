@@ -1838,17 +1838,7 @@ static void do_cmd_wiz_lots_objects(void)
  */
 static void do_cmd_wiz_help(void) 
 {
-	struct term_hints hints = {
-		.width    = ANGBAND_TERM_STANDARD_WIDTH,
-		.height   = ANGBAND_TERM_STANDARD_HEIGHT,
-		.position = TERM_POSITION_CENTER,
-		.purpose  = TERM_PURPOSE_TEXT
-	};
-	Term_push_new(&hints);
-
-	show_file("debug.txt");
-
-	Term_pop();
+	show_help("debug.txt");
 }
 
 /**
