@@ -199,8 +199,7 @@ void cmd_init(void)
 	const int mode_rogue = KEYMAP_MODE_ROGUE;
 
 	/* Go through all generic commands (-1 for NULL end entry) */
-	for (size_t j = 0; j < N_ELEMENTS(cmds_all) - 1; j++)
-	{
+	for (size_t j = 0; j < N_ELEMENTS(cmds_all) - 1; j++) {
 		struct cmd_info *commands = cmds_all[j].list;
 
 		/* Fill everything in */
