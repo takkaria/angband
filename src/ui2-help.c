@@ -336,9 +336,10 @@ static void help_display_page(struct help_file *help, region reg)
 		help->line = 0;
 	}
 
-	for (int l = help->line, y = reg.y, endy = reg.y + reg.h; y < endy; l++, y++) {
-		assert(l < help->next);
-
+	for (int l = help->line, y = reg.y, endy = reg.y + reg.h;
+			y < endy && l < help->next;
+			l++, y++)
+	{
 		const struct help_line *hline = &help->lines[l];
 
 		if (*hline->line) {
