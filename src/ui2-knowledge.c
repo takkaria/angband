@@ -1395,8 +1395,8 @@ static void o_xtra_act(struct keypress key, int index)
 {
 	struct object_kind *kind = objkind_byid(index);
 
-	/* Toggle ignore */
 	if (ignore_tval(kind->tval) && (key.code == 's' || key.code == 'S')) {
+		/* Toggle ignore */
 		if (kind->aware) {
 			if (kind_is_ignored_aware(kind)) {
 				kind_ignore_clear(kind);
@@ -1410,14 +1410,11 @@ static void o_xtra_act(struct keypress key, int index)
 				kind_ignore_when_unaware(kind);
 			}
 		}
-
-		return;
-	}
-
-	/* Uninscribe */
-	if (key.code == '}') {
+	} else if (key.code == '}') {
+		/* Uninscribe */
 		remove_autoinscription(index);
 	} else if (key.code == '{') {
+		/* Inscribe */
 		char buf[ANGBAND_TERM_STANDARD_WIDTH] = {0};
 
 		show_prompt("Inscribe with: ", false);
