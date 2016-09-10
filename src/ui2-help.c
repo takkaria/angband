@@ -342,7 +342,7 @@ static void help_display_page(struct help_file *help, region reg)
 	{
 		const struct help_line *hline = &help->lines[l];
 
-		if (*hline->line) {
+		if (hline->line[0] != 0) {
 			Term_adds(reg.x, y, reg.w, COLOUR_WHITE, hline->line);
 
 			if (help->highlight) {
