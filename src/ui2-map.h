@@ -24,7 +24,7 @@
 #include "z-type.h"
 
 extern void grid_data_as_point(struct grid_data *g, struct term_point *point);
-extern void move_cursor_relative(enum display_term_index i, struct loc coords);
+extern void move_cursor_relative(enum display_term_index i, struct loc coords, bool flush);
 extern void print_rel(enum display_term_index i, uint32_t attr, wchar_t ch, struct loc coords);
 extern void print_map(enum display_term_index i);
 extern void do_cmd_view_map(void);

@@ -323,13 +323,17 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 	tpf_wipe(point->flags);
 }
 
-void move_cursor_relative(enum display_term_index index, struct loc coords)
+void move_cursor_relative(enum display_term_index index,
+		struct loc coords, bool flush)
 {
 	/* Calculate relative coordinates */
 	display_term_rel_coords(index, &coords);
 
 	display_term_push(index);
 	Term_cursor_to_xy(coords.x, coords.y);
+	if (flush) {
+		Term_flush_output();
+	}
 	display_term_pop();
 }
 

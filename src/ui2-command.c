@@ -53,7 +53,7 @@ void do_cmd_redraw(void)
 			PR_EQUIP | PR_MESSAGE | PR_MONSTER | PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
 
 	verify_panel(DISPLAY_CAVE);
-	move_cursor_relative(DISPLAY_CAVE, loc(player->px, player->py));
+	move_cursor_relative(DISPLAY_CAVE, loc(player->px, player->py), false);
 
 	handle_stuff(player);
 }

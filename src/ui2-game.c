@@ -380,12 +380,11 @@ void pre_turn_refresh(void)
 		}
 
 		display_term_push(DISPLAY_CAVE);
-		move_cursor_relative(DISPLAY_CAVE, loc);
 		if (!cursor_visible) {
 			cursor_visible = true;
 			Term_cursor_visible(true);
 		}
-		Term_flush_output();
+		move_cursor_relative(DISPLAY_CAVE, loc, true);
 		display_term_pop();
 	} else {
 		if (cursor_visible) {

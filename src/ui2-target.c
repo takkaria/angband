@@ -615,8 +615,7 @@ static void desc_init(struct desc *desc, struct loc coords)
  */
 static ui_event target_set_interactive_aux(struct loc coords, int mode)
 {
-	move_cursor_relative(DISPLAY_CAVE, coords);
-	Term_flush_output();
+	move_cursor_relative(DISPLAY_CAVE, coords, true);
 
 	struct object **floor_list =
 		mem_zalloc(z_info->floor_size * sizeof(*floor_list));
@@ -682,13 +681,13 @@ void textui_target_closest(void)
 
 		int x, y;
 		target_get(&x, &y);
-		move_cursor_relative(DISPLAY_CAVE, loc(x, y));
 
 		bool visible;
 		Term_get_cursor(NULL, NULL, &visible, NULL);
 		Term_cursor_visible(true);
 
-		Term_flush_output();
+		move_cursor_relative(DISPLAY_CAVE, loc(x, y), true);
+
 		Term_redraw_screen();
 		Term_delay(TARGET_CLOSEST_DELAY);
 
