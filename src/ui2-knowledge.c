@@ -814,7 +814,7 @@ static const grouper object_text_order[] = {
 	{0,                  NULL               }
 };
 
-static int *obj_group_order = NULL;
+static int *tval_to_group = NULL;
 
 static void get_artifact_display_name(char *o_name, size_t size, int a_idx)
 {
@@ -952,8 +952,8 @@ static int a_cmp_tval(const void *a, const void *b)
 	const struct artifact *ab = &a_info[b_val];
 
 	/* Order by tval */
-	int ta = obj_group_order[aa->tval];
-	int tb = obj_group_order[ab->tval];
+	int ta = tval_to_group[aa->tval];
+	int tb = tval_to_group[ab->tval];
 	int c = ta - tb;
 	if (c != 0) {
 		return c;
@@ -976,7 +976,7 @@ static const char *kind_name(int group)
 
 static int art2gid(int index)
 {
-	return obj_group_order[a_info[index].tval];
+	return tval_to_group[a_info[index].tval];
 }
 
 /**
@@ -1163,12 +1163,12 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 			/* Note the tvals which are possible for this ego */
 			for (struct poss_item *poss = ego->poss_items; poss; poss = poss->next) {
 				struct object_kind *kind = &k_info[poss->kidx];
-				groups[obj_group_order[kind->tval]]++;
+				groups[tval_to_group[kind->tval]]++;
 			}
 
 			/* Count and put into the list */
 			for (size_t tval = 1; tval < TV_MAX; tval++) {
-				int g = obj_group_order[tval];
+				int g = tval_to_group[tval];
 
 				if ((g >= 0 && groups[g] > 0)
 						/* Ignore duplicates */
@@ -1330,8 +1330,8 @@ static int o_cmp_tval(const void *a, const void *b)
 	const struct object_kind *ka = &k_info[a_val];
 	const struct object_kind *kb = &k_info[b_val];
 
-	int ta = obj_group_order[ka->tval];
-	int tb = obj_group_order[kb->tval];
+	int ta = tval_to_group[ka->tval];
+	int tb = tval_to_group[kb->tval];
 	int c = ta - tb;
 	if (c!= 0) {
 		return c;
@@ -1367,7 +1367,7 @@ static int o_cmp_tval(const void *a, const void *b)
 
 static int obj2gid(int index)
 {
-	return obj_group_order[k_info[index].tval];
+	return tval_to_group[k_info[index].tval];
 }
 
 /**
@@ -1480,7 +1480,7 @@ void textui_browse_object_knowledge(const char *name, int row)
 				&& (!kf_has(kind->kind_flags, KF_INSTA_ART)
 					|| !artifact_is_known(get_artifact_from_kind(kind))))
 		{
-			if (obj_group_order[k_info[i].tval] >= 0) {
+			if (tval_to_group[k_info[i].tval] >= 0) {
 				objects[o_count] = i;
 				o_count++;
 			}
@@ -1995,7 +1995,7 @@ static struct menu knowledge_menu;
  */
 static void cleanup_cmds(void)
 {
-	mem_free(obj_group_order);
+	mem_free(tval_to_group);
 }
 
 void textui_knowledge_init(void)
@@ -2009,20 +2009,20 @@ void textui_knowledge_init(void)
 	menu->selections = lower_case;
 
 	/* initialize other static variables */
-	if (!obj_group_order) {
-		obj_group_order = mem_zalloc((TV_MAX + 1) * sizeof(*obj_group_order));
+	if (!tval_to_group) {
+		tval_to_group = mem_zalloc((TV_MAX + 1) * sizeof(*tval_to_group));
 		atexit(cleanup_cmds);
 
 		/* Allow for missing values */
 		for (int i = 0; i < TV_MAX; i++) {
-			obj_group_order[i] = -1;
+			tval_to_group[i] = -1;
 		}
 
 		for (int i = 0, group = -1; object_text_order[i].tval != 0; i++) {
 			if (object_text_order[i].name) {
 				group = i;
 			}
-			obj_group_order[object_text_order[i].tval] = group;
+			tval_to_group[object_text_order[i].tval] = group;
 		}
 	}
 }
