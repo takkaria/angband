@@ -2040,10 +2040,9 @@ void textui_browse_knowledge(void)
 	}
 		
 	/* Artifacts */
+	knowledge_actions[2].flags = MN_ACT_GRAYED;
 	if (collect_known_artifacts(NULL, 0) > 0) {
 		knowledge_actions[2].flags = 0;
-	} else {
-		knowledge_actions[2].flags = MN_ACT_GRAYED;
 	}
 
 	/* Ego items */
@@ -2056,10 +2055,9 @@ void textui_browse_knowledge(void)
 	}
 
 	/* Monsters */
+	knowledge_actions[4].flags = MN_ACT_GRAYED;
 	if (count_known_monsters() > 0) {
 		knowledge_actions[4].flags = 0;
-	} else {
-		knowledge_actions[4].flags = MN_ACT_GRAYED;
 	}
 
 	struct term_hints hints = {
