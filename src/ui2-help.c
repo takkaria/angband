@@ -23,8 +23,10 @@
 
 void show_file(const char *name);
 
-/* 80 characters, -2 for padding (left and right), +1 for null byte */
-#define HELP_LINE_SIZE (80 - 2 + 1)
+/* 80 characters, +1 for null byte */
+#define HELP_LINE_SIZE (80 + 1)
+/* 80 characters, +2 for padding (left and right) */
+#define HELP_TERM_WIDTH (80 + 2)
 #define HELP_N_LINES 1024
 #define HELP_MAX_MENU_FILES 26
 
@@ -434,7 +436,7 @@ void show_file(const char *name)
 void do_cmd_help(void)
 {
 	struct term_hints hints = {
-		.width    = ANGBAND_TERM_STANDARD_WIDTH,
+		.width    = HELP_TERM_WIDTH,
 		.height   = ANGBAND_TERM_STANDARD_HEIGHT,
 		.position = TERM_POSITION_CENTER,
 		.purpose  = TERM_PURPOSE_TEXT
