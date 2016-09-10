@@ -1327,9 +1327,9 @@ static int o_cmp_tval(const void *a, const void *b)
 	const struct object_kind *ka = &k_info[a_val];
 	const struct object_kind *kb = &k_info[b_val];
 
-	int ta = tval_to_group[ka->tval];
-	int tb = tval_to_group[kb->tval];
-	int c = ta - tb;
+	int ga = tval_to_group[ka->tval];
+	int gb = tval_to_group[kb->tval];
+	int c = ga - gb;
 	if (c!= 0) {
 		return c;
 	}
