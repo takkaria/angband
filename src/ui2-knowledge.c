@@ -1106,7 +1106,6 @@ static void desc_ego_fake(int index)
 	textblock_free(tb);
 }
 
-/* TODO? Currently ego items will order by e_idx */
 static int e_cmp_tval(const void *a, const void *b)
 {
 	const int a_val = *(const int *) a;
