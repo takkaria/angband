@@ -381,8 +381,6 @@ void show_file(const char *name)
 		help_display_rest(help, term_reg, text_reg);
 
 		Term_flush_output();
-		/* If there are too many events, scrolling lags */
-		Term_flush_events();
 
 		struct keypress key = inkey_only_key();
 
