@@ -1256,6 +1256,9 @@ static void target_free_select(struct loc *coords, struct point_set **targets,
 bool target_set_interactive(int mode, struct loc coords)
 {
 	bool saved_cursor;
+
+	display_term_push(DISPLAY_CAVE);
+
 	Term_get_cursor(NULL, NULL, &saved_cursor, NULL);
 	Term_cursor_visible(true);
 
@@ -1286,7 +1289,9 @@ bool target_set_interactive(int mode, struct loc coords)
 	}
 
 	Term_cursor_visible(saved_cursor);
+	Term_flush_output();
 
+	display_term_pop();
 	point_set_dispose(targets);
 	verify_panel(DISPLAY_CAVE);
 	handle_stuff(player);
