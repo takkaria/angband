@@ -381,6 +381,7 @@ void pre_turn_refresh(void)
 		display_term_pop();
 	} else if (OPT(highlight_player)) {
 		struct loc loc = {player->px, player->py};
+
 		display_term_push(DISPLAY_CAVE);
 		if (!cursor_visible) {
 			cursor_visible = true;
