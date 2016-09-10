@@ -2365,11 +2365,11 @@ void do_cmd_locate(void)
 					cur.x / PANEL_SIZE, cur.y / PANEL_SIZE, sector);
 		}
 
-		struct keypress command = KEYPRESS_NULL;
-
-		if (get_com(prompt, (char *) &command.code)) {
+		char code;
+		if (get_com(prompt, &code)) {
+			struct keypress command = {EVT_KBRD, code, 0};
 			int dir = target_dir(command);
-			if (dir) {
+			if (dir != 0) {
 				change_panel(DISPLAY_CAVE, dir);
 				handle_stuff(player);
 			} else {
