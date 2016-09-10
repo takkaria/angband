@@ -1799,23 +1799,20 @@ static void do_cmd_knowledge_features(const char *name, int row)
 		.xtra_act = f_xtra_act,
 	};
 
-	int f_count = 0;
-
 	int *features = mem_zalloc(z_info->f_max * sizeof(*features));
 
-	for (int i = 0; i < z_info->f_max; i++) {
-		/* Ignore non-features and mimics */
-		if (f_info[i].name == 0 || f_info[i].mimic != i) {
-			continue;
-		}
+	int f_count = 0;
 
-		/* Currently no filter for features */
-		features[f_count] = i;
-		f_count++;
+	for (int i = 0; i < z_info->f_max; i++) {
+		/* Ignore non-features and secret doors */
+		if (f_info[i].name != NULL && f_info[i].mimic == i) {
+			features[f_count] = i;
+			f_count++;
+		}
 	}
 
 	display_knowledge("features", features, f_count, fkind_f, feat_f,
-			"                    Sym");
+			"                   Sym");
 	mem_free(features);
 }
 
