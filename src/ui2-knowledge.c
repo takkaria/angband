@@ -1198,8 +1198,8 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
  */
 
 /**
- * Looks up an artifact idx given an object_kind *that's already known
- * to be an artifact*.  Behaviour is distinctly unfriendly if passed
+ * Looks up an artifact idx given an object_kind that's already known
+ * to be an artifact. Behaviour is distinctly unfriendly if passed
  * flavours which don't correspond to an artifact.
  */
 static int get_artifact_from_kind(struct object_kind *kind)
