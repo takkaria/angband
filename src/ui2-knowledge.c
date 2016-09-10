@@ -1723,11 +1723,6 @@ static const char *fkind_name(int group)
 	return feature_group_text[group];
 }
 
-/**
- * Disgusting hack to allow 4 in 1 editing of terrain visuals
- */
-static enum grid_light_level f_uik_lighting = LIGHTING_LIT;
-
 static void feat_lore(int index)
 {
 	struct feature *feat = &f_info[index];
@@ -1743,37 +1738,6 @@ static void feat_lore(int index)
 	}
 
 	string_free(title);
-}
-
-static const char *feat_prompt(int index)
-{
-	(void) index;
-
-	return ", 'l' to cycle lighting";
-}
-
-/**
- * Special key actions for cycling lighting
- */
-static void f_xtra_act(struct keypress key, int index)
-{
-	(void) index;
-
-	if (key.code == 'l') {
-		switch (f_uik_lighting) {
-				case LIGHTING_LIT:   f_uik_lighting = LIGHTING_TORCH; break;
-                case LIGHTING_TORCH: f_uik_lighting = LIGHTING_LOS;   break;
-				case LIGHTING_LOS:   f_uik_lighting = LIGHTING_DARK;  break;
-				default:             f_uik_lighting = LIGHTING_LIT;   break;
-		}		
-	} else if (key.code == 'L') {
-		switch (f_uik_lighting) {
-				case LIGHTING_DARK: f_uik_lighting = LIGHTING_LOS;   break;
-                case LIGHTING_LOS:  f_uik_lighting = LIGHTING_TORCH; break;
-				case LIGHTING_LIT:  f_uik_lighting = LIGHTING_DARK;  break;
-				default:            f_uik_lighting = LIGHTING_LIT;   break;
-		}
-	}
 }
 
 /**
@@ -1795,8 +1759,8 @@ static void do_cmd_knowledge_features(const char *name, int row)
 	member_funcs feat_f = {
 		.display_member = display_feature,
 		.lore = feat_lore,
-		.xtra_prompt = feat_prompt,
-		.xtra_act = f_xtra_act,
+		.xtra_prompt = NULL,
+		.xtra_act = NULL,
 	};
 
 	int *features = mem_zalloc(z_info->f_max * sizeof(*features));
