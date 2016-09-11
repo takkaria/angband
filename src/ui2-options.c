@@ -914,16 +914,17 @@ static void quality_subdisplay(struct menu *menu,
  */
 static bool quality_action(struct menu *m, const ui_event *e, int index)
 {
-	(void) m;
 	(void) e;
 
 	index++;
 	assert(index > ITYPE_NONE);
 	assert(index < ITYPE_MAX);
 
+	fprintf(stderr, "top %d cursor %d\n", m->top, m->cursor);
+
 	struct term_hints hints = {
 		.x = 35,
-		.y = index + 1,
+		.y = index - m->top + 1,
 		.width = 30,
 		.height = IGNORE_MAX,
 		.position = TERM_POSITION_EXACT,
