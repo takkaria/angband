@@ -247,14 +247,6 @@ static struct keypress keymap_get_trigger(void)
  * Keymap menu action functions
  */
 
-static void ui_keymap_pref_load(const char *title, int index)
-{
-	(void) title;
-	(void) index;
-
-	do_cmd_pref_file(NULL);
-}
-
 static void ui_keymap_pref_append(const char *title, int index)
 {
 	(void) title;
@@ -423,7 +415,6 @@ static void keymap_browse_hook(int index, void *data, region reg)
 static struct menu *keymap_menu;
 
 static menu_action keymap_actions[] = {
-	{0, 0, "Load a user pref file",    ui_keymap_pref_load},
 	{0, 0, "Save keymaps to file",     ui_keymap_pref_append},
 	{0, 0, "Query a keymap",           ui_keymap_query},
 	{0, 0, "Create a keymap",          ui_keymap_create},
