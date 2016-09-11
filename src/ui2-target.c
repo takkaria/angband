@@ -462,8 +462,9 @@ static bool target_interactive_aux_objects(ui_event *event,
 		struct object **floor_list, int floor_num,
 		struct loc coords, struct desc *desc, int mode, bool *boring)
 {
-	/* if no objects, or if character is blind and object is not
-	 * directly under his feet */
+	/* if no objects
+	 * or
+	 * if character is blind and object is not directly under his feet */
 	if (floor_num <= 0
 			|| (player->timed[TMD_BLIND]
 				&& (coords.x != player->px || coords.y != player->py)))
