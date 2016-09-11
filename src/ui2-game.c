@@ -360,6 +360,18 @@ void check_for_player_interrupt(game_event_type type, game_event_data *data, voi
 	}
 }
 
+static void pre_turn_refresh_cursor(bool *visible, bool should_be_visible)
+{
+	if (*visible != should_be_visible) {
+		*visible = should_be_visible;
+
+		display_term_push(DISPLAY_CAVE);
+		Term_cursor_visible(*visible);
+		Term_flush_output();
+		display_term_pop();
+	}
+}
+
 void pre_turn_refresh(void)
 {
 	if (!character_dungeon) {
@@ -372,29 +384,15 @@ void pre_turn_refresh(void)
 		struct loc loc;
 		target_get(&loc.x, &loc.y);
 
-		display_term_push(DISPLAY_CAVE);
-		if (!cursor_visible) {
-			cursor_visible = true;
-			Term_cursor_visible(true);
-		}
+		pre_turn_refresh_cursor(&cursor_visible, true);
 		move_cursor_relative(DISPLAY_CAVE, loc, true);
-		display_term_pop();
 	} else if (OPT(highlight_player)) {
 		struct loc loc = {player->px, player->py};
 
-		display_term_push(DISPLAY_CAVE);
-		if (!cursor_visible) {
-			cursor_visible = true;
-			Term_cursor_visible(true);
-		}
+		pre_turn_refresh_cursor(&cursor_visible, true);
 		move_cursor_relative(DISPLAY_CAVE, loc, true);
-		display_term_pop();
 	} else if (cursor_visible) {
-		display_term_push(DISPLAY_CAVE);
-		cursor_visible = false;
-		Term_cursor_visible(false);
-		Term_flush_output();
-		display_term_pop();
+		pre_turn_refresh_cursor(&cursor_visible, false);
 	}
 }
 
