@@ -184,7 +184,7 @@ static bool is_target_recall_event(const ui_event *event, struct loc coords)
 	return false;
 }
 
-static bool show_target_recall(const struct monster *mon,
+static bool show_target_monster_recall(const struct monster *mon,
 		const ui_event *event, struct loc coords)
 {
 	if (is_target_recall_event(event, coords)) {
@@ -389,7 +389,7 @@ static bool target_interactive_aux_monster(ui_event *event,
 
 	do {
 		*event = inkey_mouse_or_key();
-	} while (show_target_recall(mon, event, coords));
+	} while (show_target_monster_recall(mon, event, coords));
 
 	if (is_target_stop_event(event, mode)) {
 		return true;
