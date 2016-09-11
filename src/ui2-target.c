@@ -1254,10 +1254,9 @@ static void target_free_select(struct loc *coords, struct point_set **targets,
  */
 bool target_set_interactive(int mode, struct loc coords)
 {
-	bool saved_cursor;
-
 	display_term_push(DISPLAY_CAVE);
 
+	bool saved_cursor;
 	Term_get_cursor(NULL, NULL, &saved_cursor, NULL);
 	Term_cursor_visible(true);
 
@@ -1273,12 +1272,11 @@ bool target_set_interactive(int mode, struct loc coords)
 		restricted = false;
 	}
 
+	int square = 0;
 	bool done = false;
 
-	int square = 0;
-
 	while (!done) {
-		if (restricted && point_set_size(targets)) {
+		if (restricted && point_set_size(targets) > 0) {
 			target_restricted(&coords, &targets,
 					&square, &restricted, &done, mode);
 		} else {
@@ -1290,11 +1288,12 @@ bool target_set_interactive(int mode, struct loc coords)
 	Term_cursor_visible(saved_cursor);
 	Term_flush_output();
 
-	display_term_pop();
 	point_set_dispose(targets);
 	verify_panel(DISPLAY_CAVE);
 	handle_stuff(player);
 	clear_prompt();
+
+	display_term_pop();
 
 	return target_is_set();
 }
