@@ -780,7 +780,8 @@ static size_t draw_path(struct loc *path_points, size_t path_number,
 				 .fg_char = L'*',
 				 .fg_attr = draw_path_get_color(path_points[i]),
 				 .bg_char = term_points[i].bg_char,
-				 .bg_attr = term_points[i].bg_attr
+				 .bg_attr = term_points[i].bg_attr,
+				 .terrain_attr = term_points[i].terrain_attr
 			 };
 			 Term_set_point(relx, rely, point);
 
