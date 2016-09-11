@@ -896,8 +896,6 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
 	assert(index > ITYPE_NONE);
 	assert(index < ITYPE_MAX);
 
-	fprintf(stderr, "top %d cursor %d\n", m->top, m->cursor);
-
 	struct term_hints hints = {
 		.x = 35,
 		.y = index - m->top + 1,
