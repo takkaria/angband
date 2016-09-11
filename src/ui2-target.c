@@ -195,6 +195,17 @@ static bool show_target_monster_recall(const struct monster *mon,
 	}
 }
 
+static bool show_target_object_recall(const struct object *obj,
+		const ui_event *event, struct loc coords)
+{
+	if (is_target_recall_event(event, coords)) {
+		display_object_recall_interactive(cave->objects[obj->oidx]);
+		return true;
+	} else {
+		return false;
+	}
+}
+
 static bool is_target_stop_event(const ui_event *event, int mode)
 {
 	switch (event->type) {
@@ -264,15 +275,13 @@ static ui_event target_recall_loop_object(struct object *obj,
 
 	show_prompt(buf, false);
 
-	while (true) {
-		ui_event event = inkey_mouse_or_key();
+	ui_event event;
 
-		if (is_target_recall_event(&event, coords)) {
-			display_object_recall_interactive(cave->objects[obj->oidx]);
-		} else {
-			return event;
-		}
-	}
+	do {
+		event = inkey_mouse_or_key();
+	} while (show_target_object_recall(obj, &event, coords));
+
+	return event;
 }
 
 /* returns true when target_interactive_aux() needs to stop */
