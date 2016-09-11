@@ -184,6 +184,17 @@ static bool is_target_recall_event(const ui_event *event, struct loc coords)
 	return false;
 }
 
+static bool show_target_recall(const struct monster *mon,
+		const ui_event *event, struct loc coords)
+{
+	if (is_target_recall_event(event, coords)) {
+		lore_show_interactive(mon->race, get_lore(mon->race));
+		return true;
+	} else {
+		return false;
+	}
+}
+
 static bool is_target_stop_event(const ui_event *event, int mode)
 {
 	switch (event->type) {
@@ -376,16 +387,12 @@ static bool target_interactive_aux_monster(ui_event *event,
 
 	show_prompt(buf, false);
 
-	while (true) {
+	do {
 		*event = inkey_mouse_or_key();
+	} while (show_target_recall(mon, event, coords));
 
-		if (is_target_recall_event(event, coords)) {
-			lore_show_interactive(mon->race, get_lore(mon->race));
-		} else if (is_target_stop_event(event, mode)) {
-			return true;
-		} else {
-			break;
-		}
+	if (is_target_stop_event(event, mode)) {
+		return true;
 	}
 
 	if (rf_has(mon->race->flags, RF_FEMALE)) {
