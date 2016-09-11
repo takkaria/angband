@@ -1483,21 +1483,21 @@ void do_cmd_options_item(const char *title, int index)
 static struct menu *option_menu;
 
 static menu_action option_actions[] = {
-	{0, 'a', "User interface options",             option_toggle_menu},
-	{0, 'b', "Birth (difficulty) options",         option_toggle_menu},
-	{0, 'x', "Cheat options",                      option_toggle_menu},
-	{0, 'i', "Item ignoring setup",                do_cmd_options_item},
-	{0,  0,   NULL,                                NULL},
-	{0, 'd', "Set base delay factor",              do_cmd_delay},
-	{0, 'h', "Set hitpoint warning",               do_cmd_hp_warn},
-	{0, 'm', "Set movement delay",                 do_cmd_lazymove_delay},
-	{0,  0,   NULL,                                NULL},
-	{0, '{', "Auto-inscription setup",             textui_browse_object_knowledge},
-	{0, 't', "Save autoinscriptions to pref file", do_dump_autoinscrip},
-	{0,  0,   NULL,                                NULL},
-	{0, 'l', "Load a user pref file",              options_load_pref_file},
-	{0, 'k', "Edit keymaps (advanced)",            do_cmd_keymaps},
-	{0, 'v', "Save visuals (advanced)",            do_cmd_visuals},
+	{0, 'a', "User interface options",              option_toggle_menu},
+	{0, 'b', "Birth (difficulty) options",          option_toggle_menu},
+	{0, 'x', "Cheat options",                       option_toggle_menu},
+	{0, 'i', "Item ignoring setup",                 do_cmd_options_item},
+	{0,  0,   NULL,                                 NULL},
+	{0, 'd', "Set base delay factor",               do_cmd_delay},
+	{0, 'h', "Set hitpoint warning",                do_cmd_hp_warn},
+	{0, 'm', "Set movement delay",                  do_cmd_lazymove_delay},
+	{0,  0,   NULL,                                 NULL},
+	{0, '{', "Auto-inscriptions setup",             textui_browse_object_knowledge},
+	{0, 't', "Save auto-inscriptions to pref file", do_dump_autoinscrip},
+	{0,  0,   NULL,                                 NULL},
+	{0, 'l', "Load a user pref file",               options_load_pref_file},
+	{0, 'k', "Edit keymaps (advanced)",             do_cmd_keymaps},
+	{0, 'v', "Save visuals (advanced)",             do_cmd_visuals},
 };
 
 /**
