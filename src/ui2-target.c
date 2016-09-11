@@ -698,12 +698,12 @@ void textui_target_closest(void)
 	}
 }
 
-static uint32_t draw_path_get_color(int x, int y)
+static uint32_t draw_path_get_color(struct loc loc)
 {
 	uint32_t color = COLOUR_WHITE;
 
-	struct monster *mon = square_monster(cave, y, x);
-	struct object *obj = square_object(player->cave, y, x);
+	struct monster *mon = square_monster(cave, loc.y, loc.x);
+	struct object *obj = square_object(player->cave, loc.y, loc.x);
 
 	if (mon && mflag_has(mon->mflag, MFLAG_VISIBLE)) {
 		if (rf_has(mon->race->flags, RF_UNAWARE)) {
@@ -716,12 +716,12 @@ static uint32_t draw_path_get_color(int x, int y)
 	} else if (obj) {
 		/* Known objects are yellow. */
 		color = COLOUR_YELLOW;
-	} else if (!square_isprojectable(cave, y, x)
-			&& (square_isknown(cave, y, x) || square_isseen(cave, y, x)))
+	} else if (!square_isprojectable(cave, loc.y, loc.x)
+			&& (square_isknown(cave, loc.y, loc.x) || square_isseen(cave, loc.y, loc.x)))
 	{
 		/* Known walls are blue. */
 		color = COLOUR_BLUE;
-	} else if (!square_isknown(cave, y, x) && !square_isseen(cave, y, x)) {
+	} else if (!square_isknown(cave, loc.y, loc.x) && !square_isseen(cave, loc.y, loc.x)) {
 		/* Unknown squares are grey. */
 		color = COLOUR_L_DARK;
 	} else {
@@ -778,7 +778,7 @@ static size_t draw_path(struct loc *path_points, size_t path_number,
 
 			 struct term_point point = {
 				 .fg_char = L'*',
-				 .fg_attr = draw_path_get_color(path_points[i].x, path_points[i].y),
+				 .fg_attr = draw_path_get_color(path_points[i]),
 				 .bg_char = term_points[i].bg_char,
 				 .bg_attr = term_points[i].bg_attr
 			 };
