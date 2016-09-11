@@ -660,8 +660,9 @@ static ui_event target_set_interactive_aux(struct loc coords, int mode)
 		if (target_interactive_aux_trap(&event, coords, &desc, mode, &boring)) {
 			break;
 		}
-		if (target_interactive_aux_objects(&event, floor_list, floor_num,
-					coords, &desc, mode, &boring)) {
+		if (target_interactive_aux_objects(&event,
+					floor_list, floor_num, coords, &desc, mode, &boring))
+		{
 			break;
 		}
 		if (target_interactive_aux_square(&event, coords, &desc, mode, boring)) {
