@@ -716,6 +716,7 @@ static void ego_display(struct menu * menu,
 	if (ignored) {
 		loc.x++;
 		c_put_str(COLOUR_L_RED, "*", loc);
+		loc.x--;
 	}
 
 	/* Show the stripped ego item name using another colour */
