@@ -423,9 +423,7 @@ static bool target_interactive_aux_trap(ui_event *event,
 
 	*boring = false;
 
-	struct trap *trap = cave->squares[coords.y][coords.x].trap;
-
-	char buf[ANGBAND_TERM_STANDARD_WIDTH];
+	const struct trap *trap = cave->squares[coords.y][coords.x].trap;
 
 	if (cave->squares[coords.y][coords.x].mon < 0) {
 		desc->a = "You are ";
@@ -435,6 +433,8 @@ static bool target_interactive_aux_trap(ui_event *event,
 		desc->b = "";
 	}
 	desc->c = is_a_vowel(trap->kind->desc[0]) ? "an " : "a ";
+
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	if (player->wizard) {
 		strnfmt(buf, sizeof(buf),
