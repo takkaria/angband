@@ -1393,7 +1393,7 @@ static menu_action option_actions[] = {
 	{0, 't', "Save auto-inscriptions to pref file", do_dump_autoinscrip},
 	{0,  0,   NULL,                                 NULL},
 	{0, 'l', "Load a user pref file",               options_load_pref_file},
-	{0, 'k', "Edit keymaps (advanced)",             do_cmd_keymaps},
+	{0, 'k', "Edit keymaps",                        do_cmd_keymaps},
 };
 
 /**
