@@ -609,11 +609,6 @@ static void options_load_pref_file(const char *title, int index)
  * ------------------------------------------------------------------------
  */
 
-#define EGO_MENU_HELPTEXT \
-	"{light green}Movement keys{/} scroll the list\n" \
-	"{light red}ESC{/} returns to the previous menu\n" \
-	"{light blue}Enter{/} toggles the current setting."
-
 /**
  * Skip common prefixes in ego item names.
  */
@@ -808,13 +803,6 @@ static void ego_menu(void)
 	Term_push_new(&hints);
 	Term_cursor_visible(true);
 
-	struct text_out_info info = {
-		.indent = 1,
-	};
-	Term_cursor_to_xy(1, 1);
-
-	text_out_e(info, EGO_MENU_HELPTEXT);
-
 	/* Set up the menu */
 	struct menu menu;
 	menu_iter menu_f = {
@@ -824,8 +812,7 @@ static void ego_menu(void)
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
 	menu_setpriv(&menu, max_choice, choice);
 	mnflag_on(menu.flags, MN_NO_TAGS);
-	region area = {1, 5, -1, -1};
-	menu_layout(&menu, area);
+	menu_layout_term(&menu);
 
 	menu_set_cursor_x_offset(&menu, 1); /* Put cursor in brackets */
 
