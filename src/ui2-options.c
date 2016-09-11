@@ -415,10 +415,10 @@ static void keymap_browse_hook(int index, void *data, region reg)
 static struct menu *keymap_menu;
 
 static menu_action keymap_actions[] = {
-	{0, 0, "Save keymaps to file",     ui_keymap_pref_append},
 	{0, 0, "Query a keymap",           ui_keymap_query},
 	{0, 0, "Create a keymap",          ui_keymap_create},
 	{0, 0, "Remove a keymap",          ui_keymap_remove},
+	{0, 0, "Save keymaps to file",     ui_keymap_pref_append},
 };
 
 static void do_cmd_keymaps(const char *title, int index)
