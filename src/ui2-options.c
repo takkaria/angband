@@ -492,7 +492,7 @@ static void do_cmd_delay(const char *name, int index)
 
 	char tmp[4] = {0};
 	strnfmt(tmp, sizeof(tmp), "%d", op_ptr->delay_factor);
-	show_prompt("New delay (0-255 milliseconds): ", false);
+	show_prompt("New animation delay (0-255 milliseconds): ", false);
 
 	/* Ask for a numeric value */
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
