@@ -1165,13 +1165,15 @@ static bool sval_menu(int tval, const char *desc)
 	Term_cursor_visible(true);
 
 	/* Help text */
-	show_prompt(format("Ignore the following %s:", desc), false);
+	char title[ANGBAND_TERM_STANDARD_WIDTH];
+	strnfmt(title, sizeof(title), "Ignore the following %s:", desc);
 
 	/* Run menu */
 	struct menu *menu = menu_new(MN_SKIN_COLUMNS, &ignore_sval_menu);
 	menu_setpriv(menu, n_choices, choices);
 	menu->command_keys = "Tt";
-	region reg = {2, 1, 0, -1};
+	menu->title = title;
+	region reg = {0, 0, 0, -1};
 	menu_layout(menu, reg);
 	menu_set_cursor_x_offset(menu, 1); /* Place cursor in brackets. */
 	mnflag_on(menu->flags, MN_NO_TAGS);
