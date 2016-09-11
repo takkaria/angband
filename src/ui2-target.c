@@ -520,16 +520,12 @@ static bool target_interactive_aux_objects(ui_event *event,
 
 		*event = target_recall_loop_object(obj, buf, sizeof(buf), coords, desc);
 
-		if (is_target_stop_event(event, mode)) {
-			return true;
-		}
-
 		desc->a = VERB_AGREEMENT(obj->number, "It is ", "They are ");
 		desc->b = "on ";
 		desc->c = "";
 	}
 
-	return false;
+	return is_target_stop_event(event, mode);
 }
 
 /* returns true when target_interactive_aux() needs to stop */
