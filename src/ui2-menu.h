@@ -189,7 +189,7 @@ struct menu {
 	const char *stop_keys;
 
 	/* auxiliary browser help function */
-	void (*browse_hook)(int cursor, void *menu_data, const region reg);
+	void (*browse_hook)(int cursor, void *menu_data, region reg);
 
 	/* Flags specifying the behavior of this menu */
 	bitflag flags[MNFLAG_SIZE];
