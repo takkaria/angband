@@ -509,8 +509,7 @@ static bool target_interactive_aux_objects(ui_event *event,
 		track_object(player->upkeep, obj);
 		handle_stuff(player);
 
-		*event = target_recall_loop_object(obj,
-				buf, sizeof(buf), coords, desc);
+		*event = target_recall_loop_object(obj, buf, sizeof(buf), coords, desc);
 
 		if (is_target_stop_event(event, mode)) {
 			return true;
