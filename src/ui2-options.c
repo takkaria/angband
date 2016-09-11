@@ -491,7 +491,7 @@ static void do_cmd_delay(const char *name, int index)
 	(void) index;
 
 	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%i", op_ptr->delay_factor);
+	strnfmt(tmp, sizeof(tmp), "%d", op_ptr->delay_factor);
 	show_prompt("New delay (0-255 milliseconds): ", false);
 
 	/* Ask for a numeric value */
@@ -512,7 +512,7 @@ static void do_cmd_hp_warn(const char *name, int index)
 	(void) index;
 
 	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%i", op_ptr->hitpoint_warn);
+	strnfmt(tmp, sizeof(tmp), "%d", op_ptr->hitpoint_warn);
 	show_prompt("New hitpoint warning (0-9): ", false);
 
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
@@ -535,7 +535,7 @@ static void do_cmd_lazymove_delay(const char *name, int index)
 	(void) index;
 
 	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%i", op_ptr->lazymove_delay);
+	strnfmt(tmp, sizeof(tmp), "%d", op_ptr->lazymove_delay);
 	show_prompt("New movement delay: ", false);
 
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
