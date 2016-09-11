@@ -492,7 +492,7 @@ static void do_cmd_delay(const char *name, int index)
 
 	char tmp[4] = {0};
 	strnfmt(tmp, sizeof(tmp), "%i", op_ptr->delay_factor);
-	show_prompt("New base delay factor (0-255): ", false);
+	show_prompt("New delay (0-255 milliseconds): ", false);
 
 	/* Ask for a numeric value */
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
@@ -1365,7 +1365,7 @@ static menu_action option_actions[] = {
 	{0, 'x', "Cheat options",                       option_toggle_menu},
 	{0, 'i', "Item ignoring setup",                 do_cmd_options_item},
 	{0,  0,   NULL,                                 NULL},
-	{0, 'd', "Set base delay factor",               do_cmd_delay},
+	{0, 'd', "Set animation delay"  ,               do_cmd_delay},
 	{0, 'h', "Set hitpoint warning",                do_cmd_hp_warn},
 	{0, 'm', "Set movement delay",                  do_cmd_lazymove_delay},
 	{0,  0,   NULL,                                 NULL},
