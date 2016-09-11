@@ -1375,7 +1375,7 @@ static menu_action option_actions[] = {
 	{0, 'h', "Set hitpoint warning",                do_cmd_hp_warn},
 	{0, 'm', "Set movement delay",                  do_cmd_lazymove_delay},
 	{0,  0,   NULL,                                 NULL},
-	{0, '{', "Auto-inscriptions setup",             textui_browse_object_knowledge},
+	{0, 's', "Auto-inscriptions setup",             textui_browse_object_knowledge},
 	{0, 't', "Save auto-inscriptions to pref file", do_dump_autoinscrip},
 	{0,  0,   NULL,                                 NULL},
 	{0, 'k', "Edit keymaps",                        do_cmd_keymaps},
