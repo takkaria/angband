@@ -638,7 +638,7 @@ static ui_event target_set_interactive_aux(struct loc coords, int mode)
 	int floor_num =
 		scan_distant_floor(floor_list, z_info->floor_size, coords.y, coords.x);
 
-	ui_event event;
+	ui_event event = EVENT_EMPTY;
 
 	do {
 		struct desc desc = {0};
