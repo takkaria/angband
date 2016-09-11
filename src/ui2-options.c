@@ -810,6 +810,7 @@ static void ego_menu(void)
 		.row_handler = ego_action
 	};
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
+	menu.title = "Ego ignore menu";
 	menu_setpriv(&menu, max_choice, choice);
 	mnflag_on(menu.flags, MN_NO_TAGS);
 	menu_layout_term(&menu);
