@@ -1374,8 +1374,10 @@ static const char *o_xtra_prompt(int index)
 {
 	struct object_kind *kind = objkind_byid(index);
 
-	const char *no_insc = ", 's' to toggle ignore, 'r'ecall, '{'";
-	const char *with_insc = ", 's' to toggle ignore, 'r'ecall, '{', '}'";
+	const char *no_insc =
+		", 's' to toggle ignore, 'r'ecall, '{' to inscribe";
+	const char *with_insc =
+		", 's' to toggle ignore, 'r'ecall, '{' to inscribe, '}' to uninscribe";
 
 	/* Appropriate prompt */
 	if (kind->aware) {
