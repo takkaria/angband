@@ -1191,6 +1191,10 @@ static bool sval_menu(int tval, const char *desc)
  */
 static bool seen_tval(int tval)
 {
+	if (tval == TV_GOLD) {
+		return true;
+	}
+
 	for (int i = 1; i < z_info->k_max; i++) {
 		struct object_kind *kind = &k_info[i];
 
