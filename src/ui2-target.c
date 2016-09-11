@@ -1137,20 +1137,20 @@ static void target_free_select_handle_mouse(ui_event event,
 	} else if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 		int term_width;
 		int term_height;
-		struct loc offset;
+		struct loc offsets;
 
 		display_term_get_area(DISPLAY_CAVE,
-				&offset, &term_width, &term_height);
+				&offsets, &term_width, &term_height);
 
 		/* scroll the map to, resp., west, east, north or south */
 		if (event.mouse.x < SCROLL_DISTANCE) {
-			x = offset.x - 1;
+			x = offsets.x - 1;
 		} else if (event.mouse.x >= term_width - SCROLL_DISTANCE) {
-			x = offset.x + term_width;
+			x = offsets.x + term_width;
 		} else if (event.mouse.y < SCROLL_DISTANCE) {
-			y = offset.y - 1;
+			y = offsets.y - 1;
 		} else if (event.mouse.y >= term_height - SCROLL_DISTANCE) {
-			y = offset.y + term_height;
+			y = offsets.y + term_height;
 		}
 
 		coords->x = MAX(0, MIN(x, cave->width - 1));
