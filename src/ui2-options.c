@@ -460,109 +460,6 @@ static void do_cmd_keymaps(const char *title, int index)
 
 /**
  * ------------------------------------------------------------------------
- * Interact with visuals
- * ------------------------------------------------------------------------
- */
-
-static void visuals_pref_load(const char *title, int index)
-{
-	(void) title;
-	(void) index;
-
-	do_cmd_pref_file(NULL);
-}
-
-static void visuals_dump_monsters(const char *title, int index)
-{
-	(void) index;
-
-	dump_pref_file(dump_monsters, title);
-}
-
-static void visuals_dump_objects(const char *title, int index)
-{
-	(void) index;
-
-	dump_pref_file(dump_objects, title);
-}
-
-static void visuals_dump_features(const char *title, int index)
-{
-	(void) index;
-
-	dump_pref_file(dump_features, title);
-}
-
-static void visuals_dump_flavors(const char *title, int index)
-{
-	(void) index;
-
-	dump_pref_file(dump_flavors, title);
-}
-
-static void visuals_reset(const char *title, int index)
-{
-	(void) title;
-	(void) index;
-
-	reset_visuals(true);
-
-	msg("Visual attr/char tables reset.");
-	event_signal(EVENT_MESSAGE_FLUSH);
-}
-
-static struct menu *visual_menu;
-
-static menu_action visual_menu_items[] = {
-	{0, 0, "Load a user pref file",   visuals_pref_load},
-	{0, 0, "Save monster attr/chars", visuals_dump_monsters},
-	{0, 0, "Save object attr/chars",  visuals_dump_objects},
-	{0, 0, "Save feature attr/chars", visuals_dump_features},
-	{0, 0, "Save flavor attr/chars",  visuals_dump_flavors},
-	{0, 0, "Reset visuals",           visuals_reset},
-};
-
-static void visuals_browse_hook(int index, void *data, region reg)
-{
-	(void) index;
-	(void) data;
-	(void) reg;
-
-	event_signal(EVENT_MESSAGE_FLUSH);
-	Term_clear();
-}
-
-/**
- * Interact with visuals
- */
-static void do_cmd_visuals(const char *title, int index)
-{
-	(void) index;
-
-	struct term_hints hints = {
-		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = ANGBAND_TERM_STANDARD_HEIGHT,
-		.position = TERM_POSITION_CENTER,
-		.purpose = TERM_PURPOSE_MENU
-	};
-	Term_push_new(&hints);
-
-	if (!visual_menu) {
-		visual_menu = menu_new_action(visual_menu_items, N_ELEMENTS(visual_menu_items));
-
-		visual_menu->title = title;
-		visual_menu->selections = lower_case;
-		visual_menu->browse_hook = visuals_browse_hook;
-	}
-
-	menu_layout_term(visual_menu);
-	menu_select(visual_menu);
-
-	Term_pop();
-}
-
-/**
- * ------------------------------------------------------------------------
  * Non-complex menu actions
  * ------------------------------------------------------------------------
  */
@@ -1497,7 +1394,6 @@ static menu_action option_actions[] = {
 	{0,  0,   NULL,                                 NULL},
 	{0, 'l', "Load a user pref file",               options_load_pref_file},
 	{0, 'k', "Edit keymaps (advanced)",             do_cmd_keymaps},
-	{0, 'v', "Save visuals (advanced)",             do_cmd_visuals},
 };
 
 /**
@@ -1528,6 +1424,5 @@ void do_cmd_options(void)
 void cleanup_options(void)
 {
 	if (keymap_menu) menu_free(keymap_menu);
-	if (visual_menu) menu_free(visual_menu);
 	if (option_menu) menu_free(option_menu);
 }
