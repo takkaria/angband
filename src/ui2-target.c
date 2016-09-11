@@ -540,8 +540,6 @@ static bool target_interactive_aux_square(ui_event *event,
 		return false;
 	}
 
-	char buf[ANGBAND_TERM_STANDARD_WIDTH];
-
 	const char *name = square_apparent_name(cave, player, coords.y, coords.x);
 
 	if (square_isdoor(cave, coords.y, coords.x)) {
@@ -552,6 +550,8 @@ static bool target_interactive_aux_square(ui_event *event,
 	if (square_isshop(cave, coords.y, coords.x)) {
 		desc->c = "the entrance to the ";
 	}
+
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	if (player->wizard) {
 		strnfmt(buf, sizeof(buf),
