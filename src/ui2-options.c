@@ -626,12 +626,12 @@ static const char *strip_ego_name(const char *name)
 /*
  * Find size of the prefix, stripped in strip_ego_name()
  */
-static ptrdiff_t find_prefix_size(const char *haystack, const char *needle)
+static ptrdiff_t find_prefix_size(const char *str, const char *maybe_suffix)
 {
-	const char *s = strstr(haystack, needle);
+	const char *suffix = strstr(str, maybe_suffix);
 
-	if (s != NULL && strlen(s) == strlen(needle)) {
-		return haystack - s;
+	if (suffix != NULL && streq(suffix, maybe_suffix)) {
+		return suffix - str;
 	} else {
 		return 0;
 	}
@@ -667,14 +667,15 @@ int ego_item_name(char *buf, size_t buf_size, struct ego_desc *desc)
 
 	/* Found a prefix? */
 	if (prefix_size > 0) {
-		fprintf(stderr, "prefix %d\n", (int) prefix_size);
-		char prefix[100];
+		char prefix[64];
 
 		/* Get a copy of the prefix */
 		my_strcpy(prefix, ego->name, prefix_size);
-
 		/* Append the prefix */
 		end += my_strcat(buf, prefix, buf_size);
+		/* Append an extra space */
+		end += my_strcat(buf, " ", buf_size);
+
 	}
 
 	return end;
