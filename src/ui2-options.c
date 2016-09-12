@@ -261,7 +261,7 @@ static void ui_keymap_query(const char *title, int index)
 	const struct keypress *act = keymap_find(KEYMAP_MODE_OPT, key);
 
 	if (act == NULL) {
-		prt("No keymap with that trigger.  Press any key to continue.", loc(0, 16));
+		prt("No keymap with that trigger. Press any key to continue.", loc(0, 16));
 		Term_flush_output();
 		inkey_any();
 	} else {
