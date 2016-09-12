@@ -62,6 +62,10 @@
  * three chars + null byte */
 #define OLIST_LABEL_LEN 4
 
+/* Equip looks like this: "On right hand : "
+ * 20 bytes should be enough */
+#define OLIST_EQUIP_LEN 20
+
 /**
  * Info about a particular object
  */
@@ -73,7 +77,7 @@ struct object_menu_item {
 	} label;
 
 	struct {
-		char str[ANGBAND_TERM_STANDARD_WIDTH];
+		char str[OLIST_EQUIP_LEN];
 		size_t len;
 		size_t size;
 	} equip;
