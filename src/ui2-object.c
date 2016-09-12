@@ -377,7 +377,7 @@ static struct loc show_quiver_compact(const char *keys, struct loc loc)
 
 		if (slot == last_slot) {
 			/* Last slot has less than the full number of missiles */
-			stack = player->upkeep->quiver_cnt - (z_info->stack_size * last_slot);
+			stack = player->upkeep->quiver_cnt - (stack * last_slot);
 		}
 
 		erase_line(loc);
