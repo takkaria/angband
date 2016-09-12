@@ -42,9 +42,9 @@ static void do_cmd_pref_file(const char *prompt);
 /**
  * Prompt the user for a filename to save the pref file to.
  */
-static bool get_pref_path(const char *what, char *buf, size_t bufsize)
+static bool get_pref_path(const char *title, char *buf, size_t bufsize)
 {
-	show_prompt(format("%s to a pref file: ", what), false);
+	show_prompt(format("%s to a pref file: ", title), false);
 
 	char filename[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(filename, sizeof(filename), "%s.prf", player_safe_name(player, true));
