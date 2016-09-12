@@ -188,10 +188,11 @@ static void option_toggle_menu(const char *name, int page)
 	};
 	Term_push_new(&hints);
 	menu_layout_term(menu);
+
 	menu_select(menu);
-	Term_pop();
 
 	menu_free(menu);
+	Term_pop();
 }
 
 /**
