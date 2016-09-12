@@ -99,7 +99,7 @@ struct object_menu_list {
 static void show_obj_extra(const struct object *obj,
 		struct loc loc, int mode)
 {
-	char buf[80];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	const size_t bufsize = sizeof(buf);
 
 	erase_line(loc);
@@ -360,7 +360,7 @@ static int quiver_slots(int stack)
 /* Returns coords of the next row (after the ones shown) */
 static struct loc show_quiver_compact(const char *keys, struct loc loc)
 {
-	char buf[80];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	int stack = z_info->stack_size;
 	int slots = quiver_slots(stack);
@@ -437,7 +437,7 @@ void show_inven(int mode, item_tester tester)
 
 	if (mode & OLIST_WINDOW) {
 		/* Inven windows start with a burden header */
-		char buf[80];
+		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 		int diff = weight_remaining(player);
 
 		strnfmt(buf, sizeof(buf),
@@ -618,7 +618,7 @@ bool get_item_allow(const struct object *obj,
 			verb = "do that with";
 		}
 
-		char prompt[80];
+		char prompt[ANGBAND_TERM_STANDARD_WIDTH];
 		strnfmt(prompt, sizeof(prompt), "Really %s", verb);
 
 		while (checks > 0 && verify_object(prompt, (struct object *) obj)) {
@@ -689,7 +689,7 @@ static void cat_menu_header(char *buf, size_t bufsize,
 		bool inven, bool equip, bool quiver, bool floor)
 {
 	if (tags) {
-		char tmp_buf[80];
+		char tmp_buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 		strnfmt(tmp_buf, sizeof(tmp_buf), " %c-%c,", I2A(tag_from), I2A(tag_to));
 		my_strcat(buf, tmp_buf, bufsize);
@@ -716,7 +716,7 @@ static void cat_menu_header(char *buf, size_t bufsize,
 static void menu_header(const struct object_menu_data *data,
 		char *header, size_t header_size)
 {
-	char out_buf[80];
+	char out_buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	const int i1 = data->i1;
 	const int i2 = data->i2;
@@ -1041,10 +1041,10 @@ static void item_menu(struct object_menu_data *data)
 static void show_menu_prompt(const struct object_menu_data *data,
 		const char *prompt)
 {
-	char header[80];
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	menu_header(data, header, sizeof(header));
 
-	char menu_prompt[80];
+	char menu_prompt[ANGBAND_TERM_STANDARD_WIDTH];
 	my_strcpy(menu_prompt, prompt, sizeof(menu_prompt));
 	my_strcat(menu_prompt, " ",    sizeof(menu_prompt));
 	my_strcat(menu_prompt, header, sizeof(menu_prompt));
@@ -1364,7 +1364,7 @@ bool textui_get_item(struct object **choice,
  */
 void display_object_recall(struct object *obj)
 {
-	char header[80];
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	region area = {0};
 
 	Term_clear();
@@ -1397,7 +1397,7 @@ void display_object_kind_recall(struct object_kind *kind)
  */
 void display_object_recall_interactive(struct object *obj)
 {
-	char header[80];
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	region area = {0};
 
 	textblock *tb = object_info(obj, OINFO_NONE);
@@ -1416,7 +1416,7 @@ void textui_obj_examine(void)
 	if (get_item(&obj, "Examine which item? ", "You have nothing to examine.",
 			CMD_NULL, NULL, (USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR | IS_HARMLESS)))
 	{
-		char header[80];
+		char header[ANGBAND_TERM_STANDARD_WIDTH];
 		region area = {0};
 
 		/* Track object for object recall */
@@ -1452,7 +1452,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 		return;
 	}
 
-	char out_val[80];
+	char out_val[ANGBAND_TERM_STANDARD_WIDTH];
 
 	struct menu *menu = menu_dynamic_new();
 	menu->selections = lower_case;
@@ -1468,7 +1468,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	if (ignore_tval(obj->tval)
 			&& (!obj->artifact || !object_flavor_is_aware(obj)))
 	{
-		char tmp[80];
+		char tmp[ANGBAND_TERM_STANDARD_WIDTH];
 		object_desc(tmp, sizeof(tmp), obj,
 					ODESC_NOEGO | ODESC_BASE | ODESC_PLURAL);
 
@@ -1493,7 +1493,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 		choice.itype = ignore_type_of(obj);
 		choice.short_name = "";
 
-		char tmp[80];
+		char tmp[ANGBAND_TERM_STANDARD_WIDTH];
 		ego_item_name(tmp, sizeof(tmp), &choice);
 
 		if (!ego_is_ignored(choice.e_idx, choice.itype)) {
