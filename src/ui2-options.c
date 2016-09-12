@@ -1162,7 +1162,6 @@ static bool sval_menu(int tval, const char *desc)
 	Term_push_new(&hints);
 	Term_cursor_visible(true);
 
-	/* Help text */
 	char title[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(title, sizeof(title), "Ignore the following %s:", desc);
 
