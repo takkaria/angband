@@ -1180,7 +1180,6 @@ static bool sval_menu(int tval, const char *desc)
 
 	mem_free(choices);
 	menu_free(menu);
-	clear_prompt();
 	Term_pop();
 
 	return true;
