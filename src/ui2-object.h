@@ -34,11 +34,10 @@ enum olist_detail {
 	OLIST_WEIGHT         = 1 << 2, /* Show item weight */
 	OLIST_PRICE          = 1 << 3, /* Show item price */
 	OLIST_FAIL           = 1 << 4, /* Show device failure */
-	OLIST_TERSE          = 1 << 5, /* Terse object descriptions (without flavor etc) */
-	OLIST_DEATH          = 1 << 6, /* RIP screen */
-	OLIST_SHOW_EMPTY     = 1 << 7, /* Show empty slots */
-	OLIST_QUIVER_COMPACT = 1 << 8, /* Compact view of quiver (just missile count) */
-	OLIST_QUIVER_FULL    = 1 << 9  /* Full quiver slots */
+	OLIST_DEATH          = 1 << 5, /* RIP screen */
+	OLIST_SHOW_EMPTY     = 1 << 6, /* Show empty slots */
+	OLIST_QUIVER_COMPACT = 1 << 7, /* Compact view of quiver (just missile count) */
+	OLIST_QUIVER_FULL    = 1 << 8  /* Full quiver slots */
 };
 
 uint32_t object_kind_attr(const struct object_kind *kind);

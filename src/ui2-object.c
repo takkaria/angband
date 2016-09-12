@@ -272,12 +272,9 @@ static void set_extra_fields(struct object_menu_list *olist, int *mode)
  * Set object names and get their maximum length.
  * Only makes sense after building the object list.
  */
-static void set_obj_names(struct object_menu_list *olist, bool terse)
+static void set_obj_names(struct object_menu_list *olist)
 {
 	int oflags = ODESC_PREFIX | ODESC_FULL;
-	if (terse) {
-		oflags |= ODESC_TERSE;
-	}
 
 	/* Calculate name offset and max name length */
 	for (size_t i = 0; i < olist->len; i++) {
@@ -308,7 +305,6 @@ static void build_obj_list(struct object_menu_list *olist,
 	const bool quiver = (mode & OLIST_QUIVER_FULL) ? true : false;
 	const bool sempty = (mode & OLIST_SHOW_EMPTY)  ? true : false;
 	const bool window = (mode & OLIST_WINDOW)      ? true : false;
-	const bool terse  = (mode & OLIST_TERSE)       ? true : false;
 	const bool gold   = (mode & OLIST_GOLD)        ? true : false;
 	const bool equip  = (objects == NULL)          ? true : false;
 
@@ -357,7 +353,7 @@ static void build_obj_list(struct object_menu_list *olist,
 	}
 
 	/* Set the names and get the max length */
-	set_obj_names(olist, terse);
+	set_obj_names(olist);
 }
 
 static int quiver_slots(int stack)
