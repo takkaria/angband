@@ -49,15 +49,15 @@ static bool get_pref_path(const char *title, char *buf, size_t bufsize)
 	char filename[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(filename, sizeof(filename), "%s.prf", player_safe_name(player, true));
 	
-	bool ok = askfor_aux(filename, sizeof(filename), NULL);
+	bool use_filename = askfor_aux(filename, sizeof(filename), NULL);
 
-	if (ok) {
+	if (use_filename) {
 		path_build(buf, bufsize, ANGBAND_DIR_USER, filename);
 	}
 
 	clear_prompt();
 
-	return ok;
+	return use_filename;
 }
 
 static void dump_pref_file(void (*dump)(ang_file *), const char *title)
