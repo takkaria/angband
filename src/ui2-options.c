@@ -1417,12 +1417,6 @@ void do_cmd_options_item(const char *title, int index)
 
 	int count = N_ELEMENTS(sval_dependent) + N_ELEMENTS(extra_item_options) + 1;
 
-	struct menu menu;
-	menu_init(&menu, MN_SKIN_SCROLL, &options_item_iter);
-	menu_setpriv(&menu, count, NULL);
-
-	menu.title = title;
-
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -1431,7 +1425,12 @@ void do_cmd_options_item(const char *title, int index)
 	};
 	Term_push_new(&hints);
 
+	struct menu menu;
+	menu_init(&menu, MN_SKIN_SCROLL, &options_item_iter);
+	menu_setpriv(&menu, count, NULL);
+	menu.title = title;
 	menu_layout_term(&menu);
+
 	menu_select(&menu);
 
 	Term_pop();
