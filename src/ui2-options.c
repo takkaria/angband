@@ -149,6 +149,7 @@ static void option_toggle_menu(const char *name, int page)
 	struct menu *menu = menu_new(MN_SKIN_SCROLL, &option_toggle_iter);
 
 	/* for all menus */
+	menu->title = name;
 	menu->prompt = "Set option (y/n/t), '?' for information";
 	menu->command_keys = "?YyNnTt";
 	menu->selections = "abcdefghijklmopqrsuvwxz";
@@ -165,8 +166,6 @@ static void option_toggle_menu(const char *name, int page)
 	} else if (page == OPT_PAGE_BIRTH + OPT_PAGE_MAX) {
 		page -= OPT_PAGE_MAX;
 	}
-
-	menu->title = name;
 
 	/* Find the number of valid entries */
 	int count = 0;
