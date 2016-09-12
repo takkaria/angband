@@ -233,11 +233,6 @@ static void free_obj_list(struct object_menu_list *olist)
 	/* Maybe get_obj_list() will become reentrant at some point? */
 }
 
-static void quiver_based_max_len(struct object_menu_list *olist)
-{
-	olist->line_max_len = MAX(olist->line_max_len, 24);
-}
-
 static void set_extra_fields(struct object_menu_list *olist, int *mode)
 {
 	const size_t term_width = Term_width();
@@ -405,13 +400,6 @@ static struct loc show_quiver_compact(const char *keys, struct loc loc)
 static struct loc show_obj_list(struct object_menu_list *olist,
 		int mode, struct loc loc)
 {
-	/* Take the quiver display into consideration */
-	if ((mode & OLIST_QUIVER_COMPACT)
-			&& player->upkeep->quiver[0] != NULL)
-	{
-		quiver_based_max_len(olist);
-	}
-
 	set_extra_fields(olist, &mode);
 
 	for (size_t i = 0; i < olist->len; i++, loc.y++) {
@@ -1017,9 +1005,6 @@ static void item_menu(struct object_menu_data *data)
 	menu_find_inscriptions(menu, inscriptions, sizeof(inscriptions));
 	menu->inscriptions = inscriptions;
 
-	if (player->upkeep->command_wrk == USE_QUIVER) {
-		quiver_based_max_len(data->list);
-	}
 	set_extra_fields(data->list, &data->olist_mode);
 
 	region reg = {
