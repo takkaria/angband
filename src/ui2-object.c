@@ -92,64 +92,6 @@ struct object_menu_list {
 	size_t extra_fields_offset;
 };
 
-/**
- * ------------------------------------------------------------------------
- * Display of individual objects in lists or for selection
- * ------------------------------------------------------------------------
-*/
-
-/**
- * Determine if the attr and char should consider the item's flavor.
- * Identified scrolls should use their own tile.
- */
-static bool use_flavor_glyph(const struct object_kind *kind)
-{
-	if (kind->tval == TV_SCROLL && kind->aware) {
-		return false;
-	} else {
-		return kind->flavor;
-	}
-}
-
-/**
- * Return the attr for a given item kind. Use flavor if available.
- * Default to user definitions.
- */
-uint32_t object_kind_attr(const struct object_kind *kind)
-{
-	return use_flavor_glyph(kind) ?
-		flavor_x_attr[kind->flavor->fidx] : kind_x_attr[kind->kidx];
-}
-
-/**
- * Return the char for a given item kind. Use flavor if available.
- * Default to user definitions.
- */
-wchar_t object_kind_char(const struct object_kind *kind)
-{
-	return use_flavor_glyph(kind) ?
-		flavor_x_char[kind->flavor->fidx] : kind_x_char[kind->kidx];
-}
-
-/**
- * Return the attr for a given item. Use flavor if available.
- * Default to user definitions.
- */
-uint32_t object_attr(const struct object *obj)
-{
-	return object_kind_attr(obj->kind);
-}
-
-/**
- * Return the char for a given item.
- * Use flavor if available.
- * Default to user definitions.
- */
-wchar_t object_char(const struct object *obj)
-{
-	return object_kind_char(obj->kind);
-}
-
 #define EXTRA_FIELD_WEIGHT_WIDTH 9
 #define EXTRA_FIELD_PRICE_WIDTH 9
 #define EXTRA_FIELD_FAIL_WIDTH 10
@@ -1634,4 +1576,62 @@ void textui_cmd_toggle_ignore(void)
 	player->unignoring = !player->unignoring;
 	player->upkeep->notice |= PN_IGNORE;
 	do_cmd_redraw();
+}
+
+/**
+ * ------------------------------------------------------------------------
+ * Display of individual objects in lists or for selection
+ * ------------------------------------------------------------------------
+*/
+
+/**
+ * Determine if the attr and char should consider the item's flavor.
+ * Identified scrolls should use their own tile.
+ */
+static bool use_flavor_glyph(const struct object_kind *kind)
+{
+	if (kind->tval == TV_SCROLL && kind->aware) {
+		return false;
+	} else {
+		return kind->flavor;
+	}
+}
+
+/**
+ * Return the attr for a given item kind. Use flavor if available.
+ * Default to user definitions.
+ */
+uint32_t object_kind_attr(const struct object_kind *kind)
+{
+	return use_flavor_glyph(kind) ?
+		flavor_x_attr[kind->flavor->fidx] : kind_x_attr[kind->kidx];
+}
+
+/**
+ * Return the char for a given item kind. Use flavor if available.
+ * Default to user definitions.
+ */
+wchar_t object_kind_char(const struct object_kind *kind)
+{
+	return use_flavor_glyph(kind) ?
+		flavor_x_char[kind->flavor->fidx] : kind_x_char[kind->kidx];
+}
+
+/**
+ * Return the attr for a given item. Use flavor if available.
+ * Default to user definitions.
+ */
+uint32_t object_attr(const struct object *obj)
+{
+	return object_kind_attr(obj->kind);
+}
+
+/**
+ * Return the char for a given item.
+ * Use flavor if available.
+ * Default to user definitions.
+ */
+wchar_t object_char(const struct object *obj)
+{
+	return object_kind_char(obj->kind);
 }
