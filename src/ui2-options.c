@@ -37,8 +37,6 @@
 #include "ui2-prefs.h"
 #include "ui2-target.h"
 
-static void do_cmd_pref_file(const char *prompt);
-
 /**
  * Prompt the user for a filename to save the pref file to.
  */
