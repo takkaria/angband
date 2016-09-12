@@ -144,7 +144,7 @@ static void show_obj_extra(const struct object *obj,
 }
 
 /**
- * Display an object.  Each object may be prefixed with a label.
+ * Display an object. Each object may be prefixed with a label.
  * Used by show_inven(), show_equip(), show_quiver() and show_floor().
  * Mode flags are documented in object.h
  */
