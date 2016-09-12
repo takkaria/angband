@@ -1235,7 +1235,7 @@ static bool sval_menu(int tval, const char *desc)
 			break;
 
 		default:
-			/* sort by name */
+			/* sort by awareness and name */
 			sort(choices, n_choices, sizeof(*choices), cmp_ignore);
 			break;
 	}
