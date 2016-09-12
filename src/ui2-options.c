@@ -342,6 +342,9 @@ static void ui_keymap_edit(struct loc loc)
 
 		if (text[0] != 0) {
 			c_prt(color, text, loc);
+		} else {
+			Term_erase_line(loc.x, loc.y);
+			Term_cursor_to_xy(loc.x, loc.y);
 		}
 
 		Term_flush_output();
