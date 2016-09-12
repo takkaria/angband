@@ -451,23 +451,50 @@ static void ui_keymap_remove(const char *title, int index)
 {
 	(void) index;
 
-	prt(title, loc(0, 13));
-	prt("Key: ", loc(0, 14));
+	struct term_hints hints = {
+		.width = 50,
+		.height = 6,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
 
-	Term_flush_output();
+	struct keypress done = EVENT_EMPTY;
 
-	struct keypress trigger = keymap_get_trigger();
+	do {
+		struct loc loc = {0, 0};
 
-	if (keymap_remove(KEYMAP_MODE_OPT, trigger)) {
-		prt("Removed.", loc(0, 16));
-	} else {
-		prt("No keymap to remove!", loc(0, 16));
-	}
+		Term_clear();
 
-	prt("Press any key to continue.", loc(0, 17));
+		prt(title, loc);
+		loc.x += 2;
+		loc.y += 2;
 
-	Term_flush_output();
-	inkey_any();
+		prt("Key: ", loc);
+
+		Term_cursor_visible(true);
+		Term_flush_output();
+
+		struct keypress trigger = keymap_get_trigger();
+
+		loc.x -= 2;
+		loc.y += 2;
+		if (keymap_remove(KEYMAP_MODE_OPT, trigger)) {
+			prt("Removed.", loc);
+		} else {
+			prt("No keymap to remove!", loc);
+		}
+
+		loc.y++;
+		prt("Press ESC to exit, any other key to continue.", loc);
+
+		Term_cursor_visible(false);
+		Term_flush_output();
+
+		done = inkey_only_key();
+	} while (done.code != ESCAPE);
+
+	Term_pop();
 }
 
 static struct menu *keymap_menu;
