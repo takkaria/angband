@@ -1369,7 +1369,7 @@ static void display_options_item(struct menu *menu,
 	} else {
 		line -= N_ELEMENTS(sval_dependent) + 1;
 		if (line < N_ELEMENTS(extra_item_options)) {
-			uint32_t attr = 0;
+			uint32_t attr;
 			if (extra_item_options[line].tag == 'E') {
 				attr = menu_row_style(collect_ignorable_egos(NULL) != 0, cursor);
 			} else {
