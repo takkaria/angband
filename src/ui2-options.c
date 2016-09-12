@@ -426,18 +426,20 @@ static void ui_keymap_create(const char *title, int index)
 			loc.y++;
 			ui_keymap_edit(loc);
 
-			loc.x = 0;
-			loc.y = hints.height - 2;
+			if (keymap_buffer[0].type != EVT_NONE) {
+				loc.x = 0;
+				loc.y = hints.height - 2;
 
-			prt("Save this keymap? ", loc);
-			Term_flush_output();
+				prt("Save this keymap? ", loc);
+				Term_flush_output();
 
-			struct keypress key = inkey_only_key();
-			if (key.code == 'y' || key.code == 'Y' || key.code == KC_ENTER) {
-				keymap_add(KEYMAP_MODE_OPT, trigger, keymap_buffer, true);
-				prt("Keymap added.", loc);
-			} else {
-				prt("Keymap not added.", loc);
+				struct keypress key = inkey_only_key();
+				if (key.code == 'y' || key.code == 'Y' || key.code == KC_ENTER) {
+					keymap_add(KEYMAP_MODE_OPT, trigger, keymap_buffer, true);
+					prt("Keymap added.", loc);
+				} else {
+					prt("Keymap not added.", loc);
+				}
 			}
 		}
 
