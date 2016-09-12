@@ -141,8 +141,8 @@ uint32_t object_attr(const struct object *obj)
 }
 
 /**
- * Return the "char" for a given item.
- * Use "flavor" if available.
+ * Return the char for a given item.
+ * Use flavor if available.
  * Default to user definitions.
  */
 wchar_t object_char(const struct object *obj)
