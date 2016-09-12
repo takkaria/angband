@@ -299,7 +299,7 @@ static void ui_keymap_create(const char *title, int index)
 	bool done = false;
 	/* Get an encoded action, with a default response */
 	while (!done) {
-		char tmp[1024];
+		char text[1024];
 
 		int color = COLOUR_WHITE;
 		if (keymap_buffer_index == 0) {
@@ -309,8 +309,8 @@ static void ui_keymap_create(const char *title, int index)
 			color = COLOUR_L_RED;
 		}
 
-		keypress_to_text(tmp, sizeof(tmp), keymap_buffer, false);
-		c_prt(color, format("Action: %s", tmp), loc(0, 15));
+		keypress_to_text(text, sizeof(text), keymap_buffer, false);
+		c_prt(color, format("Action: %s", text), loc(0, 15));
 
 		c_prt(COLOUR_L_BLUE, "  Press '$' when finished.", loc(0, 17));
 		c_prt(COLOUR_L_BLUE, "  Use 'CTRL-U' to reset.", loc(0, 18));
