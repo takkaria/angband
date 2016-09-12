@@ -368,13 +368,12 @@ static void ui_keymap_edit(struct loc loc)
 					break;
 
 				default:
-					if (keymap_buffer_index == KEYMAP_ACTION_MAX) {
-						continue;
+					if (keymap_buffer_index < KEYMAP_ACTION_MAX) {
+						if (keymap_buffer_index == 0) {
+							memset(keymap_buffer, 0, sizeof(keymap_buffer));
+						}
+						keymap_buffer[keymap_buffer_index++] = kp;
 					}
-					if (keymap_buffer_index == 0) {
-						memset(keymap_buffer, 0, sizeof(keymap_buffer));
-					}
-					keymap_buffer[keymap_buffer_index++] = kp;
 					break;
 			}
 		}
