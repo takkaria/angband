@@ -65,18 +65,16 @@ static void dump_pref_file(void (*dump)(ang_file *), const char *title)
 	char buf[1024];
 
 	/* Get filename from user */
-	if (!get_pref_path(title, buf, sizeof(buf))) {
-		return;
-	}
+	if (get_pref_path(title, buf, sizeof(buf))) {
+		/* Try to save */
+		if (prefs_save(buf, dump, title)) {
+			msg("Saved %s.", strstr(title, " ") + 1);
+		} else {
+			msg("Failed to save %s.", strstr(title, " ") + 1);
+		}
 
-	/* Try to save */
-	if (prefs_save(buf, dump, title)) {
-		msg("Saved %s.", strstr(title, " ") + 1);
-	} else {
-		msg("Failed to save %s.", strstr(title, " ") + 1);
+		event_signal(EVENT_MESSAGE_FLUSH);
 	}
-
-	event_signal(EVENT_MESSAGE_FLUSH);
 }
 
 /**
