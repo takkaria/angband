@@ -1028,11 +1028,6 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
  */
 static void quality_menu(void)
 {
-	struct menu menu;
-	menu_iter menu_f = {
-		.display_row = quality_display,
-		.row_handler = quality_action
-	};
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -1042,6 +1037,11 @@ static void quality_menu(void)
 	Term_push_new(&hints);
 
 	/* Set up the menu */
+	struct menu menu;
+	menu_iter menu_f = {
+		.display_row = quality_display,
+		.row_handler = quality_action
+	};
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
 	menu.title = "Quality ignore menu";
 	/* Take into account ITYPE_NONE - we don't want to display that */
