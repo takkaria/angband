@@ -303,90 +303,144 @@ static void ui_keymap_query(const char *title, int index)
 	Term_pop();
 }
 
-static void ui_keymap_create(const char *title, int index)
+static void ui_keymap_print_help(struct loc loc)
 {
-	(void) index;
+	c_prt(COLOUR_WHITE, "Press '$' when finished.", loc);
+	loc.y++;
+	c_prt(COLOUR_WHITE, "Use 'Ctrl-U' to reset.", loc);
+	loc.y++;
+	c_prt(COLOUR_WHITE,
+			format("(Maximum keymap length is %d keys.)", KEYMAP_ACTION_MAX),
+			loc);
+}
 
-	prt(title, loc(0, 13));
-	prt("Key: ", loc(0, 14));
-
-	Term_flush_output();
-
-	struct keypress trigger = keymap_get_trigger();
-	if (trigger.code == '$') {
-		c_prt(COLOUR_L_RED, "The '$' key is reserved.", loc(2, 16));
-		prt("Press any key to continue.", loc(0, 18));
-		Term_flush_output();
-		inkey_any();
-		return;
+static void ui_keymap_erase_help(struct loc loc)
+{
+	for (int y = 0; y < 3; y++) {
+		Term_erase_line(loc.x, loc.y + y);
 	}
+}
+
+static void ui_keymap_edit(struct loc loc)
+{
+	struct loc help_loc = {0, loc.y + 2};
+	ui_keymap_print_help(help_loc);
+
+	prt("Action: ", loc);
+	Term_get_cursor(&loc.x, &loc.y, NULL, NULL);
 
 	size_t keymap_buffer_index = 0;
 	bool done = false;
-	/* Get an encoded action, with a default response */
+
 	while (!done) {
 		char text[1024];
 
-		int color = COLOUR_WHITE;
-		if (keymap_buffer_index == 0) {
-			color = COLOUR_YELLOW;
-		}
-		if (keymap_buffer_index == KEYMAP_ACTION_MAX) {
-			color = COLOUR_L_RED;
-		}
+		int color = keymap_buffer_index < KEYMAP_ACTION_MAX ?
+			COLOUR_L_BLUE: COLOUR_L_RED;
 
 		keypress_to_text(text, sizeof(text), keymap_buffer, false);
-		c_prt(color, format("Action: %s", text), loc(0, 15));
 
-		c_prt(COLOUR_L_BLUE, "  Press '$' when finished.", loc(0, 17));
-		c_prt(COLOUR_L_BLUE, "  Use 'CTRL-U' to reset.", loc(0, 18));
-		c_prt(COLOUR_L_BLUE,
-				format("(Maximum keymap length is %d keys.)",
-					KEYMAP_ACTION_MAX),
-				loc(0, 19));
+		if (text[0] != 0) {
+			c_prt(color, text, loc);
+		}
+
 		Term_flush_output();
 
 		struct keypress kp = inkey_only_key();
 
 		if (kp.code == '$') {
 			done = true;
-			continue;
-		}
+		} else {
+			switch (kp.code) {
+				case KC_DELETE:
+				case KC_BACKSPACE:
+					if (keymap_buffer_index > 0) {
+						keymap_buffer_index--;
+						keymap_buffer[keymap_buffer_index].type = EVT_NONE;
+						keymap_buffer[keymap_buffer_index].code = 0;
+						keymap_buffer[keymap_buffer_index].mods = 0;
+					}
+					break;
 
-		switch (kp.code) {
-			case KC_DELETE:
-			case KC_BACKSPACE:
-				if (keymap_buffer_index > 0) {
-					keymap_buffer_index--;
-				    keymap_buffer[keymap_buffer_index].type = EVT_NONE;
-					keymap_buffer[keymap_buffer_index].code = 0;
-					keymap_buffer[keymap_buffer_index].mods = 0;
-				}
-				break;
-
-			case KTRL('U'):
-				memset(keymap_buffer, 0, sizeof(keymap_buffer));
-				keymap_buffer_index = 0;
-				break;
-
-			default:
-				if (keymap_buffer_index == KEYMAP_ACTION_MAX) {
-					continue;
-				}
-				if (keymap_buffer_index == 0) {
+				case KTRL('U'):
 					memset(keymap_buffer, 0, sizeof(keymap_buffer));
-				}
-				keymap_buffer[keymap_buffer_index++] = kp;
-				break;
+					keymap_buffer_index = 0;
+					break;
+
+				default:
+					if (keymap_buffer_index == KEYMAP_ACTION_MAX) {
+						continue;
+					}
+					if (keymap_buffer_index == 0) {
+						memset(keymap_buffer, 0, sizeof(keymap_buffer));
+					}
+					keymap_buffer[keymap_buffer_index++] = kp;
+					break;
+			}
 		}
 	}
 
-	if (trigger.code && get_check("Save this keymap? ")) {
-		keymap_add(KEYMAP_MODE_OPT, trigger, keymap_buffer, true);
-		prt("Keymap added.  Press any trigger to continue.", loc(0, 17));
+	ui_keymap_erase_help(help_loc);
+}
+
+static void ui_keymap_create(const char *title, int index)
+{
+	(void) index;
+
+	struct term_hints hints = {
+		.width = 50,
+		.height = 10,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+
+	struct keypress done = EVENT_EMPTY;
+
+	do {
+		struct loc loc = {0, 0};
+
+		Term_clear();
+
+		prt(title, loc);
+		loc.x += 2;
+		loc.y += 2;
+		prt("Key: ", loc);
+
+		Term_cursor_visible(true);
 		Term_flush_output();
-		inkey_any();
-	}
+
+		struct keypress trigger = keymap_get_trigger();
+
+		if (trigger.code == '$') {
+			loc.x = 0;
+			loc.y = hints.height - 2;
+			c_prt(COLOUR_L_RED, "The '$' key is reserved.", loc);
+		} else if (trigger.code != 0) {
+			loc.y++;
+			ui_keymap_edit(loc);
+
+			loc.x = 0;
+			loc.y = hints.height - 2;
+			if (get_check("Save this keymap? ")) {
+				keymap_add(KEYMAP_MODE_OPT, trigger, keymap_buffer, true);
+				prt("Keymap added.", loc);
+			} else {
+				prt("Keymap not added.", loc);
+			}
+		}
+
+		loc.x = 0;
+		loc.y = hints.height - 1;
+		prt("Press ESC to exit, any other key to continue.", loc);
+
+		Term_cursor_visible(false);
+		Term_flush_output();
+
+		done = inkey_only_key();
+	} while (done.code != ESCAPE);
+
+	Term_pop();
 }
 
 static void ui_keymap_remove(const char *title, int index)
