@@ -398,10 +398,10 @@ static void keymap_browse_hook(int index, void *data, region reg)
 	clear_from(13);
 	prt("Current action (if any) shown below:", loc(0, 13));
 
-	char tmp[1024];
-	keypress_to_text(tmp, sizeof(tmp), keymap_buffer, false);
-	if (tmp[0]) {
-		prt(tmp, loc(0, 14));
+	char text[1024];
+	keypress_to_text(text, sizeof(text), keymap_buffer, false);
+	if (text[0]) {
+		prt(text, loc(0, 14));
 	}
 }
 
