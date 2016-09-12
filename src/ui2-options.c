@@ -1257,10 +1257,10 @@ static bool sval_menu(int tval, const char *desc)
 	menu_setpriv(menu, n_choices, choices);
 	menu->command_keys = "Tt";
 	menu->title = title;
-	region reg = {0, 0, 0, -1};
-	menu_layout(menu, reg);
 	menu_set_cursor_x_offset(menu, 1); /* Place cursor in brackets. */
 	mnflag_on(menu->flags, MN_NO_TAGS);
+	region reg = {0, 0, 0, -1};
+	menu_layout(menu, reg);
 
 	menu_select(menu);
 
