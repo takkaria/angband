@@ -51,11 +51,11 @@ static bool get_pref_path(const char *title, char *buf, size_t bufsize)
 	
 	bool use_filename = askfor_aux(filename, sizeof(filename), NULL);
 
+	clear_prompt();
+
 	if (use_filename) {
 		path_build(buf, bufsize, ANGBAND_DIR_USER, filename);
 	}
-
-	clear_prompt();
 
 	return use_filename;
 }
