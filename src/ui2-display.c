@@ -214,7 +214,7 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 			split++;
 		}
 
-		ws  += split;
+		ws += split;
 		len -= split;
 	}
 
