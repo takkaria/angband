@@ -279,19 +279,21 @@ static void ui_keymap_query(const char *title, int index)
 		struct keypress key = keymap_get_trigger();
 		const struct keypress *act = keymap_find(KEYMAP_MODE_OPT, key);
 
-		loc.y += 1;
 		if (act == NULL) {
+			loc.x -= 2;
+			loc.y += 2;
 			prt("No keymap with that trigger.", loc);
 		} else {
 			char tmp[1024];
 			keypress_to_text(tmp, sizeof(tmp), act, false);
 		
+			loc.y++;
 			prt("Found ", loc);
 			Term_puts(sizeof(tmp), COLOUR_L_BLUE, tmp);
 		}
 
-		loc.x -= 2;
-		loc.y += 2;
+		loc.x = 0;
+		loc.y = hints.height - 1;
 		prt("Press ESC to exit, any other key to continue.", loc);
 
 		Term_cursor_visible(false);
@@ -485,7 +487,8 @@ static void ui_keymap_remove(const char *title, int index)
 			prt("No keymap to remove!", loc);
 		}
 
-		loc.y++;
+		loc.x = 0;
+		loc.y = hints.height - 1;
 		prt("Press ESC to exit, any other key to continue.", loc);
 
 		Term_cursor_visible(false);
