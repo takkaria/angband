@@ -60,24 +60,24 @@
 
 /* Label looks like this: "a) "
  * three chars + null byte */
-#define OLIST_LABEL_LEN 4
+#define OLIST_LABEL_SIZE 4
 
 /* Equip looks like this: "On right hand : "
  * 20 bytes should be enough */
-#define OLIST_EQUIP_LEN 20
+#define OLIST_EQUIP_SIZE 20
 
 /**
  * Info about a particular object
  */
 struct object_menu_item {
 	struct {
-		char str[OLIST_LABEL_LEN];
+		char str[OLIST_LABEL_SIZE];
 		size_t len;
 		size_t size;
 	} label;
 
 	struct {
-		char str[OLIST_EQUIP_LEN];
+		char str[OLIST_EQUIP_SIZE];
 		size_t len;
 		size_t size;
 	} equip;
