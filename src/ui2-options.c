@@ -783,7 +783,7 @@ static void ego_display(struct menu * menu,
 	struct ego_desc *choice = menu->menu_data;
 	bool ignored = ego_is_ignored(choice[index].e_idx, choice[index].itype);
 
-	uint32_t attr = cursor ? COLOUR_L_BLUE : COLOUR_WHITE;
+	uint32_t attr = menu_row_style(true, cursor);
 	uint32_t sq_attr = ignored ? COLOUR_L_RED : COLOUR_L_GREEN;
 
 	/* Acquire the name of object */
