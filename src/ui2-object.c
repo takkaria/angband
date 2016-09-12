@@ -377,7 +377,7 @@ static struct loc show_quiver_compact(const char *keys, struct loc loc)
 	uint32_t attr = menu_row_style(false, false);
 
 	/* Quiver may take multiple lines */
-	for (int slot = 0; slot < slots; slot++, loc.y++) {
+	for (int slot = 0; slot < slots; slot++) {
 		char key = *keys++;
 		assert(key != 0);
 
@@ -397,6 +397,8 @@ static struct loc show_quiver_compact(const char *keys, struct loc loc)
 		strnfmt(buf, sizeof(buf), "in Quiver: %d missile%s", stack, stack == 1 ? "" : "s");
 		c_put_str(COLOUR_L_UMBER, buf, loc);
 		loc.x -= 3;
+
+		loc.y++;
 	}
 
 	return loc;
