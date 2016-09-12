@@ -44,17 +44,13 @@ static void do_cmd_pref_file(const char *prompt);
  */
 static bool get_pref_path(const char *what, char *buf, size_t bufsize)
 {
-	/* Prompt */
 	show_prompt(format("%s to a pref file: ", what), false);
 
-	/* Default filename */
 	char filename[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(filename, sizeof(filename), "%s.prf", player_safe_name(player, true));
 	
-	/* Get a filename */
 	bool ok = askfor_aux(filename, sizeof(filename), NULL);
 
-	/* Build the filename */
 	if (ok) {
 		path_build(buf, bufsize, ANGBAND_DIR_USER, filename);
 	}
