@@ -227,10 +227,10 @@ static struct keypress keymap_get_trigger(void)
 
 	buf[0] = inkey_only_key();
 
-	char tmp[ANGBAND_TERM_STANDARD_WIDTH];
-	keypress_to_text(tmp, sizeof(tmp), buf, false);
+	char text[ANGBAND_TERM_STANDARD_WIDTH];
+	keypress_to_text(text, sizeof(text), buf, false);
 
-	Term_puts(sizeof(tmp), COLOUR_WHITE, tmp);
+	Term_puts(sizeof(text), COLOUR_WHITE, text);
 
 	event_signal(EVENT_INPUT_FLUSH);
 
