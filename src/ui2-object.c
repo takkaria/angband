@@ -58,12 +58,16 @@
  */
 #define MAX_ITEMS 64
 
+/* Label looks like this: "a) "
+ * three chars + null byte */
+#define OLIST_LABEL_LEN 4
+
 /**
  * Info about a particular object
  */
 struct object_menu_item {
 	struct {
-		char str[ANGBAND_TERM_STANDARD_WIDTH];
+		char str[OLIST_LABEL_LEN];
 		size_t len;
 		size_t size;
 	} label;
