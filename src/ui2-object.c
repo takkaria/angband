@@ -201,7 +201,9 @@ static void show_obj(struct object_menu_item *item,
 /**
  * ------------------------------------------------------------------------
  * Display of lists of objects
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
+
 /**
  * Returns a new object list. Non-reentrant (call it optimization, or legacy)
  */
