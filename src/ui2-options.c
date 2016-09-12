@@ -232,8 +232,6 @@ static struct keypress keymap_get_trigger(void)
 
 	Term_puts(sizeof(text), COLOUR_WHITE, text);
 
-	event_signal(EVENT_INPUT_FLUSH);
-
 	return keys[0];
 }
 
