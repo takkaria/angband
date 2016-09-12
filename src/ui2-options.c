@@ -468,24 +468,6 @@ static void ui_keymap_remove(const char *title, int index)
 	inkey_any();
 }
 
-static void keymap_browse_hook(int index, void *data, region reg)
-{
-	(void) index;
-	(void) data;
-	(void) reg;
-
-	event_signal(EVENT_MESSAGE_FLUSH);
-
-	clear_from(13);
-	prt("Current action (if any) shown below:", loc(0, 13));
-
-	char text[1024] = "";
-	keypress_to_text(text, sizeof(text), keymap_buffer, false);
-	if (text[0]) {
-		prt(text, loc(0, 14));
-	}
-}
-
 static struct menu *keymap_menu;
 
 static menu_action keymap_actions[] = {
@@ -514,7 +496,6 @@ static void do_cmd_keymaps(const char *title, int index)
 	
 		keymap_menu->title = title;
 		keymap_menu->selections = lower_case;
-		keymap_menu->browse_hook = keymap_browse_hook;
 	}
 
 	menu_layout(keymap_menu, reg);
