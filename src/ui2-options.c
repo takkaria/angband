@@ -230,7 +230,7 @@ static struct keypress keymap_get_trigger(void)
 	char text[ANGBAND_TERM_STANDARD_WIDTH];
 	keypress_to_text(text, sizeof(text), keys, false);
 
-	Term_puts(sizeof(text), COLOUR_WHITE, text);
+	Term_puts(sizeof(text), COLOUR_L_BLUE, text);
 
 	return keys[0];
 }
@@ -251,31 +251,56 @@ static void ui_keymap_query(const char *title, int index)
 {
 	(void) index;
 
-	prt(title, loc(0, 13));
-	prt("Key: ", loc(0, 14));
+	struct term_hints hints = {
+		.width = 50,
+		.height = 6,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
 
-	Term_flush_output();
-	
-	/* Get a keymap trigger & mapping */
-	struct keypress key = keymap_get_trigger();
-	const struct keypress *act = keymap_find(KEYMAP_MODE_OPT, key);
+	struct keypress done = EVENT_EMPTY;
 
-	if (act == NULL) {
-		prt("No keymap with that trigger.", loc(0, 15));
-		prt("Press any key to continue.", loc(0, 17));
+	do {
+		struct loc loc = {0, 0};
+
+		Term_clear();
+
+		prt(title, loc);
+		loc.x += 2;
+		loc.y += 2;
+
+		prt("Key ", loc);
+
+		Term_cursor_visible(true);
 		Term_flush_output();
-		inkey_any();
-	} else {
-		char tmp[1024];
-		keypress_to_text(tmp, sizeof(tmp), act, false);
-	
-		prt("Found: ", loc(0, 15));
-		Term_puts(sizeof(tmp), COLOUR_WHITE, tmp);
+		
+		/* Get a keymap trigger & mapping */
+		struct keypress key = keymap_get_trigger();
+		const struct keypress *act = keymap_find(KEYMAP_MODE_OPT, key);
 
-		prt("Press any key to continue.", loc(0, 17));
+		loc.y += 1;
+		if (act == NULL) {
+			prt("No keymap with that trigger.", loc);
+		} else {
+			char tmp[1024];
+			keypress_to_text(tmp, sizeof(tmp), act, false);
+		
+			prt("Found ", loc);
+			Term_puts(sizeof(tmp), COLOUR_L_BLUE, tmp);
+		}
+
+		loc.x -= 2;
+		loc.y += 2;
+		prt("Press ESC to exit, any other key to continue.", loc);
+
+		Term_cursor_visible(false);
 		Term_flush_output();
-		inkey_any();
-	}
+		
+		done = inkey_only_key();
+	} while (done.code != ESCAPE);
+
+	Term_pop();
 }
 
 static void ui_keymap_create(const char *title, int index)
