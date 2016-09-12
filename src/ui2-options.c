@@ -42,7 +42,7 @@ static void do_cmd_pref_file(const char *prompt);
 /**
  * Prompt the user for a filename to save the pref file to.
  */
-static bool get_pref_path(const char *title, char *buf, size_t bufsize)
+static bool get_pref_path(char *buf, size_t bufsize, const char *title)
 {
 	show_prompt(format("%s to a pref file: ", title), false);
 
@@ -65,7 +65,7 @@ static void dump_pref_file(void (*dump)(ang_file *), const char *title)
 	char buf[1024];
 
 	/* Get filename from user */
-	if (get_pref_path(title, buf, sizeof(buf))) {
+	if (get_pref_path(buf, sizeof(buf), title)) {
 		/* Try to save */
 		if (prefs_save(buf, dump, title)) {
 			msg("Saved %s.", strstr(title, " ") + 1);
