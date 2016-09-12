@@ -870,8 +870,6 @@ static void ego_menu(void)
 	/* Sort the array by ego item name */
 	sort(choice, max_choice, sizeof(*choice), ego_comp_func);
 
-	show_prompt("Ego item ignore menu", false);
-
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -898,7 +896,6 @@ static void ego_menu(void)
 	menu_select(&menu);
 
 	mem_free(choice);
-	clear_prompt();
 	Term_pop();
 }
 
