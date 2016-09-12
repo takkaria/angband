@@ -520,11 +520,9 @@ static void do_cmd_keymaps(const char *title, int index)
 {
 	(void) index;
 
-	region reg = {0, 0, 0, 12};
-
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = reg.h + 8,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
@@ -537,7 +535,7 @@ static void do_cmd_keymaps(const char *title, int index)
 		keymap_menu->selections = lower_case;
 	}
 
-	menu_layout(keymap_menu, reg);
+	menu_layout_term(keymap_menu);
 	menu_select(keymap_menu);
 
 	Term_pop();
