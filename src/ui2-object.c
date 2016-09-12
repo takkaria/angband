@@ -112,7 +112,7 @@ static bool use_flavor_glyph(const struct object_kind *kind)
 }
 
 /**
- * Return the attr for a given item kind.  Use "lavor if available.
+ * Return the attr for a given item kind. Use flavor if available.
  * Default to user definitions.
  */
 uint32_t object_kind_attr(const struct object_kind *kind)
