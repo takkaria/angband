@@ -889,8 +889,9 @@ static void ego_menu(void)
 	menu.title = "Ego ignore menu";
 	menu_setpriv(&menu, max_choice, choice);
 	mnflag_on(menu.flags, MN_NO_TAGS);
-	menu_layout_term(&menu);
 	menu_set_cursor_x_offset(&menu, 1); /* Put cursor in brackets */
+	region reg = {0, 0, 0, -1};
+	menu_layout(&menu, reg);
 
 	menu_select(&menu);
 
