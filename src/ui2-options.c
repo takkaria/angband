@@ -221,20 +221,20 @@ static struct keypress keymap_buffer[KEYMAP_ACTION_MAX + 1];
  */
 static struct keypress keymap_get_trigger(void)
 {
-	struct keypress buf[2] = {KEYPRESS_NULL, KEYPRESS_NULL};
+	struct keypress keys[2] = {KEYPRESS_NULL, KEYPRESS_NULL};
 
 	event_signal(EVENT_INPUT_FLUSH);
 
-	buf[0] = inkey_only_key();
+	keys[0] = inkey_only_key();
 
 	char text[ANGBAND_TERM_STANDARD_WIDTH];
-	keypress_to_text(text, sizeof(text), buf, false);
+	keypress_to_text(text, sizeof(text), keys, false);
 
 	Term_puts(sizeof(text), COLOUR_WHITE, text);
 
 	event_signal(EVENT_INPUT_FLUSH);
 
-	return buf[0];
+	return keys[0];
 }
 
 /**
