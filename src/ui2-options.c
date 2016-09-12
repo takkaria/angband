@@ -428,7 +428,12 @@ static void ui_keymap_create(const char *title, int index)
 
 			loc.x = 0;
 			loc.y = hints.height - 2;
-			if (get_check("Save this keymap? ")) {
+
+			prt("Save this keymap? ", loc);
+			Term_flush_output();
+
+			struct keypress key = inkey_only_key();
+			if (key.code == 'y' || key.code == 'Y' || key.code == KC_ENTER) {
 				keymap_add(KEYMAP_MODE_OPT, trigger, keymap_buffer, true);
 				prt("Keymap added.", loc);
 			} else {
