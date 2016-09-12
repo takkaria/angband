@@ -419,6 +419,8 @@ static void ui_keymap_create(const char *title, int index)
 			loc.y = hints.height - 2;
 			c_prt(COLOUR_L_RED, "The '$' key is reserved.", loc);
 		} else if (trigger.code != 0) {
+			memset(keymap_buffer, 0, sizeof(keymap_buffer));
+
 			loc.y++;
 			ui_keymap_edit(loc);
 
