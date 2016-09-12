@@ -1375,6 +1375,7 @@ static void display_options_item(struct menu *menu,
 			} else {
 				attr = menu_row_style(true, cursor);
 			}
+
 			c_prt(attr, extra_item_options[line].name, loc);
 		}
 	}
