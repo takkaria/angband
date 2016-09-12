@@ -489,7 +489,7 @@ static void ui_keymap_remove(const char *title, int index)
 		if (keymap_remove(KEYMAP_MODE_OPT, trigger)) {
 			prt("Removed.", loc);
 		} else {
-			prt("No keymap to remove!", loc);
+			prt("No keymap to remove.", loc);
 		}
 
 		loc.x = 0;
