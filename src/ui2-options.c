@@ -649,15 +649,15 @@ static void do_cmd_pref_file(const char *prompt)
 	}
 
 	/* Default filename */
-	char ftmp[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(ftmp, sizeof(ftmp), "%s.prf", player_safe_name(player, true));
+	char filename[ANGBAND_TERM_STANDARD_WIDTH];
+	strnfmt(filename, sizeof(filename), "%s.prf", player_safe_name(player, true));
 
 	/* Ask for a file (or cancel) */
-	if (askfor_aux(ftmp, sizeof(ftmp), NULL)) {
-		if (!process_pref_file(ftmp, false, true)) {
-			msg("Failed to load '%s'!", ftmp);
+	if (askfor_aux(filename, sizeof(filename), NULL)) {
+		if (!process_pref_file(filename, false, true)) {
+			msg("Failed to load '%s'!", filename);
 		} else {
-			msg("Loaded '%s'.", ftmp);
+			msg("Loaded '%s'.", filename);
 		}
 	} else {
 		clear_prompt();
