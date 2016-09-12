@@ -1007,6 +1007,7 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
 	};
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
 	menu_setpriv(&menu, count, quality_values);
+	menu.cursor = ignore_level[index];
 	mnflag_on(menu.flags, MN_NO_TAGS);
 	menu_layout_term(&menu);
 
