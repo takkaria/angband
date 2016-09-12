@@ -63,19 +63,19 @@
  */
 struct object_menu_item {
 	struct {
-		char str[80];
+		char str[ANGBAND_TERM_STANDARD_WIDTH];
 		size_t len;
 		size_t size;
 	} label;
 
 	struct {
-		char str[80];
+		char str[ANGBAND_TERM_STANDARD_WIDTH];
 		size_t len;
 		size_t size;
 	} equip;
 
 	struct {
-		char str[80];
+		char str[ANGBAND_TERM_STANDARD_WIDTH];
 		size_t len;
 		size_t size;
 	} name;
