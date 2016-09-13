@@ -2686,7 +2686,7 @@ static bool is_rect_in_rect(const SDL_Rect *small, const SDL_Rect *big)
 		&& small->y + small->h <= big->y + big->h;
 }
 
-static void fit_rect_in_rect_by_wh(SDL_Rect *small, const SDL_Rect *big)
+static void fit_rect_in_rect_size(SDL_Rect *small, const SDL_Rect *big)
 {
 	if (small->x < big->x) {
 		small->w -= big->x - small->x;
@@ -2704,7 +2704,7 @@ static void fit_rect_in_rect_by_wh(SDL_Rect *small, const SDL_Rect *big)
 	}
 }
 
-static void fit_rect_in_rect_by_xy(SDL_Rect *small, const SDL_Rect *big)
+static void fit_rect_in_rect_position(SDL_Rect *small, const SDL_Rect *big)
 {
 	if (small->x < big->x) {
 		small->x = big->x;
@@ -2975,7 +2975,7 @@ static void do_sizing(struct window *window, int x, int y)
 	int bottom = size_state->top  ? 0 : newy;
 
 	resize_rect(&rect, left, top, right, bottom);
-	fit_rect_in_rect_by_wh(&rect, &window->inner_rect);
+	fit_rect_in_rect_size(&rect, &window->inner_rect);
 
 	if (is_ok_col_row(size_state->subwindow,
 				&rect,
@@ -3001,7 +3001,7 @@ static void do_moving(struct window *window, int x, int y)
 	rect->y += y - move_state->originy;
 
 	try_snap(window, move_state->subwindow, rect);
-	fit_rect_in_rect_by_xy(rect, &window->inner_rect);
+	fit_rect_in_rect_position(rect, &window->inner_rect);
 
 	move_state->originx = x;
 	move_state->originy = y;
@@ -4028,7 +4028,8 @@ static bool reload_subwindow_font(struct subwindow *subwindow,
 		return false;
 	}
 
-	fit_rect_in_rect_by_xy(&subwindow->sizing_rect, &subwindow->window->inner_rect);
+	fit_rect_in_rect_position(&subwindow->sizing_rect,
+			&subwindow->window->inner_rect);
 
 	free_font(subwindow->font);
 	subwindow->font = new_font;
@@ -4715,7 +4716,7 @@ static void load_status_bar(struct window *window)
 static void fit_subwindow_in_window(const struct window *window,
 		struct subwindow *subwindow)
 {
-	fit_rect_in_rect_by_xy(&subwindow->full_rect, &window->inner_rect);
+	fit_rect_in_rect_position(&subwindow->full_rect, &window->inner_rect);
 
 	if (!is_rect_in_rect(&subwindow->full_rect, &window->inner_rect)) {
 		subwindow->borders.error = true;
