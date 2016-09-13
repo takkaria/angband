@@ -164,6 +164,7 @@ static void show_obj(struct object_menu_item *item,
 		struct loc loc, size_t extra_fields_offset,
 		bool cursor, int mode)
 {
+	/* We show the label in subwindows; menus have their own labels */
 	const bool show_label =
 		(mode & (OLIST_WINDOW | OLIST_DEATH)) ? true : false;
 
