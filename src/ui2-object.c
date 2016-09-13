@@ -130,7 +130,7 @@ struct object_menu_list {
 	size_t extra_fields_offset;
 };
 
-static void show_obj_extra(const struct object_menu_item *item,
+static void show_item_extra(const struct object_menu_item *item,
 		struct loc loc, int mode)
 {
 	erase_line(loc);
@@ -160,7 +160,7 @@ static void show_obj_extra(const struct object_menu_item *item,
  * Used by show_inven(), show_equip(), show_quiver() and show_floor().
  * Mode flags are documented in object.h
  */
-static void show_obj(struct object_menu_item *item, 
+static void show_item(struct object_menu_item *item, 
 		struct loc loc, size_t extra_fields_offset,
 		bool cursor, int mode)
 {
@@ -207,7 +207,7 @@ static void show_obj(struct object_menu_item *item,
 	/* If we don't have an object, we can skip the extra fields */
 	if (item->object) {
 		saved_loc.x = extra_fields_offset;
-		show_obj_extra(item, saved_loc, mode);
+		show_item_extra(item, saved_loc, mode);
 	}
 }
 
@@ -470,7 +470,7 @@ static struct loc show_obj_list(struct object_menu_list *olist,
 {
 
 	for (size_t i = 0; i < olist->len; i++, loc.y++) {
-		show_obj(&olist->items[i],
+		show_item(&olist->items[i],
 				loc, olist->extra_fields_offset, false, mode);
 	}
 
@@ -938,7 +938,7 @@ static void get_item_display(struct menu *menu,
 
 	struct object_menu_data *data = menu_priv(menu);
 
-	show_obj(&data->list->items[index], loc, data->list->extra_fields_offset,
+	show_item(&data->list->items[index], loc, data->list->extra_fields_offset,
 			cursor, data->olist_mode);
 }
 
