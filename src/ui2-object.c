@@ -733,12 +733,12 @@ bool get_item_allow(const struct object *obj,
  * and "x" is the command that tag will work for.
  */
 static bool find_inscribed_object(struct object_menu_list *olist,
-		int *index, char inscrip, cmd_code cmd, bool quiver_tags)
+		int *index, char inscrip, cmd_code cmd, bool check_quiver)
 {
 	const int mode = KEYMAP_MODE_OPT;
 
 	/* (f)ire is handled differently from all others, due to the quiver */
-	if (quiver_tags) {
+	if (check_quiver) {
 		int i = D2I(inscrip);
 
 		if (i >= 0 && i < z_info->quiver_size
@@ -1075,12 +1075,12 @@ static void menu_find_inscriptions(struct menu *menu,
 	struct object_menu_data *data = menu_priv(menu);
 
 	const int item_cmd = data->item_cmd;
-	const bool quiver_tags = (data->item_mode & QUIVER_TAGS) ? true : false;
+	const bool check_quiver = (data->item_mode & QUIVER_TAGS) ? true : false;
 
 	for (int i = 0; i < 10; i++) {
 		int index = 0;
 		if (find_inscribed_object(data->list,
-					&index, I2D(i), item_cmd, quiver_tags))
+					&index, I2D(i), item_cmd, check_quiver))
 		{
 			inscriptions[i] = get_item_tag(menu, index);
 		}
