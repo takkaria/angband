@@ -463,7 +463,7 @@ void show_inven(int mode, item_tester tester)
 	}
 
 	if (mode & OLIST_WINDOW) {
-		/* Show compact names of objects in subwindows */
+		/* Show compact names of objects in inven subwindow */
 		mode |= OLIST_TERSE;
 	}
 
@@ -515,7 +515,7 @@ void show_equip(int mode, item_tester tester)
 	size_t line_max_len = 0;
 
 	if (mode & OLIST_WINDOW) {
-		/* Show compact names of objects in subwindows */
+		/* Show compact names of objects in equip subwindow */
 		mode |= OLIST_TERSE;
 	}
 
