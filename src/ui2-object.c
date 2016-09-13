@@ -307,6 +307,7 @@ static void build_obj_list(struct object_menu_list *olist,
 	const bool quiver = (mode & OLIST_QUIVER_FULL) ? true : false;
 	const bool sempty = (mode & OLIST_SHOW_EMPTY)  ? true : false;
 	const bool window = (mode & OLIST_WINDOW)      ? true : false;
+	const bool terse  = (mode & OLIST_TERSE)       ? true : false;
 	const bool gold   = (mode & OLIST_GOLD)        ? true : false;
 	const bool equip  = (objects == NULL)          ? true : false;
 
@@ -336,12 +337,12 @@ static void build_obj_list(struct object_menu_list *olist,
 		}
 
 		/* Show full slot labels for equipment or quiver */
-		if (equip) {
+		if (equip && !terse) {
 			item->equip.len = 
 				strnfmt(item->equip.str, item->equip.size,
 						"%-14s ", equip_mention(player, i));
 			my_strcap(item->equip.str);
-		} else if (quiver) {
+		} else if (quiver && !terse) {
 			item->equip.len =
 				strnfmt(item->equip.str, item->equip.size,
 						"Slot %-9d ", i);
