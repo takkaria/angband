@@ -801,6 +801,7 @@ static void cat_menu_header(char *buf, size_t bufsize,
 	if (quiver) {
 		my_strcat(buf, " | for Quiver,", bufsize);
 	}
+
 	if (floor) {
 		my_strcat(buf, " - for floor,", bufsize);
 	}
