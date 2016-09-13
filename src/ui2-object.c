@@ -504,9 +504,11 @@ void show_equip(int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
 	struct loc loc = {0, 0};
+	size_t line_max_len;
 
 	build_obj_list(olist, NULL, player->body.count - 1,
 			all_letters, tester, mode);
+	line_max_len = olist->line_max_len;
 	loc = show_obj_list(olist, mode, loc);
 	free_obj_list(olist);
 
@@ -525,6 +527,7 @@ void show_equip(int mode, item_tester tester)
 		}
 
 		mode |= OLIST_QUIVER_FULL;
+		olist->line_max_len = line_max_len;
 
 		build_obj_list(olist, player->upkeep->quiver, last,
 				all_digits, tester, mode);
