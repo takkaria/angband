@@ -1098,23 +1098,24 @@ static void item_menu(struct object_menu_data *data)
 		.row_handler = get_item_action
 	};
 
-	struct menu *menu = menu_new(MN_SKIN_OBJECT, &iter);
+	struct menu menu;
+	menu_init(&menu, MN_SKIN_OBJECT, &iter);
 
-	menu_setpriv(menu, data->list->len, data);
+	menu_setpriv(&menu, data->list->len, data);
 
-	menu->selections =
+	menu.selections =
 		player->upkeep->command_wrk == USE_QUIVER ? all_digits : lower_case;
 
-	menu->stop_keys = "/|-";
-	menu->browse_hook = quiver_browser;
+	menu.stop_keys = "/|-";
+	menu.browse_hook = quiver_browser;
 
-	mnflag_on(menu->flags, MN_PVT_TAGS);
-	mnflag_on(menu->flags, MN_INSCRIP_TAGS);
-	mnflag_on(menu->flags, MN_DONT_CLEAR);
+	mnflag_on(menu.flags, MN_PVT_TAGS);
+	mnflag_on(menu.flags, MN_INSCRIP_TAGS);
+	mnflag_on(menu.flags, MN_DONT_CLEAR);
 
 	char inscriptions[10] = {0};
-	menu_find_inscriptions(menu, inscriptions, sizeof(inscriptions));
-	menu->inscriptions = inscriptions;
+	menu_find_inscriptions(&menu, inscriptions, sizeof(inscriptions));
+	menu.inscriptions = inscriptions;
 
 	region reg = {
 		.x = 0,
@@ -1122,11 +1123,9 @@ static void item_menu(struct object_menu_data *data)
 		.w = 0, /* full term width */
 		.h = data->list->len
 	};
-	menu_layout(menu, reg);
+	menu_layout(&menu, reg);
 
-	ui_event event = menu_select(menu);
-
-	menu_free(menu);
+	ui_event event = menu_select(&menu);
 
 	if (event.type == EVT_SWITCH) {
 		change_command_wrk(data, event);
