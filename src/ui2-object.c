@@ -275,10 +275,8 @@ static void set_extra_fields(struct object_menu_list *olist, int *mode)
  */
 static void set_obj_names(struct object_menu_list *olist, int mode)
 {
-	int oflags = ODESC_PREFIX | ODESC_FULL;
-	if (mode & OLIST_TERSE) {
-		oflags |= ODESC_TERSE;
-	}
+	int oflags =
+		ODESC_PREFIX | ODESC_FULL | (mode & OLIST_TERSE ? ODESC_TERSE : 0);
 
 	/* Calculate name offset and max name length */
 	for (size_t i = 0; i < olist->len; i++) {
