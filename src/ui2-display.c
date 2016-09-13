@@ -1535,6 +1535,7 @@ static void update_inven_subwindow(game_event_type type,
 	(void) data;
 
 	Term_push(DISPLAY_TERM(user)->term);
+	Term_clear();
 
 	if (!flip_inven_equip) {
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
@@ -1553,6 +1554,7 @@ static void update_equip_subwindow(game_event_type type,
 	(void) data;
 
 	Term_push(DISPLAY_TERM(user)->term);
+	Term_clear();
 
 	if (!flip_inven_equip) {
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
@@ -1575,6 +1577,7 @@ void toggle_inven_equip(void)
 	struct display_term *inven = display_term_get(DISPLAY_INVEN);
 	if (inven->term != NULL) {
 		Term_push(inven->term);
+		Term_clear();
 
 		if (flip_inven_equip) {
 			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
@@ -1589,6 +1592,7 @@ void toggle_inven_equip(void)
 	struct display_term *equip = display_term_get(DISPLAY_EQUIP);
 	if (equip->term != NULL) {
 		Term_push(equip->term);
+		Term_clear();
 
 		if (flip_inven_equip) {
 			show_inven(OLIST_WINDOW | OLIST_WEIGHT, NULL);
