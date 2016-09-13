@@ -1001,7 +1001,10 @@ static void quiver_browser(int index, void *menu_data, region active)
 		};
 
 		assert(data->list->len < 26);
-		show_quiver_compact(all_letters + data->list->len, Term_height(), loc);
+
+		/* The term is unlikely to be 999 rows high;
+		 * but it should be high enough to show all missiles in quiver */
+		show_quiver_compact(all_letters + data->list->len, 999, loc);
 	}
 }
 
