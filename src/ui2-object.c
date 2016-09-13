@@ -1077,12 +1077,12 @@ static void menu_find_inscriptions(struct menu *menu,
 	const int item_cmd = data->item_cmd;
 	const bool quiver_tags = (data->item_mode & QUIVER_TAGS) ? true : false;
 
-	for (int inscrip = 0; inscrip < 10; inscrip++) {
+	for (int i = 0; i < 10; i++) {
 		int index = 0;
 		if (find_inscribed_object(data->list,
-					&index, I2D(inscrip), item_cmd, quiver_tags))
+					&index, I2D(i), item_cmd, quiver_tags))
 		{
-			inscriptions[inscrip] = get_item_tag(menu, index);
+			inscriptions[i] = get_item_tag(menu, index);
 		}
 	}
 }
