@@ -70,9 +70,34 @@
 #define OLIST_NAME_SIZE \
 	ANGBAND_TERM_STANDARD_WIDTH
 
+#define EXTRA_FIELD_WEIGHT_WIDTH 9
+#define EXTRA_FIELD_PRICE_WIDTH 9
+#define EXTRA_FIELD_FAIL_WIDTH 10
+
 /**
  * Info about a particular object
  */
+
+struct object_menu_item_extra {
+	struct {
+		char str[EXTRA_FIELD_WEIGHT_WIDTH + 1];
+		size_t len;
+		size_t size;
+	} weight;
+
+	struct {
+		char str[EXTRA_FIELD_PRICE_WIDTH + 1];
+		size_t len;
+		size_t size;
+	} price;
+
+	struct {
+		char str[EXTRA_FIELD_FAIL_WIDTH + 1];
+		size_t len;
+		size_t size;
+	} fail;
+};
+
 struct object_menu_item {
 	struct {
 		char str[OLIST_LABEL_SIZE];
@@ -92,6 +117,7 @@ struct object_menu_item {
 		size_t size;
 	} name;
 
+	struct object_menu_item_extra extra;
 	struct object *object;
 	char key;
 };
@@ -104,54 +130,28 @@ struct object_menu_list {
 	size_t extra_fields_offset;
 };
 
-#define EXTRA_FIELD_WEIGHT_WIDTH 9
-#define EXTRA_FIELD_PRICE_WIDTH 9
-#define EXTRA_FIELD_FAIL_WIDTH 10
-
-static void show_obj_extra(const struct object *obj,
+static void show_obj_extra(const struct object_menu_item *item,
 		struct loc loc, int mode)
 {
-	char buf[ANGBAND_TERM_STANDARD_WIDTH];
-	const size_t bufsize = sizeof(buf);
-
 	erase_line(loc);
 
 	/* Price */
-	if (mode & OLIST_PRICE) {
-		struct store *store = store_at(cave, player->py, player->px);
-		if (store) {
-			int price = price_item(store, obj, true, obj->number);
-
-			strnfmt(buf, bufsize, "%6d au", price);
-			put_str_len(buf, loc, EXTRA_FIELD_PRICE_WIDTH);
-
-			loc.x += EXTRA_FIELD_PRICE_WIDTH;
-		}
+	if (item->extra.price.len > 0) {
+		put_str_len(item->extra.price.str, loc, item->extra.price.len);
+		loc.x += item->extra.price.len;
 	}
 
 	/* Failure chance for magic devices and activations */
-	if ((mode & OLIST_FAIL) && obj_can_fail(obj)) {
-		int fail = (9 + get_use_device_chance(obj)) / 10;
-
-		if (object_effect_is_known(obj)) {
-			strnfmt(buf, bufsize, "%4d%% fail", fail);
-		} else {
-			my_strcpy(buf, "    ? fail", bufsize);
-		}
-		put_str_len(buf, loc, EXTRA_FIELD_FAIL_WIDTH);
-
-		loc.x += EXTRA_FIELD_FAIL_WIDTH;
+	if (item->extra.fail.len > 0) {
+		put_str_len(item->extra.fail.str, loc, item->extra.fail.len);
+		loc.x += item->extra.fail.len;
 	}
 
 	/* Weight */
-	if (mode & OLIST_WEIGHT) {
-		int weight = obj->weight * obj->number;
-
-		strnfmt(buf, bufsize, "%4d.%1d lb", weight / 10, weight % 10);
-		put_str_len(buf, loc, EXTRA_FIELD_WEIGHT_WIDTH);
-
+	if (item->extra.weight.len > 0) {
+		put_str_len(item->extra.weight.str, loc, item->extra.weight.len);
 		/* Just because (maybe stuff will be added later?) */
-		loc.x += EXTRA_FIELD_WEIGHT_WIDTH;
+		loc.x += item->extra.weight.len;
 	}
 }
 
@@ -206,8 +206,8 @@ static void show_obj(struct object_menu_item *item,
 
 	/* If we don't have an object, we can skip the extra fields */
 	if (item->object) {
-		saved_loc.x += extra_fields_offset;
-		show_obj_extra(item->object, saved_loc, mode);
+		saved_loc.x = extra_fields_offset;
+		show_obj_extra(item, saved_loc, mode);
 	}
 }
 
@@ -232,6 +232,11 @@ static struct object_menu_list *get_obj_list(void)
 		olist.items[i].label.size = sizeof(olist.items[i].label.str);
 		olist.items[i].equip.size = sizeof(olist.items[i].equip.str);
 		olist.items[i].name.size  = sizeof(olist.items[i].name.str);
+
+		olist.items[i].extra.weight.size = sizeof(olist.items[i].extra.weight.str);
+		olist.items[i].extra.price.size  = sizeof(olist.items[i].extra.price.str);
+		olist.items[i].extra.fail.size   = sizeof(olist.items[i].extra.fail.str);
+
 		/* Pedantry */
 		olist.items[i].object = NULL;
 	}
@@ -246,26 +251,75 @@ static void free_obj_list(struct object_menu_list *olist)
 	/* Maybe get_obj_list() will become reentrant at some point? */
 }
 
-static void set_extra_fields(struct object_menu_list *olist, int *mode)
+static void set_item_extra(struct object_menu_list *olist, size_t i, int mode)
+{
+	const struct object *obj = olist->items[i].object;
+
+	if (mode & OLIST_PRICE) {
+		struct store *store = store_at(cave, player->py, player->px);
+		if (store) {
+			int price = price_item(store, obj, true, obj->number);
+
+			olist->items[i].extra.price.len =
+				strnfmt(olist->items[i].extra.price.str,
+						olist->items[i].extra.price.size,
+						"%6d au", price);
+		}
+	}
+
+	/* Failure chance for magic devices and activations */
+	if ((mode & OLIST_FAIL) && obj_can_fail(obj)) {
+		int fail = (9 + get_use_device_chance(obj)) / 10;
+
+		if (object_effect_is_known(obj)) {
+			olist->items[i].extra.fail.len =
+				strnfmt(olist->items[i].extra.fail.str,
+						olist->items[i].extra.fail.size,
+						"%4d%% fail", fail);
+		} else {
+			olist->items[i].extra.fail.len =
+				my_strcpy(olist->items[i].extra.fail.str,
+						"    ? fail",
+						olist->items[i].extra.fail.size);
+		}
+	}
+
+	/* Weight */
+	if (mode & OLIST_WEIGHT) {
+		int weight = obj->weight * obj->number;
+
+		olist->items[i].extra.weight.len =
+			strnfmt(olist->items[i].extra.weight.str,
+					olist->items[i].extra.weight.size,
+					"%4d.%1d lb", weight / 10, weight % 10);
+	}
+}
+
+static void set_olist_extra(struct object_menu_list *olist, int mode)
 {
 	const size_t term_width = Term_width();
 
-	if ((*mode & OLIST_WINDOW) && term_width < olist->line_max_len) {
-		*mode &= ~OLIST_WEIGHT;
+	if ((mode & OLIST_WINDOW) && term_width < olist->line_max_len) {
+		mode &= ~OLIST_WEIGHT;
 	}
 
 	size_t extra_fields_width = 0;
-	if (*mode & OLIST_WEIGHT) extra_fields_width += EXTRA_FIELD_WEIGHT_WIDTH;
-	if (*mode & OLIST_PRICE)  extra_fields_width += EXTRA_FIELD_PRICE_WIDTH;
-	if (*mode & OLIST_FAIL)   extra_fields_width += EXTRA_FIELD_FAIL_WIDTH;
+	if (mode & OLIST_WEIGHT) extra_fields_width += EXTRA_FIELD_WEIGHT_WIDTH;
+	if (mode & OLIST_PRICE)  extra_fields_width += EXTRA_FIELD_PRICE_WIDTH;
+	if (mode & OLIST_FAIL)   extra_fields_width += EXTRA_FIELD_FAIL_WIDTH;
 
 	/* Column offset of the first extra field */
-	if (extra_fields_width < term_width) {
+	if (extra_fields_width > 0
+			&& extra_fields_width < term_width)
+	{
 		olist->extra_fields_offset =
 			MIN(olist->line_max_len, term_width - extra_fields_width);
-	} else {
-		olist->extra_fields_offset = olist->line_max_len;
-		*mode &= ~(OLIST_WEIGHT | OLIST_PRICE | OLIST_FAIL);
+
+		for (size_t i = 0; i < olist->len; i++) {
+			if (olist->items[i].object != NULL) {
+				set_item_extra(olist, i, mode);
+			}
+		}
 	}
 }
 
@@ -273,7 +327,7 @@ static void set_extra_fields(struct object_menu_list *olist, int *mode)
  * Set object names and get their maximum length.
  * Only makes sense after building the object list.
  */
-static void set_obj_names(struct object_menu_list *olist, bool terse)
+static void set_olist_names(struct object_menu_list *olist, bool terse)
 {
 	int oflags =
 		ODESC_PREFIX | ODESC_FULL | (terse ? ODESC_TERSE : 0);
@@ -357,7 +411,8 @@ static void build_obj_list(struct object_menu_list *olist,
 	}
 
 	/* Set the names and get the max length */
-	set_obj_names(olist, terse);
+	set_olist_names(olist, terse);
+	set_olist_extra(olist, mode);
 }
 
 static int quiver_slots(int stack)
@@ -413,7 +468,6 @@ static struct loc show_quiver_compact(const char *keys, struct loc loc)
 static struct loc show_obj_list(struct object_menu_list *olist,
 		int mode, struct loc loc)
 {
-	set_extra_fields(olist, &mode);
 
 	for (size_t i = 0; i < olist->len; i++, loc.y++) {
 		show_obj(&olist->items[i],
@@ -1032,8 +1086,6 @@ static void item_menu(struct object_menu_data *data)
 	char inscriptions[10] = {0};
 	menu_find_inscriptions(menu, inscriptions, sizeof(inscriptions));
 	menu->inscriptions = inscriptions;
-
-	set_extra_fields(data->list, &data->olist_mode);
 
 	region reg = {
 		.x = 0,
