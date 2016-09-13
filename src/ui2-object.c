@@ -468,8 +468,8 @@ void show_inven(int mode, item_tester tester)
 }
 
 /**
- * Display the quiver.  Builds a list of objects and passes them
- * off to show_obj_list() for display.  Mode flags documented in
+ * Display the quiver. Builds a list of objects and passes them
+ * off to show_obj_list() for display. Mode flags documented in
  * object.h
  */
 void show_quiver(int mode, item_tester tester)
