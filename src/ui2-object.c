@@ -732,14 +732,14 @@ bool get_item_allow(const struct object *obj,
  * Also, the tag "@xn" will work as well, where "n" is a tag-char,
  * and "x" is the command that tag will work for.
  */
-static bool get_tag(struct object_menu_list *olist,
-		int *index, char tag, cmd_code cmd, bool quiver_tags)
+static bool get_inscription(struct object_menu_list *olist,
+		int *index, char inscrip, cmd_code cmd, bool quiver_tags)
 {
 	const int mode = KEYMAP_MODE_OPT;
 
 	/* (f)ire is handled differently from all others, due to the quiver */
 	if (quiver_tags) {
-		int i = D2I(tag);
+		int i = D2I(inscrip);
 
 		if (i >= 0 && i < z_info->quiver_size
 				&& player->upkeep->quiver[i])
@@ -763,7 +763,7 @@ static bool get_tag(struct object_menu_list *olist,
 					s != NULL;
 					s = strchr(s + 1, '@'))
 			{
-				if (s[1] == tag || (s[1] == (char) cmdkey && s[2] == tag)) {
+				if (s[1] == inscrip || (s[1] == (char) cmdkey && s[2] == inscrip)) {
 					*index = i;
 					return true;
 				}
@@ -1075,7 +1075,7 @@ static void menu_find_inscriptions(struct menu *menu,
 
 	for (int inscrip = 0; inscrip < 10; inscrip++) {
 		int index = 0;
-		if (get_tag(data->list, &index, I2D(inscrip), item_cmd, quiver_tags)) {
+		if (get_inscription(data->list, &index, I2D(inscrip), item_cmd, quiver_tags)) {
 			inscriptions[inscrip] = get_item_tag(menu, index);
 		}
 	}
