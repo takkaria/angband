@@ -1081,7 +1081,7 @@ static void menu_find_inscriptions(struct menu *menu,
 		if (find_inscribed_object(data->list,
 					&index, I2D(i), data->item_cmd, check_quiver))
 		{
-			inscriptions[i] = get_item_tag(menu, index);
+			inscriptions[i] = data->list->items[index].key;
 		}
 	}
 }
