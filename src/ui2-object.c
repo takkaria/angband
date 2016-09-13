@@ -300,6 +300,7 @@ static void set_olist_extra(struct object_menu_list *olist, int mode)
 {
 	const size_t term_width = Term_width();
 
+	/* Don't show objects weight if the subwindow is not big enought */
 	if ((mode & OLIST_WINDOW)
 			&& term_width < olist->line_max_len + EXTRA_FIELD_WEIGHT_WIDTH)
 	{
