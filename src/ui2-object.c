@@ -250,7 +250,7 @@ static void set_extra_fields(struct object_menu_list *olist, int *mode)
 {
 	const size_t term_width = Term_width();
 
-	if ((*mode & OLIST_WINDOW) && term_width < 40) {
+	if ((*mode & OLIST_WINDOW) && term_width < olist->line_max_len) {
 		*mode &= ~OLIST_WEIGHT;
 	}
 
