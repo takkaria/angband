@@ -608,6 +608,7 @@ void show_equip(int mode, item_tester tester)
 			}
 		}
 
+		/* Linu up weight display of equip and quiver */
 		olist->line_max_len = line_max_len;
 
 		build_obj_list(olist, player->upkeep->quiver, last,
