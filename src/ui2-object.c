@@ -127,6 +127,7 @@ struct object_menu_list {
 	size_t len;
 	size_t size;
 	size_t line_max_len;
+	size_t total_max_len;
 	size_t extra_fields_offset;
 };
 
@@ -321,6 +322,8 @@ static void set_olist_extra(struct object_menu_list *olist, int mode)
 			}
 		}
 	}
+
+	olist->total_max_len = olist->line_max_len + extra_fields_width;
 }
 
 /**
