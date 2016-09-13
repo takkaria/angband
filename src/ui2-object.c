@@ -15,7 +15,7 @@
  * b) the "Angband licence":
  *    This software may be copied and distributed for educational, research,
  *    and not for profit purposes provided that this copyright and statement
- *    are included in all such copies.  Other copyrights may also apply.
+ *    are included in all such copies. Other copyrights may also apply.
  */
 
 #include "angband.h"
@@ -425,8 +425,8 @@ static struct loc show_obj_list(struct object_menu_list *olist,
 }
 
 /**
- * Display the inventory.  Builds a list of objects and passes them
- * off to show_obj_list() for display.  Mode flags documented in
+ * Display the inventory. Builds a list of objects and passes them
+ * off to show_obj_list() for display. Mode flags documented in
  * object.h
  */
 void show_inven(int mode, item_tester tester)
@@ -496,8 +496,8 @@ void show_quiver(int mode, item_tester tester)
 }
 
 /**
- * Display the equipment.  Builds a list of objects and passes them
- * off to show_obj_list() for display.  Mode flags documented in
+ * Display the equipment. Builds a list of objects and passes them
+ * off to show_obj_list() for display. Mode flags documented in
  * object.h
  */
 void show_equip(int mode, item_tester tester)
@@ -534,8 +534,8 @@ void show_equip(int mode, item_tester tester)
 }
 
 /**
- * Display the floor.  Builds a list of objects and passes them
- * off to show_obj_list() for display.  Mode flags documented in
+ * Display the floor. Builds a list of objects and passes them
+ * off to show_obj_list() for display. Mode flags documented in
  * object.h
  */
 void show_floor(struct object **floor_list, int floor_num,
@@ -1299,7 +1299,7 @@ static void pop_item_term(void)
  * If no item is selected, we store NULL in "choice", and return false.
  *
  * Global "player->upkeep->command_wrk" is used to choose between
- * equip/inven/quiver/floor listings.  It is equal to USE_INVEN or USE_EQUIP or
+ * equip/inven/quiver/floor listings. It is equal to USE_INVEN or USE_EQUIP or
  * USE_QUIVER or USE_FLOOR, except when this function is first called, when it
  * is equal to zero, which will cause it to be set to USE_INVEN.
  *
@@ -1307,7 +1307,7 @@ static void pop_item_term(void)
  * or a warning message, if appropriate, if no items are available.
  *
  * Note that only "acceptable" floor objects get indexes, so between two
- * commands, the indexes of floor objects may change.  XXX XXX XXX
+ * commands, the indexes of floor objects may change. XXX XXX XXX
  */
 bool textui_get_item(struct object **choice,
 		const char *prompt, const char *reject,
