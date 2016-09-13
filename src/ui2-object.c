@@ -335,7 +335,7 @@ static void build_obj_list(struct object_menu_list *olist,
 			continue;
 		}
 
-		/* Show full slot labels for equipment (or quiver in subwindow) */
+		/* Show full slot labels for equipment or quiver */
 		if (equip) {
 			item->equip.len = 
 				strnfmt(item->equip.str, item->equip.size,
