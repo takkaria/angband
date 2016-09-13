@@ -336,12 +336,12 @@ static void build_obj_list(struct object_menu_list *olist,
 		if (equip) {
 			item->equip.len = 
 				strnfmt(item->equip.str, item->equip.size,
-						"%-14s: ", equip_mention(player, i));
+						"%-14s ", equip_mention(player, i));
 			my_strcap(item->equip.str);
 		} else if (quiver) {
 			item->equip.len =
 				strnfmt(item->equip.str, item->equip.size,
-						"Slot %-9d: ", i);
+						"Slot %-9d ", i);
 		} else {
 			item->equip.len = 0;
 		}
