@@ -732,7 +732,7 @@ bool get_item_allow(const struct object *obj,
  * Also, the tag "@xn" will work as well, where "n" is a tag-char,
  * and "x" is the command that tag will work for.
  */
-static bool get_inscription(struct object_menu_list *olist,
+static bool find_inscribed_object(struct object_menu_list *olist,
 		int *index, char inscrip, cmd_code cmd, bool quiver_tags)
 {
 	const int mode = KEYMAP_MODE_OPT;
@@ -1079,7 +1079,9 @@ static void menu_find_inscriptions(struct menu *menu,
 
 	for (int inscrip = 0; inscrip < 10; inscrip++) {
 		int index = 0;
-		if (get_inscription(data->list, &index, I2D(inscrip), item_cmd, quiver_tags)) {
+		if (find_inscribed_object(data->list,
+					&index, I2D(inscrip), item_cmd, quiver_tags))
+		{
 			inscriptions[inscrip] = get_item_tag(menu, index);
 		}
 	}
