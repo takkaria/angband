@@ -42,6 +42,7 @@
 #include "trap.h"
 #include "ui2-context.h"
 #include "ui2-history.h"
+#include "ui2-map.h"
 #include "ui2-menu.h"
 #include "ui2-mon-list.h"
 #include "ui2-mon-lore.h"
@@ -2373,6 +2374,7 @@ void do_cmd_locate(void)
 			int dir = target_dir(command);
 			if (dir != 0) {
 				change_panel(DISPLAY_CAVE, dir);
+				verify_cursor();
 				handle_stuff(player);
 			} else {
 				bell("Illegal direction for locate!");
