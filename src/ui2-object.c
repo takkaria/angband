@@ -521,7 +521,6 @@ void show_inven(int mode, item_tester tester)
 
 		prt(buf, loc);
 		loc.y++;
-
 	}
 
 	int last = -1;
