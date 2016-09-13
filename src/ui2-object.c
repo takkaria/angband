@@ -436,7 +436,7 @@ static int quiver_slots(int stack)
 }
 
 /* Returns coords of the next row (after the ones shown) */
-static struct loc show_quiver_compact(const char *keys, struct loc loc)
+static struct loc show_quiver_compact(const char *keys, int height, struct loc loc)
 {
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
@@ -447,7 +447,7 @@ static struct loc show_quiver_compact(const char *keys, struct loc loc)
 	uint32_t attr = menu_row_style(false, false);
 
 	/* Quiver may take multiple lines */
-	for (int slot = 0; slot < slots; slot++) {
+	for (int slot = 0; slot < slots && loc.y < height; slot++) {
 		char key = *keys++;
 		assert(key != 0);
 
@@ -481,16 +481,17 @@ static struct loc show_quiver_compact(const char *keys, struct loc loc)
  * the ones that were printed)
  */
 static struct loc show_obj_list(struct object_menu_list *olist,
-		int mode, struct loc loc)
+		int mode, int height, struct loc loc)
 {
-	for (size_t i = 0; i < olist->len; i++, loc.y++) {
+	for (size_t i = 0; i < olist->len && loc.y < height; i++, loc.y++)
+	{
 		show_item(&olist->items[i],
 				loc, olist->extra_fields_offset, false, mode);
 	}
 
 	if (mode & OLIST_QUIVER_COMPACT) {
 		assert(olist->len < 26);
-		loc = show_quiver_compact(all_letters + olist->len, loc);
+		loc = show_quiver_compact(all_letters + olist->len, height, loc);
 	}
 
 	return loc;
@@ -504,7 +505,9 @@ static struct loc show_obj_list(struct object_menu_list *olist,
 void show_inven(int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
+
 	struct loc loc = {0, 0};
+	int height = Term_height();
 
 	if (mode & OLIST_WINDOW) {
 		/* Inven subwindow starts with a burden header */
@@ -538,7 +541,7 @@ void show_inven(int mode, item_tester tester)
 
 	build_obj_list(olist, player->upkeep->inven, last,
 			all_letters, tester, mode);
-	show_obj_list(olist, mode, loc);
+	show_obj_list(olist, mode, height, loc);
 	free_obj_list(olist);
 
 	Term_flush_output();
@@ -552,7 +555,9 @@ void show_inven(int mode, item_tester tester)
 void show_quiver(int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
+
 	struct loc loc = {0, 0};
+	int height = Term_height();
 
 	/* Find the last occupied quiver slot */
 	int last = -1;
@@ -566,7 +571,7 @@ void show_quiver(int mode, item_tester tester)
 
 	build_obj_list(olist, player->upkeep->quiver, last,
 			all_digits, tester, mode);
-	show_obj_list(olist, mode, loc);
+	show_obj_list(olist, mode, height, loc);
 	free_obj_list(olist);
 
 	Term_flush_output();
@@ -580,7 +585,10 @@ void show_quiver(int mode, item_tester tester)
 void show_equip(int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
+
 	struct loc loc = {0, 0};
+	int height = Term_height();
+
 	size_t line_max_len = 0;
 
 	if (mode & OLIST_WINDOW) {
@@ -591,11 +599,11 @@ void show_equip(int mode, item_tester tester)
 	build_obj_list(olist, NULL, player->body.count - 1,
 			all_letters, tester, mode);
 	line_max_len = olist->line_max_len;
-	loc = show_obj_list(olist, mode, loc);
+	loc = show_obj_list(olist, mode, height, loc);
 	free_obj_list(olist);
 
-	/* Show the quiver in equip subwindow */
-	if (mode & OLIST_WINDOW) {
+	/* Show the quiver in equip subwindow, if there is enough space */
+	if ((mode & OLIST_WINDOW) && loc.y < height) {
 		prt("In quiver", loc);
 		loc.y++;
 
@@ -613,7 +621,7 @@ void show_equip(int mode, item_tester tester)
 
 		build_obj_list(olist, player->upkeep->quiver, last,
 				all_digits, tester, mode);
-		show_obj_list(olist, mode, loc);
+		show_obj_list(olist, mode, height, loc);
 		free_obj_list(olist);
 	}
 
@@ -629,7 +637,9 @@ void show_floor(struct object **floor_list, int floor_num,
 		int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
+
 	struct loc loc = {0, 0};
+	int height = Term_height();
 
 	if (floor_num > z_info->floor_size) {
 		floor_num = z_info->floor_size;
@@ -637,7 +647,7 @@ void show_floor(struct object **floor_list, int floor_num,
 
 	build_obj_list(olist, floor_list, floor_num - 1,
 			all_letters, tester, mode);
-	show_obj_list(olist, mode, loc);
+	show_obj_list(olist, mode, height, loc);
 	free_obj_list(olist);
 
 	Term_flush_output();
@@ -990,7 +1000,7 @@ static void quiver_browser(int index, void *menu_data, region active)
 		};
 
 		assert(data->list->len < 26);
-		show_quiver_compact(all_letters + data->list->len, loc);
+		show_quiver_compact(all_letters + data->list->len, Term_height(), loc);
 	}
 }
 
