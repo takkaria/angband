@@ -365,11 +365,15 @@ static void build_obj_list(struct object_menu_list *olist,
 		item_tester tester, int mode)
 {
 	const bool quiver = (mode & OLIST_QUIVER_FULL) ? true : false;
-	const bool sempty = (mode & OLIST_SHOW_EMPTY)  ? true : false;
 	const bool window = (mode & OLIST_WINDOW)      ? true : false;
 	const bool terse  = (mode & OLIST_TERSE)       ? true : false;
-	const bool gold   = (mode & OLIST_GOLD)        ? true : false;
 	const bool equip  = (objects == NULL)          ? true : false;
+
+#define SHOW_OBJECT_IF_GOLD(obj) \
+	((mode & OLIST_GOLD) && ((obj) != NULL) && tval_is_money(obj))
+
+#define SHOW_OBJECT_IF_EMPTY(obj) \
+	((mode & OLIST_SHOW_EMPTY) && ((obj) == NULL))
 
 	/* Build the object list */
 	for (int i = 0; i <= last; i++) {
@@ -379,14 +383,14 @@ static void build_obj_list(struct object_menu_list *olist,
 		struct object_menu_item *item = &olist->items[olist->len];
 		char key = 0;
 
-		if (object_test(tester, obj) || (obj && gold && tval_is_money(obj))) {
+		if (object_test(tester, obj) || SHOW_OBJECT_IF_GOLD(obj)) {
 			/* Acceptable items get a label */
 			key = *keys++;
 			assert(key != 0);
 
 			item->label.len =
 				strnfmt(item->label.str, item->label.size, "%c) ", key);
-		} else if (window || (sempty && obj == NULL)) {
+		} else if (window || SHOW_OBJECT_IF_EMPTY(obj)) {
 			/* Unacceptable items are still sometimes shown
 			 * (pretty much only in equip subwindow/menu) */
 			key = 0;
@@ -415,6 +419,9 @@ static void build_obj_list(struct object_menu_list *olist,
 
 		olist->len++;
 	}
+
+#undef SHOW_OBJECT_IF_GOLD
+#undef SHOW_OBJECT_IF_EMPTY
 
 	/* Set the names and get the max length */
 	set_olist_names(olist, terse);
