@@ -324,6 +324,8 @@ static void set_olist_extra(struct object_menu_list *olist, int mode)
 				set_item_extra(olist, i, mode);
 			}
 		}
+	} else {
+		olist->extra_fields_offset = 0; /* No fields, no offset */
 	}
 
 	olist->total_max_len = olist->line_max_len + extra_fields_width;
