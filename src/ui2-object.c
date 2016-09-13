@@ -701,7 +701,7 @@ bool get_item_allow(const struct object *obj,
 		ch = UN_KTRL(ch);
 	}
 
-	char inscrip[3] = {'!', ch, 0};
+	char inscrip[] = {'!', ch, 0};
 
 	unsigned checks = check_for_inscrip(obj, inscrip);
 	if (!harmless) {
