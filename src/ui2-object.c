@@ -513,7 +513,7 @@ void show_equip(int mode, item_tester tester)
 {
 	struct object_menu_list *olist = get_obj_list();
 	struct loc loc = {0, 0};
-	size_t line_max_len;
+	size_t line_max_len = 0;
 
 	if (mode & OLIST_WINDOW) {
 		/* Show compact names of objects in subwindows */
