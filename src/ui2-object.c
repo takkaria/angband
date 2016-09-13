@@ -524,6 +524,8 @@ void show_equip(int mode, item_tester tester)
 			}
 		}
 
+		mode |= OLIST_QUIVER_FULL;
+
 		build_obj_list(olist, player->upkeep->quiver, last,
 				all_digits, tester, mode);
 		show_obj_list(olist, mode, loc);
