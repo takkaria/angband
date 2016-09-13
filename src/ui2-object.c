@@ -204,7 +204,7 @@ static void show_item(struct object_menu_item *item,
 		c_put_str_len(attr, item->name.str, loc, name_len);
 	}
 
-	/* If we don't have an object, we can skip the extra fields */
+	/* If we don't have an object, we don't have the extra fields */
 	if (item->object) {
 		saved_loc.x = extra_fields_offset;
 		show_item_extra(item, saved_loc, mode);
