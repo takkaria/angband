@@ -526,7 +526,7 @@ void show_equip(int mode, item_tester tester)
 	loc = show_obj_list(olist, mode, loc);
 	free_obj_list(olist);
 
-	/* Show the quiver in subwindows */
+	/* Show the quiver in equip subwindow */
 	if (mode & OLIST_WINDOW) {
 		prt("In quiver", loc);
 		loc.y++;
