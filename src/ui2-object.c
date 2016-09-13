@@ -130,7 +130,7 @@ static void show_obj_extra(const struct object *obj,
 	}
 
 	/* Failure chance for magic devices and activations */
-	if (mode & OLIST_FAIL && obj_can_fail(obj)) {
+	if ((mode & OLIST_FAIL) && obj_can_fail(obj)) {
 		int fail = (9 + get_use_device_chance(obj)) / 10;
 
 		if (object_effect_is_known(obj)) {
