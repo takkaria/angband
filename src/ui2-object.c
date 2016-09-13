@@ -272,9 +272,12 @@ static void set_extra_fields(struct object_menu_list *olist, int *mode)
  * Set object names and get their maximum length.
  * Only makes sense after building the object list.
  */
-static void set_obj_names(struct object_menu_list *olist)
+static void set_obj_names(struct object_menu_list *olist, int mode)
 {
 	int oflags = ODESC_PREFIX | ODESC_FULL;
+	if (mode & OLIST_TERSE) {
+		oflags |= ODESC_TERSE;
+	}
 
 	/* Calculate name offset and max name length */
 	for (size_t i = 0; i < olist->len; i++) {
@@ -353,7 +356,7 @@ static void build_obj_list(struct object_menu_list *olist,
 	}
 
 	/* Set the names and get the max length */
-	set_obj_names(olist);
+	set_obj_names(olist, mode);
 }
 
 static int quiver_slots(int stack)
@@ -435,7 +438,7 @@ void show_inven(int mode, item_tester tester)
 	struct loc loc = {0, 0};
 
 	if (mode & OLIST_WINDOW) {
-		/* Inven windows start with a burden header */
+		/* Inven subwindow starts with a burden header */
 		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 		int diff = weight_remaining(player);
 
@@ -449,6 +452,7 @@ void show_inven(int mode, item_tester tester)
 
 		prt(buf, loc);
 		loc.y++;
+
 	}
 
 	int last = -1;
@@ -457,6 +461,11 @@ void show_inven(int mode, item_tester tester)
 		if (player->upkeep->inven[i] != NULL) {
 			last = i;
 		}
+	}
+
+	if (mode & OLIST_WINDOW) {
+		/* Show compact names of objects in subwindows */
+		mode |= OLIST_TERSE;
 	}
 
 	build_obj_list(olist, player->upkeep->inven, last,
@@ -505,6 +514,11 @@ void show_equip(int mode, item_tester tester)
 	struct object_menu_list *olist = get_obj_list();
 	struct loc loc = {0, 0};
 	size_t line_max_len;
+
+	if (mode & OLIST_WINDOW) {
+		/* Show compact names of objects in subwindows */
+		mode |= OLIST_TERSE;
+	}
 
 	build_obj_list(olist, NULL, player->body.count - 1,
 			all_letters, tester, mode);
