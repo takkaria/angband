@@ -328,7 +328,7 @@ static void build_obj_list(struct object_menu_list *olist,
 				strnfmt(item->label.str, item->label.size, "%c) ", key);
 		} else if (window || (!obj && sempty)) {
 			/* Unacceptable items are still sometimes shown
-			 * (pretty much only in equip subwindow) */
+			 * (pretty much only in equip subwindow/menu) */
 			key = 0;
 			item->label.len =
 				my_strcpy(item->label.str, "   ", item->label.size);
