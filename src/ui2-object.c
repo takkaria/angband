@@ -963,8 +963,8 @@ static void get_item_display(struct menu *menu,
 
 	struct object_menu_data *data = menu_priv(menu);
 
-	show_item(&data->list->items[index], loc, data->list->extra_fields_offset,
-			cursor, data->olist_mode);
+	show_item(&data->list->items[index],
+			loc, data->list->extra_fields_offset, cursor, data->olist_mode);
 }
 
 /**
