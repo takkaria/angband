@@ -483,7 +483,6 @@ static struct loc show_quiver_compact(const char *keys, struct loc loc)
 static struct loc show_obj_list(struct object_menu_list *olist,
 		int mode, struct loc loc)
 {
-
 	for (size_t i = 0; i < olist->len; i++, loc.y++) {
 		show_item(&olist->items[i],
 				loc, olist->extra_fields_offset, false, mode);
