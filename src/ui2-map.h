@@ -28,5 +28,6 @@ extern void move_cursor_relative(enum display_term_index i, struct loc coords, b
 extern void print_rel(enum display_term_index i, uint32_t attr, wchar_t ch, struct loc coords);
 extern void print_map(enum display_term_index i);
 extern void do_cmd_view_map(void);
+void verify_cursor(void);
 
 #endif /* UI2_MAP_H */

@@ -26,6 +26,7 @@
 #include "obj-util.h"
 #include "player-timed.h"
 #include "trap.h"
+#include "target.h"
 #include "ui2-map.h"
 #include "ui2-input.h"
 #include "ui2-object.h"
@@ -504,4 +505,62 @@ void do_cmd_view_map(void)
 	Term_push_new(&hints);
 	view_map_aux();
 	Term_pop();
+}
+
+/**
+ * ------------------------------------------------------------------------
+ * Cursor functions
+ * ------------------------------------------------------------------------
+ */
+
+static void verify_cursor_int(enum display_term_index index,
+		bool *visible, bool should_be_visible)
+{
+	if (*visible != should_be_visible) {
+		*visible = should_be_visible;
+
+		display_term_push(index);
+		Term_cursor_visible(*visible);
+		Term_flush_output();
+		display_term_pop();
+	}
+}
+
+static void try_move_cursor_safe(enum display_term_index index,
+		struct loc loc, bool *cursor_visible)
+{
+	display_term_rel_coords(index, &loc);
+
+	display_term_push(index);
+
+	if (Term_point_ok(loc.x, loc.y)) {
+		verify_cursor_int(index, cursor_visible, true);
+
+		Term_cursor_to_xy(loc.x, loc.y);
+		Term_flush_output();
+	} else {
+		verify_cursor_int(index, cursor_visible, false);
+	}
+
+	display_term_pop();
+}
+
+/*
+ * Ensure that the cursor in the correct location on the map
+ * (according to game options show_target and highlight_player)
+ */
+void verify_cursor(void)
+{
+	static bool cursor_visible = false;
+
+	if (OPT(show_target) && target_sighted()) {
+		struct loc loc;
+		target_get(&loc.x, &loc.y);
+		try_move_cursor_safe(DISPLAY_CAVE, loc, &cursor_visible);
+	} else if (OPT(highlight_player)) {
+		struct loc loc = {player->px, player->py};
+		try_move_cursor_safe(DISPLAY_CAVE, loc, &cursor_visible);
+	} else if (cursor_visible) {
+		verify_cursor_int(DISPLAY_CAVE, &cursor_visible, false);
+	}
 }
