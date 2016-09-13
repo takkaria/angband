@@ -134,8 +134,6 @@ struct object_menu_list {
 static void show_item_extra(const struct object_menu_item *item,
 		struct loc loc, int mode)
 {
-	erase_line(loc);
-
 	/* Price */
 	if (item->extra.price.len > 0) {
 		put_str_len(item->extra.price.str, loc, item->extra.price.len);
@@ -191,7 +189,9 @@ static void show_item(struct object_menu_item *item,
 	}
 
 	/* Truncate the name if it's too long */
-	if (label_len + equip_len + name_len > extra_fields_offset) {
+	if (extra_fields_offset > 0
+			&& label_len + equip_len + name_len > extra_fields_offset)
+	{
 		if (label_len + equip_len < extra_fields_offset) {
 			name_len = extra_fields_offset - label_len - equip_len;
 		} else {
@@ -205,8 +205,8 @@ static void show_item(struct object_menu_item *item,
 		c_put_str_len(attr, item->name.str, loc, name_len);
 	}
 
-	/* If we don't have an object, we don't have the extra fields */
-	if (item->object) {
+	/* No offset, no extra fields */
+	if (extra_fields_offset > 0) {
 		saved_loc.x = extra_fields_offset;
 		show_item_extra(item, saved_loc, mode);
 	}
