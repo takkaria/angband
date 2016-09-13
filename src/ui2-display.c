@@ -1540,7 +1540,7 @@ static void update_inven_subwindow(game_event_type type,
 	if (!flip_inven_equip) {
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 	} else {
-		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
+		show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_FULL, NULL);
 	}
 
 	Term_flush_output();
@@ -1557,7 +1557,7 @@ static void update_equip_subwindow(game_event_type type,
 	Term_clear();
 
 	if (!flip_inven_equip) {
-		show_equip(OLIST_WINDOW | OLIST_WEIGHT, NULL);
+		show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_FULL, NULL);
 	} else {
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 	}
@@ -1580,9 +1580,9 @@ void toggle_inven_equip(void)
 		Term_clear();
 
 		if (flip_inven_equip) {
-			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
+			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_FULL, NULL);
 		} else {
-			show_inven(OLIST_WINDOW | OLIST_WEIGHT, NULL);
+			show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 		}
 
 		Term_flush_output();
@@ -1595,9 +1595,9 @@ void toggle_inven_equip(void)
 		Term_clear();
 
 		if (flip_inven_equip) {
-			show_inven(OLIST_WINDOW | OLIST_WEIGHT, NULL);
+			show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
 		} else {
-			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
+			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_FULL, NULL);
 		}
 
 		Term_flush_output();
