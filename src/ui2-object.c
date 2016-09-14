@@ -685,8 +685,6 @@ struct object_menu_data {
 	int item_mode;
 
 	cmd_code item_cmd;
-
-	bool allow_all; /* allow inven, equip, quiver and floor */
 };
 
 /**
@@ -831,7 +829,7 @@ static void menu_hint(const struct object_menu_data *data,
 	const bool use_inven  = (data->item_mode & USE_INVEN)  ? true : false;
 	const bool use_equip  = (data->item_mode & USE_EQUIP)  ? true : false;
 	const bool use_quiver = (data->item_mode & USE_QUIVER) ? true : false;
-	const bool use_floor  = (f1 <= f2 || data->allow_all)  ? true : false;
+	const bool use_floor  = (f1 <= f2)                     ? true : false;
 
 	my_strcpy(hint, "(", hint_size);
 
@@ -862,14 +860,10 @@ static void menu_hint(const struct object_menu_data *data,
 static bool handle_menu_key_action(struct object_menu_data *data,
 		struct keypress key)
 {
-	const bool inven  = ((data->item_mode & USE_INVEN)  || data->allow_all) ?
-		true : false;
-	const bool equip  = ((data->item_mode & USE_EQUIP)  || data->allow_all) ?
-		true : false;
-	const bool quiver = ((data->item_mode & USE_QUIVER) || data->allow_all) ?
-		true : false;
-	const bool floor  = ((data->item_mode & USE_FLOOR)  || data->allow_all) ?
-		true : false;
+	const bool inven  = (data->item_mode & USE_INVEN)  ? true : false;
+	const bool equip  = (data->item_mode & USE_EQUIP)  ? true : false;
+	const bool quiver = (data->item_mode & USE_QUIVER) ? true : false;
+	const bool floor  = (data->item_mode & USE_FLOOR)  ? true : false;
 
 	switch (key.code) {
 		case '/':
@@ -1007,57 +1001,50 @@ static void change_command_wrk(const struct object_menu_data *data, ui_event eve
 {
 	bool left = event.key.code == ARROW_LEFT;
 
-	int i1 = data->i1;
-	int i2 = data->i2;
-
-	int e1 = data->e1;
-	int e2 = data->e2;
-
-	int q1 = data->q1;
-	int q2 = data->q2;
-
-	int f1 = data->f1;
-	int f2 = data->f2;
+	const bool inven  = (data->item_mode & USE_INVEN)  ? true : false;
+	const bool equip  = (data->item_mode & USE_EQUIP)  ? true : false;
+	const bool quiver = (data->item_mode & USE_QUIVER) ? true : false;
+	const bool floor  = (data->item_mode & USE_FLOOR)  ? true : false;
 
 	if (player->upkeep->command_wrk == USE_EQUIP) {
 		if (left) {
-			if      (f1 <= f2) player->upkeep->command_wrk = USE_FLOOR;
-			else if (q1 <= q2) player->upkeep->command_wrk = USE_QUIVER;
-			else if (i1 <= i2) player->upkeep->command_wrk = USE_INVEN;
+			if      (floor) player->upkeep->command_wrk = USE_FLOOR;
+			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
+			else if (inven) player->upkeep->command_wrk = USE_INVEN;
 		} else {
-			if      (i1 <= i2) player->upkeep->command_wrk = USE_INVEN;
-			else if (q1 <= q2) player->upkeep->command_wrk = USE_QUIVER;
-			else if (f1 <= f2) player->upkeep->command_wrk = USE_FLOOR;
+			if      (inven) player->upkeep->command_wrk = USE_INVEN;
+			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
+			else if (floor) player->upkeep->command_wrk = USE_FLOOR;
 		}
 	} else if (player->upkeep->command_wrk == USE_INVEN) {
 		if (left) {
-			if      (e1 <= e2) player->upkeep->command_wrk = USE_EQUIP;
-			else if (f1 <= f2) player->upkeep->command_wrk = USE_FLOOR;
-			else if (q1 <= q2) player->upkeep->command_wrk = USE_QUIVER;
+			if      (equip)  player->upkeep->command_wrk = USE_EQUIP;
+			else if (floor)  player->upkeep->command_wrk = USE_FLOOR;
+			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
 		} else {
-			if      (q1 <= q2) player->upkeep->command_wrk = USE_QUIVER;
-			else if (f1 <= f2) player->upkeep->command_wrk = USE_FLOOR;
-			else if (e1 <= e2) player->upkeep->command_wrk = USE_EQUIP;
+			if      (quiver) player->upkeep->command_wrk = USE_QUIVER;
+			else if (floor)  player->upkeep->command_wrk = USE_FLOOR;
+			else if (equip)  player->upkeep->command_wrk = USE_EQUIP;
 		}
 	} else if (player->upkeep->command_wrk == USE_QUIVER) {
 		if (left) {
-			if      (i1 <= i2) player->upkeep->command_wrk = USE_INVEN;
-			else if (e1 <= e2) player->upkeep->command_wrk = USE_EQUIP;
-			else if (f1 <= f2) player->upkeep->command_wrk = USE_FLOOR;
+			if      (inven)  player->upkeep->command_wrk = USE_INVEN;
+			else if (equip)  player->upkeep->command_wrk = USE_EQUIP;
+			else if (floor)  player->upkeep->command_wrk = USE_FLOOR;
 		} else {
-			if      (f1 <= f2) player->upkeep->command_wrk = USE_FLOOR;
-			else if (e1 <= e2) player->upkeep->command_wrk = USE_EQUIP;
-			else if (i1 <= i2) player->upkeep->command_wrk = USE_INVEN;
+			if      (floor)  player->upkeep->command_wrk = USE_FLOOR;
+			else if (equip)  player->upkeep->command_wrk = USE_EQUIP;
+			else if (inven)  player->upkeep->command_wrk = USE_INVEN;
 		}
 	} else if (player->upkeep->command_wrk == USE_FLOOR) {
 		if (left) {
-			if      (q1 <= q2) player->upkeep->command_wrk = USE_QUIVER;
-			else if (i1 <= i2) player->upkeep->command_wrk = USE_INVEN;
-			else if (e1 <= e2) player->upkeep->command_wrk = USE_EQUIP;
+			if      (quiver) player->upkeep->command_wrk = USE_QUIVER;
+			else if (inven)  player->upkeep->command_wrk = USE_INVEN;
+			else if (equip)  player->upkeep->command_wrk = USE_EQUIP;
 		} else {
-			if      (e1 <= e2) player->upkeep->command_wrk = USE_EQUIP;
-			else if (i1 <= i2) player->upkeep->command_wrk = USE_INVEN;
-			else if (q1 <= q2) player->upkeep->command_wrk = USE_QUIVER;
+			if      (equip)  player->upkeep->command_wrk = USE_EQUIP;
+			else if (inven)  player->upkeep->command_wrk = USE_INVEN;
+			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
 		}
 	}
 }
@@ -1184,7 +1171,7 @@ static void build_menu_list(struct object_menu_data *data,
 }
 
 static bool init_menu_data(struct object_menu_data *data,
-		bool allow_all, cmd_code cmd, item_tester tester, int mode)
+		cmd_code cmd, item_tester tester, int mode)
 {
 	const bool use_inven  = (mode & USE_INVEN)  ? true : false;
 	const bool use_equip  = (mode & USE_EQUIP)  ? true : false;
@@ -1204,7 +1191,6 @@ static bool init_menu_data(struct object_menu_data *data,
 	data->list          = NULL;
 
 	data->floor_list = mem_zalloc(z_info->floor_size * sizeof(*data->floor_list));
-	data->allow_all  = allow_all;
 	data->item_cmd   = cmd;
 	data->item_mode  = mode;
 
@@ -1234,7 +1220,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	while (i1 <= i2 && !object_test(tester, player->upkeep->inven[i2])) {
 		i2--;
 	}
-	if (i1 <= i2 || allow_all) {
+	if (i1 <= i2) {
 		allow_inven = true;
 	} else if (data->item_mode & USE_INVEN) {
 		data->item_mode &= ~USE_INVEN;
@@ -1249,8 +1235,17 @@ static bool init_menu_data(struct object_menu_data *data,
 		while (e1 <= e2 && !object_test(tester, slot_object(player, e2))) {
 			e2--;
 		}
+	} else if (use_equip) {
+		/* check if there is at least one valid object in equip */
+		e2 = -1;
+		for (int i = 0; i < player->body.count; i++) {
+			if (slot_object(player, i) != NULL) {
+				e2 = player->body.count - 1;
+				break;
+			}
+		}
 	}
-	if (e1 <= e2 || allow_all) {
+	if (e1 <= e2) {
 		allow_equip = true;
 	} else if (data->item_mode & USE_EQUIP) {
 		data->item_mode &= ~USE_EQUIP;
@@ -1264,7 +1259,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	while (q1 <= q2 && !object_test(tester, player->upkeep->quiver[q2])) {
 		q2--;
 	}
-	if (q1 <= q2 || allow_all) {
+	if (q1 <= q2) {
 		allow_quiver = true;
 	} else if (data->item_mode & USE_QUIVER) {
 		data->item_mode &= ~USE_QUIVER;
@@ -1281,7 +1276,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	while (f1 <= f2 && !object_test(tester, data->floor_list[f2])) {
 		f2--;
 	}
-	if (f1 <= f2 || allow_all) {
+	if (f1 <= f2) {
 		allow_floor = true;
 	} else if (data->item_mode & USE_FLOOR) {
 		data->item_mode &= ~USE_FLOOR;
@@ -1327,7 +1322,8 @@ static bool init_menu_data(struct object_menu_data *data,
 		} else if (use_floor && allow_floor) {
 			player->upkeep->command_wrk = USE_FLOOR;
 		} else {
-			/* If nothing to choose, use (empty) inventory */
+			/* If nothing to choose, use inventory
+			 * (that should never happen?) */
 			player->upkeep->command_wrk = USE_INVEN;
 		}
 	}
@@ -1442,9 +1438,7 @@ bool textui_get_item(struct object **choice,
 {
 	struct object_menu_data data;
 
-	bool menu_ok = init_menu_data(&data,
-			reject == NULL ? true : false,
-			cmd, tester, mode);
+	bool menu_ok = init_menu_data(&data, cmd, tester, mode);
 
 	const char *menu_title = NULL;
 
