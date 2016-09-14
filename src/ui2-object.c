@@ -1398,9 +1398,6 @@ static void pop_item_term(void)
  * inventory, quiver, or floor, respectively, if the proper flag was given,
  * and there are any acceptable items in that location.
  *
- * The equipment, inventory or quiver are displayed (even if no acceptable
- * items are in that location) if the proper flag was given.
- *
  * If there are no acceptable items available anywhere, and "str" is
  * not NULL, then it will be used as the text of a warning message
  * before the function returns.
