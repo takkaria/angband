@@ -163,16 +163,12 @@ static void show_item(struct object_menu_item *item,
 		struct loc loc, size_t extra_fields_offset,
 		bool cursor, int mode)
 {
-	/* We show the label in subwindows; menus have their own labels */
-	const bool show_label =
-		(mode & (OLIST_WINDOW | OLIST_DEATH)) ? true : false;
-
 	/* Save that for later */
 	struct loc saved_loc = loc;
 
 	uint32_t attr = menu_row_style(true, cursor);
 
-	size_t label_len = show_label ? item->label.len : 0;
+	size_t label_len = item->label.len;
 	size_t equip_len = item->equip.len;
 	size_t name_len  = item->name.len;
 
@@ -207,7 +203,7 @@ static void show_item(struct object_menu_item *item,
 
 	/* No offset, no extra fields */
 	if (extra_fields_offset > 0) {
-		saved_loc.x = extra_fields_offset;
+		saved_loc.x += extra_fields_offset;
 		show_item_extra(item, saved_loc, mode);
 	}
 }
@@ -369,7 +365,10 @@ static void build_obj_list(struct object_menu_list *olist,
 	const bool quiver = (mode & OLIST_QUIVER_FULL) ? true : false;
 	const bool window = (mode & OLIST_WINDOW)      ? true : false;
 	const bool terse  = (mode & OLIST_TERSE)       ? true : false;
-	const bool equip  = (objects == NULL)          ? true : false;
+	const bool menu   = (mode & OLIST_MENU)        ? true : false;
+
+	/* Equipment is handles specially, since there is no list for it */
+	const bool equip  = (objects == NULL);
 
 #define SHOW_OBJECT_IF_GOLD(obj) \
 	((mode & OLIST_GOLD) && ((obj) != NULL) && tval_is_money(obj))
@@ -390,14 +389,21 @@ static void build_obj_list(struct object_menu_list *olist,
 			key = *keys++;
 			assert(key != 0);
 
-			item->label.len =
-				strnfmt(item->label.str, item->label.size, "%c) ", key);
+			/* item menu uses its own tags, so these labels are only
+			 * for inven/equip subwindows and for the death screen */
+			if (!menu) {
+				item->label.len =
+					strnfmt(item->label.str, item->label.size, "%c) ", key);
+			}
 		} else if (window || SHOW_OBJECT_IF_EMPTY(obj)) {
 			/* Unacceptable items are still sometimes shown
 			 * (pretty much only in equip subwindow/menu) */
 			key = 0;
-			item->label.len =
-				my_strcpy(item->label.str, "   ", item->label.size);
+
+			if (!menu) {
+				item->label.len =
+					my_strcpy(item->label.str, "   ", item->label.size);
+			}
 		} else {
 			continue;
 		}
@@ -780,41 +786,39 @@ static bool find_inscribed_object(struct object_menu_list *olist,
  * ------------------------------------------------------------------------
  */
 
-static void cat_menu_header(char *buf, size_t bufsize,
+static void cat_menu_hint(char *buf, size_t bufsize,
 		bool tags, int tag_from, int tag_to,
 		bool inven, bool equip, bool quiver, bool floor)
 {
 	if (tags) {
 		char tmp_buf[ANGBAND_TERM_STANDARD_WIDTH];
 
-		strnfmt(tmp_buf, sizeof(tmp_buf), " %c-%c,", I2A(tag_from), I2A(tag_to));
+		strnfmt(tmp_buf, sizeof(tmp_buf), "%c-%c, ", I2A(tag_from), I2A(tag_to));
 		my_strcat(buf, tmp_buf, bufsize);
 	}
 
 	/* Only one of those is allowed, and inventory takes precedence */
 	if (inven) {
-		my_strcat(buf, " / for Inven,", bufsize);
+		my_strcat(buf, "/ for Inven, ", bufsize);
 	} else if (equip) {
-		my_strcat(buf, " / for Equip,", bufsize);
+		my_strcat(buf, "/ for Equip, ", bufsize);
 	}
 
 	if (quiver) {
-		my_strcat(buf, " | for Quiver,", bufsize);
+		my_strcat(buf, "| for Quiver, ", bufsize);
 	}
 
 	if (floor) {
-		my_strcat(buf, " - for floor,", bufsize);
+		my_strcat(buf, "- for floor, ", bufsize);
 	}
 }
 
 /**
  * Make the correct header for the selection menu
  */
-static void menu_header(const struct object_menu_data *data,
-		char *header, size_t header_size)
+static void menu_hint(const struct object_menu_data *data,
+		char *hint, size_t hint_size)
 {
-	char out_buf[ANGBAND_TERM_STANDARD_WIDTH];
-
 	const int i1 = data->i1;
 	const int i2 = data->i2;
 	const int e1 = data->e1;
@@ -829,39 +833,30 @@ static void menu_header(const struct object_menu_data *data,
 	const bool use_quiver = (data->item_mode & USE_QUIVER) ? true : false;
 	const bool use_floor  = (f1 <= f2 || data->allow_all)  ? true : false;
 
-	/* Viewing inventory */
-	if (player->upkeep->command_wrk == USE_INVEN) {
-		my_strcpy(out_buf, "Inven:", sizeof(out_buf));
+	my_strcpy(hint, "(", hint_size);
 
-		cat_menu_header(out_buf, sizeof(out_buf),
+	if (player->upkeep->command_wrk == USE_INVEN) {
+		cat_menu_hint(hint, hint_size,
 				i1 <= i2, i1, i2,
 				false, use_equip, use_quiver, use_floor);
 
 	} else if (player->upkeep->command_wrk == USE_EQUIP) {
-		my_strcpy(out_buf, "Equip:", sizeof(out_buf));
-
-		cat_menu_header(out_buf, sizeof(out_buf),
+		cat_menu_hint(hint, hint_size,
 				e1 <= e2, e1, e2,
 				use_inven, false, use_quiver, use_floor);
 
 	} else if (player->upkeep->command_wrk == USE_QUIVER) {
-		my_strcpy(out_buf, "Quiver:", sizeof(out_buf));
-
-		cat_menu_header(out_buf, sizeof(out_buf),
+		cat_menu_hint(hint, hint_size,
 				q1 <= q2, q1, q2,
 				use_inven, use_equip, false, use_floor);
 
 	} else {
-		my_strcpy(out_buf, "Floor:", sizeof(out_buf));
-
-		cat_menu_header(out_buf, sizeof(out_buf),
+		cat_menu_hint(hint, hint_size,
 				f1 <= f2, f1, f2,
 				use_inven, use_equip, use_quiver, false);
 	}
 
-	my_strcat(out_buf, " ESC", sizeof(out_buf));
-
-	strnfmt(header, header_size, "(%s)", out_buf);
+	my_strcat(hint, "ESC)", hint_size);
 }
 
 static bool handle_menu_key_action(struct object_menu_data *data,
@@ -997,7 +992,7 @@ static void quiver_browser(int index, void *menu_data, region active)
 	{
 		struct loc loc = {
 			.x = active.x,
-			.y = active.y + active.h
+			.y = active.y + active.h - 1
 		};
 
 		assert(data->list->len < 26);
@@ -1089,7 +1084,7 @@ static void menu_find_inscriptions(struct menu *menu,
 /**
  * Display list items to choose from
  */
-static void item_menu(struct object_menu_data *data)
+static void item_menu(struct object_menu_data *data, const char *title)
 {
 	menu_iter iter = {
 		.get_tag     = get_item_tag,
@@ -1117,11 +1112,13 @@ static void item_menu(struct object_menu_data *data)
 	menu_find_inscriptions(&menu, inscriptions, sizeof(inscriptions));
 	menu.inscriptions = inscriptions;
 
+	menu.title = title;
+
 	region reg = {
 		.x = 0,
 		.y = 0,
 		.w = 0, /* full term width */
-		.h = data->list->len
+		.h = data->list->len + 3
 	};
 	menu_layout(&menu, reg);
 
@@ -1136,18 +1133,19 @@ static void item_menu(struct object_menu_data *data)
 static void show_menu_prompt(const struct object_menu_data *data,
 		const char *prompt)
 {
-	char header[ANGBAND_TERM_STANDARD_WIDTH];
-	menu_header(data, header, sizeof(header));
+	char hint[ANGBAND_TERM_STANDARD_WIDTH];
+	menu_hint(data, hint, sizeof(hint));
 
 	char menu_prompt[ANGBAND_TERM_STANDARD_WIDTH];
 	my_strcpy(menu_prompt, prompt, sizeof(menu_prompt));
 	my_strcat(menu_prompt, " ",    sizeof(menu_prompt));
-	my_strcat(menu_prompt, header, sizeof(menu_prompt));
+	my_strcat(menu_prompt, hint,   sizeof(menu_prompt));
 
 	show_prompt(menu_prompt, false);
 }
 
-static void build_menu_list(struct object_menu_data *data, item_tester tester)
+static void build_menu_list(struct object_menu_data *data,
+		item_tester tester, const char **title)
 {
 	if (data->list != NULL) {
 		free_obj_list(data->list);
@@ -1156,17 +1154,29 @@ static void build_menu_list(struct object_menu_data *data, item_tester tester)
 	data->list = get_obj_list();
 
 	if (player->upkeep->command_wrk == USE_INVEN) {
-		build_obj_list(data->list, player->upkeep->inven, data->i2,
-				lower_case, tester, data->olist_mode);
+		if (data->i1 <= data->i2) {
+			build_obj_list(data->list, player->upkeep->inven, data->i2,
+					lower_case, tester, data->olist_mode);
+		}
+		*title = "Inventory";
 	} else if (player->upkeep->command_wrk == USE_EQUIP) {
-		build_obj_list(data->list, NULL, data->e2,
-				lower_case, tester, data->olist_mode);
+		if (data->e1 <= data->e2) {
+			build_obj_list(data->list, NULL, data->e2,
+					lower_case, tester, data->olist_mode);
+		}
+		*title = "Equipment";
 	} else if (player->upkeep->command_wrk == USE_QUIVER) {
-		build_obj_list(data->list, player->upkeep->quiver, data->q2,
-				all_digits, tester, data->olist_mode);
+		if (data->q1 <= data->q2) {
+			build_obj_list(data->list, player->upkeep->quiver, data->q2,
+					all_digits, tester, data->olist_mode);
+		}
+		*title = "Quiver";
 	} else if (player->upkeep->command_wrk == USE_FLOOR) {
-		build_obj_list(data->list, data->floor_list, data->f2,
-				lower_case, tester, data->olist_mode);
+		if (data->f1 <= data->f2) {
+			build_obj_list(data->list, data->floor_list, data->f2,
+					lower_case, tester, data->olist_mode);
+		}
+		*title = "Floor";
 	} else {
 		/* Should never happen */
 		quit_fmt("bad command_wrk %d in menu!", player->upkeep->command_wrk);
@@ -1197,6 +1207,8 @@ static bool init_menu_data(struct object_menu_data *data,
 	data->allow_all  = allow_all;
 	data->item_cmd   = cmd;
 	data->item_mode  = mode;
+
+	data->olist_mode |= OLIST_MENU;
 
 	/* Object list display modes */
 	if (mode & SHOW_FAIL) {
@@ -1344,9 +1356,24 @@ static void push_item_term(const struct object_menu_data *data)
 	/* Handle empty floor, inventory, quiver */
 	bool empty = data->list->len > 0 ? false : true;
 
+	/* We add 3 to term's width to account for the menu's tags;
+	 * then add 3 to term's width and height to reserve space
+	 * for padding on the left, right, top and bottom sides
+	 * of the item menu (see menu_layout() and note that
+	 * our menu has a title);
+	 *
+	 * Minimum width 30 for empty list is arbitrary.
+	 *
+	 * Minimum height of the term is 3; one row for the title,
+	 * one empty row, one row for menu items (even if there
+	 * are no menu items - it's still required).
+	 *
+	 * Hack: if the menu is empty, we print "(nothing)"
+	 * on the last row of the term. */
+
 	struct term_hints hints = {
-		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = empty ? 1 : data->list->len,
+		.width = empty ? 30 : data->list->total_max_len + 3 + 3,
+		.height = empty ? 3 : data->list->len + 3,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_TOP_CENTER
 	};
@@ -1357,7 +1384,7 @@ static void push_item_term(const struct object_menu_data *data)
 		/* Add space for quiver */
 		int slots = quiver_slots(z_info->stack_size);
 		if (slots > 0) {
-			hints.height += empty ? slots - 1 : slots;
+			hints.height += slots;
 			empty = false;
 		}
 	}
@@ -1365,8 +1392,9 @@ static void push_item_term(const struct object_menu_data *data)
 	Term_push_new(&hints);
 
 	if (empty) {
-		c_prt(menu_row_style(false, false), "(nothing)", loc(0, 0));
+		c_prt(menu_row_style(false, false), "(nothing)", loc(0, hints.height - 1));
 	}
+
 }
 
 static void pop_item_term(void)
@@ -1418,9 +1446,11 @@ bool textui_get_item(struct object **choice,
 			reject == NULL ? true : false,
 			cmd, tester, mode);
 
+	const char *menu_title = NULL;
+
 	if (menu_ok) {
 		do {
-			build_menu_list(&data, tester);
+			build_menu_list(&data, tester, &menu_title);
 
 			push_item_term(&data);
 
@@ -1430,7 +1460,8 @@ bool textui_get_item(struct object **choice,
 			if (prompt) {
 				show_menu_prompt(&data, prompt);
 			}
-			item_menu(&data);
+
+			item_menu(&data, menu_title);
 			clear_prompt();
 
 			pop_item_term();

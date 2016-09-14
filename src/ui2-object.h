@@ -29,16 +29,17 @@
  */
 enum olist_detail {
 	OLIST_NONE           = 0,      /* No options */
-	OLIST_WINDOW         = 1 << 0, /* Display list in a sub-term (as opposed to a menu) */
-	OLIST_GOLD           = 1 << 1, /* Include gold in the list */
-	OLIST_WEIGHT         = 1 << 2, /* Show item weight */
-	OLIST_PRICE          = 1 << 3, /* Show item price */
-	OLIST_FAIL           = 1 << 4, /* Show device failure */
-	OLIST_DEATH          = 1 << 5, /* RIP screen */
-	OLIST_TERSE          = 1 << 6, /* Short names of objects (without flavors, etc) */
-	OLIST_SHOW_EMPTY     = 1 << 7, /* Show empty slots */
-	OLIST_QUIVER_COMPACT = 1 << 8, /* Compact view of quiver (just missile count) */
-	OLIST_QUIVER_FULL    = 1 << 9  /* Full quiver slots */
+	OLIST_MENU           = 1 <<  0, /* Display list in a menu (as opposed to a sub-term) */
+	OLIST_WINDOW         = 1 <<  1, /* Display list in a sub-term (as opposed to a menu) */
+	OLIST_GOLD           = 1 <<  2, /* Include gold in the list */
+	OLIST_WEIGHT         = 1 <<  3, /* Show item weight */
+	OLIST_PRICE          = 1 <<  4, /* Show item price */
+	OLIST_FAIL           = 1 <<  5, /* Show device failure */
+	OLIST_DEATH          = 1 <<  6, /* RIP screen */
+	OLIST_TERSE          = 1 <<  7, /* Short names of objects (without flavors, etc) */
+	OLIST_SHOW_EMPTY     = 1 <<  8, /* Show empty slots */
+	OLIST_QUIVER_COMPACT = 1 <<  9, /* Compact view of quiver (just missile count) */
+	OLIST_QUIVER_FULL    = 1 << 10  /* Full quiver slots */
 };
 
 uint32_t object_kind_attr(const struct object_kind *kind);
