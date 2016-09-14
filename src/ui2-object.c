@@ -1362,10 +1362,7 @@ static void push_item_term(const struct object_menu_data *data)
 	 *
 	 * Minimum height of the term is 3; one row for the title,
 	 * one empty row, one row for menu items (even if there
-	 * are no menu items - it's still required).
-	 *
-	 * Hack: if the menu is empty, we print "(nothing)"
-	 * on the last row of the term. */
+	 * are no menu items - it's still required). */
 
 	struct term_hints hints = {
 		.width = empty ? 30 : data->list->total_max_len + 3 + 3,
@@ -1381,16 +1378,10 @@ static void push_item_term(const struct object_menu_data *data)
 		int slots = quiver_slots(z_info->stack_size);
 		if (slots > 0) {
 			hints.height += slots;
-			empty = false;
 		}
 	}
 
 	Term_push_new(&hints);
-
-	if (empty) {
-		c_prt(menu_row_style(false, false), "(nothing)", loc(0, hints.height - 1));
-	}
-
 }
 
 static void pop_item_term(void)
