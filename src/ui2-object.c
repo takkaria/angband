@@ -1222,7 +1222,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	}
 	if (i1 <= i2) {
 		allow_inven = true;
-	} else if (data->item_mode & USE_INVEN) {
+	} else {
 		data->item_mode &= ~USE_INVEN;
 	}
 
@@ -1247,7 +1247,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	}
 	if (e1 <= e2) {
 		allow_equip = true;
-	} else if (data->item_mode & USE_EQUIP) {
+	} else {
 		data->item_mode &= ~USE_EQUIP;
 	}
 
@@ -1261,7 +1261,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	}
 	if (q1 <= q2) {
 		allow_quiver = true;
-	} else if (data->item_mode & USE_QUIVER) {
+	} else {
 		data->item_mode &= ~USE_QUIVER;
 	}
 
@@ -1278,7 +1278,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	}
 	if (f1 <= f2) {
 		allow_floor = true;
-	} else if (data->item_mode & USE_FLOOR) {
+	} else {
 		data->item_mode &= ~USE_FLOOR;
 	}
 
