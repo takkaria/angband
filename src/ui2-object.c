@@ -1441,7 +1441,7 @@ bool textui_get_item(struct object **choice,
  */
 
 /**
- * This draws the Object Recall subwindow when displaying a particular object
+ * This draws the object recall subwindow when displaying a particular object
  * (e.g. a helmet in the backpack, or a scroll on the ground)
  */
 void display_object_recall(struct object *obj)
@@ -1458,7 +1458,7 @@ void display_object_recall(struct object *obj)
 }
 
 /**
- * This draws the Object Recall subwindow when displaying a recalled item kind
+ * This draws the object recall subwindow when displaying a recalled item kind
  * (e.g. a generic ring of acid or a generic blade of chaos)
  */
 void display_object_kind_recall(struct object_kind *kind)
