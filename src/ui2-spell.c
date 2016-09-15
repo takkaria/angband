@@ -329,11 +329,12 @@ int textui_get_spell(const char *verb,
 		bool (*spell_filter)(int spell_index))
 {
 	char prompt[ANGBAND_TERM_STANDARD_WIDTH];
-	struct object *book;
 
 	/* Create prompt */
 	strnfmt(prompt, sizeof(prompt), "%s which book?", verb);
 	my_strcap(prompt);
+
+	struct object *book;
 
 	if (!get_item(&book, prompt, error, cmd, book_filter, (USE_INVEN | USE_FLOOR))) {
 		return -1;
