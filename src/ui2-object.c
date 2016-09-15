@@ -1631,7 +1631,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	if (selected == IGNORE_THIS_ITEM) {
 		obj->known->notice |= OBJ_NOTICE_IGNORE;
 	} else if (selected == UNIGNORE_THIS_ITEM) {
-		obj->known->notice &= ~(OBJ_NOTICE_IGNORE);
+		obj->known->notice &= ~OBJ_NOTICE_IGNORE;
 	} else if (selected == IGNORE_THIS_FLAVOR) {
 		object_ignore_flavor_of(obj);
 	} else if (selected == UNIGNORE_THIS_FLAVOR) {
