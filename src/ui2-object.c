@@ -1629,23 +1629,28 @@ void textui_cmd_ignore_menu(struct object *obj)
 	clear_prompt();
 	Term_pop();
 
-	if (selected == IGNORE_THIS_ITEM) {
-		obj->known->notice |= OBJ_NOTICE_IGNORE;
-	} else if (selected == UNIGNORE_THIS_ITEM) {
-		obj->known->notice &= ~OBJ_NOTICE_IGNORE;
-	} else if (selected == IGNORE_THIS_FLAVOR) {
-		object_ignore_flavor_of(obj);
-	} else if (selected == UNIGNORE_THIS_FLAVOR) {
-		kind_ignore_clear(obj->kind);
-	} else if (selected == IGNORE_THIS_EGO) {
-		ego_ignore(obj);
-	} else if (selected == UNIGNORE_THIS_EGO) {
-		ego_ignore_clear(obj);
-	} else if (selected == IGNORE_THIS_QUALITY) {
-		int ignore_type = ignore_type_of(obj);
-		byte ignore_value = ignore_level_of(obj);
-
-		ignore_level[ignore_type] = ignore_value;
+	switch (selected) {
+		case IGNORE_THIS_ITEM:
+			obj->known->notice |= OBJ_NOTICE_IGNORE;
+			break;
+		case UNIGNORE_THIS_ITEM:
+			obj->known->notice &= ~OBJ_NOTICE_IGNORE;
+			break;
+		case IGNORE_THIS_FLAVOR:
+			object_ignore_flavor_of(obj);
+			break;
+		case UNIGNORE_THIS_FLAVOR:
+			kind_ignore_clear(obj->kind);
+			break;
+		case IGNORE_THIS_EGO:
+			ego_ignore(obj);
+			break;
+		case UNIGNORE_THIS_EGO:
+			ego_ignore_clear(obj);
+			break;
+		case IGNORE_THIS_QUALITY:
+			ignore_level[ignore_type_of(obj)] = ignore_level_of(obj);
+			break;
 	}
 
 	player->upkeep->notice |= PN_IGNORE;
