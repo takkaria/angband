@@ -1553,11 +1553,11 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 		if (kind_is_ignored_aware(obj->kind)
 				|| kind_is_ignored_unaware(obj->kind))
 		{
-			strnfmt(out_val, sizeof(out_val), "All %s", name);
-			menu_dynamic_add(menu, out_val, IGNORE_THIS_FLAVOR);
-		} else {
 			strnfmt(out_val, sizeof(out_val), "Unignore all %s", name);
 			menu_dynamic_add(menu, out_val, UNIGNORE_THIS_FLAVOR);
+		} else {
+			strnfmt(out_val, sizeof(out_val), "All %s", name);
+			menu_dynamic_add(menu, out_val, IGNORE_THIS_FLAVOR);
 		}
 	}
 
