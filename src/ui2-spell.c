@@ -1,5 +1,5 @@
 /**
- * \file ui-spell.c
+ * \file ui2-spell.c
  * \brief Spell UI handing
  *
  * Copyright (c) 2010 Andi Sidwell
