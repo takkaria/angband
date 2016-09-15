@@ -1572,12 +1572,12 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 		char name[ANGBAND_TERM_STANDARD_WIDTH];
 		ego_item_name(name, sizeof(name), &choice);
 
-		if (!ego_is_ignored(choice.e_idx, choice.itype)) {
-			strnfmt(buf, sizeof(buf), "All %s", name + 4);
-			menu_dynamic_add(menu, buf, IGNORE_THIS_EGO);
-		} else {
+		if (ego_is_ignored(choice.e_idx, choice.itype)) {
 			strnfmt(buf, sizeof(buf), "Unignore all %s", name + 4);
 			menu_dynamic_add(menu, buf, UNIGNORE_THIS_EGO);
+		} else {
+			strnfmt(buf, sizeof(buf), "All %s", name + 4);
+			menu_dynamic_add(menu, buf, IGNORE_THIS_EGO);
 		}
 	}
 
