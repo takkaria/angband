@@ -1153,7 +1153,7 @@ static void build_menu_list(struct object_menu_data *data,
 		*title = "Floor";
 	} else {
 		/* Should never happen */
-		quit_fmt("bad command_wrk %d in menu!", player->upkeep->command_wrk);
+		quit_fmt("Bad command_wrk %d in menu!", player->upkeep->command_wrk);
 	}
 }
 
