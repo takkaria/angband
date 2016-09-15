@@ -1352,10 +1352,7 @@ static void push_item_term(const struct object_menu_data *data)
 			&& (data->olist_mode & OLIST_QUIVER_COMPACT))
 	{
 		/* Add space for quiver */
-		int slots = quiver_slots(z_info->stack_size);
-		if (slots > 0) {
-			hints.height += slots;
-		}
+		hints.height += quiver_slots(z_info->stack_size);
 	}
 
 	Term_push_new(&hints);
