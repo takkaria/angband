@@ -1590,16 +1590,16 @@ void textui_cmd_ignore_menu(struct object *obj)
 	}
 
 	/* Quality ignoring */
-	uint32_t value = ignore_level_of(obj);
+	uint32_t level = ignore_level_of(obj);
 	int type = ignore_type_of(obj);
 
 	if (tval_is_jewelry(obj) &&	ignore_level_of(obj) != IGNORE_BAD) {
-		value = IGNORE_MAX;
+		level = IGNORE_MAX;
 	}
 
-	if (value != IGNORE_MAX && type != ITYPE_MAX) {
+	if (level != IGNORE_MAX && type != ITYPE_MAX) {
 		strnfmt(out_val, sizeof(out_val), "All %s %s",
-				quality_values[value].name, ignore_name_for_type(type));
+				quality_values[level].name, ignore_name_for_type(type));
 		menu_dynamic_add(menu, out_val, IGNORE_THIS_QUALITY);
 	}
 
