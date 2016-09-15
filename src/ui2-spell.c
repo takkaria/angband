@@ -146,7 +146,7 @@ static bool spell_menu_handler(struct menu *menu, const ui_event *event, int ind
 	}
 }
 
-static void spell_menu_browser(int cursor, void *data, region reg)
+static void spell_menu_browser_hook(int cursor, void *data, region reg)
 {
 	(void) cursor;
 	(void) data;
@@ -183,7 +183,7 @@ static bool spell_menu_init(struct menu *menu, struct spell_menu_data *data,
 	menu_init(menu, MN_SKIN_SCROLL, &spell_menu_iter);
 	menu_setpriv(menu, data->n_spells, data);
 
-	menu->browse_hook = spell_menu_browser;
+	menu->browse_hook = spell_menu_browser_hook;
 	menu->selections = lower_case;
 	menu->command_keys = "?";
 
