@@ -1004,52 +1004,34 @@ static void quiver_browser(int index, void *menu_data, region active)
 
 static void change_command_wrk(const struct object_menu_data *data, ui_event event)
 {
-	const bool left = event.key.code == ARROW_LEFT;
+	assert(event.key.code == ARROW_LEFT || event.key.code == ARROW_RIGHT);
 
-	const bool inven  = (data->item_mode & USE_INVEN)  ? true : false;
-	const bool equip  = (data->item_mode & USE_EQUIP)  ? true : false;
-	const bool quiver = (data->item_mode & USE_QUIVER) ? true : false;
-	const bool floor  = (data->item_mode & USE_FLOOR)  ? true : false;
+	static const int wrk_order[] = {
+		USE_EQUIP,
+		USE_INVEN,
+		USE_QUIVER,
+		USE_FLOOR,
+	};
 
-	if (player->upkeep->command_wrk == USE_EQUIP) {
-		if (left) {
-			if      (floor)  player->upkeep->command_wrk = USE_FLOOR;
-			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
-			else if (inven)  player->upkeep->command_wrk = USE_INVEN;
-		} else {
-			if      (inven)  player->upkeep->command_wrk = USE_INVEN;
-			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
-			else if (floor)  player->upkeep->command_wrk = USE_FLOOR;
+	const size_t n_wrks = N_ELEMENTS(wrk_order);
+
+	size_t i = 0;
+	while (i < n_wrks && player->upkeep->command_wrk != wrk_order[i]) {
+		i++;
+	}
+	assert(i < n_wrks);
+
+	for (size_t n = 0; n < n_wrks; n++) {
+		if (event.key.code == ARROW_LEFT) {
+			/* Unsigned wrap around */
+			i = MIN(i - 1, n_wrks - 1);
+		} else if (event.key.code == ARROW_RIGHT) {
+			i = (i + 1) % n_wrks;
 		}
-	} else if (player->upkeep->command_wrk == USE_INVEN) {
-		if (left) {
-			if      (equip)  player->upkeep->command_wrk = USE_EQUIP;
-			else if (floor)  player->upkeep->command_wrk = USE_FLOOR;
-			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
-		} else {
-			if      (quiver) player->upkeep->command_wrk = USE_QUIVER;
-			else if (floor)  player->upkeep->command_wrk = USE_FLOOR;
-			else if (equip)  player->upkeep->command_wrk = USE_EQUIP;
-		}
-	} else if (player->upkeep->command_wrk == USE_QUIVER) {
-		if (left) {
-			if      (inven)  player->upkeep->command_wrk = USE_INVEN;
-			else if (equip)  player->upkeep->command_wrk = USE_EQUIP;
-			else if (floor)  player->upkeep->command_wrk = USE_FLOOR;
-		} else {
-			if      (floor)  player->upkeep->command_wrk = USE_FLOOR;
-			else if (equip)  player->upkeep->command_wrk = USE_EQUIP;
-			else if (inven)  player->upkeep->command_wrk = USE_INVEN;
-		}
-	} else if (player->upkeep->command_wrk == USE_FLOOR) {
-		if (left) {
-			if      (quiver) player->upkeep->command_wrk = USE_QUIVER;
-			else if (inven)  player->upkeep->command_wrk = USE_INVEN;
-			else if (equip)  player->upkeep->command_wrk = USE_EQUIP;
-		} else {
-			if      (equip)  player->upkeep->command_wrk = USE_EQUIP;
-			else if (inven)  player->upkeep->command_wrk = USE_INVEN;
-			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
+
+		if (wrk_order[i] & data->item_mode) {
+			player->upkeep->command_wrk = wrk_order[i];
+			return;
 		}
 	}
 }
