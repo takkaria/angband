@@ -1533,7 +1533,7 @@ enum {
 
 static void ignore_menu_build(struct menu *menu, struct object *obj)
 {
-	char out_val[ANGBAND_TERM_STANDARD_WIDTH];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	/* Basic ignore option */
 	if (obj->known->notice & OBJ_NOTICE_IGNORE) {
@@ -1553,11 +1553,11 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 		if (kind_is_ignored_aware(obj->kind)
 				|| kind_is_ignored_unaware(obj->kind))
 		{
-			strnfmt(out_val, sizeof(out_val), "Unignore all %s", name);
-			menu_dynamic_add(menu, out_val, UNIGNORE_THIS_FLAVOR);
+			strnfmt(buf, sizeof(buf), "Unignore all %s", name);
+			menu_dynamic_add(menu, buf, UNIGNORE_THIS_FLAVOR);
 		} else {
-			strnfmt(out_val, sizeof(out_val), "All %s", name);
-			menu_dynamic_add(menu, out_val, IGNORE_THIS_FLAVOR);
+			strnfmt(buf, sizeof(buf), "All %s", name);
+			menu_dynamic_add(menu, buf, IGNORE_THIS_FLAVOR);
 		}
 	}
 
@@ -1573,11 +1573,11 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 		ego_item_name(name, sizeof(name), &choice);
 
 		if (!ego_is_ignored(choice.e_idx, choice.itype)) {
-			strnfmt(out_val, sizeof(out_val), "All %s", name + 4);
-			menu_dynamic_add(menu, out_val, IGNORE_THIS_EGO);
+			strnfmt(buf, sizeof(buf), "All %s", name + 4);
+			menu_dynamic_add(menu, buf, IGNORE_THIS_EGO);
 		} else {
-			strnfmt(out_val, sizeof(out_val), "Unignore all %s", name + 4);
-			menu_dynamic_add(menu, out_val, UNIGNORE_THIS_EGO);
+			strnfmt(buf, sizeof(buf), "Unignore all %s", name + 4);
+			menu_dynamic_add(menu, buf, UNIGNORE_THIS_EGO);
 		}
 	}
 
@@ -1585,14 +1585,14 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 	uint32_t level = ignore_level_of(obj);
 	int type = ignore_type_of(obj);
 
-	if (tval_is_jewelry(obj) &&	ignore_level_of(obj) != IGNORE_BAD) {
+	if (tval_is_jewelry(obj) && ignore_level_of(obj) != IGNORE_BAD) {
 		level = IGNORE_MAX;
 	}
 
 	if (level != IGNORE_MAX && type != ITYPE_MAX) {
-		strnfmt(out_val, sizeof(out_val), "All %s %s",
+		strnfmt(buf, sizeof(buf), "All %s %s",
 				quality_values[level].name, ignore_name_for_type(type));
-		menu_dynamic_add(menu, out_val, IGNORE_THIS_QUALITY);
+		menu_dynamic_add(menu, buf, IGNORE_THIS_QUALITY);
 	}
 }
 
