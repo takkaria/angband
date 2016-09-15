@@ -1582,7 +1582,7 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 	}
 
 	/* Quality ignoring */
-	uint32_t level = ignore_level_of(obj);
+	byte level = ignore_level_of(obj);
 	int type = ignore_type_of(obj);
 
 	if ((!tval_is_jewelry(obj) || level == IGNORE_BAD)
