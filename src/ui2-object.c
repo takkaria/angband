@@ -1539,7 +1539,7 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 	if (obj->known->notice & OBJ_NOTICE_IGNORE) {
 		menu_dynamic_add(menu, "Unignore this item", UNIGNORE_THIS_ITEM);
 	} else {
-		menu_dynamic_add(menu, "This item only", IGNORE_THIS_ITEM);
+		menu_dynamic_add(menu, "Ignore this item only", IGNORE_THIS_ITEM);
 	}
 
 	/* Flavour-aware ignore */
@@ -1556,7 +1556,7 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 			strnfmt(buf, sizeof(buf), "Unignore all %s", name);
 			menu_dynamic_add(menu, buf, UNIGNORE_THIS_FLAVOR);
 		} else {
-			strnfmt(buf, sizeof(buf), "All %s", name);
+			strnfmt(buf, sizeof(buf), "Ignore all %s", name);
 			menu_dynamic_add(menu, buf, IGNORE_THIS_FLAVOR);
 		}
 	}
@@ -1576,7 +1576,7 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 			strnfmt(buf, sizeof(buf), "Unignore all %s", name + 4);
 			menu_dynamic_add(menu, buf, UNIGNORE_THIS_EGO);
 		} else {
-			strnfmt(buf, sizeof(buf), "All %s", name + 4);
+			strnfmt(buf, sizeof(buf), "Ignore all %s", name + 4);
 			menu_dynamic_add(menu, buf, IGNORE_THIS_EGO);
 		}
 	}
@@ -1589,7 +1589,7 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 			&& ignore_value < IGNORE_MAX
 			&& ignore_type  < ITYPE_MAX)
 	{
-		strnfmt(buf, sizeof(buf), "All %s %s",
+		strnfmt(buf, sizeof(buf), "Ignore all %s %s",
 				quality_values[ignore_value].name, ignore_name_for_type(ignore_type));
 		menu_dynamic_add(menu, buf, IGNORE_THIS_QUALITY);
 	}
@@ -1606,7 +1606,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	ignore_menu_build(menu, obj);
 	menu->selections = lower_case;
 
-	show_prompt("(Enter to select, ESC) Ignore:", false);
+	show_prompt("(Enter to select, ESC)", false);
 
 	/* Work out display region */
 	region reg = menu_dynamic_calc_location(menu);
