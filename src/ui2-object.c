@@ -1678,7 +1678,7 @@ static bool use_flavor_glyph(const struct object_kind *kind)
 	if (kind->tval == TV_SCROLL && kind->aware) {
 		return false;
 	} else {
-		return kind->flavor;
+		return kind->flavor != NULL;
 	}
 }
 
