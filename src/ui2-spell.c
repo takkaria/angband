@@ -284,7 +284,7 @@ void textui_book_browse(const struct object *obj)
  */
 void textui_spell_browse(void)
 {
-	struct object *obj = NULL;
+	struct object *obj;
 
 	if (get_item(&obj, "Browse which book? ", "You have no books that you can read.",
 				  CMD_BROWSE_SPELL, obj_can_browse, (USE_INVEN | USE_FLOOR | IS_HARMLESS)))
