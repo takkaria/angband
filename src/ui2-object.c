@@ -715,20 +715,27 @@ bool get_item_allow(const struct object *obj, cmd_code cmd, bool harmless)
 	}
 
 	if (checks > 0) {
+		char prompt[ANGBAND_TERM_STANDARD_WIDTH];
+		const unsigned n_checks = checks;
+
 		const char *verb = cmd_verb(cmd);
 		if (verb == NULL) {
 			verb = "do that with";
 		}
 
-		char prompt[ANGBAND_TERM_STANDARD_WIDTH];
-		strnfmt(prompt, sizeof(prompt), "Really %s", verb);
+		while (checks > 0) {
+			strnfmt(prompt, sizeof(prompt),
+					"(%u/%u) Really %s", checks, n_checks, verb);
 
-		while (checks > 0 && verify_object(prompt, (struct object *) obj)) {
-			checks--;
+			if (verify_object(prompt, (struct object *) obj)) {
+				checks--;
+			} else {
+				return false;
+			}
 		}
 	}
 
-	return checks == 0;
+	return true;
 }
 
 /**
