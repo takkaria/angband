@@ -1533,7 +1533,7 @@ enum {
 
 void textui_cmd_ignore_menu(struct object *obj)
 {
-	if (!obj) {
+	if (obj == NULL) {
 		return;
 	}
 
