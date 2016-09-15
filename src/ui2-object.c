@@ -695,8 +695,6 @@ struct object_menu_data {
 
 /**
  * Prevent certain choices depending on the inscriptions on the item.
- *
- * The item can be negative to mean "item on floor".
  */
 bool get_item_allow(const struct object *obj,
 		unsigned char ch, cmd_code cmd, bool harmless)
