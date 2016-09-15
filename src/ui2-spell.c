@@ -195,12 +195,14 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 
 	struct term_hints hints = {
 		.width = 60,
-		.height = data->n_spells + 1,
+		.height = data->n_spells + 1 + 2,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-	menu_layout_term(menu);
+
+	region reg = {1, 1, 0, 0};
+	menu_layout(menu, reg);
 
 	/* Format, capitalise and display */
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
@@ -225,12 +227,14 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 
 	struct term_hints hints = {
 		.width = 60,
-		.height = data->n_spells + 1,
+		.height = data->n_spells + 1 + 2,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_TOP_CENTER
 	};
 	Term_push_new(&hints);
-	menu_layout_term(menu);
+
+	region reg = {1, 1, 0, 0};
+	menu_layout(menu, reg);
 
 	show_prompt(format("Browsing %ss. ('?' to read description)", noun), false);
 
