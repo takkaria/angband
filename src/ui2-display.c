@@ -190,6 +190,11 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 	wchar_t buf[1024];
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
 
+	if (dt->coords.x < 0) {
+		Term_clear();
+		dt->coords.x = 0;
+	}
+
 	if (dt->coords.x > 0 && dt->coords.x + len > wrap) {
 		message_more(dt->coords.x);
 		dt->coords.x = 0;
@@ -263,9 +268,14 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
  */
 void message_skip_more(void)
 {
-	struct loc coords = {0, 0};
+	struct display_term *display_message_line =
+		display_term_get(DISPLAY_MESSAGE_LINE);
 
-	display_term_set_coords(DISPLAY_MESSAGE_LINE, coords);
+	if (display_message_line->coords.x > 0) {
+		/* x coordinate less that zero means
+		 * that the term should be cleared */
+		display_message_line->coords.x = -1;
+	}
 }
 
 /**
