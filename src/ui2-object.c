@@ -1330,8 +1330,8 @@ static void push_item_term(const struct object_menu_data *data)
 	bool empty = data->list->len > 0 ? false : true;
 
 	/* We add 3 to term's width to account for the menu's tags;
-	 * then add 3 to term's width and height to reserve space
-	 * for padding on the left, right, top and bottom sides
+	 * then add 2 to term's width and and 3 to height to reserve
+	 * space for padding on the left, right, top and bottom sides
 	 * of the item menu (see menu_layout() and note that
 	 * our menu has a title);
 	 *
@@ -1342,7 +1342,7 @@ static void push_item_term(const struct object_menu_data *data)
 	 * are no menu items - it's still required). */
 
 	struct term_hints hints = {
-		.width = empty ? 30 : data->list->total_max_len + 3 + 3,
+		.width = empty ? 30 : data->list->total_max_len + 3 + 2,
 		.height = empty ? 3 : data->list->len + 3,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_TOP_CENTER
