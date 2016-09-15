@@ -1577,14 +1577,14 @@ void textui_cmd_ignore_menu(struct object *obj)
 		choice.itype = ignore_type_of(obj);
 		choice.short_name = "";
 
-		char tmp[ANGBAND_TERM_STANDARD_WIDTH];
-		ego_item_name(tmp, sizeof(tmp), &choice);
+		char name[ANGBAND_TERM_STANDARD_WIDTH];
+		ego_item_name(name, sizeof(name), &choice);
 
 		if (!ego_is_ignored(choice.e_idx, choice.itype)) {
-			strnfmt(out_val, sizeof(out_val), "All %s", tmp + 4);
+			strnfmt(out_val, sizeof(out_val), "All %s", name + 4);
 			menu_dynamic_add(menu, out_val, IGNORE_THIS_EGO);
 		} else {
-			strnfmt(out_val, sizeof(out_val), "Unignore all %s", tmp + 4);
+			strnfmt(out_val, sizeof(out_val), "Unignore all %s", name + 4);
 			menu_dynamic_add(menu, out_val, UNIGNORE_THIS_EGO);
 		}
 	}
