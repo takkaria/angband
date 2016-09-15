@@ -54,8 +54,7 @@ void show_floor(struct object **floor_list, int floor_num,
 bool textui_get_item(struct object **choice,
 		const char *prompt, const char *reject,
 		cmd_code cmd, item_tester tester, int mode);
-bool get_item_allow(const struct object *obj,
-		unsigned char ch, cmd_code cmd, bool harmless);
+bool get_item_allow(const struct object *obj, cmd_code cmd, bool harmless);
 
 void display_object_recall(struct object *obj);
 void display_object_kind_recall(struct object_kind *kind);

@@ -696,9 +696,13 @@ struct object_menu_data {
 /**
  * Prevent certain choices depending on the inscriptions on the item.
  */
-bool get_item_allow(const struct object *obj,
-		unsigned char ch, cmd_code cmd, bool harmless)
+bool get_item_allow(const struct object *obj, cmd_code cmd, bool harmless)
 {
+	if (obj->note == 0) {
+		return true;
+	}
+
+	unsigned char ch = cmd_lookup_key(cmd, KEYMAP_MODE_OPT);
 	if (ch < 0x20) {
 		ch = UN_KTRL(ch);
 	}
@@ -910,7 +914,6 @@ static bool handle_menu_select_action(struct object_menu_data *data,
 
 	if (obj != NULL
 			&& get_item_allow(obj,
-				cmd_lookup_key(data->item_cmd, KEYMAP_MODE_OPT),
 				data->item_cmd,
 				(data->item_mode & IS_HARMLESS)))
 	{

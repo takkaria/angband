@@ -830,8 +830,8 @@ bool context_menu_object(struct object *obj)
 		case CMD_FIRE:
 		case CMD_USE:
 			/* Check for inscriptions that trigger confirmation. */
-			allowed = key_confirm_command(cmdkey) &&
-				get_item_allow(obj, cmdkey, selected, false);
+			allowed = key_confirm_command(cmdkey)
+				&& get_item_allow(obj, selected, false);
 			break;
 		default:
 			/* Invalid command; prevent anything from happening. */
