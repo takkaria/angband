@@ -1270,7 +1270,6 @@ static bool init_menu_data(struct object_menu_data *data,
 	const bool allow_equip  = (data->item_mode & USE_EQUIP)   ? true : false;
 	const bool allow_quiver = (data->item_mode & USE_QUIVER)  ? true : false;
 	const bool allow_floor  = (data->item_mode & USE_FLOOR)   ? true : false;
-	const bool quiver_tags  = (data->item_mode & QUIVER_TAGS) ? true : false;
 
 	/* Require at least one legal choice */
 	if (!allow_inven && !allow_equip && !allow_quiver && !allow_floor) {
@@ -1286,7 +1285,7 @@ static bool init_menu_data(struct object_menu_data *data,
 		player->upkeep->command_wrk = USE_QUIVER;
 	} else if (player->upkeep->command_wrk == USE_FLOOR && allow_floor) {
 		player->upkeep->command_wrk = USE_FLOOR;
-	} else if (quiver_tags && allow_quiver) {
+	} else if ((data->item_mode & QUIVER_TAGS) && allow_quiver) {
 		/* If we are obviously using the quiver then start on quiver */
 		player->upkeep->command_wrk = USE_QUIVER;
 	} else {
