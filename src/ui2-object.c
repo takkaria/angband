@@ -1531,16 +1531,9 @@ enum {
 	IGNORE_THIS_QUALITY
 };
 
-void textui_cmd_ignore_menu(struct object *obj)
+static void ignore_menu_build(struct menu *menu, struct object *obj)
 {
-	if (obj == NULL) {
-		return;
-	}
-
 	char out_val[ANGBAND_TERM_STANDARD_WIDTH];
-
-	struct menu *menu = menu_dynamic_new();
-	menu->selections = lower_case;
 
 	/* Basic ignore option */
 	if (!(obj->known->notice & OBJ_NOTICE_IGNORE)) {
@@ -1602,6 +1595,19 @@ void textui_cmd_ignore_menu(struct object *obj)
 				quality_values[level].name, ignore_name_for_type(type));
 		menu_dynamic_add(menu, out_val, IGNORE_THIS_QUALITY);
 	}
+}
+
+void textui_cmd_ignore_menu(struct object *obj)
+{
+	if (obj == NULL) {
+		return;
+	}
+
+
+	struct menu *menu = menu_dynamic_new();
+
+	menu->selections = lower_case;
+	ignore_menu_build(menu, obj);
 
 	/* Work out display region */
 	region reg = menu_dynamic_calc_location(menu);
