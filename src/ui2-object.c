@@ -1165,13 +1165,6 @@ static bool init_menu_data(struct object_menu_data *data,
 	const bool use_quiver = (mode & USE_QUIVER) ? true : false;
 	const bool use_floor  = (mode & USE_FLOOR)  ? true : false;
 
-	const bool quiver_tags = (mode & QUIVER_TAGS) ? true : false;
-
-	bool allow_inven  = false;
-	bool allow_equip  = false;
-	bool allow_quiver = false;
-	bool allow_floor  = false;
-
 	memset(data, 0, sizeof(*data));
 
 	data->retval.object = NULL;
@@ -1207,9 +1200,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	while (i1 <= i2 && !object_test(tester, player->upkeep->inven[i2])) {
 		i2--;
 	}
-	if (i1 <= i2) {
-		allow_inven = true;
-	} else {
+	if (i1 > i2) {
 		data->item_mode &= ~USE_INVEN;
 	}
 
@@ -1232,9 +1223,7 @@ static bool init_menu_data(struct object_menu_data *data,
 			}
 		}
 	}
-	if (e1 <= e2) {
-		allow_equip = true;
-	} else {
+	if (e1 > e2) {
 		data->item_mode &= ~USE_EQUIP;
 	}
 
@@ -1246,9 +1235,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	while (q1 <= q2 && !object_test(tester, player->upkeep->quiver[q2])) {
 		q2--;
 	}
-	if (q1 <= q2) {
-		allow_quiver = true;
-	} else {
+	if (q1 > q2) {
 		data->item_mode &= ~USE_QUIVER;
 	}
 
@@ -1263,9 +1250,7 @@ static bool init_menu_data(struct object_menu_data *data,
 	while (f1 <= f2 && !object_test(tester, data->floor_list[f2])) {
 		f2--;
 	}
-	if (f1 <= f2) {
-		allow_floor = true;
-	} else {
+	if (f1 > f2) {
 		data->item_mode &= ~USE_FLOOR;
 	}
 
@@ -1280,6 +1265,12 @@ static bool init_menu_data(struct object_menu_data *data,
 
 	data->f1 = f1;
 	data->f2 = f2;
+
+	const bool allow_inven  = (data->item_mode & USE_INVEN)  ? true : false;
+	const bool allow_equip  = (data->item_mode & USE_EQUIP)  ? true : false;
+	const bool allow_quiver = (data->item_mode & USE_FLOOR)  ? true : false;
+	const bool allow_floor  = (data->item_mode & USE_QUIVER) ? true : false;
+	const bool quiver_tags  = (mode & QUIVER_TAGS)           ? true : false;
 
 	/* Require at least one legal choice */
 	if (!allow_inven && !allow_equip && !allow_quiver && !allow_floor) {
