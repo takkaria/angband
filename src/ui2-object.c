@@ -1553,18 +1553,18 @@ void textui_cmd_ignore_menu(struct object *obj)
 	if (ignore_tval(obj->tval)
 			&& (!obj->artifact || !object_flavor_is_aware(obj)))
 	{
-		char tmp[ANGBAND_TERM_STANDARD_WIDTH];
-		object_desc(tmp, sizeof(tmp), obj,
+		char desc[ANGBAND_TERM_STANDARD_WIDTH];
+		object_desc(desc, sizeof(desc), obj,
 					ODESC_NOEGO | ODESC_BASE | ODESC_PLURAL);
 
 		bool ignored =
 			kind_is_ignored_aware(obj->kind) || kind_is_ignored_unaware(obj->kind);
 
 		if (!ignored) {
-			strnfmt(out_val, sizeof(out_val), "All %s", tmp);
+			strnfmt(out_val, sizeof(out_val), "All %s", desc);
 			menu_dynamic_add(menu, out_val, IGNORE_THIS_FLAVOR);
 		} else {
-			strnfmt(out_val, sizeof(out_val), "Unignore all %s", tmp);
+			strnfmt(out_val, sizeof(out_val), "Unignore all %s", desc);
 			menu_dynamic_add(menu, out_val, UNIGNORE_THIS_FLAVOR);
 		}
 	}
