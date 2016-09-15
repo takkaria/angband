@@ -1606,20 +1606,23 @@ void textui_cmd_ignore_menu(struct object *obj)
 	/* Work out display region */
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
-		.width = reg.w,
-		.height = reg.h,
+		.width = reg.w + 2,
+		.height = reg.h + 2,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 
 	Term_push_new(&hints);
-	menu_layout_term(menu);
+
+	reg.x = 1;
+	reg.y = 1;
+	menu_layout(menu, reg);
 
 	show_prompt("(Enter to select, ESC) Ignore:", false);
 	int selected = menu_dynamic_select(menu);
 
-	Term_pop();
 	menu_dynamic_free(menu);
+	Term_pop();
 
 	if (selected == IGNORE_THIS_ITEM) {
 		obj->known->notice |= OBJ_NOTICE_IGNORE;
