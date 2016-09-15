@@ -1601,11 +1601,12 @@ void textui_cmd_ignore_menu(struct object *obj)
 		return;
 	}
 
-
 	struct menu *menu = menu_dynamic_new();
 
-	menu->selections = lower_case;
 	ignore_menu_build(menu, obj);
+	menu->selections = lower_case;
+
+	show_prompt("(Enter to select, ESC) Ignore:", false);
 
 	/* Work out display region */
 	region reg = menu_dynamic_calc_location(menu);
@@ -1622,7 +1623,6 @@ void textui_cmd_ignore_menu(struct object *obj)
 	reg.y = 1;
 	menu_layout(menu, reg);
 
-	show_prompt("(Enter to select, ESC) Ignore:", false);
 	int selected = menu_dynamic_select(menu);
 
 	menu_dynamic_free(menu);
