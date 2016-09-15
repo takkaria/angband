@@ -1585,11 +1585,10 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 	uint32_t level = ignore_level_of(obj);
 	int type = ignore_type_of(obj);
 
-	if (tval_is_jewelry(obj) && ignore_level_of(obj) != IGNORE_BAD) {
-		level = IGNORE_MAX;
-	}
-
-	if (level != IGNORE_MAX && type != ITYPE_MAX) {
+	if ((!tval_is_jewelry(obj) || level == IGNORE_BAD)
+			&& level != IGNORE_MAX
+			&& type != ITYPE_MAX)
+	{
 		strnfmt(buf, sizeof(buf), "All %s %s",
 				quality_values[level].name, ignore_name_for_type(type));
 		menu_dynamic_add(menu, buf, IGNORE_THIS_QUALITY);
