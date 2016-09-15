@@ -41,6 +41,13 @@ struct spell_menu_data {
 	int selected_spell;
 };
 
+#define SPELL_MENU_WIDTH 60
+
+#define SPELL_MENU_FIELDS \
+	L"    Name                          Lv Mana Fail Info"
+#define SPELL_MENU_SEPARATOR \
+	L"============================================================"
+
 /**
  * Is item index valid?
  */
@@ -139,6 +146,16 @@ static bool spell_menu_handler(struct menu *menu, const ui_event *event, int ind
 	}
 }
 
+static void spell_menu_browser(int cursor, void *data, region reg)
+{
+	(void) cursor;
+	(void) data;
+	(void) reg;
+
+	Term_addws(0, 1, wcslen(SPELL_MENU_FIELDS), COLOUR_WHITE, SPELL_MENU_FIELDS);
+	Term_addws(0, 2, wcslen(SPELL_MENU_SEPARATOR), COLOUR_L_DARK, SPELL_MENU_SEPARATOR);
+}
+
 static const menu_iter spell_menu_iter = {
 	.valid_row   = spell_menu_valid,
 	.display_row = spell_menu_display,
@@ -166,8 +183,7 @@ static bool spell_menu_init(struct menu *menu, struct spell_menu_data *data,
 	menu_init(menu, MN_SKIN_SCROLL, &spell_menu_iter);
 	menu_setpriv(menu, data->n_spells, data);
 
-	/* Set flags */
-	menu->header = "Name                             Lv Mana Fail Info";
+	menu->browse_hook = spell_menu_browser;
 	menu->selections = lower_case;
 	menu->command_keys = "?";
 
@@ -194,14 +210,15 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 	struct spell_menu_data *data = menu_priv(menu);
 
 	struct term_hints hints = {
-		.width = 60,
-		.height = data->n_spells + 1 + 2,
+		.width = SPELL_MENU_WIDTH,
+		.height = data->n_spells + 4,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
 
-	region reg = {1, 1, 0, 0};
+	region reg = {1, 3, 0, 0};
+
 	menu_layout(menu, reg);
 
 	/* Format, capitalise and display */
@@ -226,14 +243,14 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 	struct spell_menu_data *data = menu_priv(menu);
 
 	struct term_hints hints = {
-		.width = 60,
-		.height = data->n_spells + 1 + 2,
+		.width = SPELL_MENU_WIDTH,
+		.height = data->n_spells + 4,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_TOP_CENTER
 	};
 	Term_push_new(&hints);
 
-	region reg = {1, 1, 0, 0};
+	region reg = {1, 3, 0, 0};
 	menu_layout(menu, reg);
 
 	show_prompt(format("Browsing %ss. ('?' to read description)", noun), false);
