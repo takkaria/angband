@@ -42,7 +42,7 @@ struct spell_menu_data {
 };
 
 /**
- * Is item oid valid?
+ * Is item index valid?
  */
 static bool spell_menu_valid(struct menu *menu, int index)
 {
