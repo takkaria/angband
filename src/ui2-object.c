@@ -1004,7 +1004,7 @@ static void quiver_browser(int index, void *menu_data, region active)
 
 static void change_command_wrk(const struct object_menu_data *data, ui_event event)
 {
-	bool left = event.key.code == ARROW_LEFT;
+	const bool left = event.key.code == ARROW_LEFT;
 
 	const bool inven  = (data->item_mode & USE_INVEN)  ? true : false;
 	const bool equip  = (data->item_mode & USE_EQUIP)  ? true : false;
