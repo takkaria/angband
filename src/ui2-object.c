@@ -496,7 +496,6 @@ static struct loc show_obj_list(struct object_menu_list *olist,
 	}
 
 	if (mode & OLIST_QUIVER_COMPACT) {
-		assert(olist->len < 26);
 		loc = show_quiver_compact(all_letters + olist->len, height, loc);
 	}
 
@@ -996,8 +995,6 @@ static void quiver_browser(int index, void *menu_data, region active)
 			.x = active.x,
 			.y = active.y + active.h - 1
 		};
-
-		assert(data->list->len < 26);
 
 		/* The term is unlikely to be 999 rows high;
 		 * but it should be high enough to show all missiles in quiver */
