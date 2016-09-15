@@ -1582,15 +1582,15 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 	}
 
 	/* Quality ignoring */
-	byte level = ignore_level_of(obj);
-	int type = ignore_type_of(obj);
+	byte ignore_value = ignore_level_of(obj);
+	int ignore_type = ignore_type_of(obj);
 
-	if ((!tval_is_jewelry(obj) || level == IGNORE_BAD)
-			&& level < IGNORE_MAX
-			&& type  < ITYPE_MAX)
+	if ((!tval_is_jewelry(obj) || ignore_value == IGNORE_BAD)
+			&& ignore_value < IGNORE_MAX
+			&& ignore_type  < ITYPE_MAX)
 	{
 		strnfmt(buf, sizeof(buf), "All %s %s",
-				quality_values[level].name, ignore_name_for_type(type));
+				quality_values[ignore_value].name, ignore_name_for_type(ignore_type));
 		menu_dynamic_add(menu, buf, IGNORE_THIS_QUALITY);
 	}
 }
