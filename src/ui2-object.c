@@ -1586,8 +1586,8 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 	int type = ignore_type_of(obj);
 
 	if ((!tval_is_jewelry(obj) || level == IGNORE_BAD)
-			&& level != IGNORE_MAX
-			&& type != ITYPE_MAX)
+			&& level < IGNORE_MAX
+			&& type  < ITYPE_MAX)
 	{
 		strnfmt(buf, sizeof(buf), "All %s %s",
 				quality_values[level].name, ignore_name_for_type(type));
