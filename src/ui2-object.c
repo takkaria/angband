@@ -1536,10 +1536,10 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 	char out_val[ANGBAND_TERM_STANDARD_WIDTH];
 
 	/* Basic ignore option */
-	if (!(obj->known->notice & OBJ_NOTICE_IGNORE)) {
-		menu_dynamic_add(menu, "This item only", IGNORE_THIS_ITEM);
-	} else {
+	if (obj->known->notice & OBJ_NOTICE_IGNORE) {
 		menu_dynamic_add(menu, "Unignore this item", UNIGNORE_THIS_ITEM);
+	} else {
+		menu_dynamic_add(menu, "This item only", IGNORE_THIS_ITEM);
 	}
 
 	/* Flavour-aware ignore */
