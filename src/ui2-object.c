@@ -1563,12 +1563,11 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 
 	/* Ego ignoring */
 	if (obj->known->ego) {
-		struct ego_desc choice;
-		struct ego_item *ego = obj->ego;
-
-		choice.e_idx = ego->eidx;
-		choice.itype = ignore_type_of(obj);
-		choice.short_name = "";
+		struct ego_desc choice = {
+			.e_idx = obj->ego->eidx,
+			.itype = ignore_type_of(obj),
+			.short_name = ""
+		};
 
 		char name[ANGBAND_TERM_STANDARD_WIDTH];
 		ego_item_name(name, sizeof(name), &choice);
