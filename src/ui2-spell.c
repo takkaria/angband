@@ -146,21 +146,16 @@ static const menu_iter spell_menu_iter = {
 };
 
 /**
- * Create and initialise a spell menu, given an object and a validity hook
+ * Initialise a spell menu, given an object and a validity hook
  */
-static struct menu *spell_menu_new(const struct object *obj,
-		bool (*is_valid)(int spell_index))
+static bool spell_menu_init(struct menu *menu, struct spell_menu_data *data,
+		const struct object *obj, bool (*is_valid)(int spell_index))
 {
-	struct menu *menu = menu_new(MN_SKIN_SCROLL, &spell_menu_iter);
-	struct spell_menu_data *data = mem_alloc(sizeof(*data));
-
-	/* collect spells from object */
+	/* Collect spells from object */
 	data->n_spells = spell_collect_from_book(obj, &data->spells);
 	if (data->n_spells == 0 || !spell_okay_list(is_valid, data->spells, data->n_spells)) {
 		mem_free(data->spells);
-		mem_free(data);
-		menu_free(menu);
-		return NULL;
+		return false;
 	}
 
 	/* Copy across private data */
@@ -168,6 +163,7 @@ static struct menu *spell_menu_new(const struct object *obj,
 	data->is_valid = is_valid;
 	data->browse = false;
 
+	menu_init(menu, MN_SKIN_SCROLL, &spell_menu_iter);
 	menu_setpriv(menu, data->n_spells, data);
 
 	/* Set flags */
@@ -177,20 +173,17 @@ static struct menu *spell_menu_new(const struct object *obj,
 
 	mnflag_on(menu->flags, MN_CASELESS_TAGS);
 
-	return menu;
+	return true;
 }
 
 /**
- * Clean up a spell menu instance
+ * Free spell menu's allocated resources
  */
 static void spell_menu_destroy(struct menu *menu)
 {
 	struct spell_menu_data *data = menu_priv(menu);
 
 	mem_free(data->spells);
-	mem_free(data);
-
-	menu_free(menu);
 }
 
 /**
@@ -253,11 +246,13 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
  */
 void textui_book_browse(const struct object *obj)
 {
-	struct menu *menu = spell_menu_new(obj, spell_okay_to_browse);
-	if (menu) {
+	struct menu menu;
+	struct spell_menu_data data;
+
+	if (spell_menu_init(&menu, &data, obj, spell_okay_to_browse)) {
 		const char *noun = player->class->magic.spell_realm->spell_noun;
-		spell_menu_browse(menu, noun);
-		spell_menu_destroy(menu);
+		spell_menu_browse(&menu, noun);
+		spell_menu_destroy(&menu);
 	} else {
 		msg("You cannot browse that.");
 	}
@@ -289,14 +284,16 @@ int textui_get_spell_from_book(const char *verb,
 {
 	(void) error;
 
+	struct menu menu;
+	struct spell_menu_data data;
+
 	track_object(player->upkeep, book);
 	handle_stuff(player);
 
-	struct menu *menu = spell_menu_new(book, spell_filter);
-	if (menu) {
+	if (spell_menu_init(&menu, &data, book, spell_filter)) {
 		const char *noun = player->class->magic.spell_realm->spell_noun;
-		int spell_index = spell_menu_select(menu, noun, verb);
-		spell_menu_destroy(menu);
+		int spell_index = spell_menu_select(&menu, noun, verb);
+		spell_menu_destroy(&menu);
 		return spell_index;
 	}
 
