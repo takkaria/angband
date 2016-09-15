@@ -1440,21 +1440,36 @@ bool textui_get_item(struct object **choice,
  * ------------------------------------------------------------------------
  */
 
+/*
+ * This function is called internally by object recall display functions
+ */
+static void display_object_recall_int(const struct object *obj,
+		int mode, bool interactive)
+{
+	textblock *tb = object_info(obj, OINFO_NONE);
+
+	char header[ANGBAND_TERM_STANDARD_WIDTH];
+	object_desc(header, sizeof(header), obj, mode);
+
+	region area = {0, 0, 0, 0};
+
+	if (interactive) {
+		textui_textblock_show(tb, area, header);
+	} else {
+		Term_clear();
+		textui_textblock_place(tb, area, header);
+	}
+
+	textblock_free(tb);
+}
+
 /**
  * This draws the object recall subwindow when displaying a particular object
  * (e.g. a helmet in the backpack, or a scroll on the ground)
  */
 void display_object_recall(struct object *obj)
 {
-	char header[ANGBAND_TERM_STANDARD_WIDTH];
-	region area = {0};
-
-	Term_clear();
-
-	textblock *tb = object_info(obj, OINFO_NONE);
-	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_FULL);
-	textui_textblock_place(tb, area, header);
-	textblock_free(tb);
+	display_object_recall_int(obj, ODESC_PREFIX | ODESC_FULL, false);
 }
 
 /**
@@ -1469,7 +1484,7 @@ void display_object_kind_recall(struct object_kind *kind)
 	object_prep(&object, kind, 0, EXTREMIFY);
 	object.known = &known_obj;
 
-	display_object_recall(&object);
+	display_object_recall_int(&object, ODESC_PREFIX | ODESC_FULL, false);
 }
 
 /**
@@ -1479,13 +1494,7 @@ void display_object_kind_recall(struct object_kind *kind)
  */
 void display_object_recall_interactive(struct object *obj)
 {
-	char header[ANGBAND_TERM_STANDARD_WIDTH];
-	region area = {0};
-
-	textblock *tb = object_info(obj, OINFO_NONE);
-	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_FULL);
-	textui_textblock_show(tb, area, header);
-	textblock_free(tb);
+	display_object_recall_int(obj, ODESC_PREFIX | ODESC_FULL, true);
 }
 
 /**
@@ -1498,17 +1507,11 @@ void textui_obj_examine(void)
 	if (get_item(&obj, "Examine which item? ", "You have nothing to examine.",
 			CMD_NULL, NULL, (USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR | IS_HARMLESS)))
 	{
-		char header[ANGBAND_TERM_STANDARD_WIDTH];
-		region area = {0};
-
 		/* Track object for object recall */
 		track_object(player->upkeep, obj);
 
-		textblock *tb = object_info(obj, OINFO_NONE);
-		object_desc(header, sizeof(header), obj,
-				ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL);
-		textui_textblock_show(tb, area, header);
-		textblock_free(tb);
+		display_object_recall_int(obj,
+				ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL, true);
 	}
 }
 
