@@ -993,7 +993,7 @@ static void quiver_browser(int index, void *menu_data, region active)
 	{
 		struct loc loc = {
 			.x = active.x,
-			.y = active.y + active.h - 1
+			.y = active.y + active.h
 		};
 
 		/* The term is unlikely to be 999 rows high;
@@ -1058,7 +1058,7 @@ static void menu_find_inscriptions(struct menu *menu,
 /**
  * Display list items to choose from
  */
-static void item_menu(struct object_menu_data *data, const char *title)
+static void item_menu(struct object_menu_data *data)
 {
 	menu_iter iter = {
 		.get_tag     = get_item_tag,
@@ -1086,13 +1086,11 @@ static void item_menu(struct object_menu_data *data, const char *title)
 	menu_find_inscriptions(&menu, inscriptions, sizeof(inscriptions));
 	menu.inscriptions = inscriptions;
 
-	menu.title = title;
-
 	region reg = {
 		.x = 0,
 		.y = 0,
 		.w = 0, /* full term width */
-		.h = data->list->len + 3
+		.h = data->list->len,
 	};
 	menu_layout(&menu, reg);
 
@@ -1342,8 +1340,8 @@ static void push_item_term(const struct object_menu_data *data)
 	 * are no menu items - it's still required). */
 
 	struct term_hints hints = {
-		.width = empty ? 30 : data->list->total_max_len + 3 + 2,
-		.height = empty ? 3 : data->list->len + 3,
+		.width = empty ? 30 : data->list->total_max_len + 3,
+		.height = empty ? 3 : data->list->len,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_TOP_CENTER
 	};
@@ -1417,7 +1415,7 @@ bool textui_get_item(struct object **choice,
 				show_menu_prompt(&data, prompt);
 			}
 
-			item_menu(&data, menu_title);
+			item_menu(&data);
 			clear_prompt();
 
 			pop_item_term();

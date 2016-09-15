@@ -157,12 +157,6 @@
 #define DEFAULT_TOOLTIP_OUTLINE_COLOR \
 	COLOUR_SHADE
 
-#define SUBWINDOW_WIDTH(cols, col_width) \
-	((cols) * (col_width) + DEFAULT_BORDER * 2)
-
-#define SUBWINDOW_HEIGHT(rows, row_height) \
-	((rows) * (row_height) + DEFAULT_BORDER * 2)
-
 /* shockbolt's tiles are 64x64; dungeon is 198 tiles long;
  * 64 * 198 is 12672 which is bigger than any possible texture! */
 #define REASONABLE_MAP_TILE_WIDTH 16
@@ -2661,6 +2655,29 @@ static bool do_button(struct window *window,
 	return false;
 }
 
+static int subwindow_border_size(const struct subwindow *subwindow)
+{
+	if (subwindow->big_map) {
+		return DEFAULT_VISIBLE_BORDER;
+	} else if (subwindow->is_temporary) {
+		return DEFAULT_XTRA_BORDER;
+	} else {
+		return DEFAULT_BORDER;
+	}
+}
+
+static int subwindow_width(const struct subwindow *subwindow,
+		int cols, int col_width)
+{
+	return cols * col_width + 2 * subwindow_border_size(subwindow);
+}
+
+static int subwindow_height(const struct subwindow *subwindow,
+		int rows, int row_height)
+{
+	return rows * row_height + 2 * subwindow_border_size(subwindow);
+}
+
 static bool is_close_to(int a, int b, unsigned range)
 {
 	if (a > 0 && b > 0) {
@@ -3897,10 +3914,10 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	}
 
 	if (!adjust_subwindow_geometry(window, subwindow)) {
-		subwindow->full_rect.w =
-			SUBWINDOW_WIDTH(get_min_cols(subwindow), subwindow->cell_width);
-		subwindow->full_rect.h =
-			SUBWINDOW_HEIGHT(get_min_rows(subwindow), subwindow->cell_height);
+		subwindow->full_rect.w = subwindow_width(subwindow,
+					get_min_cols(subwindow), subwindow->cell_width);
+		subwindow->full_rect.h = subwindow_height(subwindow,
+					get_min_rows(subwindow), subwindow->cell_height);
 
 		adjust_subwindow_geometry(window, subwindow);
 	}
@@ -4013,10 +4030,10 @@ static bool reload_subwindow_font(struct subwindow *subwindow,
 				&subwindow->sizing_rect,
 				new_font->ttf.glyph.w, new_font->ttf.glyph.h))
 	{
-		subwindow->sizing_rect.w =
-			SUBWINDOW_WIDTH(get_min_cols(subwindow), new_font->ttf.glyph.w);
-		subwindow->sizing_rect.h =
-			SUBWINDOW_HEIGHT(get_min_rows(subwindow), new_font->ttf.glyph.h);
+		subwindow->sizing_rect.w = subwindow_width(subwindow,
+					get_min_cols(subwindow), new_font->ttf.glyph.w);
+		subwindow->sizing_rect.h = subwindow_height(subwindow,
+					get_min_rows(subwindow), new_font->ttf.glyph.h);
 	}
 
 	if (subwindow->sizing_rect.w > subwindow->window->inner_rect.w
@@ -4107,10 +4124,10 @@ static int get_min_rows(const struct subwindow *subwindow)
 static bool is_ok_col_row(const struct subwindow *subwindow,
 		const SDL_Rect *rect, int cell_w, int cell_h)
 {
-	if (SUBWINDOW_WIDTH(get_min_cols(subwindow), cell_w) > rect->w) {
+	if (subwindow_width(subwindow, get_min_cols(subwindow), cell_w) > rect->w) {
 		return false;
 	}
-	if (SUBWINDOW_HEIGHT(get_min_rows(subwindow), cell_h) > rect->h) {
+	if (subwindow_height(subwindow, get_min_rows(subwindow), cell_h) > rect->h) {
 		return false;
 	}
 
@@ -4122,10 +4139,10 @@ static void adjust_subwindow_cave_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(get_term_info(DISPLAY_CAVE)->def_cols,
-			subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(get_term_info(DISPLAY_CAVE)->def_rows,
-			subwindow->cell_height);
+	rect.w = subwindow_width(subwindow,
+			get_term_info(DISPLAY_CAVE)->def_cols, subwindow->cell_width);
+	rect.h = subwindow_height(subwindow,
+			get_term_info(DISPLAY_CAVE)->def_rows, subwindow->cell_height);
 
 	/* center it */
 	rect.x = MAX(window->inner_rect.x, 
@@ -4142,8 +4159,8 @@ static void adjust_subwindow_message_line_default(const struct window *window,
 	SDL_Rect rect = {0};
 
 	rect.w = window->inner_rect.w;
-	rect.h = SUBWINDOW_HEIGHT(get_term_info(subwindow->index)->def_rows,
-			subwindow->cell_height);
+	rect.h = subwindow_height(subwindow,
+			get_term_info(subwindow->index)->def_rows, subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
 	rect.y = window->inner_rect.y;
@@ -4157,8 +4174,8 @@ static void adjust_subwindow_status_line_default(const struct window *window,
 	SDL_Rect rect = {0};
 
 	rect.w = window->inner_rect.w;
-	rect.h = SUBWINDOW_HEIGHT(get_term_info(subwindow->index)->def_rows,
-			subwindow->cell_height);
+	rect.h = subwindow_height(subwindow,
+			get_term_info(subwindow->index)->def_rows, subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
 	rect.y = window->inner_rect.y + window->inner_rect.h - rect.h;
@@ -4171,10 +4188,10 @@ static void adjust_subwindow_player_compact_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(get_term_info(subwindow->index)->def_cols,
-			subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(get_term_info(subwindow->index)->def_rows,
-			subwindow->cell_height);
+	rect.w = subwindow_width(subwindow,
+			get_term_info(subwindow->index)->def_cols, subwindow->cell_width);
+	rect.h = subwindow_height(subwindow,
+			get_term_info(subwindow->index)->def_rows, subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
 	rect.y = MAX(window->inner_rect.y, 
@@ -4188,10 +4205,10 @@ static void adjust_subwindow_permanent_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(get_term_info(subwindow->index)->def_cols,
-			subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(get_term_info(subwindow->index)->def_rows,
-			subwindow->cell_height);
+	rect.w = subwindow_width(subwindow,
+			get_term_info(subwindow->index)->def_cols, subwindow->cell_width);
+	rect.h = subwindow_height(subwindow,
+			get_term_info(subwindow->index)->def_rows, subwindow->cell_height);
 
 	/* center it */
 	rect.x = MAX(window->inner_rect.x,
@@ -4207,8 +4224,10 @@ static void adjust_subwindow_temporary_default(const struct window *window,
 {
 	SDL_Rect rect = {0};
 
-	rect.w = SUBWINDOW_WIDTH(subwindow->cols, subwindow->cell_width);
-	rect.h = SUBWINDOW_HEIGHT(subwindow->rows, subwindow->cell_height);
+	rect.w = subwindow_width(subwindow,
+			subwindow->cols, subwindow->cell_width);
+	rect.h = subwindow_height(subwindow,
+			subwindow->rows, subwindow->cell_height);
 
 	rect.x = window->inner_rect.x;
 	rect.y = window->inner_rect.y;
@@ -4259,6 +4278,14 @@ static void adjust_subwindow_cell_size(const struct window *window,
 	}
 }
 
+static void adjust_subwindow_borders(struct subwindow *subwindow)
+{
+	const int border = subwindow_border_size(subwindow);
+	resize_rect(&subwindow->inner_rect, border, border, -border, -border);
+
+	subwindow->borders.width = DEFAULT_VISIBLE_BORDER;
+}
+
 static bool adjust_subwindow_geometry(const struct window *window,
 		struct subwindow *subwindow)
 {
@@ -4278,11 +4305,7 @@ static bool adjust_subwindow_geometry(const struct window *window,
 
 	memset(&subwindow->sizing_rect, 0, sizeof(subwindow->sizing_rect));
 
-	resize_rect(&subwindow->inner_rect,
-			DEFAULT_BORDER, DEFAULT_BORDER,
-			-DEFAULT_BORDER, -DEFAULT_BORDER);
-
-	subwindow->borders.width = DEFAULT_VISIBLE_BORDER;
+	adjust_subwindow_borders(subwindow);
 
 	subwindow->cols = subwindow->inner_rect.w / subwindow->cell_width;
 	subwindow->rows = subwindow->inner_rect.h / subwindow->cell_height;
