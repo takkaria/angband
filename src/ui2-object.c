@@ -1626,6 +1626,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	int selected = menu_dynamic_select(menu);
 
 	menu_dynamic_free(menu);
+	clear_prompt();
 	Term_pop();
 
 	if (selected == IGNORE_THIS_ITEM) {
