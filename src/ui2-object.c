@@ -1013,13 +1013,13 @@ static void change_command_wrk(const struct object_menu_data *data, ui_event eve
 
 	if (player->upkeep->command_wrk == USE_EQUIP) {
 		if (left) {
-			if      (floor) player->upkeep->command_wrk = USE_FLOOR;
+			if      (floor)  player->upkeep->command_wrk = USE_FLOOR;
 			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
-			else if (inven) player->upkeep->command_wrk = USE_INVEN;
+			else if (inven)  player->upkeep->command_wrk = USE_INVEN;
 		} else {
-			if      (inven) player->upkeep->command_wrk = USE_INVEN;
+			if      (inven)  player->upkeep->command_wrk = USE_INVEN;
 			else if (quiver) player->upkeep->command_wrk = USE_QUIVER;
-			else if (floor) player->upkeep->command_wrk = USE_FLOOR;
+			else if (floor)  player->upkeep->command_wrk = USE_FLOOR;
 		}
 	} else if (player->upkeep->command_wrk == USE_INVEN) {
 		if (left) {
