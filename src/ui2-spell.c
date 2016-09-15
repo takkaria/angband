@@ -57,10 +57,11 @@ static bool spell_menu_valid(struct menu *menu, int index)
 static void spell_menu_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
-	(void) cursor;
 	(void) width;
+	(void) cursor;
 
 	struct spell_menu_data *data = menu_priv(menu);
+
 	int spell_index = data->spells[index];
 	const struct class_spell *spell = spell_by_index(spell_index);
 
@@ -69,9 +70,8 @@ static void spell_menu_display(struct menu *menu,
 		return;
 	}
 
-	char aux[30];
-	uint32_t attr = 0;
-	const char *comment = NULL;
+	uint32_t attr;
+	const char *comment;
 
 	if (player->spell_flags[spell_index] & PY_SPELL_FORGOTTEN) {
 		comment = " forgotten";
@@ -79,8 +79,9 @@ static void spell_menu_display(struct menu *menu,
 	} else if (player->spell_flags[spell_index] & PY_SPELL_LEARNED) {
 		if (player->spell_flags[spell_index] & PY_SPELL_WORKED) {
 			/* Get extra info */
-			get_spell_info(spell_index, aux, sizeof(aux));
-			comment = aux;
+			char buf[ANGBAND_TERM_STANDARD_WIDTH / 2];
+			get_spell_info(spell_index, buf, sizeof(buf));
+			comment = buf;
 			attr = COLOUR_WHITE;
 		} else {
 			comment = " untried";
@@ -88,14 +89,13 @@ static void spell_menu_display(struct menu *menu,
 		}
 	} else if (spell->slevel <= player->lev) {
 		comment = " unknown";
-		attr = COLOUR_L_BLUE;
+		attr = COLOUR_L_DARK;
 	} else {
 		comment = " difficult";
 		attr = COLOUR_RED;
 	}
 
-	/* Dump the spell --(-- */
-	char out[80];
+	char out[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(out, sizeof(out), "%-30s%2d %4d %3d%%%s",
 			spell->name, spell->slevel, spell->smana, spell_chance(spell_index), comment);
 	c_prt(attr, out, loc);
