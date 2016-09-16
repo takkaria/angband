@@ -136,7 +136,9 @@ typedef void (*delay_hook)(void *user, int msecs);
 /* visible_hook should make a term visible or invisible, if possible,
  * depending on the argument */
 typedef void (*visible_hook)(void *user, bool visible);
-/* add_tab_hook should add a tab to the term and handle mouse events on it */
+/* add_tab_hook should add a tab to the term and handle mouse events on it;
+ * "active" tab means that the tab should be highlighted, or
+ * otherwise make it clear that it is currently selected */
 typedef void (*add_tab_hook)(void *user, int index, const wchar_t *label, bool active);
 
 struct term_callbacks {
