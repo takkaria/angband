@@ -44,9 +44,7 @@ struct spell_menu_data {
 #define SPELL_MENU_WIDTH 60
 
 #define SPELL_MENU_FIELDS \
-	L"    Name                          Lv Mana Fail Info"
-#define SPELL_MENU_SEPARATOR \
-	L"============================================================"
+	L"    Name                         Lv Mana Fail Info"
 
 /**
  * Is item index valid?
@@ -152,8 +150,7 @@ static void spell_menu_browser_hook(int cursor, void *data, region reg)
 	(void) data;
 	(void) reg;
 
-	Term_addws(0, 1, wcslen(SPELL_MENU_FIELDS), COLOUR_WHITE, SPELL_MENU_FIELDS);
-	Term_addws(0, 2, wcslen(SPELL_MENU_SEPARATOR), COLOUR_L_DARK, SPELL_MENU_SEPARATOR);
+	Term_addws(0, 0, wcslen(SPELL_MENU_FIELDS), COLOUR_WHITE, SPELL_MENU_FIELDS);
 }
 
 static const menu_iter spell_menu_iter = {
@@ -211,13 +208,13 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 
 	struct term_hints hints = {
 		.width = SPELL_MENU_WIDTH,
-		.height = data->n_spells + 4,
+		.height = data->n_spells + 1,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
 
-	region reg = {1, 3, 0, 0};
+	region reg = {0, 1, 0, 0};
 
 	menu_layout(menu, reg);
 
@@ -244,13 +241,13 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 
 	struct term_hints hints = {
 		.width = SPELL_MENU_WIDTH,
-		.height = data->n_spells + 4,
+		.height = data->n_spells + 1,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_TOP_CENTER
 	};
 	Term_push_new(&hints);
 
-	region reg = {1, 3, 0, 0};
+	region reg = {0, 1, 0, 0};
 	menu_layout(menu, reg);
 
 	show_prompt(format("Browsing %ss. ('?' to read description)", noun), false);
