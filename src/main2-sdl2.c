@@ -1143,11 +1143,11 @@ static void render_tab(struct subwindow *subwindow,
 		const wchar_t *label, size_t label_len, SDL_Texture *texture,
 		SDL_Rect total_rect, SDL_Rect label_rect, uint32_t fg_attr, uint32_t bg_attr)
 {
-	int x = (total_rect.w - label_rect.w) / 2;
-	int y = (total_rect.h - label_rect.h) / 2;
-
 	assert(fg_attr < N_ELEMENTS(g_colors));
 	assert(bg_attr < N_ELEMENTS(g_colors));
+
+	int x = (total_rect.w - label_rect.w) / 2;
+	int y = (total_rect.h - label_rect.h) / 2;
 
 	SDL_Color fg = g_colors[fg_attr];
 	SDL_Color bg = g_colors[bg_attr];
