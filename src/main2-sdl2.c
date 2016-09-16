@@ -76,9 +76,9 @@
 #define DEFAULT_FONT_HINTING \
 	TTF_HINTING_LIGHT
 /* border of subwindows, in pixels */
-#define DEFAULT_BORDER 8
-#define DEFAULT_XTRA_BORDER \
-	(DEFAULT_BORDER * 2)
+#define DEFAULT_PERMANENT_SUBWINDOW_BORDER  8
+#define DEFAULT_TEMPORARY_SUBWINDOW_BORDER 12
+#define DEFAULT_UI_ELEMENT_BORDER 16
 #define DEFAULT_VISIBLE_BORDER 2
 
 /* XXX hack: the widest character present in a font
@@ -99,7 +99,7 @@
 #define DEFAULT_LINE_HEIGHT(h)      ((h) * 150 / 100)
 #define DEFAULT_MENU_LINE_HEIGHT(h) ((h) * 200 / 100)
 #define DEFAULT_MENU_LINE_WIDTH(w) \
-	((w) + DEFAULT_BUTTON_BORDER + DEFAULT_XTRA_BORDER)
+	((w) + DEFAULT_BUTTON_BORDER + DEFAULT_UI_ELEMENT_BORDER)
 
 /* update period in window delays (160 milliseconds, assuming 60 fps) */
 #define DEFAULT_IDLE_UPDATE_PERIOD 10
@@ -1458,15 +1458,15 @@ static void render_subwindows_button(const struct window *window, struct button 
 		SDL_Rect text_rect = {
 			.x = rect.x,
 			.y = window->status_bar.full_rect.y + window->status_bar.full_rect.h +
-				DEFAULT_XTRA_BORDER
+				DEFAULT_UI_ELEMENT_BORDER
 		};
 		get_string_metrics(window->status_bar.font, tip, &text_rect.w, &text_rect.h);
 
 		SDL_Rect background_rect = text_rect;
 
 		resize_rect(&background_rect,
-				-DEFAULT_XTRA_BORDER, -DEFAULT_XTRA_BORDER,
-				DEFAULT_XTRA_BORDER, DEFAULT_XTRA_BORDER);
+				-DEFAULT_UI_ELEMENT_BORDER, -DEFAULT_UI_ELEMENT_BORDER,
+				DEFAULT_UI_ELEMENT_BORDER, DEFAULT_UI_ELEMENT_BORDER);
 
 		render_fill_rect(window, NULL, &background_rect,
 				&g_colors[DEFAULT_TOOLTIP_BG_COLOR]);
@@ -1533,9 +1533,9 @@ static void show_about(const struct window *window)
 
 	SDL_Rect total = {
 		0, 0,
-		2 * DEFAULT_XTRA_BORDER + texture_rect.w,
+		2 * DEFAULT_UI_ELEMENT_BORDER + texture_rect.w,
 		/* the default icon just looks better without bottom border */
-		DEFAULT_XTRA_BORDER + texture_rect.h
+		DEFAULT_UI_ELEMENT_BORDER + texture_rect.h
 	};
 
 	for (size_t i = 0; i < N_ELEMENTS(elems); i++) {
@@ -1548,10 +1548,10 @@ static void show_about(const struct window *window)
 		elems[i].rect.w = w;
 		elems[i].rect.y = total.h + (DEFAULT_LINE_HEIGHT(h) - h) / 2;
 
-		total.w = MAX(w + 2 * DEFAULT_XTRA_BORDER, total.w);
+		total.w = MAX(w + 2 * DEFAULT_UI_ELEMENT_BORDER, total.w);
 		total.h += DEFAULT_LINE_HEIGHT(h);
 	}
-	total.h += DEFAULT_XTRA_BORDER;
+	total.h += DEFAULT_UI_ELEMENT_BORDER;
 
 	total.x = window->full_rect.w / 2 - total.w / 2;
 	total.y = window->full_rect.h / 2 - total.h / 2;
@@ -1579,7 +1579,7 @@ static void show_about(const struct window *window)
 	}
 
 	texture_rect.x = total.x + (total.w - texture_rect.w) / 2;
-	texture_rect.y = total.y + DEFAULT_XTRA_BORDER;
+	texture_rect.y = total.y + DEFAULT_UI_ELEMENT_BORDER;
 
 	SDL_SetRenderTarget(window->renderer, NULL);
 	SDL_RenderCopy(window->renderer, texture, NULL, &texture_rect);
@@ -2655,27 +2655,27 @@ static bool do_button(struct window *window,
 	return false;
 }
 
-static int subwindow_border_size(const struct subwindow *subwindow)
+static int get_subwindow_border_size(const struct subwindow *subwindow)
 {
 	if (subwindow->big_map) {
 		return DEFAULT_VISIBLE_BORDER;
 	} else if (subwindow->is_temporary) {
-		return DEFAULT_XTRA_BORDER;
+		return DEFAULT_TEMPORARY_SUBWINDOW_BORDER;
 	} else {
-		return DEFAULT_BORDER;
+		return DEFAULT_PERMANENT_SUBWINDOW_BORDER;
 	}
 }
 
 static int subwindow_width(const struct subwindow *subwindow,
 		int cols, int col_width)
 {
-	return cols * col_width + 2 * subwindow_border_size(subwindow);
+	return cols * col_width + 2 * get_subwindow_border_size(subwindow);
 }
 
 static int subwindow_height(const struct subwindow *subwindow,
 		int rows, int row_height)
 {
-	return rows * row_height + 2 * subwindow_border_size(subwindow);
+	return rows * row_height + 2 * get_subwindow_border_size(subwindow);
 }
 
 static bool is_close_to(int a, int b, unsigned range)
@@ -4280,7 +4280,7 @@ static void adjust_subwindow_cell_size(const struct window *window,
 
 static void adjust_subwindow_borders(struct subwindow *subwindow)
 {
-	const int border = subwindow_border_size(subwindow);
+	const int border = get_subwindow_border_size(subwindow);
 	resize_rect(&subwindow->inner_rect, border, border, -border, -border);
 
 	subwindow->borders.width = DEFAULT_VISIBLE_BORDER;
