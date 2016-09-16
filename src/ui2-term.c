@@ -175,6 +175,7 @@ static term term_new(const struct term_create_info *info)
 	t->blank = info->blank;
 	t->callbacks = info->callbacks;
 
+	assert(t->callbacks.make_visible != NULL);
 	assert(t->callbacks.flush_events != NULL);
 	assert(t->callbacks.push_new     != NULL);
 	assert(t->callbacks.pop_new      != NULL);
@@ -691,7 +692,7 @@ void Term_visible(bool visible)
 {
 	STACK_OK();
 
-	TOP->callbacks.visible(TOP->user, visible);
+	TOP->callbacks.make_visible(TOP->user, visible);
 }
 
 void Term_get_size(int *w, int *h)

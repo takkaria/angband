@@ -133,20 +133,20 @@ typedef void (*event_hook)(void *user, bool wait);
 typedef void (*flush_events_hook)(void *user);
 /* delay_hook should pause for specified number of milliseconds */
 typedef void (*delay_hook)(void *user, int msecs);
-/* visible_hook should make a term visible or invisible, if possible,
- * depending on the argument */
-typedef void (*visible_hook)(void *user, bool visible);
+/* make_visible_hook should make a term visible or invisible
+ * (if possible), depending on the argument */
+typedef void (*make_visible_hook)(void *user, bool visible);
 /* add_tab_hook should add a tab to the term and handle mouse events on it;
  * "active" tab means that the tab should be highlighted, or
  * otherwise make it clear that it is currently selected */
 typedef void (*add_tab_hook)(void *user, int index, const wchar_t *label, bool active);
 
 struct term_callbacks {
+	make_visible_hook make_visible;
 	flush_events_hook flush_events;
 	push_new_hook     push_new;
 	pop_new_hook      pop_new;
 	add_tab_hook      add_tab;
-	visible_hook      visible;
 	cursor_hook       cursor;
 	redraw_hook       redraw;
 	event_hook        event;
