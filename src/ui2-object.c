@@ -1323,18 +1323,27 @@ static void add_item_tabs(const struct object_menu_data *data)
 	const bool use_quiver = (player->upkeep->command_wrk & USE_QUIVER) ? true : false;
 	const bool use_floor  = (player->upkeep->command_wrk & USE_FLOOR)  ? true : false;
 
+#define TAB_FG_COLOR(boolean) \
+	((boolean) ? COLOUR_WHITE : COLOUR_L_DARK)
+
 	if (allow_equip) {
-		Term_add_tab(USE_EQUIP,  L"Equipment", use_equip);
+		Term_add_tab(USE_EQUIP,
+				L"Equipment", TAB_FG_COLOR(use_equip),  COLOUR_DARK);
 	}
 	if (allow_inven) {
-		Term_add_tab(USE_INVEN,  L"Inventory", use_inven);
+		Term_add_tab(USE_INVEN,
+				L"Inventory", TAB_FG_COLOR(use_inven),  COLOUR_DARK);
 	}
 	if (allow_quiver) {
-		Term_add_tab(USE_QUIVER, L" Quiver ",  use_quiver);
+		Term_add_tab(USE_QUIVER,
+				L" Quiver ",  TAB_FG_COLOR(use_quiver), COLOUR_DARK);
 	}
 	if (allow_floor) {
-		Term_add_tab(USE_FLOOR,  L"  Floor  ", use_floor);
+		Term_add_tab(USE_FLOOR,
+				L"  Floor  ", TAB_FG_COLOR(use_floor),  COLOUR_DARK);
 	}
+
+#undef TAB_FG_COLOR
 }
 
 static void push_item_term(const struct object_menu_data *data)
@@ -1631,7 +1640,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	};
 
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Ignore menu", true);
+	Term_add_tab(0, L"Ignore menu", COLOUR_WHITE, COLOUR_SHADE);
 
 	reg.x = 0;
 	reg.y = 0;

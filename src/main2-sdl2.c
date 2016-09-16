@@ -163,14 +163,6 @@
 #define DEFAULT_TOOLTIP_OUTLINE_COLOR \
 	COLOUR_SHADE
 
-#define DEFAULT_TAB_FG_ACTIVE_COLOR \
-	COLOUR_WHITE
-#define DEFAULT_TAB_FG_INACTIVE_COLOR \
-	COLOUR_L_DARK
-#define DEFAULT_TAB_BG_ACTIVE_COLOR \
-	COLOUR_DARK
-#define DEFAULT_TAB_BG_INACTIVE_COLOR \
-	COLOUR_DARK
 #define DEFAULT_TAB_OUTLINE_COLOR \
 	COLOUR_SHADE
 
@@ -733,7 +725,7 @@ static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
 static void term_pop_new(void *user);
 static void term_add_tab(void *user,
-		int index, const wchar_t *label, bool active);
+		int index, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 
 /* Defaults for term creations */
 
@@ -1149,15 +1141,16 @@ static void render_tile(const struct subwindow *subwindow,
 
 static void render_tab(struct subwindow *subwindow,
 		const wchar_t *label, size_t label_len, SDL_Texture *tab_texture,
-		SDL_Rect total_rect, SDL_Rect label_rect, bool active)
+		SDL_Rect total_rect, SDL_Rect label_rect, uint32_t fg_attr, uint32_t bg_attr)
 {
 	int x = (total_rect.w - label_rect.w) / 2;
 	int y = (total_rect.h - label_rect.h) / 2;
 
-	SDL_Color bg = active ?
-		g_colors[DEFAULT_TAB_BG_ACTIVE_COLOR] : g_colors[DEFAULT_TAB_BG_INACTIVE_COLOR];
-	SDL_Color fg = active ?
-		g_colors[DEFAULT_TAB_FG_ACTIVE_COLOR] : g_colors[DEFAULT_TAB_FG_INACTIVE_COLOR];
+	assert(fg_attr < N_ELEMENTS(g_colors));
+	assert(bg_attr < N_ELEMENTS(g_colors));
+
+	SDL_Color fg = g_colors[fg_attr];
+	SDL_Color bg = g_colors[bg_attr];
 
 	render_fill_rect(subwindow->window, tab_texture, NULL, &bg);
 
@@ -3747,7 +3740,8 @@ static void term_big_map_cursor(void *user, int col, int row)
 	render_big_map_cursor(subwindow, col, row);
 }
 
-static void term_add_tab(void *user, int index, const wchar_t *label, bool active)
+static void term_add_tab(void *user,
+		int index, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr)
 {
 	struct subwindow *subwindow = user;
 
@@ -3772,7 +3766,7 @@ static void term_add_tab(void *user, int index, const wchar_t *label, bool activ
 		make_subwindow_texture(subwindow->window, tab->rect.w, tab->rect.h);
 
 	render_tab(subwindow, label, label_len,
-			tab->texture, tab->rect, label_rect, active);
+			tab->texture, tab->rect, label_rect, fg_attr, bg_attr);
 
 	if (subwindow->tab_bank.number > 0) {
 		const struct tab *prev_tab =

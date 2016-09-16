@@ -272,7 +272,7 @@ static void knowledge_screen_add_tab(const char *title)
 	mbstowcs(tab, title, ANGBAND_TERM_STANDARD_WIDTH);
 	tab[ANGBAND_TERM_STANDARD_WIDTH - 1] = 0;
 
-	Term_add_tab(0, tab, true);
+	Term_add_tab(0, tab, COLOUR_WHITE, COLOUR_DARK);
 }
 
 static int set_g_lists(int *o_list, int o_count,
@@ -2074,7 +2074,7 @@ void textui_browse_knowledge(void)
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Knowledge menu", true);
+	Term_add_tab(0, L"Knowledge menu", COLOUR_WHITE, COLOUR_DARK);
 
 	region reg = {0, 0, 0, N_ELEMENTS(knowledge_actions) + 2};
 	menu_layout(&knowledge_menu, reg);

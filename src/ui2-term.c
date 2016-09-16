@@ -603,11 +603,12 @@ bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
 	return term_put_ws_at_cursor(len, fga, ws);
 }
 
-void Term_add_tab(int index, const wchar_t *label, bool active)
+void Term_add_tab(int index,
+		const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr)
 {
 	STACK_OK();
 
-	TOP->callbacks.add_tab(TOP->user, index, label, active);
+	TOP->callbacks.add_tab(TOP->user, index, label, fg_attr, bg_attr);
 }
 
 void Term_erase(int x, int y, int len)
