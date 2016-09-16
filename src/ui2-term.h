@@ -277,7 +277,7 @@ bool Term_prepend_events(const ui_event *events, size_t num_events);
 bool Term_append_events(const ui_event *events, size_t num_events);
 
 /* Add a tab to the term on top of the stack;
- * the tab should have positive index */
+ * the tab should have positive index, if its supposed to be clickable */
 void Term_add_tab(int index, const wchar_t *label, bool active);
 
 /* pause for some milliseconds */
