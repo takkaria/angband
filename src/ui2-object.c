@@ -1349,21 +1349,12 @@ static void push_item_term(const struct object_menu_data *data)
 	/* Handle empty floor, inventory, quiver */
 	bool empty = data->list->len > 0 ? false : true;
 
-	/* We add 3 to term's width to account for the menu's tags;
-	 * then add 2 to term's width and and 3 to height to reserve
-	 * space for padding on the left, right, top and bottom sides
-	 * of the item menu (see menu_layout() and note that
-	 * our menu has a title);
-	 *
-	 * Minimum width 30 for empty list is arbitrary.
-	 *
-	 * Minimum height of the term is 3; one row for the title,
-	 * one empty row, one row for menu items (even if there
-	 * are no menu items - it's still required). */
+	/* We add 3 to term's width to account for the menu's tags.
+	 * Minimum width 50 is to ensure that term tags have enough space. */
 
 	struct term_hints hints = {
-		.width = empty ? 30 : data->list->total_max_len + 3,
-		.height = empty ? 3 : data->list->len,
+		.width = MAX(50, data->list->total_max_len + 3),
+		.height = empty ? 1 : data->list->len,
 		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_TOP_LEFT
