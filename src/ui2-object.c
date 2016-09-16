@@ -1311,6 +1311,32 @@ static void cleanup_menu_data(struct object_menu_data *data)
 	}
 }
 
+static void add_item_tabs(const struct object_menu_data *data)
+{
+	const bool allow_inven  = (data->item_mode & USE_INVEN)  ? true : false;
+	const bool allow_equip  = (data->item_mode & USE_EQUIP)  ? true : false;
+	const bool allow_quiver = (data->item_mode & USE_QUIVER) ? true : false;
+	const bool allow_floor  = (data->item_mode & USE_FLOOR)  ? true : false;
+
+	const bool use_inven  = (player->upkeep->command_wrk & USE_INVEN)  ? true : false;
+	const bool use_equip  = (player->upkeep->command_wrk & USE_EQUIP)  ? true : false;
+	const bool use_quiver = (player->upkeep->command_wrk & USE_QUIVER) ? true : false;
+	const bool use_floor  = (player->upkeep->command_wrk & USE_FLOOR)  ? true : false;
+
+	if (allow_equip) {
+		Term_add_tab(USE_EQUIP,  "Equipment", use_equip);
+	}
+	if (allow_inven) {
+		Term_add_tab(USE_INVEN,  "Inventory", use_inven);
+	}
+	if (allow_floor) {
+		Term_add_tab(USE_FLOOR,  "  Floor  ", use_floor);
+	}
+	if (allow_quiver) {
+		Term_add_tab(USE_QUIVER, " Quiver ", use_quiver);
+	}
+}
+
 static void push_item_term(const struct object_menu_data *data)
 {
 	/* Don't show completely empty quiver */
@@ -1338,8 +1364,9 @@ static void push_item_term(const struct object_menu_data *data)
 	struct term_hints hints = {
 		.width = empty ? 30 : data->list->total_max_len + 3,
 		.height = empty ? 3 : data->list->len,
+		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
-		.position = TERM_POSITION_TOP_CENTER
+		.position = TERM_POSITION_TOP_LEFT
 	};
 
 	if (player->upkeep->command_wrk == USE_INVEN
@@ -1350,6 +1377,8 @@ static void push_item_term(const struct object_menu_data *data)
 	}
 
 	Term_push_new(&hints);
+
+	add_item_tabs(data);
 }
 
 static void pop_item_term(void)

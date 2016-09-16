@@ -41,6 +41,7 @@
 #define MAX_WINDOWS 4
 #define MAX_BUTTONS 32
 #define MAX_FONTS   128
+#define MAX_TABS    16
 
 #define DEFAULT_DISPLAY 0
 #define DEFAULT_REFRESH_RATE 60
@@ -79,7 +80,12 @@
 #define DEFAULT_PERMANENT_SUBWINDOW_BORDER  8
 #define DEFAULT_TEMPORARY_SUBWINDOW_BORDER 12
 #define DEFAULT_UI_ELEMENT_BORDER 16
+#define DEFAULT_HORIZONTAL_TAB_BORDER 12
+#define DEFAULT_VERTICAL_TAB_BORDER 6
 #define DEFAULT_VISIBLE_BORDER 2
+
+#define SUBWINDOW_TAB_HEIGHT(subwindow) \
+	((subwindow)->cell_height + 2 * DEFAULT_VERTICAL_TAB_BORDER)
 
 /* XXX hack: the widest character present in a font
  * for determining font advance (width) */
@@ -155,6 +161,17 @@
 #define DEFAULT_TOOLTIP_BG_COLOR \
 	COLOUR_DARK
 #define DEFAULT_TOOLTIP_OUTLINE_COLOR \
+	COLOUR_SHADE
+
+#define DEFAULT_TAB_FG_ACTIVE_COLOR \
+	COLOUR_WHITE
+#define DEFAULT_TAB_FG_INACTIVE_COLOR \
+	COLOUR_L_DARK
+#define DEFAULT_TAB_BG_ACTIVE_COLOR \
+	COLOUR_DARK
+#define DEFAULT_TAB_BG_INACTIVE_COLOR \
+	COLOUR_DARK
+#define DEFAULT_TAB_OUTLINE_COLOR \
 	COLOUR_SHADE
 
 /* shockbolt's tiles are 64x64; dungeon is 198 tiles long;
@@ -300,6 +317,20 @@ struct window_config {
 	int game_font_size;
 };
 
+struct tab {
+	SDL_Texture *texture;
+	SDL_Rect rect;
+
+	int index;
+};
+
+struct tab_bank {
+	struct tab *tabs;
+
+	size_t size;
+	size_t number;
+};
+
 /* struct subwindow is representation of angband's term */
 struct subwindow {
 	bool inited;
@@ -312,7 +343,7 @@ struct subwindow {
 
 	/* this is the "overview map" subwindow (invoked by 'M' command) */
 	bool big_map;
-	
+
 	/* subwindow can use graphics */
 	bool use_graphics;
 
@@ -339,21 +370,19 @@ struct subwindow {
 	SDL_Rect inner_rect;
 	/* for use when resizing term and for scaling big map */
 	SDL_Rect sizing_rect;
-	/* a one pixel texture, for displaying something when
-	 * the player is resizing term */
-	SDL_Texture *aux_texture;
-
 	/* background color */
 	SDL_Color color;
 
-	struct subwindow_border borders;
-
+	/* a one pixel texture, for displaying something when
+	 * the player is resizing term */
+	SDL_Texture *aux_texture;
+	/* main texture of subwindow */
 	SDL_Texture *texture;
 
+	struct subwindow_border borders;
 	struct font *font;
-
 	struct window *window;
-
+	struct tab_bank tab_bank;
 	term term;
 };
 
@@ -679,6 +708,7 @@ static void resize_rect(SDL_Rect *rect,
 static bool is_point_in_rect(int x, int y, const SDL_Rect *rect);
 static bool is_close_to(int a, int b, unsigned range);
 static bool is_over_status_bar(const struct status_bar *status_bar, int x, int y);
+static void make_tab_bank(struct tab_bank *bank);
 static void make_button_bank(struct button_bank *bank);
 static void free_button_bank(struct button_bank *button_bank);
 static void free_menu_panel(struct menu_panel *menu_panel);
@@ -701,6 +731,8 @@ static void term_delay(void *user, int msecs);
 static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
 static void term_pop_new(void *user);
+static void term_add_tab(void *user,
+		int index, const char *label, bool active);
 
 /* Defaults for term creations */
 
@@ -712,7 +744,8 @@ static const struct term_callbacks default_callbacks = {
 	.draw         = term_draw,
 	.delay        = term_delay,
 	.push_new     = term_push_new,
-	.pop_new      = term_pop_new
+	.pop_new      = term_pop_new,
+	.add_tab      = term_add_tab
 };
 
 #define BLANK_CHAR    0
@@ -818,9 +851,16 @@ static void render_subwindows(const struct window *window,
 {
 	for (size_t i = 0; i < number; i++) {
 		const struct subwindow *subwindow = subwindows[i];
+
 		if (subwindow->visible) {
 			SDL_RenderCopy(window->renderer,
 					subwindow->texture, NULL, &subwindow->full_rect);
+
+			for (size_t t = 0; t < subwindow->tab_bank.number; t++) {
+				const struct tab *tab = &subwindow->tab_bank.tabs[t];
+
+				SDL_RenderCopy(window->renderer, tab->texture, NULL, &tab->rect);
+			}
 		}
 	}
 }
@@ -3673,6 +3713,59 @@ static void term_big_map_cursor(void *user, int col, int row)
 	render_big_map_cursor(subwindow, col, row);
 }
 
+static void term_add_tab(void *user, int index, const char *label, bool active)
+{
+	struct subwindow *subwindow = user;
+
+	assert(subwindow->tab_bank.size > 0);
+	assert(subwindow->tab_bank.number < subwindow->tab_bank.size);
+
+	struct tab *tab =
+		&subwindow->tab_bank.tabs[subwindow->tab_bank.number];
+
+	SDL_Rect label_rect = {0};
+	get_string_metrics(subwindow->font, label, &label_rect.w, &label_rect.h);
+
+	tab->rect = label_rect;
+
+	tab->rect.w += 2 * DEFAULT_HORIZONTAL_TAB_BORDER;
+	tab->rect.h += 2 * DEFAULT_VERTICAL_TAB_BORDER;
+
+	label_rect.x = (tab->rect.w - label_rect.w) / 2;
+	label_rect.y = (tab->rect.h - label_rect.h) / 2;
+
+	tab->texture =
+		make_subwindow_texture(subwindow->window, tab->rect.w, tab->rect.h);
+
+	SDL_Color bg = active ?
+		g_colors[DEFAULT_TAB_BG_ACTIVE_COLOR] : g_colors[DEFAULT_TAB_BG_INACTIVE_COLOR];
+	render_fill_rect(subwindow->window, tab->texture, NULL, &bg);
+
+	render_outline_rect_width(subwindow->window,
+			tab->texture, &tab->rect,
+			&g_colors[DEFAULT_TAB_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
+
+	SDL_Color fg = active ?
+		g_colors[DEFAULT_TAB_FG_ACTIVE_COLOR] : g_colors[DEFAULT_TAB_FG_INACTIVE_COLOR];
+	render_utf8_string(subwindow->window,
+			subwindow->font, tab->texture, fg, label_rect, label);
+
+	if (subwindow->tab_bank.number > 0) {
+		const struct tab *prev_tab =
+			&subwindow->tab_bank.tabs[subwindow->tab_bank.number -1];
+
+		tab->rect.x = prev_tab->rect.x + prev_tab->rect.w - DEFAULT_VISIBLE_BORDER;
+		tab->rect.y = prev_tab->rect.y;
+	} else {
+		tab->rect.x = subwindow->full_rect.x + subwindow->cell_width;
+		tab->rect.y = subwindow->full_rect.y - tab->rect.h / 2;
+	}
+
+	tab->index = index;
+
+	subwindow->tab_bank.number++;
+}
+
 static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info)
 {
@@ -3691,6 +3784,10 @@ static void term_push_new(const struct term_hints *hints,
 		callbacks.redraw = term_big_map_redraw;
 		callbacks.cursor = term_big_map_cursor;
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+	}
+
+	if (hints->tabs) {
+		make_tab_bank(&subwindow->tab_bank);
 	}
 
 	assert(window->game_font != NULL);
@@ -4236,7 +4333,7 @@ static void adjust_subwindow_temporary_default(const struct window *window,
 }
 
 static void adjust_subwindow_geometry_default(const struct window *window,
-		struct subwindow *subwindow)
+		struct subwindow *subwindow, int *vertical_pad)
 {
 	switch (subwindow->index) {
 		case DISPLAY_CAVE:
@@ -4254,6 +4351,12 @@ static void adjust_subwindow_geometry_default(const struct window *window,
 		default:
 			if (subwindow->is_temporary) {
 				adjust_subwindow_temporary_default(window, subwindow);
+
+				if (subwindow->tab_bank.tabs != NULL) {
+					/* the tabs are in the middle of the top of subwindow;
+					 * so we'll add half of their height to subwindow's height */
+					*vertical_pad = SUBWINDOW_TAB_HEIGHT(subwindow) / 2;
+				}
 			} else {
 				adjust_subwindow_permanent_default(window, subwindow);
 			}
@@ -4291,9 +4394,11 @@ static bool adjust_subwindow_geometry(const struct window *window,
 {
 	adjust_subwindow_cell_size(window, subwindow);
 
+	int vertical_pad = 0;
+
 	if (!subwindow->loaded && subwindow->config == NULL) {
 		/* brand new subwindow */
-		adjust_subwindow_geometry_default(window, subwindow);
+		adjust_subwindow_geometry_default(window, subwindow, &vertical_pad);
 	}
 
 	/* coordinates of inner rect are relative to that of outer rect
@@ -4320,6 +4425,9 @@ static bool adjust_subwindow_geometry(const struct window *window,
 		(subwindow->full_rect.w - subwindow->inner_rect.w) / 2;
 	subwindow->inner_rect.y =
 		(subwindow->full_rect.h - subwindow->inner_rect.h) / 2;
+
+	subwindow->full_rect.h += vertical_pad;
+	subwindow->inner_rect.y += vertical_pad;
 
 	if (!is_ok_col_row(subwindow, &subwindow->full_rect,
 				subwindow->cell_width, subwindow->cell_height))
@@ -4378,6 +4486,22 @@ static void position_subwindow_center(struct subwindow *subwindow,
 		(display_cave->full_rect.h - subwindow->full_rect.h) / 2;
 }
 
+static void position_subwindow_top_left(struct subwindow *subwindow,
+		const struct term_hints *hints)
+{
+	(void) hints;
+
+	const struct subwindow *display_cave = get_subwindow_direct(DISPLAY_CAVE);
+	assert(display_cave->loaded);
+	assert(display_cave->window == subwindow->window);
+
+	subwindow->full_rect.x = display_cave->full_rect.x +
+		display_cave->inner_rect.x + DEFAULT_TEMPORARY_SUBWINDOW_BORDER;
+
+	subwindow->full_rect.y = display_cave->full_rect.y +
+		display_cave->inner_rect.y + DEFAULT_TEMPORARY_SUBWINDOW_BORDER;
+}
+
 static void position_subwindow_top_center(struct subwindow *subwindow,
 		const struct term_hints *hints)
 {
@@ -4424,12 +4548,24 @@ static void position_other_subwindow(struct subwindow *subwindow,
 		case TERM_POSITION_CENTER:
 			position_subwindow_center(subwindow, hints);
 			break;
+		case TERM_POSITION_TOP_LEFT:
+			position_subwindow_top_left(subwindow, hints);
+			break;
 		case TERM_POSITION_TOP_CENTER:
 			position_subwindow_top_center(subwindow, hints);
 			break;
 		default:
 			position_subwindow_center(subwindow, hints);
 			break;
+	}
+
+	if (!is_rect_in_rect(&subwindow->full_rect, &subwindow->window->inner_rect)) {
+		fit_rect_in_rect_position(&subwindow->full_rect,
+				&subwindow->window->inner_rect);
+	}
+
+	if (subwindow->tab_bank.tabs != NULL) {
+		subwindow->full_rect.y += SUBWINDOW_TAB_HEIGHT(subwindow) / 2;
 	}
 }
 
@@ -4563,8 +4699,22 @@ static bool is_over_status_bar(const struct status_bar *status_bar, int x, int y
 	return is_point_in_rect(x, y, &status_bar->full_rect);
 }
 
+static void make_tab_bank(struct tab_bank *bank)
+{
+	assert(bank->size == 0);
+	assert(bank->tabs == NULL);
+
+	bank->tabs = mem_zalloc(sizeof(*bank->tabs) * MAX_TABS);
+
+	bank->size = MAX_TABS;
+	bank->number = 0;
+}
+
 static void make_button_bank(struct button_bank *bank)
 {
+	assert(bank->size == 0);
+	assert(bank->buttons == NULL);
+
 	bank->buttons = mem_zalloc(sizeof(*bank->buttons) * MAX_BUTTONS);
 
 	bank->size = MAX_BUTTONS;
@@ -5276,12 +5426,13 @@ static void wipe_subwindow(struct subwindow *subwindow)
 	subwindow->borders.color = g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR];
 	subwindow->borders.visible = true;
 
-	subwindow->texture     = NULL;
-	subwindow->aux_texture = NULL;
-	subwindow->window      = NULL;
-	subwindow->font        = NULL;
-	subwindow->term        = NULL;
-	subwindow->config      = NULL;
+	subwindow->texture       = NULL;
+	subwindow->aux_texture   = NULL;
+	subwindow->window        = NULL;
+	subwindow->font          = NULL;
+	subwindow->term          = NULL;
+	subwindow->config        = NULL;
+	subwindow->tab_bank.tabs = NULL;
 
 	subwindow->inited = true;
 	subwindow->visible = true;
@@ -5430,6 +5581,19 @@ static void free_graphics(struct graphics *graphics)
 	graphics->texture = NULL;
 }
 
+static void free_tab_bank(struct tab_bank *bank)
+{
+	for (size_t i = 0; i < bank->number; i++) {
+		SDL_DestroyTexture(bank->tabs[i].texture);
+	}
+
+	mem_free(bank->tabs);
+
+	bank->tabs = NULL;
+	bank->size = 0;
+	bank->number = 0;
+}
+
 static void free_subwindow_config(struct subwindow_config *config)
 {
 	if (config->font_name != NULL) {
@@ -5454,6 +5618,9 @@ static void free_subwindow(struct subwindow *subwindow)
 	if (subwindow->aux_texture != NULL) {
 		SDL_DestroyTexture(subwindow->aux_texture);
 		subwindow->aux_texture = NULL;
+	}
+	if (subwindow->tab_bank.tabs != NULL) {
+		free_tab_bank(&subwindow->tab_bank);
 	}
 	if (subwindow->term != NULL) {
 		assert(!subwindow->is_temporary);

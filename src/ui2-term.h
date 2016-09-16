@@ -87,6 +87,7 @@ enum term_position {
 	TERM_POSITION_NONE,
 	TERM_POSITION_EXACT,
 	TERM_POSITION_CENTER,
+	TERM_POSITION_TOP_LEFT,
 	TERM_POSITION_TOP_CENTER,
 };
 
@@ -105,6 +106,7 @@ struct term_hints {
 	int y;
 	int width;
 	int height;
+	bool tabs;
 	enum term_position position;
 	enum term_purpose purpose;
 };
@@ -131,11 +133,14 @@ typedef void (*event_hook)(void *user, bool wait);
 typedef void (*flush_events_hook)(void *user);
 /* delay_hook should pause for specified number of milliseconds */
 typedef void (*delay_hook)(void *user, int msecs);
+/* add_tab_hook should add a tab to the term and handle mouse events on it */
+typedef void (*add_tab_hook)(void *user, int index, const char *label, bool active);
 
 struct term_callbacks {
 	flush_events_hook flush_events;
 	push_new_hook     push_new;
 	pop_new_hook      pop_new;
+	add_tab_hook      add_tab;
 	cursor_hook       cursor;
 	redraw_hook       redraw;
 	event_hook        event;
@@ -270,6 +275,10 @@ void Term_flush_events(void);
  * none of the events will be pushed, and the return value is false */
 bool Term_prepend_events(const ui_event *events, size_t num_events);
 bool Term_append_events(const ui_event *events, size_t num_events);
+
+/* Add a tab to the term on top of the stack;
+ * the tab should have positive index */
+void Term_add_tab(int index, const char *label, bool active);
 
 /* pause for some milliseconds */
 void Term_delay(int msecs);

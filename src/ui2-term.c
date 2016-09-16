@@ -178,6 +178,7 @@ static term term_new(const struct term_create_info *info)
 	assert(t->callbacks.flush_events != NULL);
 	assert(t->callbacks.push_new     != NULL);
 	assert(t->callbacks.pop_new      != NULL);
+	assert(t->callbacks.add_tab      != NULL);
 	assert(t->callbacks.redraw       != NULL);
 	assert(t->callbacks.cursor       != NULL);
 	assert(t->callbacks.event        != NULL);
@@ -599,6 +600,13 @@ bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
 
 	return term_put_ws_at_cursor(len, fga, ws);
+}
+
+void Term_add_tab(int index, const char *label, bool active)
+{
+	STACK_OK();
+
+	TOP->callbacks.add_tab(TOP->user, index, label, active);
 }
 
 void Term_erase(int x, int y, int len)
