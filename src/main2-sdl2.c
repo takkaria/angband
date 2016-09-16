@@ -1140,7 +1140,7 @@ static void render_tile(const struct subwindow *subwindow,
 }
 
 static void render_tab(struct subwindow *subwindow,
-		const wchar_t *label, size_t label_len, SDL_Texture *tab_texture,
+		const wchar_t *label, size_t label_len, SDL_Texture *texture,
 		SDL_Rect total_rect, SDL_Rect label_rect, uint32_t fg_attr, uint32_t bg_attr)
 {
 	int x = (total_rect.w - label_rect.w) / 2;
@@ -1152,12 +1152,12 @@ static void render_tab(struct subwindow *subwindow,
 	SDL_Color fg = g_colors[fg_attr];
 	SDL_Color bg = g_colors[bg_attr];
 
-	render_fill_rect(subwindow->window, tab_texture, NULL, &bg);
+	render_fill_rect(subwindow->window, texture, NULL, &bg);
 
-	render_outline_rect_width(subwindow->window, tab_texture, &total_rect,
+	render_outline_rect_width(subwindow->window, texture, &total_rect,
 			&g_colors[DEFAULT_TAB_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
 
-	SDL_SetRenderTarget(subwindow->window->renderer, tab_texture);
+	SDL_SetRenderTarget(subwindow->window->renderer, texture);
 
 	for (size_t i = 0; i < label_len; i++) {
 		render_glyph_mono(subwindow->window, subwindow->font, x, y, fg, label[i]);
