@@ -1329,11 +1329,11 @@ static void add_item_tabs(const struct object_menu_data *data)
 	if (allow_inven) {
 		Term_add_tab(USE_INVEN,  L"Inventory", use_inven);
 	}
-	if (allow_floor) {
-		Term_add_tab(USE_FLOOR,  L"  Floor  ", use_floor);
-	}
 	if (allow_quiver) {
 		Term_add_tab(USE_QUIVER, L" Quiver ", use_quiver);
+	}
+	if (allow_floor) {
+		Term_add_tab(USE_FLOOR,  L"  Floor  ", use_floor);
 	}
 }
 
