@@ -206,7 +206,7 @@ static void knowledge_screen_summary(group_funcs g_funcs,
 static void knowledge_screen_draw_header(region reg, int g_name_max_len,
 		bool group_menu, bool object_menu, const char *other_fields)
 {
-	struct loc loc = {0, reg.y + reg.h};
+	struct loc loc = {reg.x, reg.y};
 
 	c_prt(group_menu ? COLOUR_L_BLUE : COLOUR_WHITE, "Group", loc);
 
@@ -219,19 +219,14 @@ static void knowledge_screen_draw_header(region reg, int g_name_max_len,
 	}
 }
 
-static void knowledge_screen_draw_frame(const char *title,
-		bool group_menu, bool object_menu,
-		const char *other_fields, region reg, int g_name_max_len)
+static void knowledge_screen_draw_frame(region reg,
+		bool group_menu, bool object_menu, int g_name_max_len)
 {
-	region_erase(reg);
-
-	prt(format("Knowledge - %s", title), loc(reg.x, reg.y));
-
 	uint32_t g_attr = group_menu ? COLOUR_WHITE : COLOUR_L_DARK;
 	uint32_t o_attr = object_menu ? COLOUR_WHITE : COLOUR_L_DARK;
 
 	const int x_div = g_name_max_len + 1;
-	const int y_div = reg.y + reg.h + 1;
+	const int y_div = reg.y + reg.h - 1;
 
 	int width;
 	int height;
@@ -251,23 +246,33 @@ static void knowledge_screen_draw_frame(const char *title,
 	}
 }
 
-static void knowledge_screen_regions(region *title, region *group, region *object,
+static void knowledge_screen_regions(region *group, region *object, region *header,
 		int g_name_max_len, bool summary)
 {
-	title->x = 0;
-	title->y = 0;
-	title->w = 0;
-	title->h = 2;
+	header->x = 0;
+	header->y = 0;
+	header->w = 0;
+	header->h = 2;
 
 	group->x = 0;
-	group->y = 4;
+	group->y = 2;
 	group->w = g_name_max_len;
 	group->h = -2;
 
 	object->x = g_name_max_len + 3;
-	object->y = 4;
+	object->y = 2;
 	object->w = 0;
 	object->h = summary ? -3 : -2;
+}
+
+static void knowledge_screen_add_tab(const char *title)
+{
+	wchar_t tab[ANGBAND_TERM_STANDARD_WIDTH];
+
+	mbstowcs(tab, title, ANGBAND_TERM_STANDARD_WIDTH);
+	tab[ANGBAND_TERM_STANDARD_WIDTH - 1] = 0;
+
+	Term_add_tab(0, tab, true);
 }
 
 static int set_g_lists(int *o_list, int o_count,
@@ -354,15 +359,18 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
 
-	region title_region;
+	knowledge_screen_add_tab(title);
+
 	region group_region;
 	region object_region;
-	knowledge_screen_regions(&title_region, &group_region, &object_region,
+	region header_region;
+	knowledge_screen_regions(&group_region, &object_region, &header_region,
 			g_name_max_len, g_funcs.summary != NULL);
 
 	struct menu group_menu;
@@ -423,10 +431,10 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			swap = false;
 		}
 
-		knowledge_screen_draw_frame(title,
+		knowledge_screen_draw_frame(header_region,
 				active_menu == &group_menu, active_menu == &object_menu,
-				other_fields, title_region, g_name_max_len);
-		knowledge_screen_draw_header(title_region, g_name_max_len,
+				g_name_max_len);
+		knowledge_screen_draw_header(header_region, g_name_max_len,
 				active_menu == &group_menu, active_menu == &object_menu,
 				other_fields);
 		knowledge_screen_summary(g_funcs, g_list[g_cursor],
@@ -483,12 +491,6 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 
 	/* Restore roguelike option */
 	OPT(rogue_like_commands) = kmode;
-
-	/* Prompt */
-	if (!g_count) {
-		struct loc loc = {0, 15};
-		prt(format("No %s known.", title), loc);
-	}
 
 	mem_free(g_list);
 	mem_free(g_names);
@@ -715,7 +717,6 @@ static int count_known_monsters(void)
  */
 static void do_cmd_knowledge_monsters(const char *name, int row)
 {
-	(void) name;
 	(void) row;
 
 	group_funcs r_funcs = {
@@ -764,7 +765,8 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 		}
 	}
 
-	display_knowledge("monsters", monsters, count, r_funcs, m_funcs,
+	display_knowledge(name,
+			monsters, count, r_funcs, m_funcs,
 			"                   Sym  Kills");
 
 	mem_free(default_join);
@@ -1035,7 +1037,6 @@ static int collect_known_artifacts(int *artifacts, size_t artifacts_len)
  */
 static void do_cmd_knowledge_artifacts(const char *name, int row)
 {
-	(void) name;
 	(void) row;
 
 	group_funcs obj_f = {
@@ -1058,7 +1059,8 @@ static void do_cmd_knowledge_artifacts(const char *name, int row)
 	/* Collect valid artifacts */
 	int a_count = collect_known_artifacts(artifacts, z_info->a_max);
 
-	display_knowledge("artifacts", artifacts, a_count, obj_f, art_f, NULL);
+	display_knowledge(name, artifacts, a_count, obj_f, art_f, NULL);
+
 	mem_free(artifacts);
 }
 
@@ -1126,7 +1128,6 @@ static int e_cmp_tval(const void *a, const void *b)
  */
 static void do_cmd_knowledge_ego_items(const char *name, int row)
 {
-	(void) name;
 	(void) row;
 
 	group_funcs obj_f = {
@@ -1183,7 +1184,7 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 		}
 	}
 
-	display_knowledge("ego items", egoitems, e_count, obj_f, ego_f, NULL);
+	display_knowledge(name, egoitems, e_count, obj_f, ego_f, NULL);
 
 	mem_free(default_join);
 	mem_free(egoitems);
@@ -1448,7 +1449,6 @@ static void o_xtra_act(struct keypress key, int index)
  */
 void textui_browse_object_knowledge(const char *name, int row)
 {
-	(void) name;
 	(void) row;
 
 	group_funcs kind_f = {
@@ -1487,7 +1487,8 @@ void textui_browse_object_knowledge(const char *name, int row)
 		}
 	}
 
-	display_knowledge("known objects", objects, o_count, kind_f, obj_f,
+	display_knowledge(name,
+			objects, o_count, kind_f, obj_f,
 			"Ignore  Inscribed          Sym");
 
 	mem_free(objects);
@@ -1610,7 +1611,6 @@ static void rune_xtra_act(struct keypress key, int index)
  */
 static void do_cmd_knowledge_runes(const char *name, int row)
 {
-	(void) name;
 	(void) row;
 
 	group_funcs rune_var_f = {
@@ -1641,7 +1641,8 @@ static void do_cmd_knowledge_runes(const char *name, int row)
 		}
 	}
 
-	display_knowledge("runes", runes, rune_count, rune_var_f, rune_f, "Inscribed");
+	display_knowledge(name, runes, rune_count, rune_var_f, rune_f, "Inscribed");
+
 	mem_free(runes);
 }
 
@@ -1745,7 +1746,6 @@ static void feat_lore(int index)
  */
 static void do_cmd_knowledge_features(const char *name, int row)
 {
-	(void) name;
 	(void) row;
 
 	group_funcs fkind_f = {
@@ -1775,8 +1775,10 @@ static void do_cmd_knowledge_features(const char *name, int row)
 		}
 	}
 
-	display_knowledge("features", features, f_count, fkind_f, feat_f,
+	display_knowledge(name,
+			features, f_count, fkind_f, feat_f,
 			"                   Sym");
+
 	mem_free(features);
 }
 
@@ -1900,8 +1902,8 @@ static void trap_lore(int index)
  */
 static void do_cmd_knowledge_traps(const char *name, int row)
 {
-	(void) name;
 	(void) row;
+
 	group_funcs tkind_f = {
 		.name = tkind_name,
 		.gcomp = t_cmp_tkind,
@@ -1928,8 +1930,10 @@ static void do_cmd_knowledge_traps(const char *name, int row)
 		}
 	}
 
-	display_knowledge("traps", traps, t_count, tkind_f, trap_f,
+	display_knowledge(name,
+			traps, t_count, tkind_f, trap_f,
 			"                   Sym");
+
 	mem_free(traps);
 }
 
@@ -2005,7 +2009,6 @@ void textui_knowledge_init(void)
 	menu_init(menu, MN_SKIN_SCROLL, menu_find_iter(MN_ITER_ACTIONS));
 	menu_setpriv(menu, N_ELEMENTS(knowledge_actions), knowledge_actions);
 
-	menu->title = "Display current knowledge";
 	menu->selections = lower_case;
 
 	/* initialize other static variables */
@@ -2066,10 +2069,12 @@ void textui_browse_knowledge(void)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, L"Knowledge menu", true);
 
 	region reg = {0, 0, 0, N_ELEMENTS(knowledge_actions) + 2};
 	menu_layout(&knowledge_menu, reg);
