@@ -1117,7 +1117,7 @@ static void show_menu_prompt(const struct object_menu_data *data,
 }
 
 static void build_menu_list(struct object_menu_data *data,
-		item_tester tester, const char **title)
+		item_tester tester)
 {
 	if (data->list != NULL) {
 		free_obj_list(data->list);
@@ -1130,25 +1130,21 @@ static void build_menu_list(struct object_menu_data *data,
 			build_obj_list(data->list, player->upkeep->inven, data->i2,
 					lower_case, tester, data->olist_mode);
 		}
-		*title = "Inventory";
 	} else if (player->upkeep->command_wrk == USE_EQUIP) {
 		if (data->e1 <= data->e2) {
 			build_obj_list(data->list, NULL, data->e2,
 					lower_case, tester, data->olist_mode);
 		}
-		*title = "Equipment";
 	} else if (player->upkeep->command_wrk == USE_QUIVER) {
 		if (data->q1 <= data->q2) {
 			build_obj_list(data->list, player->upkeep->quiver, data->q2,
 					all_digits, tester, data->olist_mode);
 		}
-		*title = "Quiver";
 	} else if (player->upkeep->command_wrk == USE_FLOOR) {
 		if (data->f1 <= data->f2) {
 			build_obj_list(data->list, data->floor_list, data->f2,
 					lower_case, tester, data->olist_mode);
 		}
-		*title = "Floor";
 	} else {
 		/* Should never happen */
 		quit_fmt("Bad command_wrk %d in menu!", player->upkeep->command_wrk);
@@ -1400,11 +1396,9 @@ bool textui_get_item(struct object **choice,
 
 	bool menu_ok = init_menu_data(&data, cmd, tester, mode);
 
-	const char *menu_title = NULL;
-
 	if (menu_ok) {
 		do {
-			build_menu_list(&data, tester, &menu_title);
+			build_menu_list(&data, tester);
 
 			push_item_term(&data);
 
@@ -1609,16 +1603,16 @@ void textui_cmd_ignore_menu(struct object *obj)
 	/* Work out display region */
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
-		.width = reg.w + 2,
-		.height = reg.h + 2,
+		.width = reg.w,
+		.height = reg.h,
 		.position = TERM_POSITION_TOP_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 
 	Term_push_new(&hints);
 
-	reg.x = 1;
-	reg.y = 1;
+	reg.x = 0;
+	reg.y = 0;
 	menu_layout(menu, reg);
 
 	int selected = menu_dynamic_select(menu);
