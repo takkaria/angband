@@ -602,7 +602,7 @@ bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
 	return term_put_ws_at_cursor(len, fga, ws);
 }
 
-void Term_add_tab(int index, const char *label, bool active)
+void Term_add_tab(int index, const wchar_t *label, bool active)
 {
 	STACK_OK();
 

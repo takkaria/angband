@@ -732,7 +732,7 @@ static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
 static void term_pop_new(void *user);
 static void term_add_tab(void *user,
-		int index, const char *label, bool active);
+		int index, const wchar_t *label, bool active);
 
 /* Defaults for term creations */
 
@@ -1142,6 +1142,31 @@ static void render_tile(const struct subwindow *subwindow,
 	} else {
 		SDL_RenderCopy(subwindow->window->renderer,
 				graphics->texture, &src, &dst);
+	}
+}
+
+static void render_tab(struct subwindow *subwindow,
+		const wchar_t *label, size_t label_len, SDL_Texture *tab_texture,
+		SDL_Rect total_rect, SDL_Rect label_rect, bool active)
+{
+	int x = (total_rect.w - label_rect.w) / 2;
+	int y = (total_rect.h - label_rect.h) / 2;
+
+	SDL_Color bg = active ?
+		g_colors[DEFAULT_TAB_BG_ACTIVE_COLOR] : g_colors[DEFAULT_TAB_BG_INACTIVE_COLOR];
+	SDL_Color fg = active ?
+		g_colors[DEFAULT_TAB_FG_ACTIVE_COLOR] : g_colors[DEFAULT_TAB_FG_INACTIVE_COLOR];
+
+	render_fill_rect(subwindow->window, tab_texture, NULL, &bg);
+
+	render_outline_rect_width(subwindow->window, tab_texture, &total_rect,
+			&g_colors[DEFAULT_TAB_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
+
+	SDL_SetRenderTarget(subwindow->window->renderer, tab_texture);
+
+	for (size_t i = 0; i < label_len; i++) {
+		render_glyph_mono(subwindow->window, subwindow->font, x, y, fg, label[i]);
+		x += subwindow->cell_width;
 	}
 }
 
@@ -3713,7 +3738,7 @@ static void term_big_map_cursor(void *user, int col, int row)
 	render_big_map_cursor(subwindow, col, row);
 }
 
-static void term_add_tab(void *user, int index, const char *label, bool active)
+static void term_add_tab(void *user, int index, const wchar_t *label, bool active)
 {
 	struct subwindow *subwindow = user;
 
@@ -3723,32 +3748,22 @@ static void term_add_tab(void *user, int index, const char *label, bool active)
 	struct tab *tab =
 		&subwindow->tab_bank.tabs[subwindow->tab_bank.number];
 
-	SDL_Rect label_rect = {0};
-	get_string_metrics(subwindow->font, label, &label_rect.w, &label_rect.h);
+	size_t label_len = wcslen(label);
+
+	SDL_Rect label_rect = {
+		0, 0, subwindow->cell_width * label_len, subwindow->cell_height
+	};
 
 	tab->rect = label_rect;
 
 	tab->rect.w += 2 * DEFAULT_HORIZONTAL_TAB_BORDER;
 	tab->rect.h += 2 * DEFAULT_VERTICAL_TAB_BORDER;
 
-	label_rect.x = (tab->rect.w - label_rect.w) / 2;
-	label_rect.y = (tab->rect.h - label_rect.h) / 2;
-
 	tab->texture =
 		make_subwindow_texture(subwindow->window, tab->rect.w, tab->rect.h);
 
-	SDL_Color bg = active ?
-		g_colors[DEFAULT_TAB_BG_ACTIVE_COLOR] : g_colors[DEFAULT_TAB_BG_INACTIVE_COLOR];
-	render_fill_rect(subwindow->window, tab->texture, NULL, &bg);
-
-	render_outline_rect_width(subwindow->window,
-			tab->texture, &tab->rect,
-			&g_colors[DEFAULT_TAB_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
-
-	SDL_Color fg = active ?
-		g_colors[DEFAULT_TAB_FG_ACTIVE_COLOR] : g_colors[DEFAULT_TAB_FG_INACTIVE_COLOR];
-	render_utf8_string(subwindow->window,
-			subwindow->font, tab->texture, fg, label_rect, label);
+	render_tab(subwindow, label, label_len,
+			tab->texture, tab->rect, label_rect, active);
 
 	if (subwindow->tab_bank.number > 0) {
 		const struct tab *prev_tab =

@@ -1324,16 +1324,16 @@ static void add_item_tabs(const struct object_menu_data *data)
 	const bool use_floor  = (player->upkeep->command_wrk & USE_FLOOR)  ? true : false;
 
 	if (allow_equip) {
-		Term_add_tab(USE_EQUIP,  "Equipment", use_equip);
+		Term_add_tab(USE_EQUIP,  L"Equipment", use_equip);
 	}
 	if (allow_inven) {
-		Term_add_tab(USE_INVEN,  "Inventory", use_inven);
+		Term_add_tab(USE_INVEN,  L"Inventory", use_inven);
 	}
 	if (allow_floor) {
-		Term_add_tab(USE_FLOOR,  "  Floor  ", use_floor);
+		Term_add_tab(USE_FLOOR,  L"  Floor  ", use_floor);
 	}
 	if (allow_quiver) {
-		Term_add_tab(USE_QUIVER, " Quiver ", use_quiver);
+		Term_add_tab(USE_QUIVER, L" Quiver ", use_quiver);
 	}
 }
 
