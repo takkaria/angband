@@ -687,6 +687,13 @@ void Term_cursor_visible(bool visible)
 	TOP->cursor.new.visible = visible;
 }
 
+void Term_visible(bool visible)
+{
+	STACK_OK();
+
+	TOP->callbacks.visible(TOP->user, visible);
+}
+
 void Term_get_size(int *w, int *h)
 {
 	STACK_OK();

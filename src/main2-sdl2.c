@@ -722,6 +722,7 @@ static const struct term_info *get_term_info(enum display_term_index index);
 /* Term callbacks */
 
 static void term_flush_events(void *user);
+static void term_visible(void *user, bool visible);
 static void term_cursor(void *user, int col, int row);
 static void term_redraw(void *user);
 static void term_event(void *user, bool wait);
@@ -738,6 +739,7 @@ static void term_add_tab(void *user,
 
 static const struct term_callbacks default_callbacks = {
 	.flush_events = term_flush_events,
+	.visible      = term_visible,
 	.cursor       = term_cursor,
 	.redraw       = term_redraw,
 	.event        = term_event,
@@ -3688,6 +3690,13 @@ static void term_flush_events(void *user)
 			handle_windowevent(&event.window);
 		}
 	}
+}
+
+static void term_visible(void *user, bool visible)
+{
+	struct subwindow *subwindow = user;
+
+	subwindow->visible = visible;
 }
 
 static void term_redraw(void *user)

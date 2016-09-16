@@ -133,6 +133,9 @@ typedef void (*event_hook)(void *user, bool wait);
 typedef void (*flush_events_hook)(void *user);
 /* delay_hook should pause for specified number of milliseconds */
 typedef void (*delay_hook)(void *user, int msecs);
+/* visible_hook should make a term visible or invisible, if possible,
+ * depending on the argument */
+typedef void (*visible_hook)(void *user, bool visible);
 /* add_tab_hook should add a tab to the term and handle mouse events on it */
 typedef void (*add_tab_hook)(void *user, int index, const wchar_t *label, bool active);
 
@@ -141,6 +144,7 @@ struct term_callbacks {
 	push_new_hook     push_new;
 	pop_new_hook      pop_new;
 	add_tab_hook      add_tab;
+	visible_hook      visible;
 	cursor_hook       cursor;
 	redraw_hook       redraw;
 	event_hook        event;
@@ -275,6 +279,9 @@ void Term_flush_events(void);
  * none of the events will be pushed, and the return value is false */
 bool Term_prepend_events(const ui_event *events, size_t num_events);
 bool Term_append_events(const ui_event *events, size_t num_events);
+
+/* make a term visible or invisible */
+void Term_visible(bool visible);
 
 /* Add a tab to the term on top of the stack;
  * the tab should have positive index, if its supposed to be clickable */
