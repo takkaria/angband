@@ -1625,11 +1625,13 @@ void textui_cmd_ignore_menu(struct object *obj)
 	struct term_hints hints = {
 		.width = reg.w,
 		.height = reg.h,
-		.position = TERM_POSITION_TOP_CENTER,
+		.tabs = true,
+		.position = TERM_POSITION_TOP_LEFT,
 		.purpose = TERM_PURPOSE_MENU
 	};
 
 	Term_push_new(&hints);
+	Term_add_tab(0, L"Ignore menu", true);
 
 	reg.x = 0;
 	reg.y = 0;
