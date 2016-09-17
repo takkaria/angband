@@ -21,8 +21,6 @@
 #include "ui2-output.h"
 #include "ui2-term.h"
 
-static void show_file(const char *name);
-
 /* 80 characters, +1 for null byte */
 #define HELP_LINE_SIZE (80 + 1)
 /* 80 characters, +2 for padding (left and right) */
@@ -182,8 +180,8 @@ static void split_help_file_name(struct help_file *help, const char *name)
 static struct help_file *open_help_file(const char *name)
 {
 	struct {const char *dir; const char *fmt;} dirs[] = {
-		{ANGBAND_DIR_HELP, "Help file \"%s\""},
-		{ANGBAND_DIR_INFO, "User info file \"%s\""}
+		{ANGBAND_DIR_HELP, "%s, help file \"%s\""},
+		{ANGBAND_DIR_INFO, "%s, user info file \"%s\""}
 	};
 
 	struct help_file *help = get_help_file();
@@ -196,7 +194,8 @@ static struct help_file *open_help_file(const char *name)
 
 		help->file = file_open(path, MODE_READ, FTYPE_TEXT);
 		if (help->file != NULL) {
-			strnfmt(help->caption, sizeof(help->caption), dirs[i].fmt, help->name);
+			strnfmt(help->caption, sizeof(help->caption),
+					dirs[i].fmt, buildid, help->name);
 		}
 	}
 
@@ -226,13 +225,15 @@ static void help_goto_file(const struct help_file *help)
 
 	if (askfor_aux(name, sizeof(name), NULL)) {
 		clear_prompt();
-		show_file(name);
+		Term_visible(false);
+		show_help(name);
+		Term_visible(true);
 	} else {
 		clear_prompt();
 	}
 }
 
-static void try_show_file(const struct help_file *help, char key)
+static void try_show_help(const struct help_file *help, char key)
 {
 	if (help->menu && isalpha((unsigned char) key)) {
 		int index = A2I(key);
@@ -240,7 +241,9 @@ static void try_show_file(const struct help_file *help, char key)
 				&& index < (int) N_ELEMENTS(help->menu_files)
 				&& help->menu_files[index] != NULL)
 		{
-			show_file(help->menu_files[index]);
+			Term_visible(false);
+			show_help(help->menu_files[index]);
+			Term_visible(true);
 		}
 	}
 }
@@ -283,8 +286,8 @@ static void help_display_rest(const struct help_file *help,
 	struct loc loc;
 
 	const char *prompt =
-		format("[%s, %s, line %d-%d/%d]",
-				buildid, help->caption, help->line + 1, help->line + text_reg.h, help->next);
+		format("[Line %d-%d/%d]",
+				help->line + 1, help->line + text_reg.h, help->next);
 
 	loc.x = term_reg.x;
 	loc.y = term_reg.y;
@@ -370,6 +373,8 @@ static void show_file(const char *name)
 		return;
 	}
 
+	Term_adds_tab(0, help->caption, COLOUR_WHITE, COLOUR_DARK);
+
 	region term_reg;
 	region text_reg;
 	help_set_regions(&term_reg, &text_reg);
@@ -421,7 +426,7 @@ static void show_file(const char *name)
 				help->line += text_reg.h;
 				break;
 			default:
-				try_show_file(help, key.code);
+				try_show_help(help, key.code);
 				break;
 		}
 
@@ -440,7 +445,6 @@ void show_help(const char *name)
 		.purpose  = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Help reader", COLOUR_WHITE, COLOUR_DARK);
 
 	show_file(name);
 
