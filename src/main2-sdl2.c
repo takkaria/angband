@@ -4601,7 +4601,8 @@ static void position_other_subwindow(struct subwindow *subwindow,
 	}
 
 	if (subwindow->tab_bank.tabs != NULL) {
-		subwindow->full_rect.y += SUBWINDOW_TAB_HEIGHT(subwindow) / 2;
+		subwindow->full_rect.y +=
+			SUBWINDOW_TAB_HEIGHT(subwindow) / 2 - DEFAULT_VISIBLE_BORDER;
 	}
 }
 
