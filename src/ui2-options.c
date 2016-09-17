@@ -1279,8 +1279,7 @@ static bool sval_menu(int tval, const char *desc)
 	menu->command_keys = "Tt";
 	menu_set_cursor_x_offset(menu, 1); /* Place cursor in brackets. */
 	mnflag_on(menu->flags, MN_NO_TAGS);
-	region reg = {0, 0, 0, -1};
-	menu_layout(menu, reg);
+	menu_layout_term(menu);
 
 	menu_select(menu);
 
