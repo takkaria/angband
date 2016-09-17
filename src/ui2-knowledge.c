@@ -2115,12 +2115,15 @@ void do_cmd_messages(void)
 	struct term_hints hints = {
 		.width = term_width,
 		.height = term_height,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, L"Messages", COLOUR_WHITE, COLOUR_DARK);
 
-	const int last_msg_pos = term_height - 3;
+	const int last_msg_pos = term_height - 4;
+	const struct loc pos_loc = {0, term_height - 2};
 	const struct loc help_loc = {0, term_height - 1};
 
 	char search[ANGBAND_TERM_STANDARD_WIDTH] = {0};
@@ -2165,16 +2168,14 @@ void do_cmd_messages(void)
 			}
 		}
 
-		show_prompt(format("Message recall (%d-%d of %d), offset %d",
-					current + 1, current + m, n_messages, offset), false);
-
+		prt(format("(%d-%d of %d, offset %d)",
+					current + 1, current + m, n_messages, offset),
+				pos_loc);
 		if (search[0]) {
-			prt("[Movement keys to navigate, '-' for older, '+' for newer, '=' to find]",
-					help_loc);
+			prt("[<dir>, '-' for older, '+' for newer, '=' to find]", help_loc);
 		}
 		else {
-			prt("[Movement keys to navigate, '/' to find, or ESCAPE to exit]",
-					help_loc);
+			prt("[<dir>, '/' to find, or ESCAPE to exit]", help_loc);
 		}
 
 		Term_flush_output();
@@ -2203,12 +2204,11 @@ void do_cmd_messages(void)
 				case '/':
 					/* Get the string to find */
 					show_prompt("Find: ", false);
-					if (!askfor_aux(search, sizeof(search), NULL)) {
-						continue;
+					if (askfor_aux(search, sizeof(search), NULL)) {
+						/* Set to find */
+						event.key.code = '-';
 					}
-		
-					/* Set to find */
-					event.key.code = '-';
+					clear_prompt();
 					break;
 
 				case ARROW_LEFT: case '4':
@@ -2256,7 +2256,6 @@ void do_cmd_messages(void)
 		}
 	}
 
-	clear_prompt();
 	Term_pop();
 }
 
