@@ -1440,7 +1440,7 @@ static void o_xtra_act(struct keypress key, int index)
 /**
  * Display known objects
  */
-void textui_browse_object_knowledge(const char *name, int row)
+void do_cmd_knowledge_objects(const char *name, int row)
 {
 	(void) row;
 
@@ -1966,7 +1966,7 @@ static void do_cmd_knowledge_history(const char *name, int row)
  * Definition of the "player knowledge" menu.
  */
 static menu_action knowledge_actions[] = {
-	{0, 0, "Display object knowledge",          textui_browse_object_knowledge},
+	{0, 0, "Display object knowledge",          do_cmd_knowledge_objects},
 	{0, 0, "Display rune knowledge",            do_cmd_knowledge_runes},
 	{0, 0, "Display artifact knowledge",        do_cmd_knowledge_artifacts},
 	{0, 0, "Display ego item knowledge",        do_cmd_knowledge_ego_items},

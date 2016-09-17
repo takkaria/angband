@@ -19,7 +19,7 @@
 #ifndef UI2_KNOWLEDGE_H
 #define UI2_KNOWLEDGE_H
 
-void textui_browse_object_knowledge(const char *name, int row);
+void do_cmd_knowledge_objects(const char *name, int row);
 void textui_knowledge_init(void);
 void textui_browse_knowledge(void);
 void do_cmd_message_one(void);
