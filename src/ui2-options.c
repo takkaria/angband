@@ -187,7 +187,7 @@ static void option_toggle_menu(const char *name, int page)
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-	Term_adds_tab(0, name, COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, name, COLOUR_WHITE, COLOUR_DARK);
 
 	menu_layout_term(menu);
 
@@ -268,7 +268,7 @@ static void ui_keymap_query(const char *title, int index)
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
-	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	struct keypress done = EVENT_EMPTY;
 
@@ -406,7 +406,7 @@ static void ui_keymap_create(const char *title, int index)
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
-	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	struct keypress done = EVENT_EMPTY;
 
@@ -475,7 +475,7 @@ static void ui_keymap_remove(const char *title, int index)
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
-	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	struct keypress done = EVENT_EMPTY;
 
@@ -532,7 +532,7 @@ static void do_cmd_keymaps(const char *title, int index)
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Keymap menu", COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, "Keymap menu", COLOUR_WHITE, COLOUR_DARK);
 
 	if (!keymap_menu) {
 		keymap_menu = menu_new_action(keymap_actions, N_ELEMENTS(keymap_actions));
@@ -888,7 +888,7 @@ static void ego_menu(void)
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Ego ignore menu", COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, "Ego ignore menu", COLOUR_WHITE, COLOUR_DARK);
 	Term_cursor_visible(true);
 
 	/* Set up the menu */
@@ -1051,7 +1051,7 @@ static void quality_menu(void)
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Quality ignore menu", COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, "Quality ignore menu", COLOUR_WHITE, COLOUR_DARK);
 
 	/* Set up the menu */
 	struct menu menu;
@@ -1271,7 +1271,7 @@ static bool sval_menu(int tval, const char *desc)
 
 	char title[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(title, sizeof(title), "Ignore the following %s", desc);
-	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	/* Run menu */
 	struct menu *menu = menu_new(MN_SKIN_COLUMNS, &ignore_sval_menu);
@@ -1449,7 +1449,7 @@ void do_cmd_options_item(const char *title, int index)
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	struct menu menu;
 	menu_init(&menu, MN_SKIN_SCROLL, &options_item_iter);
@@ -1509,7 +1509,7 @@ void do_cmd_options(void)
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Options", COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, "Options", COLOUR_WHITE, COLOUR_DARK);
 
 	menu_layout_term(option_menu);
 	menu_select(option_menu);

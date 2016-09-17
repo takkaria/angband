@@ -604,14 +604,6 @@ bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
 }
 
 void Term_add_tab(keycode_t code,
-		const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr)
-{
-	STACK_OK();
-
-	TOP->callbacks.add_tab(TOP->user, code, label, fg_attr, bg_attr);
-}
-
-void Term_adds_tab(keycode_t code,
 		const char *label, uint32_t fg_attr, uint32_t bg_attr)
 {
 	STACK_OK();

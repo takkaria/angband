@@ -356,7 +356,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	region group_region;
 	region object_region;
@@ -2067,7 +2067,7 @@ void textui_browse_knowledge(void)
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Knowledge menu", COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, "Knowledge menu", COLOUR_WHITE, COLOUR_DARK);
 
 	region reg = {0, 0, 0, N_ELEMENTS(knowledge_actions) + 2};
 	menu_layout(&knowledge_menu, reg);
@@ -2120,7 +2120,7 @@ void do_cmd_messages(void)
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Messages", COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, "Messages", COLOUR_WHITE, COLOUR_DARK);
 
 	const int last_msg_pos = term_height - 3;
 	const struct loc help_loc = {0, term_height - 1};

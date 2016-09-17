@@ -289,9 +289,6 @@ void Term_visible(bool visible);
 /* Add a tab to the term on top of the stack;
  * clicking on this tab is equivalent to pressing key "code" */
 void Term_add_tab(keycode_t code,
-		const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
-/* as above, but with utf8 encoded label */
-void Term_adds_tab(keycode_t code,
 		const char *label, uint32_t fg_attr, uint32_t bg_attr);
 
 /* pause for some milliseconds */

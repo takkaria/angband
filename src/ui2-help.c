@@ -374,7 +374,7 @@ static void show_file(const char *name)
 		return;
 	}
 
-	Term_adds_tab(0, help->caption, COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, help->caption, COLOUR_WHITE, COLOUR_DARK);
 
 	region term_reg;
 	region text_reg;

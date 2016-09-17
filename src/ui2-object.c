@@ -1332,16 +1332,16 @@ static void add_item_tabs(const struct object_menu_data *data)
 	((cond) ? COLOUR_WHITE : COLOUR_L_DARK)
 
 	if (allow_equip) {
-		Term_add_tab('\\', L"Equipment", TAB_FG_COLOR(use_equip),  COLOUR_DARK);
+		Term_add_tab('\\', "Equipment", TAB_FG_COLOR(use_equip),  COLOUR_DARK);
 	}
 	if (allow_inven) {
-		Term_add_tab('/', L"Inventory", TAB_FG_COLOR(use_inven),  COLOUR_DARK);
+		Term_add_tab('/', "Inventory", TAB_FG_COLOR(use_inven),  COLOUR_DARK);
 	}
 	if (allow_quiver) {
-		Term_add_tab('|', L" Quiver ", TAB_FG_COLOR(use_quiver), COLOUR_DARK);
+		Term_add_tab('|', " Quiver ", TAB_FG_COLOR(use_quiver), COLOUR_DARK);
 	}
 	if (allow_floor) {
-		Term_add_tab('-', L"  Floor  ", TAB_FG_COLOR(use_floor), COLOUR_DARK);
+		Term_add_tab('-', "  Floor  ", TAB_FG_COLOR(use_floor), COLOUR_DARK);
 	}
 
 #undef TAB_FG_COLOR
@@ -1641,7 +1641,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	};
 
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Ignore menu", COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, "Ignore menu", COLOUR_WHITE, COLOUR_DARK);
 
 	reg.x = 0;
 	reg.y = 0;
