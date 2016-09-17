@@ -1472,17 +1472,18 @@ void do_cmd_options(void)
 {
 	if (!option_menu) {
 		option_menu = menu_new_action(option_actions, N_ELEMENTS(option_actions));
-		option_menu->title = "Options Menu";
 		mnflag_on(option_menu->flags, MN_CASELESS_TAGS);
 	}
 
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, L"Options", COLOUR_WHITE, COLOUR_DARK);
 
 	menu_layout_term(option_menu);
 	menu_select(option_menu);

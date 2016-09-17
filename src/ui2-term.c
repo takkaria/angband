@@ -611,6 +611,17 @@ void Term_add_tab(keycode_t code,
 	TOP->callbacks.add_tab(TOP->user, code, label, fg_attr, bg_attr);
 }
 
+void Term_adds_tab(keycode_t code,
+		const char *label, uint32_t fg_attr, uint32_t bg_attr)
+{
+	STACK_OK();
+
+	wchar_t ws[WIDESTRING_MAX];
+	term_mbstowcs(ws, label, WIDESTRING_MAX);
+
+	TOP->callbacks.add_tab(TOP->user, code, ws, fg_attr, bg_attr);
+}
+
 void Term_erase(int x, int y, int len)
 {
 	assert(len > 0);

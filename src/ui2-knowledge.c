@@ -265,16 +265,6 @@ static void knowledge_screen_regions(region *group, region *object, region *head
 	object->h = summary ? -3 : -2;
 }
 
-static void knowledge_screen_add_tab(const char *title)
-{
-	wchar_t tab[ANGBAND_TERM_STANDARD_WIDTH];
-
-	mbstowcs(tab, title, ANGBAND_TERM_STANDARD_WIDTH);
-	tab[ANGBAND_TERM_STANDARD_WIDTH - 1] = 0;
-
-	Term_add_tab(0, tab, COLOUR_WHITE, COLOUR_DARK);
-}
-
 static int set_g_lists(int *o_list, int o_count,
 		int *g_list, int *g_offsets, int g_max, group_funcs g_funcs)
 {
@@ -364,8 +354,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
-
-	knowledge_screen_add_tab(title);
+	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	region group_region;
 	region object_region;

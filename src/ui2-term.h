@@ -290,6 +290,9 @@ void Term_visible(bool visible);
  * clicking on this tab is equivalent to pressing key "code" */
 void Term_add_tab(keycode_t code,
 		const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
+/* as above, but with utf8 encoded label */
+void Term_adds_tab(keycode_t code,
+		const char *label, uint32_t fg_attr, uint32_t bg_attr);
 
 /* pause for some milliseconds */
 void Term_delay(int msecs);
