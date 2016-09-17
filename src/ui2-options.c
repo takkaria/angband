@@ -120,7 +120,9 @@ static bool option_toggle_handle(struct menu *menu,
 		} else if (event->key.code == 't' || event->key.code == 'T') {
 			option_set(option_name(index), !op_ptr->opt[index]);
 		} else if (event->key.code == '?') {
+			Term_visible(false);
 			show_help(format("option.txt#%s", option_name(index)));
+			Term_visible(true);
 		} else {
 			return false;
 		}
@@ -201,6 +203,13 @@ static void option_toggle_menu(const char *name, int page)
 void do_cmd_options_birth(void)
 {
 	option_toggle_menu("Birth options", OPT_PAGE_BIRTH + OPT_PAGE_MAX);
+}
+
+static void do_cmd_option_toggle_menu(const char *name, int page)
+{
+	Term_visible(false);
+	option_toggle_menu(name, page);
+	Term_visible(true);
 }
 
 /**
@@ -513,6 +522,8 @@ static void do_cmd_keymaps(const char *title, int index)
 {
 	(void) index;
 
+	Term_visible(false);
+
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -532,6 +543,8 @@ static void do_cmd_keymaps(const char *title, int index)
 	menu_select(keymap_menu);
 
 	Term_pop();
+
+	Term_visible(true);
 }
 
 /**
@@ -865,7 +878,6 @@ static void ego_menu(void)
 	/* Sort the array by ego item name */
 	sort(choice, max_choice, sizeof(*choice), ego_comp_func);
 
-	/* make previous term invisible, because its tab is too long */
 	Term_visible(false);
 
 	struct term_hints hints = {
@@ -896,7 +908,6 @@ static void ego_menu(void)
 	mem_free(choice);
 	Term_pop();
 
-	/* make previous term visible again */
 	Term_visible(true);
 }
 
@@ -1030,6 +1041,8 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
  */
 static void quality_menu(void)
 {
+	Term_visible(false);
+
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -1055,6 +1068,8 @@ static void quality_menu(void)
 	menu_select(&menu);
 
 	Term_pop();
+
+	Term_visible(true);
 }
 
 /**
@@ -1242,6 +1257,8 @@ static bool sval_menu(int tval, const char *desc)
 			break;
 	}
 
+	Term_visible(false);
+
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -1270,6 +1287,8 @@ static bool sval_menu(int tval, const char *desc)
 	mem_free(choices);
 	menu_free(menu);
 	Term_pop();
+
+	Term_visible(true);
 
 	return true;
 }
@@ -1420,6 +1439,8 @@ void do_cmd_options_item(const char *title, int index)
 
 	int count = N_ELEMENTS(sval_dependent) + N_ELEMENTS(extra_item_options) + 1;
 
+	Term_visible(false);
+
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -1439,6 +1460,8 @@ void do_cmd_options_item(const char *title, int index)
 
 	Term_pop();
 
+	Term_visible(true);
+
 	player->upkeep->notice |= PN_IGNORE;
 }
 
@@ -1451,9 +1474,9 @@ void do_cmd_options_item(const char *title, int index)
 static struct menu *option_menu;
 
 static menu_action option_actions[] = {
-	{0, 'a', "User interface options",              option_toggle_menu},
-	{0, 'b', "Birth (difficulty) options",          option_toggle_menu},
-	{0, 'x', "Cheat options",                       option_toggle_menu},
+	{0, 'a', "User interface options",              do_cmd_option_toggle_menu},
+	{0, 'b', "Birth (difficulty) options",          do_cmd_option_toggle_menu},
+	{0, 'x', "Cheat options",                       do_cmd_option_toggle_menu},
 	{0, 'i', "Item ignoring setup",                 do_cmd_options_item},
 	{0,  0,   NULL,                                 NULL},
 	{0, 'd', "Set animation delay"  ,               do_cmd_delay},

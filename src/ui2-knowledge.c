@@ -346,6 +346,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	int g_name_max_len = set_g_names(g_list, g_count, g_names, g_funcs);
 	g_name_max_len = MIN(g_name_max_len, 20);
 
+	Term_visible(false);
+
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -486,6 +488,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	mem_free(g_offsets);
 
 	Term_pop();
+
+	Term_visible(true);
 }
 
 #undef SWAP_MENUS
