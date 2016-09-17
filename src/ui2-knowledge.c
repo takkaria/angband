@@ -2122,8 +2122,7 @@ void do_cmd_messages(void)
 	Term_push_new(&hints);
 	Term_add_tab(0, L"Messages", COLOUR_WHITE, COLOUR_DARK);
 
-	const int last_msg_pos = term_height - 4;
-	const struct loc pos_loc = {0, term_height - 2};
+	const int last_msg_pos = term_height - 3;
 	const struct loc help_loc = {0, term_height - 1};
 
 	char search[ANGBAND_TERM_STANDARD_WIDTH] = {0};
@@ -2140,8 +2139,7 @@ void do_cmd_messages(void)
 	while (more) {
 		Term_clear();
 
-		int m;
-		for (m = 0; m <= last_msg_pos && current + m < n_messages; m++) {
+		for (int m = 0; m <= last_msg_pos && current + m < n_messages; m++) {
 			const char *str = message_str(current + m);
 			uint32_t attr = message_color(current + m);
 			int count = message_count(current + m);
@@ -2168,14 +2166,13 @@ void do_cmd_messages(void)
 			}
 		}
 
-		prt(format("(%d-%d of %d, offset %d)",
-					current + 1, current + m, n_messages, offset),
-				pos_loc);
 		if (search[0]) {
-			prt("[<dir>, '-' for older, '+' for newer, '=' to find]", help_loc);
+			Term_addws(help_loc.x, help_loc.y, term_width,
+					COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '=' to find]");
 		}
 		else {
-			prt("[<dir>, '/' to find, or ESCAPE to exit]", help_loc);
+			Term_addws(help_loc.x, help_loc.y, term_width,
+					COLOUR_WHITE, L"[<dir>, '/' to find, or ESCAPE to exit]");
 		}
 
 		Term_flush_output();
