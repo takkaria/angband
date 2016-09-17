@@ -225,6 +225,7 @@ static void help_goto_file(const struct help_file *help)
 
 	if (askfor_aux(name, sizeof(name), NULL)) {
 		clear_prompt();
+
 		Term_visible(false);
 		show_help(name);
 		Term_visible(true);
