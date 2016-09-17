@@ -4532,10 +4532,10 @@ static void position_subwindow_top_left(struct subwindow *subwindow,
 	assert(display_cave->window == subwindow->window);
 
 	subwindow->full_rect.x = display_cave->full_rect.x +
-		display_cave->inner_rect.x + DEFAULT_TEMPORARY_SUBWINDOW_BORDER;
+		display_cave->inner_rect.x + DEFAULT_PERMANENT_SUBWINDOW_BORDER;
 
 	subwindow->full_rect.y = display_cave->full_rect.y +
-		display_cave->inner_rect.y + DEFAULT_TEMPORARY_SUBWINDOW_BORDER;
+		display_cave->inner_rect.y + DEFAULT_PERMANENT_SUBWINDOW_BORDER;
 }
 
 static void position_subwindow_top_center(struct subwindow *subwindow,
