@@ -147,7 +147,6 @@ static void option_toggle_menu(const char *name, int page)
 	struct menu *menu = menu_new(MN_SKIN_SCROLL, &option_toggle_iter);
 
 	/* for all menus */
-	menu->title = name;
 	menu->prompt = "Set option (y/n/t), '?' for information";
 	menu->command_keys = "?YyNnTt";
 	menu->selections = "abcdefghijklmopqrsuvwxz";
@@ -181,10 +180,13 @@ static void option_toggle_menu(const char *name, int page)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
+	Term_adds_tab(0, name, COLOUR_WHITE, COLOUR_DARK);
+
 	menu_layout_term(menu);
 
 	menu_select(menu);
@@ -251,22 +253,20 @@ static void ui_keymap_query(const char *title, int index)
 
 	struct term_hints hints = {
 		.width = 50,
-		.height = 6,
+		.height = 4,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
+	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	struct keypress done = EVENT_EMPTY;
 
 	do {
-		struct loc loc = {0, 0};
+		struct loc loc = {1, 0};
 
 		Term_clear();
-
-		prt(title, loc);
-		loc.x += 2;
-		loc.y += 2;
 
 		prt("Key ", loc);
 
@@ -278,7 +278,7 @@ static void ui_keymap_query(const char *title, int index)
 		const struct keypress *act = keymap_find(KEYMAP_MODE_OPT, key);
 
 		if (act == NULL) {
-			loc.x -= 2;
+			loc.x -= 1;
 			loc.y += 2;
 			prt("No keymap with that trigger.", loc);
 		} else {
@@ -305,9 +305,9 @@ static void ui_keymap_query(const char *title, int index)
 
 static void ui_keymap_print_help(struct loc loc)
 {
-	c_prt(COLOUR_WHITE, "Press '$' when finished.", loc);
-	loc.y++;
 	c_prt(COLOUR_WHITE, "Use 'Ctrl-U' to reset.", loc);
+	loc.y++;
+	c_prt(COLOUR_WHITE, "Press '$' when finished.", loc);
 	loc.y++;
 	c_prt(COLOUR_WHITE,
 			format("(Maximum keymap length is %d keys.)", KEYMAP_ACTION_MAX),
@@ -391,22 +391,21 @@ static void ui_keymap_create(const char *title, int index)
 
 	struct term_hints hints = {
 		.width = 50,
-		.height = 10,
+		.height = 6,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
+	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	struct keypress done = EVENT_EMPTY;
 
 	do {
-		struct loc loc = {0, 0};
+		struct loc loc = {1, 0};
 
 		Term_clear();
 
-		prt(title, loc);
-		loc.x += 2;
-		loc.y += 2;
 		prt("Key: ", loc);
 
 		Term_cursor_visible(true);
@@ -426,10 +425,11 @@ static void ui_keymap_create(const char *title, int index)
 
 			if (keymap_buffer[0].type != EVT_NONE) {
 				loc.x = 0;
-				loc.y = hints.height - 2;
+				loc.y = hints.height - 1;
 
-				prt("Save this keymap? ", loc);
+				prt("Save this keymap? [y/n] ", loc);
 				Term_flush_output();
+				loc.y--;
 
 				struct keypress key = inkey_only_key();
 				if (key.code == 'y' || key.code == 'Y' || key.code == KC_ENTER) {
@@ -460,22 +460,18 @@ static void ui_keymap_remove(const char *title, int index)
 
 	struct term_hints hints = {
 		.width = 50,
-		.height = 6,
+		.height = 4,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
+	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	struct keypress done = EVENT_EMPTY;
 
 	do {
-		struct loc loc = {0, 0};
-
-		Term_clear();
-
-		prt(title, loc);
-		loc.x += 2;
-		loc.y += 2;
+		struct loc loc = {1, 0};
 
 		prt("Key: ", loc);
 
@@ -484,15 +480,14 @@ static void ui_keymap_remove(const char *title, int index)
 
 		struct keypress trigger = keymap_get_trigger();
 
-		loc.x -= 2;
-		loc.y += 2;
+		loc.x = 0;
+		loc.y = hints.height - 2;
 		if (keymap_remove(KEYMAP_MODE_OPT, trigger)) {
 			prt("Removed.", loc);
 		} else {
 			prt("No keymap to remove.", loc);
 		}
 
-		loc.x = 0;
 		loc.y = hints.height - 1;
 		prt("Press ESC to exit, any other key to continue.", loc);
 
@@ -521,15 +516,15 @@ static void do_cmd_keymaps(const char *title, int index)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, L"Keymap menu", COLOUR_WHITE, COLOUR_DARK);
 
 	if (!keymap_menu) {
 		keymap_menu = menu_new_action(keymap_actions, N_ELEMENTS(keymap_actions));
-	
-		keymap_menu->title = title;
 		keymap_menu->selections = lower_case;
 	}
 
@@ -870,13 +865,18 @@ static void ego_menu(void)
 	/* Sort the array by ego item name */
 	sort(choice, max_choice, sizeof(*choice), ego_comp_func);
 
+	/* make previous term invisible, because its tab is too long */
+	Term_visible(false);
+
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, L"Ego ignore menu", COLOUR_WHITE, COLOUR_DARK);
 	Term_cursor_visible(true);
 
 	/* Set up the menu */
@@ -886,17 +886,18 @@ static void ego_menu(void)
 		.row_handler = ego_action
 	};
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
-	menu.title = "Ego ignore menu";
 	menu_setpriv(&menu, max_choice, choice);
 	mnflag_on(menu.flags, MN_NO_TAGS);
 	menu_set_cursor_x_offset(&menu, 1); /* Put cursor in brackets */
-	region reg = {0, 0, 0, -1};
-	menu_layout(&menu, reg);
+	menu_layout_term(&menu);
 
 	menu_select(&menu);
 
 	mem_free(choice);
 	Term_pop();
+
+	/* make previous term visible again */
+	Term_visible(true);
 }
 
 /**
@@ -984,8 +985,8 @@ static bool quality_action(struct menu *m, const ui_event *e, int index)
 	assert(index < ITYPE_MAX);
 
 	struct term_hints hints = {
-		.x = 35,
-		.y = index - m->top + 1,
+		.x = 34,
+		.y = index - m->top - 1,
 		.width = 30,
 		.height = IGNORE_MAX,
 		.position = TERM_POSITION_EXACT,
@@ -1032,10 +1033,12 @@ static void quality_menu(void)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, L"Quality ignore menu", COLOUR_WHITE, COLOUR_DARK);
 
 	/* Set up the menu */
 	struct menu menu;
@@ -1044,12 +1047,10 @@ static void quality_menu(void)
 		.row_handler = quality_action
 	};
 	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
-	menu.title = "Quality ignore menu";
 	/* Take into account ITYPE_NONE - we don't want to display that */
 	menu_setpriv(&menu, ITYPE_MAX - 1, quality_values);
 	mnflag_on(menu.flags, MN_NO_TAGS);
-	region reg = {0, 0, 0, -1};
-	menu_layout(&menu, reg);
+	menu_layout_term(&menu);
 
 	menu_select(&menu);
 
@@ -1244,6 +1245,7 @@ static bool sval_menu(int tval, const char *desc)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
@@ -1251,13 +1253,13 @@ static bool sval_menu(int tval, const char *desc)
 	Term_cursor_visible(true);
 
 	char title[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(title, sizeof(title), "Ignore the following %s:", desc);
+	strnfmt(title, sizeof(title), "Ignore the following %s", desc);
+	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	/* Run menu */
 	struct menu *menu = menu_new(MN_SKIN_COLUMNS, &ignore_sval_menu);
 	menu_setpriv(menu, n_choices, choices);
 	menu->command_keys = "Tt";
-	menu->title = title;
 	menu_set_cursor_x_offset(menu, 1); /* Place cursor in brackets. */
 	mnflag_on(menu->flags, MN_NO_TAGS);
 	region reg = {0, 0, 0, -1};
@@ -1421,15 +1423,16 @@ void do_cmd_options_item(const char *title, int index)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
+	Term_adds_tab(0, title, COLOUR_WHITE, COLOUR_DARK);
 
 	struct menu menu;
 	menu_init(&menu, MN_SKIN_SCROLL, &options_item_iter);
 	menu_setpriv(&menu, count, NULL);
-	menu.title = title;
 	menu_layout_term(&menu);
 
 	menu_select(&menu);
