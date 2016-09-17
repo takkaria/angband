@@ -2140,18 +2140,21 @@ void do_cmd_messages(void)
 		Term_clear();
 
 		for (int m = 0; m <= last_msg_pos && current + m < n_messages; m++) {
-			const char *str = message_str(current + m);
+			const char *msg = message_str(current + m);
 			uint32_t attr = message_color(current + m);
 			int count = message_count(current + m);
-
-			const char *msg = count == 1 ?
-				str : format("%s <%dx>", str, count);
+			int len = strlen(msg);
 
 			/* Apply horizontal scroll */
-			if ((int) strlen(msg) > offset) {
+			if (len > offset) {
 				msg += offset;
+				len -= offset;
 				/* Dump the messages, bottom to top */
 				Term_adds(0, last_msg_pos - m, term_width, attr, msg);
+				if (count > 1) {
+					Term_adds(len + 1, last_msg_pos - m, term_width,
+							COLOUR_YELLOW, format("<%dx>", count));
+				}
 
 				if (search[0]) {
 					/* Highlight search */
