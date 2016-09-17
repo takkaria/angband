@@ -1328,8 +1328,8 @@ static void add_item_tabs(const struct object_menu_data *data)
 	const bool use_quiver = (player->upkeep->command_wrk & USE_QUIVER) ? true : false;
 	const bool use_floor  = (player->upkeep->command_wrk & USE_FLOOR)  ? true : false;
 
-#define TAB_FG_COLOR(boolean) \
-	((boolean) ? COLOUR_WHITE : COLOUR_L_DARK)
+#define TAB_FG_COLOR(cond) \
+	((cond) ? COLOUR_WHITE : COLOUR_L_DARK)
 
 	if (allow_equip) {
 		Term_add_tab('\\', L"Equipment", TAB_FG_COLOR(use_equip),  COLOUR_DARK);
