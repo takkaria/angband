@@ -1640,7 +1640,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	};
 
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Ignore menu", COLOUR_WHITE, COLOUR_SHADE);
+	Term_add_tab(0, L"Ignore menu", COLOUR_WHITE, COLOUR_DARK);
 
 	reg.x = 0;
 	reg.y = 0;
