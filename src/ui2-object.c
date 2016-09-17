@@ -805,10 +805,10 @@ static void cat_menu_hint(char *buf, size_t bufsize,
 
 	/* Only one of those is allowed, and inventory takes precedence */
 	if (inven) {
-		my_strcat(buf, "/ for Inven, ", bufsize);
+		my_strcat(buf, "\\ for Inven, ", bufsize);
 	}
 	if (equip) {
-		my_strcat(buf, "\\ for Equip, ", bufsize);
+		my_strcat(buf, "= for Equip, ", bufsize);
 	}
 	if (quiver) {
 		my_strcat(buf, "| for Quiver, ", bufsize);
@@ -873,7 +873,7 @@ static bool handle_menu_key_action(struct object_menu_data *data,
 	const bool floor  = (data->item_mode & USE_FLOOR)  ? true : false;
 
 	switch (key.code) {
-		case '\\':
+		case '=':
 			if (equip) {
 				player->upkeep->command_wrk = USE_EQUIP;
 				data->retval.new_menu = true;
@@ -882,7 +882,7 @@ static bool handle_menu_key_action(struct object_menu_data *data,
 			}
 			break;
 
-		case '/':
+		case '\\':
 			if (inven) {
 				player->upkeep->command_wrk = USE_INVEN;
 				data->retval.new_menu = true;
@@ -1080,7 +1080,7 @@ static void item_menu(struct object_menu_data *data)
 	menu.selections =
 		player->upkeep->command_wrk == USE_QUIVER ? all_digits : lower_case;
 
-	menu.stop_keys = "\\/|-";
+	menu.stop_keys = "\\=|-";
 	menu.browse_hook = quiver_browser;
 
 	mnflag_on(menu.flags, MN_PVT_TAGS);
@@ -1332,10 +1332,10 @@ static void add_item_tabs(const struct object_menu_data *data)
 	((cond) ? COLOUR_WHITE : COLOUR_L_DARK)
 
 	if (allow_equip) {
-		Term_add_tab('\\', "Equipment", TAB_FG_COLOR(use_equip),  COLOUR_DARK);
+		Term_add_tab('=', "Equipment", TAB_FG_COLOR(use_equip),  COLOUR_DARK);
 	}
 	if (allow_inven) {
-		Term_add_tab('/', "Inventory", TAB_FG_COLOR(use_inven),  COLOUR_DARK);
+		Term_add_tab('\\', "Inventory", TAB_FG_COLOR(use_inven),  COLOUR_DARK);
 	}
 	if (allow_quiver) {
 		Term_add_tab('|', " Quiver ", TAB_FG_COLOR(use_quiver), COLOUR_DARK);
