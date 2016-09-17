@@ -435,11 +435,15 @@ void show_help(const char *name)
 	struct term_hints hints = {
 		.width    = HELP_TERM_WIDTH,
 		.height   = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose  = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, L"Help reader", COLOUR_WHITE, COLOUR_DARK);
+
 	show_file(name);
+
 	Term_pop();
 }
 
