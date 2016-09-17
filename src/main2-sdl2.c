@@ -4499,11 +4499,11 @@ static void position_subwindow_exact(struct subwindow *subwindow,
 	assert(prev_top->loaded);
 	assert(prev_top->window == subwindow->window);
 
-	subwindow->full_rect.x = prev_top->full_rect.x +
-		hints->x * prev_top->cell_width;
+	subwindow->full_rect.x = prev_top->full_rect.x + prev_top->inner_rect.x +
+		hints->x * prev_top->cell_width - subwindow->inner_rect.x;
 
-	subwindow->full_rect.y = prev_top->full_rect.y +
-		hints->y * prev_top->cell_height;
+	subwindow->full_rect.y = prev_top->full_rect.y + prev_top->inner_rect.y +
+		hints->y * prev_top->cell_height - subwindow->inner_rect.y;
 }
 
 static void position_subwindow_center(struct subwindow *subwindow,
