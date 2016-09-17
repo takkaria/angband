@@ -2120,7 +2120,7 @@ void do_cmd_messages(void)
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
-	Term_add_tab(0, L"Messages", COLOUR_WHITE, COLOUR_DARK);
+	Term_add_tab(0, L"Messages reader", COLOUR_WHITE, COLOUR_DARK);
 
 	const int last_msg_pos = term_height - 3;
 	const struct loc help_loc = {0, term_height - 1};
