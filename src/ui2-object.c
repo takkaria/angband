@@ -1327,20 +1327,18 @@ static void add_item_tabs(const struct object_menu_data *data)
 	((boolean) ? COLOUR_WHITE : COLOUR_L_DARK)
 
 	if (allow_equip) {
-		Term_add_tab(USE_EQUIP,
+		Term_add_tab(use_equip ? 0 : '/',
 				L"Equipment", TAB_FG_COLOR(use_equip),  COLOUR_DARK);
 	}
 	if (allow_inven) {
-		Term_add_tab(USE_INVEN,
+		Term_add_tab(use_inven ?  0 : '/',
 				L"Inventory", TAB_FG_COLOR(use_inven),  COLOUR_DARK);
 	}
 	if (allow_quiver) {
-		Term_add_tab(USE_QUIVER,
-				L" Quiver ",  TAB_FG_COLOR(use_quiver), COLOUR_DARK);
+		Term_add_tab('|', L" Quiver ", TAB_FG_COLOR(use_quiver), COLOUR_DARK);
 	}
 	if (allow_floor) {
-		Term_add_tab(USE_FLOOR,
-				L"  Floor  ", TAB_FG_COLOR(use_floor),  COLOUR_DARK);
+		Term_add_tab('-', L"  Floor  ", TAB_FG_COLOR(use_floor), COLOUR_DARK);
 	}
 
 #undef TAB_FG_COLOR

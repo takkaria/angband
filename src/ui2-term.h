@@ -136,9 +136,11 @@ typedef void (*delay_hook)(void *user, int msecs);
 /* make_visible_hook should make a term visible or invisible
  * (if possible), depending on the argument */
 typedef void (*make_visible_hook)(void *user, bool visible);
-/* add_tab_hook should add a tab to the term and handle mouse events on it */
+/* add_tab_hook should add a tab to the term and handle mouse clicks on it;
+ * if the tab is clicked, Term_keypress() should be called, as if the user
+ * pressed key "code" */
 typedef void (*add_tab_hook)(void *user,
-		int index, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
+		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 
 struct term_callbacks {
 	make_visible_hook make_visible;
@@ -285,8 +287,8 @@ bool Term_append_events(const ui_event *events, size_t num_events);
 void Term_visible(bool visible);
 
 /* Add a tab to the term on top of the stack;
- * the tab should have positive index, if its supposed to be clickable */
-void Term_add_tab(int index,
+ * clicking on this tab is equivalent to pressing key "code" */
+void Term_add_tab(keycode_t code,
 		const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 
 /* pause for some milliseconds */

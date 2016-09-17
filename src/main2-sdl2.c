@@ -313,7 +313,7 @@ struct tab {
 	SDL_Texture *texture;
 	SDL_Rect rect;
 
-	int index;
+	keycode_t code;
 };
 
 struct tab_bank {
@@ -700,6 +700,7 @@ static void resize_rect(SDL_Rect *rect,
 static bool is_point_in_rect(int x, int y, const SDL_Rect *rect);
 static bool is_close_to(int a, int b, unsigned range);
 static bool is_over_status_bar(const struct status_bar *status_bar, int x, int y);
+static bool get_tab_by_xy(const struct window *window, int x, int y, keycode_t *code);
 static void make_tab_bank(struct tab_bank *bank);
 static void make_button_bank(struct button_bank *bank);
 static void free_button_bank(struct button_bank *button_bank);
@@ -725,7 +726,7 @@ static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
 static void term_pop_new(void *user);
 static void term_add_tab(void *user,
-		int index, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
+		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 
 /* Defaults for term creations */
 
@@ -3334,10 +3335,27 @@ static byte translate_key_mods(Uint16 mods)
 	return angband_mods;
 }
 
+static bool handle_tabclick(const struct window *window,
+		const SDL_MouseButtonEvent *mouse)
+{
+	keycode_t code = 0;
+
+	if (get_tab_by_xy(window, mouse->x, mouse->y, &code)) {
+		Term_keypress(code, 0);
+		return true;
+	} else {
+		return false;
+	}
+}
+
 static bool handle_mousebuttondown(const SDL_MouseButtonEvent *mouse)
 {
 	struct window *window = get_window_by_id(mouse->windowID);
 	assert(window != NULL);
+
+	if (handle_tabclick(window, mouse)) {
+		return true;
+	}
 
 	struct subwindow *subwindow = get_subwindow_by_xy(window, mouse->x, mouse->y);
 	if (subwindow == NULL) {
@@ -3741,7 +3759,7 @@ static void term_big_map_cursor(void *user, int col, int row)
 }
 
 static void term_add_tab(void *user,
-		int index, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr)
+		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr)
 {
 	struct subwindow *subwindow = user;
 
@@ -3779,7 +3797,7 @@ static void term_add_tab(void *user,
 		tab->rect.y = subwindow->full_rect.y - tab->rect.h / 2;
 	}
 
-	tab->index = index;
+	tab->code = code;
 
 	subwindow->tab_bank.number++;
 }
@@ -4670,6 +4688,27 @@ static struct subwindow *get_subwindow_by_index(const struct window *window,
 	}
 	
 	return NULL;
+}
+
+static bool get_tab_by_xy(const struct window *window,
+		int x, int y, keycode_t *code)
+{
+	if (window->temporary.number > 0) {
+		/* check only temporary subwindow that is on top */
+		struct subwindow *subwindow =
+			window->temporary.subwindows[window->temporary.number - 1];
+
+		for (size_t i = 0; i < subwindow->tab_bank.number; i++) {
+			const struct tab *tab = &subwindow->tab_bank.tabs[i];
+
+			if (is_point_in_rect(x, y, &tab->rect)) {
+				*code = tab->code;
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 static struct subwindow *get_subwindow_by_xy(const struct window *window,
