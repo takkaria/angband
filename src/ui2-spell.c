@@ -62,7 +62,7 @@ struct spell_menu_data {
 struct book_menu_element {
 	char desc[ANGBAND_TERM_STANDARD_WIDTH];
 	size_t desc_len;
-
+	uint32_t attr;
 	const struct object *book;
 };
 
@@ -380,6 +380,7 @@ static size_t get_spell_books(struct book_menu_element *elems, int n_elems,
 				if (obj->tval == player->class->magic.books[book].tval
 						&& obj->sval == player->class->magic.books[book].sval)
 				{
+					elems[book].attr = obj->kind->base->attr;
 					elems[book].book = obj;
 					elems[book].desc_len =
 						object_desc(elems[book].desc, sizeof(elems[book].desc),
@@ -410,7 +411,7 @@ void spell_book_display(struct menu *menu,
 	struct book_menu_data *data = menu_priv(menu);
 
 	if (data->books[index].book != NULL) {
-		c_prt(data->books[index].book->kind->base->attr, data->books[index].desc, loc);
+		c_prt(data->books[index].attr, data->books[index].desc, loc);
 	}
 }
 
