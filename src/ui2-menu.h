@@ -177,7 +177,7 @@ struct menu {
 	const char *selections; 
 
 	/* Menu selections corresponding to inscriptions */
-	char *inscriptions; 
+	const char *inscriptions; 
 
 	/* String of characters that when pressed, menu handler should be called */
 	/* Mustn't overlap with selections or some items may be unselectable */
