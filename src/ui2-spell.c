@@ -400,13 +400,6 @@ char spell_book_tag(struct menu *menu, int index)
 	return I2A(index);
 }
 
-bool spell_book_valid(struct menu *menu, int index)
-{
-	struct book_menu_data *data = menu_priv(menu);
-
-	return data->books[index].book != NULL;
-}
-
 void spell_book_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
