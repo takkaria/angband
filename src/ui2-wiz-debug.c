@@ -665,7 +665,7 @@ static bool wiz_create_item_action(struct menu *menu,
 	ui_event ret = menu_select(new_menu);
 
 	Term_pop();
-	menu_free(menu);
+	menu_free(new_menu);
 
 	return ret.type == EVT_ESCAPE;
 }
