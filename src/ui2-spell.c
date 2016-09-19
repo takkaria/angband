@@ -301,7 +301,7 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 	}
 
 	struct term_hints hints = {
-		.width = max_len + 3,
+		.width = MAX(wcslen(SPELL_MENU_FIELDS), max_len + 3),
 		.height = data->n_spells + 1,
 		.tabs = true,
 		.position = TERM_POSITION_TOP_LEFT,
