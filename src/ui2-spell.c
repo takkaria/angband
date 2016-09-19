@@ -272,6 +272,8 @@ static bool spell_menu_init(struct menu *menu, struct spell_menu_data *data,
 
 		return true;
 	} else {
+		free_spell_menu_elements(elems);
+
 		return false;
 	}
 }
