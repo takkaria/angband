@@ -342,7 +342,7 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 	}
 
 	struct term_hints hints = {
-		.width = max_len + 3,
+		.width = MAX(sizeof(SPELL_MENU_FIELDS) - 1, max_len + 3),
 		.height = data->n_spells + 1,
 		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
