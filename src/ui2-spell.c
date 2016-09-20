@@ -144,6 +144,7 @@ static void make_spell_menu_element(int spell_index, struct spell_menu_element *
 	const struct class_spell *spell = spell_by_index(spell_index);
 
 	if (spell->slevel >= 99) {
+		elem->sidx = spell_index;
 		elem->attr = COLOUR_L_DARK;
 		elem->desc_len = my_strcpy(elem->desc, "(illegible)", sizeof(elem->desc));
 		return;
