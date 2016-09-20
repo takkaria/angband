@@ -252,7 +252,7 @@ static bool spell_menu_init(struct menu *menu, struct spell_menu_data *data,
 		get_spells(book, elems, MAX_SPELL_MENU_ELEMENTS, is_valid_spell);
 
 	if (n_elems > 0) {
-		object_desc(data->book_name, sizeof(data->book_name), book, ODESC_TERSE);
+		my_strcpy(data->book_name, book->kind->name, sizeof(data->book_name));
 
 		/* Copy across private data */
 		data->spells   = elems;
