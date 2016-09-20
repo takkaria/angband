@@ -329,7 +329,7 @@ static void store_display_frame(struct store_context *context)
 		loc.x = 1;
 		loc.y = context->term_loc[LOC_OWNER].y;
 		/* Put the owner name */
-		put_str("Your home", loc);
+		put_str(op_ptr->full_name, loc);
 
 		loc.x = 1;
 		loc.y = context->term_loc[LOC_HEADER].y;
