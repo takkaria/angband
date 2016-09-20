@@ -1159,10 +1159,12 @@ void textui_store_knowledge(int store)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, stores[store].name, COLOUR_WHITE, COLOUR_DARK);
 
 	store_menu_init(&context, &stores[store], true);
 	menu_select(&context.menu);
@@ -1227,10 +1229,12 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, store->name, COLOUR_WHITE, COLOUR_DARK);
 
 	/* Get a array version of the store stock, register handler for changes */
 	struct store_context context;
