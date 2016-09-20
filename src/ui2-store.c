@@ -55,8 +55,7 @@
  *
  * The shopkeeper's name must come first, then the character's name.
  */
-static const char *comment_welcome[] =
-{
+static const char *comment_welcome[] = {
 	"",
 	"%s nods to you.",
 	"%s says hello.",
@@ -69,8 +68,7 @@ static const char *comment_welcome[] =
 	"%s: \"I and my family are entirely at your service, %s.\""
 };
 
-static const char *comment_hint[] =
-{
+static const char *comment_hint[] = {
 	/*"%s tells you soberly: \"%s\".",
 	"(%s) There's a saying round here, \"%s\".",
 	"%s offers to tell you a secret next time you're about.",*/
