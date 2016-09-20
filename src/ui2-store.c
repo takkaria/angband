@@ -1258,13 +1258,4 @@ void leave_store(game_event_type type, game_event_data *data, void *user)
 
 	/* Switch back to the normal game view. */
 	event_signal(EVENT_ENTER_WORLD);
-
-	/* Update the visuals */
-	player->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
-
-	/* Redraw entire screen */
-	player->upkeep->redraw |= (PR_BASIC | PR_EXTRA);
-
-	/* Redraw whole map */
-	player->upkeep->redraw |= (PR_MAP);
 }
