@@ -314,6 +314,12 @@ static void spell_menu_term_pop(void)
 	Term_pop();
 }
 
+static void spell_menu_layout(struct menu *menu)
+{
+	region reg = {0, 1, 0, 0};
+	menu_layout(menu, reg);
+}
+
 /**
  * Run the spell menu to select a spell.
  */
@@ -322,9 +328,7 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 	struct spell_menu_data *data = menu_priv(menu);
 
 	spell_menu_term_push(data);
-
-	region reg = {0, 1, 0, 0};
-	menu_layout(menu, reg);
+	spell_menu_layout(menu);
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(buf, sizeof(buf), "%s which %s? ('?' to read description)", verb, noun);
@@ -347,9 +351,7 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 	struct spell_menu_data *data = menu_priv(menu);
 
 	spell_menu_term_push(data);
-
-	region reg = {0, 1, 0, 0};
-	menu_layout(menu, reg);
+	spell_menu_layout(menu);
 
 	show_prompt(format("Browsing %ss. ('?' to read description)", noun), false);
 
