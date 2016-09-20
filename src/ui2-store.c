@@ -305,11 +305,7 @@ static void store_display_entry(struct menu *menu,
 		}
 
 		/* Actually draw the price */
-		if (tval_can_have_charges(obj) && obj->number > 1) {
-			strnfmt(buf, sizeof(buf), "%9d avg", price);
-		} else {
-			strnfmt(buf, sizeof(buf), "%9d    ", price);
-		}
+		strnfmt(buf, sizeof(buf), "%9d    ", price);
 
 		loc.x = context->term_loc[LOC_PRICE].x;
 		c_put_str(color, buf, loc);
