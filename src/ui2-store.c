@@ -190,7 +190,7 @@ static void prt_welcome(const struct owner *proprietor)
  *  line 1: empty
  *  line 2: table headers
  *
- *  line 4: Start of items
+ *  line 3: Start of items
  *
  * If help is turned off, then the rest of the display goes as:
  *
