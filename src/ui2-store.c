@@ -93,7 +93,7 @@ enum {
 
 static const region store_menu_region = {
 	.x =  1,
-	.y =  4,
+	.y =  3,
 	.w = -1,
 	.h = -2
 };
@@ -186,10 +186,9 @@ static void prt_welcome(const struct owner *proprietor)
  * This function sets up screen locations based on the current term size.
  *
  * Current screen layout:
- *  line 0: reserved for messages
- *  line 1: shopkeeper and their purse / item buying price
- *  line 2: empty
- *  line 3: table headers
+ *  line 0: shopkeeper and their purse / item buying price
+ *  line 1: empty
+ *  line 2: table headers
  *
  *  line 4: Start of items
  *
@@ -236,8 +235,8 @@ static void store_display_recalc(struct store_context *context)
 	}
 
 	/* Then Y */
-	context->scr_places_y[LOC_OWNER]  = 1;
-	context->scr_places_y[LOC_HEADER] = 3;
+	context->scr_places_y[LOC_OWNER]  = 0;
+	context->scr_places_y[LOC_HEADER] = 2;
 
 	/* If we are displaying help, make the height smaller */
 	if (context->flags & STORE_SHOW_HELP) {
@@ -350,7 +349,6 @@ static void store_display_frame(struct store_context *context)
 	} else {
 		/* Normal stores */
 		char buf[ANGBAND_TERM_STANDARD_WIDTH];
-		const char *store_name = store->name;
 		const char *owner_name = proprietor->name;
 		struct loc loc;
 
@@ -360,8 +358,7 @@ static void store_display_frame(struct store_context *context)
 		put_str(owner_name, loc);
 
 		/* Show the max price in the store (above prices) */
-		size_t len = strnfmt(buf, sizeof(buf), "%s (%d)", store_name,
-				proprietor->max_cost);
+		size_t len = strnfmt(buf, sizeof(buf), "%d", proprietor->max_cost);
 
 		loc.x = context->scr_places_x[LOC_OWNER] - len;
 		loc.y = context->scr_places_y[LOC_OWNER];
