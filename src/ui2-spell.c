@@ -404,6 +404,7 @@ void spell_book_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
 	(void) width;
+	(void) cursor;
 
 	struct book_menu_data *data = menu_priv(menu);
 
