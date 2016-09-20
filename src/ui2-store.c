@@ -480,9 +480,6 @@ static bool store_sell(struct store_context *context)
 	struct store *store = context->store;
 
 	struct object *obj;
-	struct object object_type_body = OBJECT_NULL;
-	struct object *temp_obj = &object_type_body;
-
 	item_tester tester = NULL;
 
 	const char *reject = "You have nothing that I want. ";
@@ -521,6 +518,9 @@ static bool store_sell(struct store_context *context)
 	if (amt <= 0) {
 		return false;
 	}
+
+	struct object object_type_body = OBJECT_NULL;
+	struct object *temp_obj = &object_type_body;
 
 	/* Get a copy of the object representing the number being sold */
 	object_copy_amt(temp_obj, obj, amt);
