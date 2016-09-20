@@ -147,8 +147,8 @@ static void prt_welcome(const struct owner *proprietor)
 	}
 
 	if (one_in_(3)) {
-		msg(comment_hint[ randint0(N_ELEMENTS(comment_hint)) ],
-				random_hint());
+		int index = randint0(N_ELEMENTS(comment_hint));
+		msg(comment_hint[index], random_hint());
 	} else if (player->lev > 5) {
 		char short_name[20] = {0};
 		my_strcpy(short_name, proprietor->name, sizeof(short_name));
