@@ -76,13 +76,12 @@ static const char *comment_hint[] = {
 };
 
 /**
- * Easy names for the elements of the 'scr_places' arrays.
+ * Easy names for the elements of the term_loc array.
  */
 enum {
 	LOC_PRICE = 0,
 	LOC_OWNER,
 	LOC_HEADER,
-	LOC_MORE,
 	LOC_HELP_CLEAR,
 	LOC_HELP_PROMPT,
 	LOC_AU,
@@ -116,8 +115,7 @@ struct store_context {
 	struct text_out_info text_out;
 
 	/* Places for the various things displayed onscreen */
-	unsigned int scr_places_x[LOC_MAX];
-	unsigned int scr_places_y[LOC_MAX];
+	struct loc term_loc[LOC_MAX];
 };
 
 /* Return a random hint from the global hints list */
@@ -194,15 +192,14 @@ static void prt_welcome(const struct owner *proprietor)
  *
  * If help is turned off, then the rest of the display goes as:
  *
- *  line (height - 4): end of items
- *  line (height - 3): "more" prompt
+ *  line (height - 3): end of items
  *  line (height - 2): empty
  *  line (height - 1): Help prompt and remaining gold
  *
  * If help is turned on, then the rest of the display goes as:
  *
- *  line (height - 7): end of items
- *  line (height - 6): "more" prompt
+ *  line (height - 6): end of items
+ *  line (height - 5): empty
  *  line (height - 4): gold remaining
  *  line (height - 3): command help 
  */
@@ -223,39 +220,40 @@ static void store_display_recalc(struct store_context *context)
 	context->text_out.pad    = 0;
 	context->text_out.wrap   = term_width - 1;
 
+	memset(context->term_loc, 0, sizeof(context->term_loc));
+
 	/* X coords first */
-	context->scr_places_x[LOC_AU]     = term_width - 26;
-	context->scr_places_x[LOC_OWNER]  = term_width - 1;
-	context->scr_places_x[LOC_WEIGHT] = term_width - 9;
-	context->scr_places_x[LOC_PRICE]  = term_width - 10;
+	context->term_loc[LOC_AU].x     = term_width - 26;
+	context->term_loc[LOC_OWNER].x  = term_width - 1;
+	context->term_loc[LOC_WEIGHT].x = term_width - 9;
+	context->term_loc[LOC_PRICE].x  = term_width - 10;
 
 	if (store->sidx != STORE_HOME) {
 		/* Add space for for prices */
-		context->scr_places_x[LOC_WEIGHT] -= 10;
+		context->term_loc[LOC_WEIGHT].x -= 10;
 	}
 
 	/* Then Y */
-	context->scr_places_y[LOC_OWNER]  = 0;
-	context->scr_places_y[LOC_HEADER] = 2;
+	context->term_loc[LOC_OWNER].y = 0;
+	context->term_loc[LOC_HEADER].y = 2;
 
 	/* If we are displaying help, make the height smaller */
 	if (context->flags & STORE_SHOW_HELP) {
 		term_height -= context->inspect_only? 2 : 3;
 	}
 
-	context->scr_places_y[LOC_MORE] = term_height - 3;
-	context->scr_places_y[LOC_AU]   = term_height - 1;
+	context->term_loc[LOC_AU].y = term_height - 1;
 
 	region reg = store_menu_region;
 
 	/* If we're displaying the help, then put it with a line of padding */
 	if (context->flags & STORE_SHOW_HELP) {
-		context->scr_places_y[LOC_HELP_CLEAR]  = term_height - 1;
-		context->scr_places_y[LOC_HELP_PROMPT] = term_height;
+		context->term_loc[LOC_HELP_CLEAR].y  = term_height - 1;
+		context->term_loc[LOC_HELP_PROMPT].y = term_height;
 		reg.h = -5;
 	} else {
-		context->scr_places_y[LOC_HELP_CLEAR]  = term_height - 2;
-		context->scr_places_y[LOC_HELP_PROMPT] = term_height - 1;
+		context->term_loc[LOC_HELP_CLEAR].y  = term_height - 2;
+		context->term_loc[LOC_HELP_PROMPT].y = term_height - 1;
 		reg.h = -2;
 	}
 
@@ -293,7 +291,7 @@ static void store_display_entry(struct menu *menu,
 
 	uint32_t color = menu_row_style(true, cursor);
 
-	loc.x = context->scr_places_x[LOC_WEIGHT];
+	loc.x = context->term_loc[LOC_WEIGHT].x;
 	c_put_str(color, buf, loc);
 
 	/* Describe an object (fully) in a store */
@@ -313,7 +311,7 @@ static void store_display_entry(struct menu *menu,
 			strnfmt(buf, sizeof(buf), "%9d    ", price);
 		}
 
-		loc.x = context->scr_places_x[LOC_PRICE];
+		loc.x = context->term_loc[LOC_PRICE].x;
 		c_put_str(color, buf, loc);
 	}
 }
@@ -333,17 +331,17 @@ static void store_display_frame(struct store_context *context)
 		struct loc loc;
 
 		loc.x = 1;
-		loc.y = context->scr_places_y[LOC_OWNER];
+		loc.y = context->term_loc[LOC_OWNER].y;
 		/* Put the owner name */
 		put_str("Your home", loc);
 
 		loc.x = 1;
-		loc.y = context->scr_places_y[LOC_HEADER];
+		loc.y = context->term_loc[LOC_HEADER].y;
 		/* Label the object descriptions */
 		put_str("Home Inventory", loc);
 
-		loc.x = context->scr_places_x[LOC_WEIGHT] + 2;
-		loc.y = context->scr_places_y[LOC_HEADER];
+		loc.x = context->term_loc[LOC_WEIGHT].x + 2;
+		loc.y = context->term_loc[LOC_HEADER].y;
 		/* Show weight header */
 		put_str("Weight", loc);
 	} else {
@@ -353,29 +351,29 @@ static void store_display_frame(struct store_context *context)
 		struct loc loc;
 
 		loc.x = 1;
-		loc.y = context->scr_places_y[LOC_OWNER];
+		loc.y = context->term_loc[LOC_OWNER].y;
 		/* Put the owner name */
 		put_str(owner_name, loc);
 
 		/* Show the max price in the store (above prices) */
 		size_t len = strnfmt(buf, sizeof(buf), "%d", proprietor->max_cost);
 
-		loc.x = context->scr_places_x[LOC_OWNER] - len;
-		loc.y = context->scr_places_y[LOC_OWNER];
+		loc.x = context->term_loc[LOC_OWNER].x - len;
+		loc.y = context->term_loc[LOC_OWNER].y;
 		prt(buf, loc);
 
 		loc.x = 1;
-		loc.y = context->scr_places_y[LOC_HEADER];
+		loc.y = context->term_loc[LOC_HEADER].y;
 		/* Label the object descriptions */
 		put_str("Store Inventory", loc);
 
-		loc.x = context->scr_places_x[LOC_WEIGHT] + 2;
-		loc.y = context->scr_places_y[LOC_HEADER];
+		loc.x = context->term_loc[LOC_WEIGHT].x + 2;
+		loc.y = context->term_loc[LOC_HEADER].y;
 		/* Showing weight label */
 		put_str("Weight", loc);
 
-		loc.x = context->scr_places_x[LOC_PRICE] + 4;
-		loc.y = context->scr_places_y[LOC_HEADER];
+		loc.x = context->term_loc[LOC_PRICE].x + 4;
+		loc.y = context->term_loc[LOC_HEADER].y;
 		/* Label the asking price (in stores) */
 		put_str("Price", loc);
 	}
@@ -390,8 +388,8 @@ static void store_display_help(struct store_context *context)
 	struct text_out_info info = context->text_out;
 
 	/* Prepare help hooks */
-	clear_from(context->scr_places_y[LOC_HELP_CLEAR]);
-	Term_cursor_to_xy(info.indent, context->scr_places_y[LOC_HELP_PROMPT]);
+	clear_from(context->term_loc[LOC_HELP_CLEAR].y);
+	Term_cursor_to_xy(info.indent, context->term_loc[LOC_HELP_PROMPT].y);
 
 	if (OPT(rogue_like_commands)) {
 		text_out_c(info, COLOUR_L_GREEN, "x");
@@ -445,7 +443,7 @@ static void store_redraw(struct store_context *context)
 		} else {
 			struct loc loc = {
 				.x = 1,
-				.y = context->scr_places_y[LOC_HELP_PROMPT]
+				.y = context->term_loc[LOC_HELP_PROMPT].y
 			};
 			prt("Press '?' for help.", loc);
 		}
@@ -454,11 +452,8 @@ static void store_redraw(struct store_context *context)
 	}
 
 	if (context->flags & STORE_GOLD_CHANGE) {
-		struct loc loc = {
-			.x = context->scr_places_x[LOC_AU],
-			.y = context->scr_places_y[LOC_AU]
-		};
-		prt(format("Gold Remaining: %9d", (int) player->au), loc);
+		prt(format("Gold Remaining: %9d", (int) player->au),
+				context->term_loc[LOC_AU]);
 		context->flags &= ~STORE_GOLD_CHANGE;
 	}
 }
@@ -1009,7 +1004,7 @@ static bool store_menu_handle(struct menu *menu,
 				}
 
 				action = true;
-			} else if (event->mouse.y == index + context->scr_places_y[LOC_HEADER] + 1) {
+			} else if (event->mouse.y == index + context->term_loc[LOC_HEADER].y + 1) {
 				/* if press is on a list item, so store item context */
 				context_menu_store_item(context, index,
 						loc(event->mouse.x, event->mouse.y));
