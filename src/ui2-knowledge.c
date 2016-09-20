@@ -1943,7 +1943,9 @@ static void do_cmd_knowledge_store(const char *name, int row)
 {
 	(void) name;
 
+	Term_visible(false);
 	textui_store_knowledge(row - STORE_KNOWLEDGE_ROW);
+	Term_visible(true);
 }
 
 static void do_cmd_knowledge_scores(const char *name, int row)
