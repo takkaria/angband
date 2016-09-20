@@ -289,13 +289,8 @@ static void spell_menu_destroy(struct menu *menu)
 	free_spell_menu_elements(data->spells);
 }
 
-/**
- * Run the spell menu to select a spell.
- */
-static int spell_menu_select(struct menu *menu, const char *noun, const char *verb)
+static void spell_menu_term_push(const struct spell_menu_data *data)
 {
-	struct spell_menu_data *data = menu_priv(menu);
-
 	size_t max_len = 0;
 	for (size_t i = 0; i < data->n_spells; i++) {
 		if (data->spells[i].desc_len > max_len) {
@@ -312,9 +307,23 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 	};
 	Term_push_new(&hints);
 	Term_add_tab(0, data->book_name, COLOUR_WHITE, COLOUR_DARK);
+}
+
+static void spell_menu_term_pop(void)
+{
+	Term_pop();
+}
+
+/**
+ * Run the spell menu to select a spell.
+ */
+static int spell_menu_select(struct menu *menu, const char *noun, const char *verb)
+{
+	struct spell_menu_data *data = menu_priv(menu);
+
+	spell_menu_term_push(data);
 
 	region reg = {0, 1, 0, 0};
-
 	menu_layout(menu, reg);
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
@@ -325,7 +334,7 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 	menu_select(menu);
 
 	clear_prompt();
-	Term_pop();
+	spell_menu_term_pop();
 
 	return data->selected;
 }
@@ -337,22 +346,7 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 {
 	struct spell_menu_data *data = menu_priv(menu);
 
-	size_t max_len = 0;
-	for (size_t i = 0; i < data->n_spells; i++) {
-		if (data->spells[i].desc_len > max_len) {
-			max_len = data->spells[i].desc_len;
-		}
-	}
-
-	struct term_hints hints = {
-		.width = MAX(wcslen(SPELL_MENU_FIELDS), max_len + 3),
-		.height = data->n_spells + 1,
-		.tabs = true,
-		.purpose = TERM_PURPOSE_MENU,
-		.position = TERM_POSITION_TOP_LEFT
-	};
-	Term_push_new(&hints);
-	Term_add_tab(0, data->book_name, COLOUR_WHITE, COLOUR_DARK);
+	spell_menu_term_push(data);
 
 	region reg = {0, 1, 0, 0};
 	menu_layout(menu, reg);
@@ -363,7 +357,7 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 	menu_select(menu);
 
 	clear_prompt();
-	Term_pop();
+	spell_menu_term_pop();
 }
 
 static size_t get_spell_books(struct book_menu_element *elems, int n_elems,
