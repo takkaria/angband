@@ -335,7 +335,7 @@ static void store_display_frame(struct store_context *context)
 		loc.x = 1;
 		loc.y = context->scr_places_y[LOC_OWNER];
 		/* Put the owner name */
-		put_str("Your Home", loc);
+		put_str("Your home", loc);
 
 		loc.x = 1;
 		loc.y = context->scr_places_y[LOC_HEADER];
