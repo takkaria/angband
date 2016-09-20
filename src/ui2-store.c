@@ -240,7 +240,7 @@ static void store_display_recalc(struct store_context *context)
 
 	/* If we are displaying help, make the height smaller */
 	if (context->flags & STORE_SHOW_HELP) {
-		term_height -= 3;
+		term_height -= context->inspect_only? 2 : 3;
 	}
 
 	context->scr_places_y[LOC_MORE] = term_height - 3;
