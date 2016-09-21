@@ -727,24 +727,23 @@ static void store_examine(struct store_context *context, int item)
 
 static void store_menu_set_selections(struct menu *menu, bool knowledge_menu)
 {
+	/* Note that command_keys and selection can't intersect! */
 	if (knowledge_menu) {
 		if (OPT(rogue_like_commands)) {
-			/* These two can't intersect! */
 			menu->command_keys = "?|Ieilx";
 			menu->selections = "abcdfghjkmnopqrstuvwyz134567";
 		} else {
-			/* These two can't intersect! */
 			menu->command_keys = "?|Ieil";
 			menu->selections = "abcdfghjkmnopqrstuvwxyz13456";
 		}
 	} else {
 		if (OPT(rogue_like_commands)) {
-			/* These two can't intersect! */
-			menu->command_keys = "\x04\x05\x10?={|}~CEIPTdegilpswx"; /* \x10 = ^p , \x04 = ^D, \x05 = ^E */
+			/* \x04 = ^D, \x05 = ^E, \x10 = ^p */
+			menu->command_keys = "\x04\x05\x10?={|}~CEIPTdegilpswx";
 			menu->selections = "abcfmnoqrtuvyz13456790ABDFGH";
 		} else {
-			/* These two can't intersect! */
-			menu->command_keys = "\x05\x010?={|}~CEIbdegiklpstwx"; /* \x05 = ^E, \x10 = ^p */
+			/* \x05 = ^E, \x10 = ^p */
+			menu->command_keys = "\x05\x010?={|}~CEIbdegiklpstwx";
 			menu->selections = "acfhjmnoqruvyz13456790ABDFGH";
 		}
 	}
