@@ -179,7 +179,7 @@ static void prt_welcome(const struct owner *proprietor)
  *  line (height - 2): empty
  *  line (height - 1): Help prompt and remaining gold
  */
-static void store_display_recalc(struct store_context *context)
+static void store_display_calc(struct store_context *context)
 {
 	struct menu *menu = &context->menu;
 	struct store *store = context->store;
@@ -936,7 +936,6 @@ static bool store_menu_handle(struct menu *menu,
 				notice_stuff(player);
 				handle_stuff(player);
 
-				store_display_recalc(context);
 				store_menu_recalc(menu);
 				store_redraw(context);
 
@@ -1034,7 +1033,7 @@ static void store_menu_init(struct store_context *context,
 	menu_setpriv(menu, 0, context);
 
 	store_menu_set_selections(menu, inspect_only);
-	store_display_recalc(context);
+	store_display_calc(context);
 	store_menu_recalc(menu);
 	store_redraw(context);
 }
@@ -1086,7 +1085,6 @@ static void refresh_stock(game_event_type type, game_event_data *data, void *use
 
 	store_stock_list(context->store, context->list, z_info->store_inven_max);
 
-	store_display_recalc(context);
 	store_menu_recalc(menu);
 	store_redraw(context);
 }
