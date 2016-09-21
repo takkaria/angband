@@ -671,12 +671,9 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 		int price = price_item(store, &dummy, false, dummy.number);
 
 		/* Confirm purchase */
-		bool response =
-			store_get_check(format("Buy %s for %d? [ESC, any other key to accept]",
-						o_name, price));
-
-		/* Negative response, so give up */
-		if (response) {
+		if (store_get_check(format("Buy %s for %d? [ESC, any other key to accept]",
+						o_name, price)))
+		{
 			cmdq_push(CMD_BUY);
 			cmd_set_arg_item(cmdq_peek(), "item", obj);
 			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
