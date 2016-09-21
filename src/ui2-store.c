@@ -649,19 +649,18 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 	}
 
 	/* Get desired object */
-	struct object *dummy = object_new();
-	object_copy_amt(dummy, obj, amt);
+	struct object dummy;
+	object_copy_amt(&dummy, obj, amt);
 
 	/* Ensure we have room */
-	if (!inven_carry_okay(dummy)) {
+	if (!inven_carry_okay(&dummy)) {
 		msg("You cannot carry that many items.");
-		object_delete(&dummy);
 		return false;
 	}
 
 	/* Describe the object (fully) */
 	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
-	object_desc(o_name, sizeof(o_name), dummy,
+	object_desc(o_name, sizeof(o_name), &dummy,
 			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
 	bool purchased = false;
@@ -669,7 +668,7 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 	/* Attempt to buy it */
 	if (store->sidx != STORE_HOME) {
 		/* Extract the price for the entire stack */
-		int price = price_item(store, dummy, false, dummy->number);
+		int price = price_item(store, &dummy, false, dummy.number);
 
 		/* Confirm purchase */
 		bool response =
@@ -692,8 +691,6 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 
 	/* Update the display */
 	context->flags |= STORE_GOLD_CHANGE;
-
-	object_delete(&dummy);
 
 	return purchased;
 }
