@@ -90,19 +90,11 @@ enum store_term_loc {
 	LOC_MAX
 };
 
-
-/* State flags */
-#define STORE_GOLD_CHANGE  (1 << 0)
-#define STORE_FRAME_CHANGE (1 << 1)
-
-/* Compound flag for the initial display of a store */
-#define STORE_INIT_CHANGE  (STORE_FRAME_CHANGE | STORE_GOLD_CHANGE)
-
 struct store_context {
 	struct menu menu;     /* Menu instance */
 	struct store *store;  /* Pointer to store */
 	struct object **list; /* List of objects */
-	int flags;            /* Display flags */
+	bool redraw_frame;    /* Redraw store's frame */
 	bool inspect_only;    /* Only allow looking */
 
 	/* Places for the various things displayed onscreen */
@@ -334,6 +326,8 @@ static void store_display_frame(struct store_context *context)
 	}
 
 	prt("Press '?' for help.", context->term_loc[LOC_HELP_PROMPT]);
+
+	store_prt_gold(context, LOC_PLAYER_GOLD, player->au);
 }
 
 /**
@@ -406,20 +400,13 @@ static void store_display_help(struct store_context *context)
 }
 
 /**
- * Decides what parts of the store display to redraw.
+ * Redraw store's "frame" (owner's name, header, gold, etc)
  */
 static void store_redraw(struct store_context *context)
 {
-	if (context->flags & STORE_FRAME_CHANGE) {
+	if (context->redraw_frame) {
 		store_display_frame(context);
-
-		context->flags &= ~STORE_FRAME_CHANGE;
-	}
-
-	if (context->flags & STORE_GOLD_CHANGE) {
-		store_prt_gold(context, LOC_PLAYER_GOLD, player->au);
-
-		context->flags &= ~STORE_GOLD_CHANGE;
+		context->redraw_frame = false;
 	}
 }
 
@@ -526,7 +513,7 @@ static void store_sell(struct store_context *context)
 		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
 	}
 
-	context->flags |= STORE_GOLD_CHANGE;
+	context->redraw_frame = true;
 }
 
 /**
@@ -634,7 +621,7 @@ static void store_purchase(struct store_context *context, int item, bool single)
 	}
 
 	/* Update the display */
-	context->flags |= STORE_GOLD_CHANGE;
+	context->redraw_frame = true;
 }
 
 /**
@@ -941,7 +928,7 @@ static bool store_menu_handle(struct menu *menu,
 			}
 
 			if (action) {
-				context->flags |= STORE_INIT_CHANGE;
+				context->redraw_frame = true;
 
 				/* Let the game handle any core commands (equipping, etc) */
 				cmdq_pop(CMD_STORE);
@@ -1037,7 +1024,7 @@ static void store_menu_init(struct store_context *context,
 	struct menu *menu = &context->menu;
 
 	context->store = store;
-	context->flags = STORE_INIT_CHANGE;
+	context->redraw_frame = true;
 	context->inspect_only = inspect_only;
 	context->list = mem_zalloc(sizeof(*context->list) * z_info->store_inven_max);
 
