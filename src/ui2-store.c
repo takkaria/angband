@@ -461,7 +461,7 @@ static bool store_get_check(const char *prompt)
 /*
  * Sell an object, or drop if it we're in the home.
  */
-static bool store_sell(struct store_context *context)
+static void store_sell(struct store_context *context)
 {
 	int get_mode = USE_EQUIP | USE_INVEN | USE_FLOOR | USE_QUIVER;
 
@@ -485,18 +485,18 @@ static bool store_sell(struct store_context *context)
 
 	player->upkeep->command_wrk = USE_INVEN;
 	if (!get_item(&obj, prompt, reject, CMD_DROP, tester, get_mode)) {
-		return false;
+		return;
 	}
 
 	/* Cannot remove cursed objects */
 	if (object_is_equipped(player->body, obj) && !obj_can_takeoff(obj)) {
 		msg("Hmmm, it seems to be stuck.");
-		return false;
+		return;
 	}
 
 	int amt = get_quantity(NULL, obj->number);
 	if (amt <= 0) {
-		return false;
+		return;
 	}
 
 	struct object object_type_body = OBJECT_NULL;
@@ -512,10 +512,8 @@ static bool store_sell(struct store_context *context)
 			msg("I have not the room in my store to keep it.");
 		}
 
-		return false;
+		return;
 	}
-
-	bool sold = false;
 
 	/* Real store */
 	if (store->sidx != STORE_HOME) {
@@ -539,25 +537,21 @@ static bool store_sell(struct store_context *context)
 			cmdq_push(CMD_SELL);
 			cmd_set_arg_item(cmdq_peek(), "item", obj);
 			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
-			sold = true;
 		}
 	} else {
 		/* Player is at home */
 		cmdq_push(CMD_STASH);
 		cmd_set_arg_item(cmdq_peek(), "item", obj);
 		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
-		sold = true;
 	}
 
 	context->flags |= STORE_GOLD_CHANGE;
-
-	return sold;
 }
 
 /**
  * Buy an object from a store
  */
-static bool store_purchase(struct store_context *context, int item, bool single)
+static void store_purchase(struct store_context *context, int item, bool single)
 {
 	struct store *store = context->store;
 	struct object *obj = context->list[item];
@@ -570,7 +564,7 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 				&& player->au < price_item(store, obj, false, 1))
 		{
 			msg("You do not have enough gold for this item.");
-			return false;
+			return;
 		}
 	} else {
 		if (store->sidx == STORE_HOME) {
@@ -581,7 +575,7 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 			/* Check if the player can afford any at all */
 			if (player->au < price_one) {
 				msg("You do not have enough gold for this item.");
-				return false;
+				return;
 			}
 
 			/* Work out how many the player can afford */
@@ -606,7 +600,7 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 		/* Fail if there is no room */
 		if (amt <= 0 || (!aware && pack_is_full())) {
 			msg("You cannot carry that many items.");
-			return false;
+			return;
 		}
 
 		/* Find the number of this item in the inventory */
@@ -621,7 +615,7 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 
 		amt = get_quantity(buf, amt);
 		if (amt <= 0) {
-			return false;
+			return;
 		}
 	}
 
@@ -631,15 +625,13 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 	/* Ensure we have room */
 	if (!inven_carry_okay(&dummy)) {
 		msg("You cannot carry that many items.");
-		return false;
+		return;
 	}
 
 	/* Describe the object (fully) */
 	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(o_name, sizeof(o_name), &dummy,
 			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
-
-	bool purchased = false;
 
 	/* Attempt to buy it */
 	if (store->sidx != STORE_HOME) {
@@ -653,19 +645,15 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 			cmdq_push(CMD_BUY);
 			cmd_set_arg_item(cmdq_peek(), "item", obj);
 			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
-			purchased = true;
 		}
 	} else {
 		cmdq_push(CMD_RETRIEVE);
 		cmd_set_arg_item(cmdq_peek(), "item", obj);
 		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
-		purchased = true;
 	}
 
 	/* Update the display */
 	context->flags |= STORE_GOLD_CHANGE;
-
-	return purchased;
 }
 
 /**
