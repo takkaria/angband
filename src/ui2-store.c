@@ -336,11 +336,13 @@ static void store_display_help(struct store_context *context)
 {
 	const bool home = (context->store->sidx == STORE_HOME) ? true : false;
 
+	int height = context->inspect_only || home ? 4 : 5;
+
 	struct term_hints hints = {
 		.x = 0,
-		.y = Term_height() - (context->inspect_only ? 4 : 5),
+		.y = Term_height() - height,
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = context->inspect_only ? 4 : 5,
+		.height = height,
 		.position = TERM_POSITION_EXACT,
 		.purpose = TERM_PURPOSE_TEXT
 	};
@@ -363,26 +365,26 @@ static void store_display_help(struct store_context *context)
 		text_out_c(info, COLOUR_L_GREEN, "p");
 		text_out(info, home ? " picks up" : " purchases");
 	}
-	text_out(info, " the selected item. ");
+	text_out(info, " an item. ");
 
 	if (!context->inspect_only) {
-		if (OPT(birth_no_selling)) {
+		if (OPT(birth_no_selling) && !home) {
 			text_out_c(info, COLOUR_L_GREEN, "d");
 			text_out(info,
 					" gives an item to the store in return " /* concat */
 					"for its identification. "               /* concat */
-					"Some wands and staves will also be recharged. ");
+					"Some wands and staves will also be recharged.");
 		} else {
 			text_out_c(info, COLOUR_L_GREEN, "d");
 			text_out(info, home ? " drops" : " sells");
-			text_out(info, " an item from your inventory. ");
+			text_out(info, " an item from your inventory.");
 		}
 	} else {
 		text_out_c(info, COLOUR_L_GREEN, "I");
-		text_out(info, " inspects an item from your inventory.\n");
+		text_out(info, " inspects an item from your inventory.");
 	}
 
-	text_out_c(info, COLOUR_L_GREEN, "ESC");
+	text_out_c(info, COLOUR_L_GREEN, "\nESC");
 	if (!context->inspect_only) {
 		text_out(info, " exits the building.");
 	} else {
