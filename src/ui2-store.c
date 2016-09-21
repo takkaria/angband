@@ -341,7 +341,7 @@ static void store_display_help(struct store_context *context)
 	struct term_hints hints = {
 		.x = 0,
 		.y = Term_height() - height,
-		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.width = Term_width(),
 		.height = height,
 		.position = TERM_POSITION_EXACT,
 		.purpose = TERM_PURPOSE_TEXT
