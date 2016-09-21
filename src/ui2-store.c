@@ -676,6 +676,7 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 
 		/* Negative response, so give up */
 		if (!response) {
+			object_delete(&dummy);
 			return false;
 		}
 
