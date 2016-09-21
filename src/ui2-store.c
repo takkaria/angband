@@ -468,14 +468,11 @@ static bool store_sell(struct store_context *context)
 	struct store *store = context->store;
 	assert(store != NULL);
 
-	struct object *obj;
-	item_tester tester = NULL;
-
 	const char *reject = "You have nothing that I want. ";
 	const char *prompt = OPT(birth_no_selling) ?
 		"Give which item? " : "Sell which item? ";
 
-	clear_prompt();
+	item_tester tester = NULL;
 
 	if (store->sidx == STORE_HOME) {
 		prompt = "Drop which item? ";
@@ -483,6 +480,8 @@ static bool store_sell(struct store_context *context)
 		tester = store_will_buy_tester;
 		get_mode |= SHOW_PRICES;
 	}
+
+	struct object *obj;
 
 	player->upkeep->command_wrk = USE_INVEN;
 	if (!get_item(&obj, prompt, reject, CMD_DROP, tester, get_mode)) {
@@ -516,6 +515,8 @@ static bool store_sell(struct store_context *context)
 		return false;
 	}
 
+	bool sold = false;
+
 	/* Real store */
 	if (store->sidx != STORE_HOME) {
 		/* Get a full description */
@@ -533,24 +534,24 @@ static bool store_sell(struct store_context *context)
 				OPT(birth_no_selling) ? "Give" : "Sell",
 				o_name,
 				OPT(birth_no_selling) ? "" : format(" for %d", price));
-		if (!store_get_check(buf)) {
-			return false;
-		}
 
-		cmdq_push(CMD_SELL);
-		cmd_set_arg_item(cmdq_peek(), "item", obj);
-		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
+		if (store_get_check(buf)) {
+			cmdq_push(CMD_SELL);
+			cmd_set_arg_item(cmdq_peek(), "item", obj);
+			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
+			sold = true;
+		}
 	} else {
 		/* Player is at home */
 		cmdq_push(CMD_STASH);
 		cmd_set_arg_item(cmdq_peek(), "item", obj);
 		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
+		sold = true;
 	}
 
-	/* Update the display */
 	context->flags |= STORE_GOLD_CHANGE;
 
-	return true;
+	return sold;
 }
 
 /**
