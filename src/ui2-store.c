@@ -78,7 +78,7 @@ static const char *comment_hint[] = {
 /**
  * Easy names for the elements of the term_loc array.
  */
-enum {
+enum store_term_loc {
 	LOC_PRICE = 0,
 	LOC_OWNER,
 	LOC_HEADER,
@@ -240,6 +240,22 @@ static void store_display_recalc(struct store_context *context)
 	menu_layout(menu, store_menu_region);
 }
 
+static void store_prt_gold(const struct store_context *context,
+		enum store_term_loc pos, int gold)
+{
+	assert(pos == LOC_OWNER_GOLD || pos == LOC_PLAYER_GOLD);
+
+	const char *str = (pos == LOC_OWNER_GOLD) ?
+			format("Owner's gold: %d", gold) : format("Your gold: %d", gold);
+
+	struct loc loc = {
+		.x = context->term_loc[pos].x - strlen(str),
+		.y = context->term_loc[pos].y
+	};
+
+	prt(str, loc);
+}
+
 /**
  * Redisplay a single store entry
  */
@@ -311,16 +327,7 @@ static void store_display_frame(struct store_context *context)
 		const char *owner_name = proprietor->name;
 
 		put_str(owner_name, context->term_loc[LOC_OWNER]);
-
-		/* Show the max price in the store (above prices) */
-		const char *max_price =
-			format("Owner's gold: %d", (int) proprietor->max_cost);
-		struct loc loc = {
-			.x = context->term_loc[LOC_OWNER_GOLD].x - strlen(max_price),
-			.y = context->term_loc[LOC_OWNER_GOLD].y
-		};
-		prt(max_price, loc);
-
+		store_prt_gold(context, LOC_OWNER_GOLD, proprietor->max_cost);
 		put_str("Store Inventory", context->term_loc[LOC_HEADER]);
 		put_str("  Weight", context->term_loc[LOC_WEIGHT]);
 		put_str("    Price", context->term_loc[LOC_PRICE]);
@@ -410,13 +417,7 @@ static void store_redraw(struct store_context *context)
 	}
 
 	if (context->flags & STORE_GOLD_CHANGE) {
-		const char *gold =
-			format("Your gold: %d", (int) player->au);
-		struct loc loc = {
-			.x = context->term_loc[LOC_PLAYER_GOLD].x - strlen(gold),
-			.y = context->term_loc[LOC_PLAYER_GOLD].y
-		};
-		prt(gold, loc);
+		store_prt_gold(context, LOC_PLAYER_GOLD, player->au);
 
 		context->flags &= ~STORE_GOLD_CHANGE;
 	}
