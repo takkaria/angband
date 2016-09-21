@@ -664,6 +664,8 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 	object_desc(o_name, sizeof(o_name), dummy,
 			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
+	bool purchased = false;
+
 	/* Attempt to buy it */
 	if (store->sidx != STORE_HOME) {
 		/* Extract the price for the entire stack */
@@ -675,18 +677,17 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 						o_name, price));
 
 		/* Negative response, so give up */
-		if (!response) {
-			object_delete(&dummy);
-			return false;
+		if (response) {
+			cmdq_push(CMD_BUY);
+			cmd_set_arg_item(cmdq_peek(), "item", obj);
+			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
+			purchased = true;
 		}
-
-		cmdq_push(CMD_BUY);
-		cmd_set_arg_item(cmdq_peek(), "item", obj);
-		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
 	} else {
 		cmdq_push(CMD_RETRIEVE);
 		cmd_set_arg_item(cmdq_peek(), "item", obj);
 		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
+		purchased = true;
 	}
 
 	/* Update the display */
@@ -694,7 +695,7 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 
 	object_delete(&dummy);
 
-	return true;
+	return purchased;
 }
 
 /**
