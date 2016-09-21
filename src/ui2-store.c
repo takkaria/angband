@@ -1212,7 +1212,6 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	(void) user;
 
 	struct store *store = store_at(cave, player->py, player->px);
-
 	assert(store != NULL);
 
 	/*** Display ***/
@@ -1226,15 +1225,15 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	Term_push_new(&hints);
 	Term_add_tab(0, store->name, COLOUR_WHITE, COLOUR_DARK);
 
-	/* Get a array version of the store stock, register handler for changes */
-	struct store_context context;
-	event_add_handler(EVENT_STORECHANGED, refresh_stock, &context);
-	store_menu_init(&context, store, false);
-
 	/* Say a friendly hello. */
 	if (store->sidx != STORE_HOME) {
 		prt_welcome(store->owner);
 	}
+
+	/* Get a array version of the store stock, register handler for changes */
+	struct store_context context;
+	event_add_handler(EVENT_STORECHANGED, refresh_stock, &context);
+	store_menu_init(&context, store, false);
 
 	/* Shopping */
 	menu_select(&context.menu);
