@@ -82,7 +82,6 @@ enum {
 	LOC_PRICE = 0,
 	LOC_OWNER,
 	LOC_HEADER,
-	LOC_HELP_CLEAR,
 	LOC_HELP_PROMPT,
 	LOC_OWNER_GOLD,
 	LOC_PLAYER_GOLD,
@@ -95,7 +94,6 @@ enum {
 /* State flags */
 #define STORE_GOLD_CHANGE  (1 << 0)
 #define STORE_FRAME_CHANGE (1 << 1)
-#define STORE_SHOW_HELP    (1 << 2)
 
 /* Compound flag for the initial display of a store */
 #define STORE_INIT_CHANGE  (STORE_FRAME_CHANGE | STORE_GOLD_CHANGE)
@@ -106,8 +104,6 @@ struct store_context {
 	struct object **list; /* List of objects */
 	int flags;            /* Display flags */
 	bool inspect_only;    /* Only allow looking */
-
-	struct text_out_info text_out;
 
 	/* Places for the various things displayed onscreen */
 	struct loc term_loc[LOC_MAX];
@@ -185,20 +181,11 @@ static void prt_welcome(const struct owner *proprietor)
  *
  *  line 3: Start of items
  *
- * If help is turned off, then the rest of the display goes as:
+ * The rest of the display goes as:
  *
  *  line (height - 3): end of items
  *  line (height - 2): empty
  *  line (height - 1): Help prompt and remaining gold
- *
- * If help is turned on, then the rest of the display goes as:
- *
- *  line (height - 6): end of items
- *  line (height - 5): empty
- *  line (height - 4): gold remaining
- *  line (height - 3): command help 
- *
- *  Note that in knowledge menu help takes less space.
  */
 static void store_display_recalc(struct store_context *context)
 {
@@ -211,11 +198,6 @@ static void store_display_recalc(struct store_context *context)
 
 	/* Clip the width at a max of 104 (enough room for an 80-char item name) */
 	term_width = MIN(term_width, 104);
-
-	/* Clip the text_out function at one smaller than the screen width */
-	context->text_out.indent = 0;
-	context->text_out.pad    = 0;
-	context->text_out.wrap   = term_width;
 
 	/* term_loc[] locations that aren't explicitly set should not be used */
 	for (size_t i = 0; i < N_ELEMENTS(context->term_loc); i++) {
@@ -242,33 +224,18 @@ static void store_display_recalc(struct store_context *context)
 	context->term_loc[LOC_HEADER].x = 0;
 	context->term_loc[LOC_HEADER].y = 2;
 
-	/* If we are displaying help, make the height smaller */
-	int height = term_height;
-	if (context->flags & STORE_SHOW_HELP) {
-		height -= context->inspect_only? 2 : 3;
-	}
-
 	context->term_loc[LOC_PLAYER_GOLD].x = term_width;
-	context->term_loc[LOC_PLAYER_GOLD].y = height - 1;
+	context->term_loc[LOC_PLAYER_GOLD].y = term_height - 1;
 
 	region store_menu_region = {
-		.x = 0,
-		.y = 3,
-		.w = 0,
+		.x =  0,
+		.y =  3,
+		.w =  0,
+		.h = -2,
 	};
 
-	context->term_loc[LOC_HELP_PROMPT].x = context->text_out.indent;
-
-	/* If we're displaying the help, then put it with a line of padding */
-	if (context->flags & STORE_SHOW_HELP) {
-		context->term_loc[LOC_HELP_CLEAR].y  = height - 1;
-		context->term_loc[LOC_HELP_PROMPT].y = height;
-		store_menu_region.h = -5;
-	} else {
-		context->term_loc[LOC_HELP_CLEAR].y  = height - 2;
-		context->term_loc[LOC_HELP_PROMPT].y = height - 1;
-		store_menu_region.h = -2;
-	}
+	context->term_loc[LOC_HELP_PROMPT].x = 0;
+	context->term_loc[LOC_HELP_PROMPT].y = term_height - 1;
 
 	menu_layout(menu, store_menu_region);
 }
@@ -358,6 +325,8 @@ static void store_display_frame(struct store_context *context)
 		put_str("  Weight", context->term_loc[LOC_WEIGHT]);
 		put_str("    Price", context->term_loc[LOC_PRICE]);
 	}
+
+	prt("Press '?' for help.", context->term_loc[LOC_HELP_PROMPT]);
 }
 
 /**
@@ -366,12 +335,21 @@ static void store_display_frame(struct store_context *context)
 static void store_display_help(struct store_context *context)
 {
 	const bool home = (context->store->sidx == STORE_HOME) ? true : false;
-	struct text_out_info info = context->text_out;
+
+	struct term_hints hints = {
+		.x = 0,
+		.y = Term_height() - (context->inspect_only ? 4 : 5),
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = context->inspect_only ? 4 : 5,
+		.position = TERM_POSITION_EXACT,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
 
 	/* Prepare help hooks */
-	clear_from(context->term_loc[LOC_HELP_CLEAR].y);
-	Term_cursor_to_xy(context->term_loc[LOC_HELP_PROMPT].x,
-			context->term_loc[LOC_HELP_PROMPT].y);
+	Term_cursor_to_xy(0, 0);
+
+	struct text_out_info info = {.indent = 0, .pad = 0, .wrap = hints.width};
 
 	if (OPT(rogue_like_commands)) {
 		text_out_c(info, COLOUR_L_GREEN, "x");
@@ -410,6 +388,12 @@ static void store_display_help(struct store_context *context)
 	} else {
 		text_out(info, " exits this screen.");
 	}
+
+	text_out(info, "\n\n(any key to continue)");
+
+	Term_flush_output();
+	inkey_any();
+	Term_pop();
 }
 
 /**
@@ -419,12 +403,6 @@ static void store_redraw(struct store_context *context)
 {
 	if (context->flags & STORE_FRAME_CHANGE) {
 		store_display_frame(context);
-
-		if (context->flags & STORE_SHOW_HELP) {
-			store_display_help(context);
-		} else {
-			prt("Press '?' for help.", context->term_loc[LOC_HELP_PROMPT]);
-		}
 
 		context->flags &= ~STORE_FRAME_CHANGE;
 	}
@@ -1012,17 +990,7 @@ static bool store_menu_handle(struct menu *menu,
 				break;
 
 			case '?':
-				/* Toggle help */
-				if (context->flags & STORE_SHOW_HELP) {
-					context->flags &= ~STORE_SHOW_HELP;
-				} else {
-					context->flags |= STORE_SHOW_HELP;
-				}
-
-				context->flags |= STORE_INIT_CHANGE;
-
-				store_display_recalc(context);
-				store_redraw(context);
+				store_display_help(context);
 				break;
 
 			case '=':
