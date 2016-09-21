@@ -90,12 +90,6 @@ enum {
 	LOC_MAX
 };
 
-static const region store_menu_region = {
-	.x =  1,
-	.y =  3,
-	.w = -1,
-	.h = -2
-};
 
 /* State flags */
 #define STORE_GOLD_CHANGE  (1 << 0)
@@ -244,20 +238,24 @@ static void store_display_recalc(struct store_context *context)
 
 	context->term_loc[LOC_AU].y = term_height - 1;
 
-	region reg = store_menu_region;
+	region store_menu_region = {
+		.x =  1,
+		.y =  3,
+		.w = -1,
+	};
 
 	/* If we're displaying the help, then put it with a line of padding */
 	if (context->flags & STORE_SHOW_HELP) {
 		context->term_loc[LOC_HELP_CLEAR].y  = term_height - 1;
 		context->term_loc[LOC_HELP_PROMPT].y = term_height;
-		reg.h = -5;
+		store_menu_region.h = -5;
 	} else {
 		context->term_loc[LOC_HELP_CLEAR].y  = term_height - 2;
 		context->term_loc[LOC_HELP_PROMPT].y = term_height - 1;
-		reg.h = -2;
+		store_menu_region.h = -2;
 	}
 
-	menu_layout(menu, reg);
+	menu_layout(menu, store_menu_region);
 }
 
 /**
