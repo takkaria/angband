@@ -277,7 +277,7 @@ static void store_display_entry(struct menu *menu,
 
 	/* Describe the object - preserving insriptions in the home */
 	int desc = (store->sidx == STORE_HOME) ?
-		ODESC_PREFIX | ODESC_FULL : ODESC_PREFIX | ODESC_FULL | ODESC_STORE;
+		(ODESC_PREFIX | ODESC_FULL) : (ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
 	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(o_name, sizeof(o_name), obj, desc);
