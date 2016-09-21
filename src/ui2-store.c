@@ -232,11 +232,12 @@ static void store_display_recalc(struct store_context *context)
 	context->term_loc[LOC_HEADER].y = 2;
 
 	/* If we are displaying help, make the height smaller */
+	int height = term_height;
 	if (context->flags & STORE_SHOW_HELP) {
-		term_height -= context->inspect_only? 2 : 3;
+		height -= context->inspect_only? 2 : 3;
 	}
 
-	context->term_loc[LOC_AU].y = term_height - 1;
+	context->term_loc[LOC_AU].y = height - 1;
 
 	region store_menu_region = {
 		.x =  1,
@@ -246,12 +247,12 @@ static void store_display_recalc(struct store_context *context)
 
 	/* If we're displaying the help, then put it with a line of padding */
 	if (context->flags & STORE_SHOW_HELP) {
-		context->term_loc[LOC_HELP_CLEAR].y  = term_height - 1;
-		context->term_loc[LOC_HELP_PROMPT].y = term_height;
+		context->term_loc[LOC_HELP_CLEAR].y  = height - 1;
+		context->term_loc[LOC_HELP_PROMPT].y = height;
 		store_menu_region.h = -5;
 	} else {
-		context->term_loc[LOC_HELP_CLEAR].y  = term_height - 2;
-		context->term_loc[LOC_HELP_PROMPT].y = term_height - 1;
+		context->term_loc[LOC_HELP_CLEAR].y  = height - 2;
+		context->term_loc[LOC_HELP_PROMPT].y = height - 1;
 		store_menu_region.h = -2;
 	}
 
