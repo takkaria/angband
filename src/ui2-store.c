@@ -1192,14 +1192,11 @@ void enter_store(game_event_type type, game_event_data *data, void *user)
 	(void) data;
 	(void) user;
 
-	/* Check that we're on a store */
-	if (!square_isshop(cave, player->py, player->px)) {
+	if (square_isshop(cave, player->py, player->px)) {
+		event_signal(EVENT_LEAVE_WORLD);
+	} else {
 		msg("You see no store here.");
-		return;
 	}
-
-	/* Shut down the normal game view */
-	event_signal(EVENT_LEAVE_WORLD);
 }
 
 /**
