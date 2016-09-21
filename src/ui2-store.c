@@ -1131,6 +1131,14 @@ static void store_menu_init(struct store_context *context,
 }
 
 /**
+ * Free all resources allocated by store menu
+ */
+static void store_menu_destroy(struct store_context *context)
+{
+	mem_free(context->list);
+}
+
+/**
  * Display contents of a store from knowledge menu
  *
  * The only allowed actions are 'I' to inspect an item
@@ -1153,8 +1161,7 @@ void textui_store_knowledge(int store)
 	menu_select(&context.menu);
 
 	Term_pop();
-
-	mem_free(context.list);
+	store_menu_destroy(&context);
 }
 
 /**
@@ -1234,7 +1241,7 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 
 	/* Shopping's done */
 	event_remove_handler(EVENT_STORECHANGED, refresh_stock, &context);
-	mem_free(context.list);
+	store_menu_destroy(&context);
 
 	/* Take a turn */
 	player->upkeep->energy_use = z_info->move_energy;
