@@ -466,6 +466,7 @@ static bool store_sell(struct store_context *context)
 	int get_mode = USE_EQUIP | USE_INVEN | USE_FLOOR | USE_QUIVER;
 
 	struct store *store = context->store;
+	assert(store != NULL);
 
 	struct object *obj;
 	item_tester tester = NULL;
@@ -473,8 +474,6 @@ static bool store_sell(struct store_context *context)
 	const char *reject = "You have nothing that I want. ";
 	const char *prompt = OPT(birth_no_selling) ?
 		"Give which item? " : "Sell which item? ";
-
-	assert(store);
 
 	clear_prompt();
 
