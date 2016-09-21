@@ -196,6 +196,8 @@ static void prt_welcome(const struct owner *proprietor)
  *  line (height - 5): empty
  *  line (height - 4): gold remaining
  *  line (height - 3): command help 
+ *
+ *  Note that in knowledge menu help takes less space.
  */
 static void store_display_recalc(struct store_context *context)
 {
