@@ -272,7 +272,6 @@ static void store_display_entry(struct menu *menu,
 	struct store *store = context->store;
 	assert(store != NULL);
 
-	/* Get the object */
 	struct object *obj = context->list[index];
 
 	/* Describe the object - preserving insriptions in the home */
@@ -328,17 +327,14 @@ static void store_display_frame(struct store_context *context)
 
 		loc.x = 1;
 		loc.y = context->term_loc[LOC_OWNER].y;
-		/* Put the owner name */
 		put_str(op_ptr->full_name, loc);
 
 		loc.x = 1;
 		loc.y = context->term_loc[LOC_HEADER].y;
-		/* Label the object descriptions */
 		put_str("Home Inventory", loc);
 
 		loc.x = context->term_loc[LOC_WEIGHT].x + 2;
 		loc.y = context->term_loc[LOC_HEADER].y;
-		/* Show weight header */
 		put_str("Weight", loc);
 	} else {
 		/* Normal stores */
@@ -348,7 +344,6 @@ static void store_display_frame(struct store_context *context)
 
 		loc.x = 1;
 		loc.y = context->term_loc[LOC_OWNER].y;
-		/* Put the owner name */
 		put_str(owner_name, loc);
 
 		/* Show the max price in the store (above prices) */
@@ -360,17 +355,14 @@ static void store_display_frame(struct store_context *context)
 
 		loc.x = 1;
 		loc.y = context->term_loc[LOC_HEADER].y;
-		/* Label the object descriptions */
 		put_str("Store Inventory", loc);
 
 		loc.x = context->term_loc[LOC_WEIGHT].x + 2;
 		loc.y = context->term_loc[LOC_HEADER].y;
-		/* Showing weight label */
 		put_str("Weight", loc);
 
 		loc.x = context->term_loc[LOC_PRICE].x + 4;
 		loc.y = context->term_loc[LOC_HEADER].y;
-		/* Label the asking price (in stores) */
 		put_str("Price", loc);
 	}
 }
@@ -488,7 +480,6 @@ static bool store_sell(struct store_context *context)
 
 	assert(store);
 
-	/* Clear all current messages */
 	clear_prompt();
 
 	if (store->sidx == STORE_HOME) {
@@ -498,9 +489,7 @@ static bool store_sell(struct store_context *context)
 		get_mode |= SHOW_PRICES;
 	}
 
-	/* Get an item */
 	player->upkeep->command_wrk = USE_INVEN;
-
 	if (!get_item(&obj, prompt, reject, CMD_DROP, tester, get_mode)) {
 		return false;
 	}
@@ -511,10 +500,7 @@ static bool store_sell(struct store_context *context)
 		return false;
 	}
 
-	/* Get a quantity */
 	int amt = get_quantity(NULL, obj->number);
-
-	/* Allow user abort */
 	if (amt <= 0) {
 		return false;
 	}
@@ -580,7 +566,6 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 	struct store *store = context->store;
 	struct object *obj = context->list[item];
 
-	/* Get an amount if we weren't given one */
 	int amt = 0;
 	if (single) {
 		amt = 1;
@@ -595,7 +580,6 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 		if (store->sidx == STORE_HOME) {
 			amt = obj->number;
 		} else {
-			/* Price of one */
 			int price_one = price_item(store, obj, false, 1);
 
 			/* Check if the player can afford any at all */
@@ -639,16 +623,12 @@ static bool store_purchase(struct store_context *context, int item, bool single)
 				num > 0 ? format(" (you have %d)", num) : "",
 				amt);
 
-		/* Get a quantity */
 		amt = get_quantity(buf, amt);
-
-		/* Allow user abort */
 		if (amt <= 0) {
 			return false;
 		}
 	}
 
-	/* Get desired object */
 	struct object dummy;
 	object_copy_amt(&dummy, obj, amt);
 
@@ -701,10 +681,8 @@ static void store_examine(struct store_context *context, int item)
 		return;
 	}
 
-	/* Get the actual object */
 	struct object *obj = context->list[item];
 
-	/* Show full info in most stores, but normal info in player home */
 	textblock *tb = object_info(obj, OINFO_NONE);
 
 	char header[ANGBAND_TERM_STANDARD_WIDTH];
@@ -715,7 +693,6 @@ static void store_examine(struct store_context *context, int item)
 	textui_textblock_show(tb, reg, header);
 	textblock_free(tb);
 
-	/* Browse book, then prompt for a command */
 	if (obj_can_browse(obj)) {
 		textui_book_browse(obj);
 	}
@@ -987,7 +964,7 @@ static bool store_menu_handle(struct menu *menu,
 			bool action = false;
 
 			if (event->mouse.y == 0 || event->mouse.y == 1) {
-				/* show the store context menu */
+				/* Show the store context menu */
 				if (!context_menu_store(context, index,
 							loc(event->mouse.x, event->mouse.y)))
 				{
@@ -996,7 +973,7 @@ static bool store_menu_handle(struct menu *menu,
 
 				action = true;
 			} else if (event->mouse.y == index + context->term_loc[LOC_HEADER].y + 1) {
-				/* if press is on a list item, so store item context */
+				/* If press is on a list item, so store item context */
 				context_menu_store_item(context, index,
 						loc(event->mouse.x, event->mouse.y));
 				action = true;
@@ -1008,11 +985,9 @@ static bool store_menu_handle(struct menu *menu,
 				/* Let the game handle any core commands (equipping, etc) */
 				cmdq_pop(CMD_STORE);
 
-				/* Notice and handle stuff */
 				notice_stuff(player);
 				handle_stuff(player);
 
-				/* Display the store */
 				store_display_recalc(context);
 				store_menu_recalc(menu);
 				store_redraw(context);
@@ -1027,7 +1002,7 @@ static bool store_menu_handle(struct menu *menu,
 				break;
 
 			case 'p': case 'g':
-				/* use the old way of purchasing items */
+				/* Use the old way of purchasing items */
 				if (store->sidx != STORE_HOME) {
 					show_prompt("Purchase which item? (ESC to cancel, Enter to select)", false);
 				} else {
@@ -1044,7 +1019,7 @@ static bool store_menu_handle(struct menu *menu,
 				break;
 
 			case 'l': case 'x':
-				/* use the old way of examining items */
+				/* Use the old way of examining items */
 				show_prompt("Examine which item? (ESC to cancel, Enter to select)", false);
 
 				index = store_get_stock(menu, index);
@@ -1064,7 +1039,6 @@ static bool store_menu_handle(struct menu *menu,
 					context->flags |= STORE_SHOW_HELP;
 				}
 
-				/* Redisplay */
 				context->flags |= STORE_INIT_CHANGE;
 
 				store_display_recalc(context);
@@ -1089,7 +1063,6 @@ static bool store_menu_handle(struct menu *menu,
 			event_signal(EVENT_EQUIPMENT);
 		}
 
-		/* Notice and handle stuff */
 		notice_stuff(player);
 		handle_stuff(player);
 
@@ -1119,11 +1092,9 @@ static void store_menu_init(struct store_context *context,
 
 	store_stock_list(context->store, context->list, z_info->store_inven_max);
 
-	/* Init the menu structure */
 	menu_init(menu, MN_SKIN_SCROLL, &store_menu);
 	menu_setpriv(menu, 0, context);
 
-	/* Calculate the positions of things and draw */
 	store_menu_set_selections(menu, inspect_only);
 	store_display_recalc(context);
 	store_menu_recalc(menu);
@@ -1177,7 +1148,6 @@ static void refresh_stock(game_event_type type, game_event_data *data, void *use
 
 	store_stock_list(context->store, context->list, z_info->store_inven_max);
 
-	/* Display the store */
 	store_display_recalc(context);
 	store_menu_recalc(menu);
 	store_redraw(context);
@@ -1211,7 +1181,6 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	struct store *store = store_at(cave, player->py, player->px);
 	assert(store != NULL);
 
-	/*** Display ***/
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -1222,7 +1191,6 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	Term_push_new(&hints);
 	Term_add_tab(0, store->name, COLOUR_WHITE, COLOUR_DARK);
 
-	/* Say a friendly hello. */
 	if (store->sidx != STORE_HOME) {
 		prt_welcome(store->owner);
 	}
@@ -1232,10 +1200,8 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 	event_add_handler(EVENT_STORECHANGED, refresh_stock, &context);
 	store_menu_init(&context, store, false);
 
-	/* Shopping */
 	menu_select(&context.menu);
 
-	/* Shopping's done */
 	event_remove_handler(EVENT_STORECHANGED, refresh_stock, &context);
 	store_menu_destroy(&context);
 
@@ -1251,9 +1217,7 @@ void leave_store(game_event_type type, game_event_data *data, void *user)
 	(void) data;
 	(void) user;
 
-	/* Disable repeats */
 	cmd_disable_repeat();
 
-	/* Switch back to the normal game view. */
 	event_signal(EVENT_ENTER_WORLD);
 }
