@@ -212,17 +212,17 @@ static void store_display_recalc(struct store_context *context)
 	term_width = MIN(term_width, 104);
 
 	/* Clip the text_out function at one smaller than the screen width */
-	context->text_out.indent = 1;
+	context->text_out.indent = 0;
 	context->text_out.pad    = 0;
-	context->text_out.wrap   = term_width - 1;
+	context->text_out.wrap   = term_width;
 
 	memset(context->term_loc, 0, sizeof(context->term_loc));
 
 	/* X coords first */
-	context->term_loc[LOC_AU].x     = term_width - 26;
-	context->term_loc[LOC_OWNER].x  = term_width - 1;
-	context->term_loc[LOC_WEIGHT].x = term_width - 9;
-	context->term_loc[LOC_PRICE].x  = term_width - 10;
+	context->term_loc[LOC_AU].x     = term_width - 25;
+	context->term_loc[LOC_PRICE].x  = term_width - 9;
+	context->term_loc[LOC_OWNER].x  = term_width;
+	context->term_loc[LOC_WEIGHT].x = term_width - 8;
 
 	if (store->sidx != STORE_HOME) {
 		/* Add space for for prices */
@@ -242,9 +242,9 @@ static void store_display_recalc(struct store_context *context)
 	context->term_loc[LOC_AU].y = height - 1;
 
 	region store_menu_region = {
-		.x =  1,
-		.y =  3,
-		.w = -1,
+		.x = 0,
+		.y = 3,
+		.w = 0,
 	};
 
 	/* If we're displaying the help, then put it with a line of padding */
@@ -326,11 +326,11 @@ static void store_display_frame(struct store_context *context)
 		/* The "Home" is special */
 		struct loc loc;
 
-		loc.x = 1;
+		loc.x = 0;
 		loc.y = context->term_loc[LOC_OWNER].y;
 		put_str(op_ptr->full_name, loc);
 
-		loc.x = 1;
+		loc.x = 0;
 		loc.y = context->term_loc[LOC_HEADER].y;
 		put_str("Home Inventory", loc);
 
@@ -343,7 +343,7 @@ static void store_display_frame(struct store_context *context)
 		const char *owner_name = proprietor->name;
 		struct loc loc;
 
-		loc.x = 1;
+		loc.x = 0;
 		loc.y = context->term_loc[LOC_OWNER].y;
 		put_str(owner_name, loc);
 
@@ -354,7 +354,7 @@ static void store_display_frame(struct store_context *context)
 		loc.y = context->term_loc[LOC_OWNER].y;
 		prt(buf, loc);
 
-		loc.x = 1;
+		loc.x = 0;
 		loc.y = context->term_loc[LOC_HEADER].y;
 		put_str("Store Inventory", loc);
 
@@ -431,7 +431,7 @@ static void store_redraw(struct store_context *context)
 			store_display_help(context);
 		} else {
 			struct loc loc = {
-				.x = 1,
+				.x = 0,
 				.y = context->term_loc[LOC_HELP_PROMPT].y
 			};
 			prt("Press '?' for help.", loc);
