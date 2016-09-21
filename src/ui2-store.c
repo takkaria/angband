@@ -960,7 +960,7 @@ static bool store_menu_handle(struct menu *menu,
 			}
 
 			if (action) {
-				context->flags |= (STORE_FRAME_CHANGE | STORE_GOLD_CHANGE);
+				context->flags |= STORE_INIT_CHANGE;
 
 				/* Let the game handle any core commands (equipping, etc) */
 				cmdq_pop(CMD_STORE);
