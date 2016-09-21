@@ -340,12 +340,13 @@ static void store_display_help(struct store_context *context)
 {
 	const bool home = (context->store->sidx == STORE_HOME) ? true : false;
 
-	int height = context->inspect_only || home ? 4 : 5;
+	int height = (context->inspect_only || home || !OPT(birth_no_selling)) ?
+		4 : 5;
 
 	struct term_hints hints = {
 		.x = 0,
 		.y = Term_height() - height,
-		.width = Term_width(),
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = height,
 		.position = TERM_POSITION_EXACT,
 		.purpose = TERM_PURPOSE_TEXT
