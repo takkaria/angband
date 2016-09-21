@@ -94,7 +94,6 @@ struct store_context {
 	struct menu menu;     /* Menu instance */
 	struct store *store;  /* Pointer to store */
 	struct object **list; /* List of objects */
-	bool redraw_frame;    /* Redraw store's frame */
 	bool inspect_only;    /* Only allow looking */
 
 	/* Places for the various things displayed onscreen */
@@ -302,8 +301,12 @@ static void store_display_entry(struct menu *menu,
 /**
  * Display store (after clearing screen)
  */
-static void store_display_frame(struct store_context *context)
+static void store_display_frame(int cursor, void *menu_data, region reg)
 {
+	(void) cursor;
+	(void) reg;
+
+	struct store_context *context = menu_data;
 	struct store *store = context->store;
 	struct owner *proprietor = store->owner;
 
@@ -397,17 +400,6 @@ static void store_display_help(struct store_context *context)
 	Term_flush_output();
 	inkey_any();
 	Term_pop();
-}
-
-/**
- * Redraw store's "frame" (owner's name, header, gold, etc)
- */
-static void store_redraw(struct store_context *context)
-{
-	if (context->redraw_frame) {
-		store_display_frame(context);
-		context->redraw_frame = false;
-	}
 }
 
 static bool store_get_check(const char *prompt)
@@ -512,8 +504,6 @@ static void store_sell(struct store_context *context)
 		cmd_set_arg_item(cmdq_peek(), "item", obj);
 		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
 	}
-
-	context->redraw_frame = true;
 }
 
 /**
@@ -619,9 +609,6 @@ static void store_purchase(struct store_context *context, int item, bool single)
 		cmd_set_arg_item(cmdq_peek(), "item", obj);
 		cmd_set_arg_number(cmdq_peek(), "quantity", amt);
 	}
-
-	/* Update the display */
-	context->redraw_frame = true;
 }
 
 /**
@@ -928,8 +915,6 @@ static bool store_menu_handle(struct menu *menu,
 			}
 
 			if (action) {
-				context->redraw_frame = true;
-
 				/* Let the game handle any core commands (equipping, etc) */
 				cmdq_pop(CMD_STORE);
 
@@ -937,7 +922,6 @@ static bool store_menu_handle(struct menu *menu,
 				handle_stuff(player);
 
 				store_menu_recalc(menu);
-				store_redraw(context);
 
 				return true;
 			}
@@ -1023,7 +1007,6 @@ static void store_menu_init(struct store_context *context,
 	struct menu *menu = &context->menu;
 
 	context->store = store;
-	context->redraw_frame = true;
 	context->inspect_only = inspect_only;
 	context->list = mem_zalloc(sizeof(*context->list) * z_info->store_inven_max);
 
@@ -1032,10 +1015,11 @@ static void store_menu_init(struct store_context *context,
 	menu_init(menu, MN_SKIN_SCROLL, &store_menu);
 	menu_setpriv(menu, 0, context);
 
+	menu->browse_hook = store_display_frame;
+
 	store_menu_set_selections(menu, inspect_only);
 	store_display_calc(context);
 	store_menu_recalc(menu);
-	store_redraw(context);
 }
 
 /**
@@ -1086,7 +1070,6 @@ static void refresh_stock(game_event_type type, game_event_data *data, void *use
 	store_stock_list(context->store, context->list, z_info->store_inven_max);
 
 	store_menu_recalc(menu);
-	store_redraw(context);
 }
 
 /**
