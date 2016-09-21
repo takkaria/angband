@@ -1135,8 +1135,8 @@ void use_store(game_event_type type, game_event_data *data, void *user)
 
 	/* Get a array version of the store stock, register handler for changes */
 	struct store_context context;
-	event_add_handler(EVENT_STORECHANGED, refresh_stock, &context);
 	store_menu_init(&context, store, false);
+	event_add_handler(EVENT_STORECHANGED, refresh_stock, &context);
 
 	menu_select(&context.menu);
 
