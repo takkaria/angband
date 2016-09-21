@@ -787,17 +787,13 @@ static bool store_process_command_key(struct keypress kp)
  */
 static int store_get_stock(struct menu *menu, int index)
 {
-	bool mn_no_action = mnflag_has(menu->flags, MN_NO_ACTION);
+	assert(!mnflag_has(menu->flags, MN_NO_ACTION));
 
-	/* Set a flag to make sure that we get the selection or escape
-	 * without running the menu handler */
+	/* Set a flag to make sure that we get the selection
+	 * or escape without running the menu handler */
 	mnflag_on(menu->flags, MN_NO_ACTION);
-
 	ui_event event = menu_select(menu);
-
-	if (!mn_no_action) {
-		mnflag_off(menu->flags, MN_NO_ACTION);
-	}
+	mnflag_off(menu->flags, MN_NO_ACTION);
 
 	if (event.type == EVT_SELECT) {
 		return menu->cursor;
