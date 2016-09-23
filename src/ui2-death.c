@@ -251,10 +251,7 @@ static void death_info(const char *title, int index)
 		for (int page = 1; obj; page++) {
 			Term_clear();
 
-			struct loc loc = {
-				.x = 4,
-				.y = 2
-			};
+			struct loc loc = {0, 0};
 
 			/* Show 12 items */
 			for (int line = 0; obj && line < 12; obj = obj->next, line++) {
@@ -273,6 +270,8 @@ static void death_info(const char *title, int index)
 				loc.x -= 3;
 				loc.y++;
 			}
+
+			Term_flush_output();
 
 			show_prompt(format("Your home contains (page %d): -more-", page), false);
 			inkey_any();
