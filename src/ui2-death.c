@@ -127,6 +127,8 @@ static void print_tomb(void)
  */
 static void display_winner(void)
 {
+	const int term_width = Term_width();
+
 	char buf[1024];
 
 	path_build(buf, sizeof(buf), ANGBAND_DIR_SCREENS, "crown.txt");
@@ -134,12 +136,7 @@ static void display_winner(void)
 
 	Term_clear();
 
-	int term_width = Term_width();
-
-	struct loc loc = {
-		.x = 0,
-		.y = 2
-	};
+	struct loc loc;
 
 	if (fp) {
 		/* Get us the first line of file, which tells us
@@ -151,6 +148,7 @@ static void display_winner(void)
 		}
 
 		loc.x = term_width / 2 - line_width / 2;
+		loc.y = 2;
 
 		while (file_getl(fp, buf, sizeof(buf))) {
 			if (*buf) {
@@ -162,9 +160,16 @@ static void display_winner(void)
 		file_close(fp);
 	}
 
+	loc.x = 1;
+
 	put_str_centred(loc, term_width, "All Hail the Mighty Champion!");
 
+	Term_flush_output();
 	event_signal(EVENT_INPUT_FLUSH);
+
+	show_prompt("(Press any key to continue)", false);
+	inkey_any();
+	clear_prompt();
 }
 
 /**
