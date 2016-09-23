@@ -262,13 +262,13 @@ static void print_tomb(void)
 	put_str_centred(loc, width, "%s", player->class->name);
 	loc.y++;
 
-	put_str_centred(loc, width, "Level: %d", (int)player->lev);
+	put_str_centred(loc, width, "Level: %d", (int) player->lev);
 	loc.y++;
 
-	put_str_centred(loc, width, "Exp: %d", (int)player->exp);
+	put_str_centred(loc, width, "Exp: %d", (int) player->exp);
 	loc.y++;
 
-	put_str_centred(loc, width, "AU: %d", (int)player->au);
+	put_str_centred(loc, width, "AU: %d", (int) player->au);
 	loc.y++;
 
 	put_str_centred(loc, width, "Killed on Level %d", player->depth);
