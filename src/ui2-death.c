@@ -467,6 +467,7 @@ void death_screen(void)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_DEATH
 	};
 	Term_push_new(&hints);
