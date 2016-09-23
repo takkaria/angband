@@ -78,7 +78,6 @@ void history_display(void)
 		print_history_header();
 		show_history_prompt();
 
-		/* Size of header 2 lines */
 		struct loc loc = {0, 2};
 
 		for (int i = first_item, y = 0; i < max_item && y < page_size; i++, y++, loc.y++) {
