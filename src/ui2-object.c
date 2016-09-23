@@ -1428,16 +1428,16 @@ bool textui_get_item(struct object **choice,
 
 	if (menu_ok) {
 		do {
+			if (prompt) {
+				show_menu_prompt(&data, prompt);
+			}
+
 			build_menu_list(&data, tester);
 
 			push_item_term(&data);
 
 			data.retval.new_menu = false;
 			data.retval.object = NULL;
-
-			if (prompt) {
-				show_menu_prompt(&data, prompt);
-			}
 
 			item_menu(&data);
 			clear_prompt();
