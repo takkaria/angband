@@ -317,7 +317,7 @@ static void death_examine(const char *title, int index)
 
 	struct object *obj;
 
-	while (get_item(&obj, prompt, reject, 0, NULL,
+	while (get_item(&obj, prompt, reject, CMD_NULL, NULL,
 				USE_INVEN | USE_QUIVER | USE_EQUIP | IS_HARMLESS))
 	{
 		char header[120];
