@@ -78,7 +78,7 @@ void history_display(void)
 		print_history_header();
 		show_history_prompt();
 
-		struct loc loc = {0, 2};
+		struct loc loc = {0, 1};
 
 		for (int i = first_item, y = 0; i < max_item && y < page_size; i++, y++, loc.y++) {
 			char buf[ANGBAND_TERM_STANDARD_WIDTH];
