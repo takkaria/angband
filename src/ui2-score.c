@@ -151,10 +151,10 @@ static void display_scores_aux(const high_score *scores,
 					"(User %s, Date %s, Gold %s, Turn %s).",
 					user, when, gold, aged);
 			c_put_str(attr, out_val, loc);
-			loc.y++;
-
+			loc.x = 0;
+			
 			/* Empty line */
-			loc.y++;
+			loc.y += 2;
 		}
 
 		Term_flush_output();
