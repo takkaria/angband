@@ -212,7 +212,7 @@ static void death_info(const char *title, int index)
 	};
 	Term_push_new(&hints);
 
-	display_player(0);
+	display_player(PLAYER_DISPLAY_MODE_BASIC);
 
 	show_prompt("Hit any key to see more information:", false);
 	inkey_any();
