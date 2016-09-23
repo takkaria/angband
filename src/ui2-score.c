@@ -65,10 +65,7 @@ static void display_scores_aux(const high_score *scores,
 
 	/* Count the high scores */
 	int count = 0;
-	while (count < MAX_HISCORES && count < to) {
-		if (scores[count].what[0] == 0) {
-			break;
-		}
+	while (count < MAX_HISCORES && count < to && scores[count].what[0] != 0) {
 		count++;
 	}
 
