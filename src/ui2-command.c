@@ -35,8 +35,8 @@
 /**
  * Redraw the screen
  *
- * This command performs various low level updates, clears all the extra
- * windows and does a total redraw of the main window.
+ * This command performs various low level updates
+ * and does a total redraw of the main window.
  */
 void do_cmd_redraw(void)
 {
