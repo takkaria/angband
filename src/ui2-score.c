@@ -103,6 +103,7 @@ static void display_scores_aux(const high_score *scores,
 			}
 
 			/* Dump the first line */
+			loc.x = 0;
 			c_put_str(attr, out_val, loc);
 			loc.y++;
 
@@ -139,8 +140,7 @@ static void display_scores_aux(const high_score *scores,
 					"(User %s, Date %s, Gold %s, Turn %s).",
 					user, when, gold, aged);
 			c_put_str(attr, out_val, loc);
-			loc.x = 0;
-			
+
 			/* Empty line */
 			loc.y += 2;
 		}
