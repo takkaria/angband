@@ -33,19 +33,6 @@ static const char *skip_spaces(const char *str)
 	return str;
 }
 
-static void display_scores_header(int page, int place)
-{
-	assert(page >= 0);
-
-	if (page == 0) {
-		struct loc loc = {30, 0};
-		put_str(format("%s Hall of Fame", VERSION_NAME), loc);
-	} else {
-		struct loc loc = {21, 0};
-		put_str(format("%s Hall of Fame (from position %d)", VERSION_NAME, place), loc);
-	}
-}
-
 /**
  * Display the scores in a given range.
  */
@@ -75,8 +62,6 @@ static void display_scores_aux(const high_score *scores,
 		char tmp_val[160];
 
 		Term_clear();
-
-		display_scores_header(page, place);
 
 		struct loc loc = {0, 2};
 
