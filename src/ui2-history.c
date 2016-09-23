@@ -38,7 +38,7 @@ static void show_history_prompt(void)
 	"p/PgUp for previous page, " \
 	"n/PgDn for next page, ESC to exit.]"
 
-		show_prompt(HISTORY_PROMPT, false);
+	show_prompt(HISTORY_PROMPT, false);
 
 #undef HISTORY_PROMPT
 }
