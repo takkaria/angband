@@ -102,7 +102,7 @@ void history_display(void)
 			/* Use page_size - 1 to scroll by less than full page */
 
 			case 'n': case ' ': case KC_PGDOWN:
-				first_item = MIN(max_item, first_item + (page_size - 1));
+				first_item = MIN(max_item - 1, first_item + (page_size - 1));
 				break;
 
 			case 'p': case '-': case KC_PGUP:
@@ -110,7 +110,7 @@ void history_display(void)
 				break;
 
 			case ARROW_DOWN:
-				first_item = MIN(max_item, first_item + 1);
+				first_item = MIN(max_item - 1, first_item + 1);
 				break;
 
 			case ARROW_UP:
