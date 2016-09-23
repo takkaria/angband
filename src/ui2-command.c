@@ -46,14 +46,29 @@ void do_cmd_redraw(void)
 
 	player->upkeep->notice |= (PN_COMBINE);
 
-	player->upkeep->update |= (PU_TORCH | PU_INVEN | PU_BONUS | PU_HP |
-			PU_SPELLS | PU_UPDATE_VIEW | PU_MONSTERS);
+	player->upkeep->update |=
+		(PU_TORCH
+		 | PU_INVEN
+		 | PU_BONUS
+		 | PU_HP
+		 | PU_SPELLS
+		 | PU_UPDATE_VIEW
+		 | PU_MONSTERS);
 
-	player->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_INVEN |
-			PR_EQUIP | PR_MESSAGE | PR_MONSTER | PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
+	player->upkeep->redraw |=
+		(PR_BASIC
+		 | PR_EXTRA
+		 | PR_MAP
+		 | PR_INVEN
+		 | PR_EQUIP
+		 | PR_MESSAGE
+		 | PR_MONSTER
+		 | PR_OBJECT
+		 | PR_MONLIST
+		 | PR_ITEMLIST);
 
 	verify_panel(DISPLAY_CAVE);
-	move_cursor_relative(DISPLAY_CAVE, loc(player->px, player->py), false);
+	verify_cursor();
 
 	handle_stuff(player);
 }
