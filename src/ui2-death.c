@@ -34,6 +34,166 @@
 #include "ui2-score.h"
 #include "ui2-wizard.h"
 
+struct death_info_tab {
+	keycode_t code;
+	char *name;
+	bool valid;
+	void (*handler)(void);
+};
+
+static void death_info_term_push(keycode_t active,
+		const struct death_info_tab *tabs, size_t n_tabs)
+{
+	struct term_hints hints = {
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+
+	for (size_t t = 0; t < n_tabs; t++) {
+		if (tabs[t].valid) {
+			Term_add_tab(tabs[t].code, tabs[t].name,
+					tabs[t].code == active ? COLOUR_WHITE : COLOUR_L_DARK,
+					COLOUR_DARK);
+		}
+	}
+}
+
+static void death_info_term_pop(void)
+{
+	Term_pop();
+}
+
+static void death_info_player(void)
+{
+	display_player(PLAYER_DISPLAY_MODE_BASIC);
+}
+
+static void death_info_equip(void)
+{
+	show_equip(OLIST_WEIGHT | OLIST_SHOW_EMPTY | OLIST_DEATH, NULL);
+}
+
+static void death_info_inven(void)
+{
+	show_inven(OLIST_WEIGHT | OLIST_DEATH, NULL);
+}
+
+static void death_info_quiver(void)
+{
+	show_quiver(OLIST_WEIGHT | OLIST_DEATH, NULL);
+}
+
+static void death_info_home(void)
+{
+	struct store *home = &stores[STORE_HOME];
+
+	struct object **list = mem_zalloc(sizeof(*list) * z_info->store_inven_max);
+	store_stock_list(home, list, z_info->store_inven_max);
+
+	for (int line = 0, height = Term_height();
+			line < home->stock_num && line < height;
+			line++)
+	{
+		assert(list[line] != NULL);
+
+		char tag[8];
+		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
+
+		strnfmt(tag, sizeof(tag), "%c) ", I2A(line));
+		prt(tag, loc(0, line));
+
+		object_desc(o_name, sizeof(o_name), list[line], ODESC_PREFIX | ODESC_FULL);
+
+		uint32_t attr = list[line]->kind->base->attr;
+
+		c_put_str(attr, o_name, loc(3, line));
+	}
+
+	Term_flush_output();
+	mem_free(list);
+}
+
+static keycode_t death_info_move(keycode_t direction,
+		size_t prev, const struct death_info_tab *tabs, size_t n_tabs)
+{
+	assert(prev < n_tabs);
+
+	if (direction == ARROW_LEFT) {
+		for (size_t n = 0, t = prev; n < n_tabs; n++) {
+			if (t == 0) {
+				t = n_tabs - 1;
+			} else {
+				t--;
+			}
+			if (tabs[t].valid) {
+				return tabs[t].code;
+			}
+		}
+	} else if (direction == ARROW_RIGHT) {
+		for (size_t n = 0, t = prev; n < n_tabs; n++) {
+			if (t == n_tabs - 1) {
+				t = 0;
+			} else {
+				t++;
+			}
+			if (tabs[t].valid) {
+				return tabs[t].code;
+			}
+		}
+	}
+
+	return ESCAPE;
+}
+
+/**
+ * Menu command: view character dump and inventory.
+ */
+static void death_info(const char *title, int index)
+{
+	(void) title;
+	(void) index;
+
+	struct death_info_tab tabs[] = {
+		{'1', "Character", true,                             death_info_player},
+		{'2', "Inventory", player->upkeep->inven_cnt > 0,    death_info_inven},
+		{'3', "Equipment", player->upkeep->equip_cnt > 0,    death_info_equip},
+		{'4', " Quiver ",  player->upkeep->quiver_cnt > 0,   death_info_quiver},
+		{'5', "  Home  ",  stores[STORE_HOME].stock != NULL, death_info_home},
+	};
+	const size_t n_tabs = N_ELEMENTS(tabs);
+
+	size_t prev = 0;
+	death_info_term_push(tabs[prev].code, tabs, n_tabs);
+	tabs[prev].handler();
+
+	struct keypress key = inkey_only_key();
+
+	while (key.code != ESCAPE) {
+		if (key.code == ARROW_LEFT || key.code == ARROW_RIGHT) {
+			key.code = death_info_move(key.code, prev, tabs, n_tabs);
+			assert(key.code != ARROW_LEFT && key.code != ARROW_RIGHT);
+		} else {
+			for (size_t t = 0; t < n_tabs; t++) {
+				if (tabs[t].code == key.code && tabs[t].valid) {
+					death_info_term_pop();
+					death_info_term_push(tabs[t].code, tabs, n_tabs);
+					tabs[t].handler();
+					prev = t;
+					break;
+				}
+			}
+
+			key = inkey_only_key();
+		}
+	}
+
+	death_info_term_pop();
+}
+
 /**
  * Write formatted string fmt on line loc.y,
  * centred between points loc.x and loc.x + width
@@ -194,92 +354,6 @@ static void death_file(const char *title, int index)
 
 		event_signal(EVENT_MESSAGE_FLUSH);
 	}
-}
-
-/**
- * Menu command: view character dump and inventory.
- */
-static void death_info(const char *title, int index)
-{
-	(void) title;
-	(void) index;
-
-	struct term_hints hints = {
-		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = ANGBAND_TERM_STANDARD_HEIGHT,
-		.position = TERM_POSITION_CENTER,
-		.purpose = TERM_PURPOSE_TEXT
-	};
-	Term_push_new(&hints);
-
-	display_player(PLAYER_DISPLAY_MODE_BASIC);
-
-	show_prompt("Hit any key to see more information:", false);
-	inkey_any();
-
-	/* Equipment - if any */
-	if (player->upkeep->equip_cnt) {
-		Term_clear();
-		show_equip(OLIST_WEIGHT | OLIST_SHOW_EMPTY | OLIST_DEATH, NULL);
-		show_prompt("You are using: -more-", false);
-		inkey_any();
-	}
-
-	/* Inventory - if any */
-	if (player->upkeep->inven_cnt) {
-		Term_clear();
-		show_inven(OLIST_WEIGHT | OLIST_DEATH, NULL);
-		show_prompt("You are carrying: -more-", false);
-		inkey_any();
-	}
-
-	/* Quiver - if any */
-	if (player->upkeep->quiver_cnt) {
-		Term_clear();
-		show_quiver(OLIST_WEIGHT | OLIST_DEATH, NULL);
-		show_prompt("Your quiver holds: -more-", false);
-		inkey_any();
-	}
-
-	const struct store *home = &stores[STORE_HOME];
-
-	/* Home - if anything there */
-	if (home->stock) {
-		struct object *obj = home->stock;
-
-		/* Display contents of the home */
-		for (int page = 1; obj; page++) {
-			Term_clear();
-
-			struct loc loc = {0, 0};
-
-			/* Show 12 items */
-			for (int line = 0; obj && line < 12; obj = obj->next, line++) {
-				char tag[8];
-				char o_name[ANGBAND_TERM_STANDARD_WIDTH];
-
-				strnfmt(tag, sizeof(tag), "%c) ", I2A(line));
-				prt(tag, loc);
-
-				object_desc(o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
-
-				uint32_t attr = obj->kind->base->attr;
-
-				loc.x += 3;
-				c_put_str(attr, o_name, loc);
-				loc.x -= 3;
-				loc.y++;
-			}
-
-			Term_flush_output();
-
-			show_prompt(format("Your home contains (page %d): -more-", page), false);
-			inkey_any();
-		}
-	}
-
-	clear_prompt();
-	Term_pop();
 }
 
 /**
