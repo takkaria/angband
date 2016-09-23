@@ -26,9 +26,7 @@
  */
 static void print_history_header(void)
 {
-	struct loc loc = {0, 0};
-
-	c_put_str(COLOUR_L_BLUE, "      Turn   Depth  Note", loc);
+	Term_adds(0, 0, 24, COLOUR_L_BLUE, "      Turn   Depth  Note");
 }
 
 static void show_history_prompt(void)
