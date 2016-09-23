@@ -60,8 +60,7 @@ static void print_tomb(void)
 {
 	Term_clear();
 
-	time_t death_time = 0;
-	time(&death_time);
+	time_t death_time = time(NULL);
 
 	/* Open the death file */
 	char buf[1024];
