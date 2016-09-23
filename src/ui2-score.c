@@ -179,7 +179,7 @@ void predict_score(void)
 		display_scores_aux(scores, 0, 15, pos);
 	} else {
 		display_scores_aux(scores, 0, 5, -1);
-		display_scores_aux(scores, pos - 2, pos + 7, pos);
+		display_scores_aux(scores, pos - 2, pos + 8, pos);
 	}
 }
 
