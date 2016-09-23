@@ -240,8 +240,8 @@ static void print_tomb(void)
 		file_close(fp);
 	}
 
-	const int width = 31;
-	struct loc loc = {8, 7};
+	const int width = 33;
+	struct loc loc = {7, 7};
 
 	put_str_centred(loc, width, "%s", op_ptr->full_name);
 	loc.y++;
