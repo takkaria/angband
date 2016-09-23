@@ -58,8 +58,8 @@ static void display_scores_aux(const high_score *scores,
 
 	/* Show 5 per page, until done */
 	for (int page = from, pos = from, place = from + 1; page < count; page += 5) {
-		char out_val[160];
-		char tmp_val[160];
+		char out_val[ANGBAND_TERM_STANDARD_WIDTH];
+		char tmp_val[ANGBAND_TERM_STANDARD_WIDTH];
 
 		Term_clear();
 
