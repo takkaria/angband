@@ -511,6 +511,5 @@ void death_screen(void)
 	}
 
 	menu_free(death_menu);
-
 	Term_pop();
 }
