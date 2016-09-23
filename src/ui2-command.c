@@ -116,6 +116,8 @@ void textui_cmd_debug(void)
 	if (!(player->noscore & NOSCORE_DEBUG)) {
 		/* Mention effects */
 		msg("You are about to use the dangerous, unsupported, debug commands!");
+		event_signal(EVENT_MESSAGE_FLUSH);
+
 		msg("Your machine may crash, and your savefile may become corrupted!");
 		event_signal(EVENT_MESSAGE_FLUSH);
 
