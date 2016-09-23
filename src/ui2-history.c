@@ -26,14 +26,8 @@
  */
 static void print_history_header(void)
 {
-	struct loc loc;
+	struct loc loc = {0, 0};
 
-	loc.x = 0;
-	loc.y = 0;
-	c_put_str(COLOUR_WHITE, "[Player history]", loc);
-
-	loc.x = 0;
-	loc.y = 1;
 	c_put_str(COLOUR_L_BLUE, "      Turn   Depth  Note", loc);
 }
 
@@ -65,11 +59,12 @@ void history_display(void)
 	struct term_hints hints = {
 		.width = term_width,
 		.height = term_height,
+		.tabs = true,
 		.purpose = TERM_PURPOSE_TEXT,
 		.position = TERM_POSITION_CENTER
 	};
-
 	Term_push_new(&hints);
+	Term_add_tab(0, "Player history", COLOUR_WHITE, COLOUR_DARK);
 
 	/* Two lines provide space for the header */
 	const int page_size = term_height - 2;
