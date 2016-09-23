@@ -320,7 +320,7 @@ static void death_examine(const char *title, int index)
 	while (get_item(&obj, prompt, reject, CMD_NULL, NULL,
 				USE_INVEN | USE_QUIVER | USE_EQUIP | IS_HARMLESS))
 	{
-		char header[120];
+		char header[ANGBAND_TERM_STANDARD_WIDTH];
 
 		textblock *tb = object_info(obj, OINFO_NONE);
 		object_desc(header, sizeof(header),
