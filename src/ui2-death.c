@@ -215,7 +215,6 @@ static void death_info(const char *title, int index)
 	display_player(0);
 
 	show_prompt("Hit any key to see more information:", false);
-
 	inkey_any();
 
 	/* Equipment - if any */
@@ -276,7 +275,6 @@ static void death_info(const char *title, int index)
 			}
 
 			show_prompt(format("Your home contains (page %d): -more-", page), false);
-
 			inkey_any();
 		}
 	}
