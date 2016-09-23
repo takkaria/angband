@@ -209,10 +209,12 @@ void show_scores(void)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, format("%s Hall of Fame", VERSION_NAME), COLOUR_WHITE, COLOUR_DARK);
 
 	/* Display the scores */
 	if (character_generated) {
