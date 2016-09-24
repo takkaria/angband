@@ -296,8 +296,6 @@ void keypress_to_text(char *buf, size_t len,
 	}
 
 	assert(end < len);
-
-	/* Terminate */
 	buf[end] = '\0';
 }
 
@@ -342,8 +340,6 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src)
 	}
 
 	assert(end < len);
-
-	/* Terminate */
 	buf[end] = '\0';
 }
 
