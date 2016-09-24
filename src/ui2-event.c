@@ -181,6 +181,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 
 			STORE(buf, cur++, mods, code);
 			mods = 0;
+
 			str = end + 1;
 		} else if (*str == '{') {
 			/* Modifiers for next character */
@@ -208,11 +209,14 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 		} else if (*str == '^') {
 			/* Shorthand for "control" */
 			mods |= KC_MOD_CONTROL;
+
 			str++;
 		} else {
 			/* Everything else */
-			STORE(buf, cur++, mods, *str++);
+			STORE(buf, cur++, mods, *str);
 			mods = 0;
+
+			str++;
 		}
 	}
 
