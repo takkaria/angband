@@ -173,12 +173,12 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 				return;
 			}
 
-			keycode_t kc = keycode_find_code(str, (size_t) (end - str));
-			if (!kc) {
+			keycode_t code = keycode_find_code(str, (size_t) (end - str));
+			if (!code) {
 				return;
 			}
 
-			STORE(buf, cur++, mods, kc);
+			STORE(buf, cur++, mods, code);
 			mods = 0;
 			str = end + 1;
 		} else if (*str == '{') {
