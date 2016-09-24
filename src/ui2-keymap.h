@@ -23,7 +23,7 @@
 
 /**
  * Maximum number of keypresses a trigger can map to.
-*/
+ */
 #define KEYMAP_ACTION_MAX 20
 
 #define KEYMAP_MODE_OPT \
