@@ -262,7 +262,10 @@ void keypress_to_text(char *buf, size_t len,
 			strnfcat(buf, len, &end, "[%s]", desc);
 		} else {
 			switch (code) {
-				case '\a': strnfcat(buf, len, &end, "\\a"); break;
+				case '\a':
+					strnfcat(buf, len, &end, "\\a");
+					break;
+
 				case '\\':
 					if (expand_backslash) {
 						strnfcat(buf, len, &end, "\\\\");
@@ -271,8 +274,14 @@ void keypress_to_text(char *buf, size_t len,
 					}
 					break;
 
-				case '^': strnfcat(buf, len, &end, "\\^"); break;
-				case '[': strnfcat(buf, len, &end, "\\["); break;
+				case '^':
+					strnfcat(buf, len, &end, "\\^");
+					break;
+
+				case '[':
+					strnfcat(buf, len, &end, "\\[");
+					break;
+
 				default:
 					if (code < 127) {
 						strnfcat(buf, len, &end, "%c", code);
