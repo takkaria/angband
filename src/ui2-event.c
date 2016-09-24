@@ -207,6 +207,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			/* Skip ending bracket */
 			str++;
 		} else if (*str == '^') {
+			/* Shorthand for control modifier */
 			mods |= KC_MOD_CONTROL;
 			str++;
 		} else {
