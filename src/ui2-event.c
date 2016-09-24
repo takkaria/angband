@@ -232,16 +232,16 @@ void keypress_to_text(char *buf, size_t len,
 	size_t end = 0;
 
 	while (src[cur].type == EVT_KBRD) {
-		keycode_t i = src[cur].code;
+		keycode_t code = src[cur].code;
 		int mods = src[cur].mods;
-		const char *desc = keycode_find_desc(i);
+		const char *desc = keycode_find_desc(code);
 
 		/* un-ktrl control characters if they don't have a description */
 		/* this is so that Tab (^I) doesn't get turned into ^I but gets
 		 * displayed as [Tab] */
-		if (i < 0x20 && !desc) {
+		if (code < 0x20 && !desc) {
 			mods |= KC_MOD_CONTROL;
-			i = UN_KTRL(i);
+			code = UN_KTRL(code);
 		}
 
 		if (mods) {
@@ -261,7 +261,7 @@ void keypress_to_text(char *buf, size_t len,
 		if (desc) {
 			strnfcat(buf, len, &end, "[%s]", desc);
 		} else {
-			switch (i) {
+			switch (code) {
 				case '\a': strnfcat(buf, len, &end, "\\a"); break;
 				case '\\':
 					if (expand_backslash) {
@@ -274,10 +274,10 @@ void keypress_to_text(char *buf, size_t len,
 				case '^': strnfcat(buf, len, &end, "\\^"); break;
 				case '[': strnfcat(buf, len, &end, "\\["); break;
 				default:
-					if (i < 127) {
-						strnfcat(buf, len, &end, "%c", i);
+					if (code < 127) {
+						strnfcat(buf, len, &end, "%c", code);
 					} else {
-						strnfcat(buf, len, &end, "\\x%02x", (int) i);
+						strnfcat(buf, len, &end, "\\x%02x", (int) code);
 					}
 					break;
 			}
