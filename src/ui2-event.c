@@ -311,8 +311,8 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src)
 	int mods = src.mods;
 	const char *desc = keycode_find_desc(i);
 
-	/* un-ktrl control characters if they don't have a description */
-	/* this is so that Tab (^I) doesn't get turned into ^I but gets
+	/* UN_KTRL() control characters if they don't have a description
+	 * this is so that Tab (^I) doesn't get turned into ^I but gets
 	 * displayed as [Tab] */
 	if (i < 0x20 && !desc) {
 		mods |= KC_MOD_CONTROL;
