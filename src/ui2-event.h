@@ -161,7 +161,7 @@ enum {
 /**
  * Analogous to isdigit() etc in ctypes
  */
-#define isarrow(c)  ((c >= ARROW_DOWN) && (c <= ARROW_UP))
+#define isarrow(c)  (((c) >= ARROW_DOWN) && ((c) <= ARROW_UP))
 
 /**
  * Type capable of holding any input key we might want to use.
