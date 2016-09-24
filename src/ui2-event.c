@@ -236,8 +236,8 @@ void keypress_to_text(char *buf, size_t len,
 		int mods = src[cur].mods;
 		const char *desc = keycode_find_desc(code);
 
-		/* un-ktrl control characters if they don't have a description */
-		/* this is so that Tab (^I) doesn't get turned into ^I but gets
+		/* UN_KTRL() control characters if they don't have a description
+		 * this is so that Tab (^I) doesn't get turned into ^I but gets
 		 * displayed as [Tab] */
 		if (code < 0x20 && !desc) {
 			mods |= KC_MOD_CONTROL;
