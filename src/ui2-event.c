@@ -340,6 +340,8 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src)
 		strnfcat(buf, len, &end, "%c", (int) code);
 	}
 
+	assert(end < len);
+
 	/* Terminate */
 	buf[end] = '\0';
 }
