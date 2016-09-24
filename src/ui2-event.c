@@ -295,6 +295,8 @@ void keypress_to_text(char *buf, size_t len,
 		cur++;
 	}
 
+	assert(end < len);
+
 	/* Terminate */
 	buf[end] = '\0';
 }
