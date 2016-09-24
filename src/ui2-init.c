@@ -69,6 +69,9 @@ void textui_cleanup(void)
 	/* Cleanup any options menus */
 	cleanup_options();
 
+	/* Cleanup keymaps */
 	keymap_free();
+
+	/* Cleanup arrays of glyphs */
 	textui_prefs_free();
 }
