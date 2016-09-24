@@ -307,22 +307,22 @@ void keypress_to_text(char *buf, size_t len,
 void keypress_to_readable(char *buf, size_t len, struct keypress src)
 {
 	size_t end = 0;
-	keycode_t i = src.code;
+	keycode_t code = src.code;
 	int mods = src.mods;
-	const char *desc = keycode_find_desc(i);
+	const char *desc = keycode_find_desc(code);
 
 	/* UN_KTRL() control characters if they don't have a description
 	 * this is so that Tab (^I) doesn't get turned into ^I but gets
 	 * displayed as [Tab] */
-	if (i < 0x20 && !desc) {
+	if (code < 0x20 && !desc) {
 		mods |= KC_MOD_CONTROL;
-		i = UN_KTRL(i);
+		code = UN_KTRL(code);
 	}
 
 	if (mods) {
 		if (mods & KC_MOD_CONTROL
 				&& !(mods & ~KC_MOD_CONTROL)
-				&& i != '^')
+				&& code != '^')
 		{
 			strnfcat(buf, len, &end, "^");
 		} else {
@@ -337,7 +337,7 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src)
 	if (desc) {
 		strnfcat(buf, len, &end, "%s", desc);
 	} else {
-		strnfcat(buf, len, &end, "%c", i);
+		strnfcat(buf, len, &end, "%c", code);
 	}
 
 	/* Terminate */
