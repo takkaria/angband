@@ -208,8 +208,8 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			str++;
 		} else if (*str == '^') {
 			/* Shorthand for Ctrl */
-			mods |= KC_MOD_CONTROL;
 			str++;
+			mods |= KC_MOD_CONTROL;
 		} else {
 			/* Everything else */
 			STORE(buf, cur++, mods, *str++);
