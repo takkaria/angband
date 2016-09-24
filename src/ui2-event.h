@@ -22,20 +22,20 @@
  * The various UI events that can occur.
  */
 typedef enum {
-	EVT_NONE	= 0x0000,
+	EVT_NONE = 0,
 
 	/* Basic events */
-	EVT_KBRD	= 0x0001,	/* Keypress */
-	EVT_MOUSE	= 0x0002,	/* Mousepress */
-	EVT_RESIZE	= 0x0004,	/* Display resize */
+	EVT_KBRD,   /* Keypress */
+	EVT_MOUSE,  /* Mousepress */
+	EVT_RESIZE, /* Display resize */
 
-	EVT_BUTTON	= 0x0008,	/* Button press */
+	EVT_BUTTON, /* Button press */
 
 	/* 'Abstract' events */
-	EVT_ESCAPE	= 0x0010,	/* Get out of this menu */
-	EVT_MOVE	= 0x0020,	/* Menu movement */
-	EVT_SELECT	= 0x0040,	/* Menu selection */
-	EVT_SWITCH	= 0x0080	/* Menu switch */
+	EVT_ESCAPE, /* Get out of this menu */
+	EVT_MOVE,   /* Menu movement */
+	EVT_SELECT, /* Menu selection */
+	EVT_SWITCH, /* Menu switch */
 } ui_event_type;
 
 /**
