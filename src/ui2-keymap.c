@@ -30,7 +30,7 @@
  * with a keypress with type == EVT_NONE.
  *
  * XXX We should note when we read in keymaps that are "official game" keymaps
- * and ones which are user-defined.  Then we can avoid writing out official
+ * and ones which are user-defined. Then we can avoid writing out official
  * game ones and messing up everyone's pref files with a load of junk.
  */
 
