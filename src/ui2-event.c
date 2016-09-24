@@ -135,7 +135,9 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 		buf[cur].type = EVT_KBRD;
 
 		if (*str == '\\') {
-			if (*++str == '\0') {
+
+			str++;
+			if (*str == '\0') {
 				break;
 			}
 
