@@ -130,7 +130,6 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 	buffer[p].code = c; \
 } while (0)
 
-	/* Analyze the ascii string */
 	while (*str && cur < len) {
 		buf[cur].type = EVT_KBRD;
 
@@ -149,10 +148,10 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 					{
 						int v1 = dehex(*++str) * 16;
 						int v2 = dehex(*++str);
-						/* store a nice hex digit */
+						/* Store a nice hex digit */
 						STORE(buf, cur++, mods, v1 + v2);
 					} else {
-						/* invalids get ignored */
+						/* Invalids get ignored */
 						STORE(buf, cur++, mods, '?');
 					}
 					break;
@@ -207,9 +206,9 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			/* Skip ending bracket */
 			str++;
 		} else if (*str == '^') {
-			/* Shorthand for Ctrl */
-			str++;
+			/* Shorthand for "control" */
 			mods |= KC_MOD_CONTROL;
+			str++;
 		} else {
 			/* Everything else */
 			STORE(buf, cur++, mods, *str++);
