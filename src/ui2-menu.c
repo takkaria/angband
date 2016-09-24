@@ -644,6 +644,21 @@ void menu_handle_keypress(struct menu *menu,
 }
 
 /**
+ * Check if this event should terminate a menu.
+ *
+ * Returns true if the menu should stop running.
+ */
+static bool menu_stop_event(ui_event event)
+{
+	switch (event.type) {
+		case EVT_SELECT: case EVT_ESCAPE: case EVT_SWITCH:
+			return true;
+		default:
+			return false;
+	}
+}
+
+/**
  * Run a menu.
  *
  * If clear is true, the term is cleared before the menu is drawn
@@ -654,11 +669,10 @@ ui_event menu_select(struct menu *menu)
 	assert(menu->active.h != 0);
 
 	const bool action_ok = mnflag_has(menu->flags, MN_NO_ACTION) ? false : true;
-	const int stop_flags = (EVT_SELECT | EVT_ESCAPE | EVT_SWITCH);
 
 	ui_event in = EVENT_EMPTY;
-	/* Stop on first unhandled event */
-	while ((in.type & stop_flags) == 0) {
+
+	while (!menu_stop_event(in)) {
 		ui_event out = EVENT_EMPTY;
 
 		menu_refresh(menu);
