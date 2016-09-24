@@ -46,7 +46,7 @@ void textui_init(void)
 	/* Initialize graphics info and basic pref data */
 	process_pref_file("pref.prf", false, false);
 
-	/* Sneakily init command list */
+	/* Initialize command list */
 	cmd_init();
 
 	/* Initialize knowledge things */
