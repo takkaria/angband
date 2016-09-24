@@ -660,8 +660,6 @@ static bool menu_stop_event(ui_event event)
 
 /**
  * Run a menu.
- *
- * If clear is true, the term is cleared before the menu is drawn
  */
 ui_event menu_select(struct menu *menu)
 {
