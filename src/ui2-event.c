@@ -277,7 +277,7 @@ void keypress_to_text(char *buf, size_t len,
 					if (code < 127) {
 						strnfcat(buf, len, &end, "%c", code);
 					} else {
-						strnfcat(buf, len, &end, "\\x%02x", (int) code);
+						strnfcat(buf, len, &end, "\\x%02x", (unsigned) code);
 					}
 					break;
 			}
