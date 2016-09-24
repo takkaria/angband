@@ -225,7 +225,7 @@ keycode_t keycode_find_code(const char *str, size_t len);
 /**
  * Given a keycode, return its description
  */
-const char *keycode_find_desc(keycode_t kc);
+const char *keycode_find_desc(keycode_t code);
 
 /**
  * Convert a string of keypresses into their textual representation

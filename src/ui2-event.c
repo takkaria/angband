@@ -78,10 +78,10 @@ keycode_t keycode_find_code(const char *str, size_t len)
 /**
  * Given a keycode, return its textual mapping.
  */
-const char *keycode_find_desc(keycode_t kc)
+const char *keycode_find_desc(keycode_t code)
 {
 	for (size_t i = 0; i < N_ELEMENTS(mappings); i++) {
-		if (mappings[i].code == kc) {
+		if (mappings[i].code == code) {
 			return mappings[i].desc;
 		}
 	}
