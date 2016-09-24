@@ -307,6 +307,7 @@ void keypress_to_text(char *buf, size_t len,
 void keypress_to_readable(char *buf, size_t len, struct keypress src)
 {
 	size_t end = 0;
+
 	keycode_t code = src.code;
 	int mods = src.mods;
 	const char *desc = keycode_find_desc(code);
