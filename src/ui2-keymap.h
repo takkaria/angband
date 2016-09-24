@@ -42,7 +42,7 @@ enum {
 /**
  * Given a keymap mode and a keypress, return any attached action.
  */
-const struct keypress *keymap_find(int keymap, struct keypress kc);
+const struct keypress *keymap_find(int keymap, struct keypress key);
 
 /**
  * Given a keymap mode, a trigger, and an action, store it in the keymap list.
