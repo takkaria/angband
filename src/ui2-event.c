@@ -167,7 +167,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			/* Skip the final char */
 			str++;
 		} else if (*str == '[') {
-			/* Parse non-ascii keycodes */
+			/* Non-ascii keycodes */
 			str++;
 
 			char *end = strchr(str, (unsigned char) ']');
@@ -184,7 +184,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			mods = 0;
 			str = end + 1;
 		} else if (*str == '{') {
-			/* Specify modifier for next character */
+			/* Modifiers for next character */
 			str++;
 			if (!strchr(str, (unsigned char) '}')) {
 				return;
@@ -207,7 +207,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			/* Skip ending bracket */
 			str++;
 		} else if (*str == '^') {
-			/* Shorthand for control modifier */
+			/* Shorthand for Ctrl */
 			mods |= KC_MOD_CONTROL;
 			str++;
 		} else {
