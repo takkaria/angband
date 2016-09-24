@@ -337,7 +337,7 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src)
 	if (desc) {
 		strnfcat(buf, len, &end, "%s", desc);
 	} else {
-		strnfcat(buf, len, &end, "%c", code);
+		strnfcat(buf, len, &end, "%c", (int) code);
 	}
 
 	/* Terminate */
