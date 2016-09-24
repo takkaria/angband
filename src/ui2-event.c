@@ -130,7 +130,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 	buffer[p].code = c; \
 } while (0)
 
-	/* Analyze the "ascii" string */
+	/* Analyze the ascii string */
 	while (*str && cur < len) {
 		buf[cur].type = EVT_KBRD;
 
