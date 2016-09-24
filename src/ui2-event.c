@@ -167,7 +167,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			/* Skip the final char */
 			str++;
 		} else if (*str == '[') {
-			/* parse non-ascii keycodes */
+			/* Parse non-ascii keycodes */
 			str++;
 
 			char *end = strchr(str, (unsigned char) ']');
@@ -190,7 +190,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 				return;
 			}
 
-			/* analyze modifier chars */
+			/* Analyze modifier chars */
 			while (*str != '}') {
 				switch (*str) {
 					case '^': mods |= KC_MOD_CONTROL; break;
@@ -204,13 +204,13 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 				str++;
 			}
 
-			/* skip ending bracket */
+			/* Skip ending bracket */
 			str++;
 		} else if (*str == '^') {
 			mods |= KC_MOD_CONTROL;
 			str++;
 		} else {
-			/* everything else */
+			/* Everything else */
 			STORE(buf, cur++, mods, *str++);
 			mods = 0;
 		}
