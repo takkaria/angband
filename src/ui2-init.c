@@ -1,5 +1,5 @@
 /**
- * \file ui-init.c
+ * \file ui2-init.c
  * \brief UI initialistion
  *
  * Copyright (c) 2015 Nick McConnell
