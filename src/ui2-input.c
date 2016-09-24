@@ -209,8 +209,7 @@ struct keypress inkey_only_key(void)
 
 	while (event.type != EVT_ESCAPE
 			&& event.type != EVT_KBRD
-			&& event.type != EVT_MOUSE
-			&& event.type != EVT_BUTTON)
+			&& event.type != EVT_MOUSE)
 	{
 		event = inkey_simple();
 	}
@@ -230,8 +229,6 @@ struct keypress inkey_only_key(void)
 			event.key.code = ESCAPE;
 			event.key.mods = 0;
 		}
-	} else if (event.type == EVT_BUTTON) {
-		event.type = EVT_KBRD;
 	}
 
 	return event.key;
@@ -246,8 +243,7 @@ ui_event inkey_mouse_or_key(void)
 
 	while (event.type != EVT_ESCAPE
 			&& event.type != EVT_KBRD
-			&& event.type != EVT_MOUSE
-			&& event.type != EVT_BUTTON)
+			&& event.type != EVT_MOUSE)
 	{
 		event = inkey_simple();
 	}
@@ -256,8 +252,6 @@ ui_event inkey_mouse_or_key(void)
 		event.type = EVT_KBRD;
 		event.key.code = ESCAPE;
 		event.key.mods = 0;
-	} else if (event.type == EVT_BUTTON) {
-		event.type = EVT_KBRD;
 	}
 
 	return event;

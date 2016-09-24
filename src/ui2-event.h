@@ -29,8 +29,6 @@ typedef enum {
 	EVT_MOUSE,  /* Mousepress */
 	EVT_RESIZE, /* Display resize */
 
-	EVT_BUTTON, /* Button press */
-
 	/* 'Abstract' events */
 	EVT_ESCAPE, /* Get out of this menu */
 	EVT_MOVE,   /* Menu movement */

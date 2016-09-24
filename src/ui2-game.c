@@ -283,7 +283,7 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 			textui_process_click(event);
 			return true;
 
-		case EVT_BUTTON: case EVT_KBRD:
+		case EVT_KBRD:
 			if (textui_process_key(event.key, key)) {
 				if (*key == KC_ENTER) {
 					*cmd = textui_action_menu_choose();

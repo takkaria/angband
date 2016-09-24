@@ -1111,7 +1111,7 @@ void do_cmd_change_name(void)
 
 		ui_event event = inkey_simple();
 
-		if (event.type == EVT_KBRD || event.type == EVT_BUTTON) {
+		if (event.type == EVT_KBRD) {
 			switch (event.key.code) {
 				case ESCAPE:
 					done = true;
