@@ -245,7 +245,7 @@ void keypress_to_text(char *buf, size_t len,
 		}
 
 		if (mods) {
-			if (mods & KC_MOD_CONTROL && !(mods & ~KC_MOD_CONTROL)) {
+			if ((mods & KC_MOD_CONTROL) && !(mods & ~KC_MOD_CONTROL)) {
 				strnfcat(buf, len, &end, "^");			
 			} else {
 				strnfcat(buf, len, &end, "{");
@@ -319,7 +319,7 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src)
 	}
 
 	if (mods) {
-		if (mods & KC_MOD_CONTROL
+		if ((mods & KC_MOD_CONTROL)
 				&& !(mods & ~KC_MOD_CONTROL)
 				&& code != '^')
 		{
