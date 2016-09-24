@@ -26,7 +26,7 @@
  */
 static void print_history_header(void)
 {
-	Term_adds(0, 0, 24, COLOUR_L_BLUE, "      Turn   Depth  Note");
+	Term_addws(0, 0, 24, COLOUR_L_BLUE, L"      Turn   Depth  Note");
 }
 
 static void show_history_prompt(void)
