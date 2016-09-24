@@ -169,12 +169,12 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
 			str++;
 
 			char *end = strchr(str, (unsigned char) ']');
-			if (!end) {
+			if (end == NULL) {
 				return;
 			}
 
 			keycode_t code = keycode_find_code(str, (size_t) (end - str));
-			if (!code) {
+			if (code == 0) {
 				return;
 			}
 
