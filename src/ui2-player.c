@@ -877,7 +877,7 @@ void display_player(enum player_display_mode mode)
 
 static void dump_term_line(ang_file *file, int x, int y, int len)
 {
-	char buf[ANGBAND_TERM_STANDARD_WIDTH * MB_LEN_MAX];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH * MB_LEN_MAX + 1];
 
 	size_t size = 0;
 
