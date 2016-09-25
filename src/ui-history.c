@@ -129,7 +129,7 @@ void dump_history(ang_file *file)
 	size_t i;
 	char buf[120];
 
-	file_putf(file, "[Player history]\n");
+	file_putf(file, "  [Player history]\n");
 	file_putf(file, "      Turn   Depth  Note\n");
 
 	for (i = 0; i < max_item; i++) {

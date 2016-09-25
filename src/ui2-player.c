@@ -884,6 +884,14 @@ static void write_character_dump(ang_file *file)
 
 	file_putf(file, "  [%s Character Dump]\n\n", buildid);
 
+	struct term_hints hints = {
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+
 	display_player(PLAYER_DISPLAY_MODE_BASIC);
 
 	for (int y = 1; y < 23; y++) {
@@ -892,6 +900,10 @@ static void write_character_dump(ang_file *file)
 		for (int x = 0; x < 79; x++) {
 			struct term_point point;
 			Term_get_point(x, y, &point);
+
+			if (point.fg_char == 0) {
+				point.fg_char = L' ';
+			}
 
 			b += wctomb(b, point.fg_char);
 		}
@@ -916,6 +928,10 @@ static void write_character_dump(ang_file *file)
 			struct term_point point;
 			Term_get_point(x, y, &point);
 
+			if (point.fg_char == 0) {
+				point.fg_char = L' ';
+			}
+
 			b += wctomb(b, point.fg_char);
 		}
 
@@ -936,6 +952,10 @@ static void write_character_dump(ang_file *file)
 		for (int x = 0; x < 39; x++) {
 			struct term_point point;
 			Term_get_point(x + 40, y, &point);
+
+			if (point.fg_char == 0) {
+				point.fg_char = L' ';
+			}
 
 			b += wctomb(b, point.fg_char);
 		}
@@ -964,7 +984,7 @@ static void write_character_dump(ang_file *file)
 		file_putf(file, "\nKilled by %s.\n\n", player->died_from);
 	}
 
-	char o_name[80];
+	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 
 	/* Dump the equipment */
 	file_putf(file, "  [Character Equipment]\n\n");
@@ -1052,6 +1072,7 @@ static void write_character_dump(ang_file *file)
 	}
 
 	mem_free(home_list);
+	Term_pop();
 }
 
 /**
