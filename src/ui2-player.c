@@ -1200,11 +1200,11 @@ void do_cmd_change_name(void)
 					break;
 				}
 				
-				case 'l': case ARROW_LEFT:
+				case 'h': case ARROW_LEFT:
 					change_player_mode(ARROW_LEFT, &mode, &change);
 					break;
 
-				case 'h': case ARROW_RIGHT: case ' ':
+				case 'l': case ARROW_RIGHT: case ' ':
 					change_player_mode(ARROW_RIGHT, &mode, &change);
 					break;
 
