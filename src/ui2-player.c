@@ -63,7 +63,8 @@ struct panel {
 /**
  * Allocate some panel lines
  */
-static struct panel *panel_allocate(size_t size) {
+static struct panel *panel_allocate(size_t size)
+{
 	struct panel *p = mem_zalloc(sizeof(*p));
 
 	p->next = 0;
@@ -76,7 +77,8 @@ static struct panel *panel_allocate(size_t size) {
 /**
  * Free up panel lines
  */
-static void panel_free(struct panel *p) {
+static void panel_free(struct panel *p)
+{
 	assert(p);
 	mem_free(p->lines);
 	mem_free(p);
@@ -111,7 +113,8 @@ static void panel_line(struct panel *p,
 /**
  * Add a spacer line in a panel
  */
-static void panel_space(struct panel *p) {
+static void panel_space(struct panel *p)
+{
 	assert(p);
 	assert(p->next < p->size);
 	p->next++;
