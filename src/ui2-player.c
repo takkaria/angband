@@ -828,7 +828,7 @@ static const struct {
 	{{52, 9, 20, 8}, false, get_panel_skills},
 };
 
-void display_player_xtra_info(void)
+void display_player_basic_info(void)
 {
 	for (size_t i = 0; i < N_ELEMENTS(panels); i++) {
 		struct panel *p = panels[i].panel();
@@ -860,7 +860,7 @@ void display_player(enum player_display_mode mode)
 	display_player_stat_info();
 
 	if (mode == PLAYER_DISPLAY_MODE_BASIC) {
-		display_player_xtra_info();
+		display_player_basic_info();
 	} else if (mode == PLAYER_DISPLAY_MODE_EXTRA) {
 		struct panel *p = panels[0].panel();
 		display_panel(p, panels[0].align_left, panels[0].bounds);

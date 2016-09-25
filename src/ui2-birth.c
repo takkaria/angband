@@ -769,7 +769,7 @@ static void point_based_misc(game_event_type type,
 	(void) data;
 	(void) user;
 
-	display_player_xtra_info();
+	display_player_basic_info();
 }
 
 /**
@@ -811,7 +811,7 @@ static void point_based_start(void)
 
 	Term_clear();
 
-	display_player_xtra_info();
+	display_player_basic_info();
 	display_player_stat_info();
 
 	show_prompt(prompt, false);
