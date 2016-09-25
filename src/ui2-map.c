@@ -100,6 +100,10 @@ static void grid_get_terrain(const struct grid_data *g, struct term_point *point
 		} else {
 			point->terrain_attr = COLOUR_DARK;
 		}
+	} else {
+		/* Some tiles can be missing, and in this case we draw text
+		 * even in tiles mode, so it's better to initialize this */
+		point->terrain_attr = COLOUR_DARK;
 	}
 }
 
