@@ -1090,9 +1090,9 @@ static void change_player_mode(keycode_t code,
 
 				size_t tab = 0;
 				if (code == ARROW_LEFT) {
-					tab = (i + 1) % N_ELEMENTS(player_display_tabs);
-				} else if (code == ARROW_RIGHT) {
 					tab = i > 0 ? i - 1 : N_ELEMENTS(player_display_tabs) - 1;
+				} else if (code == ARROW_RIGHT) {
+					tab = (i + 1) % N_ELEMENTS(player_display_tabs);
 				}
 
 				*mode = player_display_tabs[tab].mode;
