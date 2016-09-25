@@ -890,8 +890,8 @@ static void dump_term_line(ang_file *file, int x, int y, int len)
 		}
 
 		if (size + MB_LEN_MAX < sizeof(buf)) {
-			size_t n = wctomb(buf + size, point.fg_char);
-			assert(n != (size_t) -1);
+			int n = wctomb(buf + size, point.fg_char);
+			assert(n != -1);
 
 			size += n;
 		}
