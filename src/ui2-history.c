@@ -134,7 +134,7 @@ void dump_history(ang_file *file)
 	struct history_info *history_list_local = NULL;
 	size_t max_item = history_get_list(&history_list_local);
 
-	file_putf(file, "[Player history]\n");
+	file_putf(file, "  [Player history]\n");
 	file_putf(file, "      Turn   Depth  Note\n");
 
 	for (size_t i = 0; i < max_item; i++) {
