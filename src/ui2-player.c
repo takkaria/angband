@@ -1079,7 +1079,7 @@ static const struct {
 	{'2', "Extra", PLAYER_DISPLAY_MODE_EXTRA},
 };
 
-static void change_player_mode(keycode_t code,
+static void change_player_display_mode(keycode_t code,
 		enum player_display_mode *mode, bool *change)
 {
 	if (code == ARROW_LEFT || code == ARROW_RIGHT) {
@@ -1201,20 +1201,20 @@ void do_cmd_change_name(void)
 				}
 				
 				case 'h': case ARROW_LEFT:
-					change_player_mode(ARROW_LEFT, &mode, &change);
+					change_player_display_mode(ARROW_LEFT, &mode, &change);
 					break;
 
 				case 'l': case ARROW_RIGHT: case ' ':
-					change_player_mode(ARROW_RIGHT, &mode, &change);
+					change_player_display_mode(ARROW_RIGHT, &mode, &change);
 					break;
 
 				default:
-					change_player_mode(event.key.code, &mode, &change);
+					change_player_display_mode(event.key.code, &mode, &change);
 					break;
 			}
 		} else if (event.type == EVT_MOUSE) {
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
-				change_player_mode(ARROW_RIGHT, &mode, &change);
+				change_player_display_mode(ARROW_RIGHT, &mode, &change);
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 				done = true;
 			}
