@@ -26,9 +26,8 @@
  */
 static void print_history_header(void)
 {
-	const wchar_t header[] = L"      Turn   Depth  Note";
-
-	Term_addws(0, 0, sizeof(header) - 1, COLOUR_L_BLUE, header);
+	Term_addws(0, 0, TERM_MAX_LEN,
+			COLOUR_L_BLUE, L"      Turn   Depth  Note");
 }
 
 static void show_history_prompt(void)
