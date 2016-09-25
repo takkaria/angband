@@ -48,7 +48,6 @@ enum term_point_flags {
 #define tpf_negate(f)           flag_negate(f, TPF_SIZE)
 #define tpf_copy(f1, f2)        flag_copy(f1, f2, TPF_SIZE)
 #define tpf_union(f1, f2)       flag_union(f1, f2, TPF_SIZE)
-#define tpf_comp_union(f1, f2)  flag_comp_union(f1, f2, TPF_SIZE)
 #define tpf_inter(f1, f2)       flag_inter(f1, f2, TPF_SIZE)
 #define tpf_diff(f1, f2)        flag_diff(f1, f2, TPF_SIZE)
 
