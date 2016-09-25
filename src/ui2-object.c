@@ -298,7 +298,7 @@ static void set_olist_extra(struct object_menu_list *olist, int mode)
 	 * we should use standard width, since the temporary term
 	 * is not pushed on the stack yet */
 	const size_t term_width =
-		(mode & OLIST_WINDOW) ?  Term_width() : ANGBAND_TERM_STANDARD_WIDTH;
+		(mode & OLIST_WINDOW) ? Term_width() : ANGBAND_TERM_STANDARD_WIDTH;
 
 	/* Don't show objects weight if the subwindow is not big enought */
 	if ((mode & OLIST_WINDOW)
