@@ -85,6 +85,9 @@ static struct keypress *keymap_make(const struct keypress *actions)
 	struct keypress *new = mem_zalloc(n * sizeof(*new));
 	memcpy(new, actions, n * sizeof(*new));
 
+	/* KEYPRESS_NULL should already terminate "actions", but anyway */
+	new[n - 1] = KEYPRESS_NULL;
+
 	return new;
 }
 
