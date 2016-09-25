@@ -1083,8 +1083,8 @@ static void change_player_mode(keycode_t code,
 		enum player_display_mode *mode, bool *change)
 {
 	if (code == ARROW_LEFT || code == ARROW_RIGHT) {
-		/* If the user pressed arrow left or right,
-		 * choose next or previous player info screen */
+		/* If the user pressed left or right arrow key,
+		 * choose previous or next player info screen */
 		for (size_t i = 0; i < N_ELEMENTS(player_display_tabs); i++) {
 			if (*mode == player_display_tabs[i].mode) {
 
