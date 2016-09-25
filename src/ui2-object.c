@@ -294,7 +294,8 @@ static void set_item_extra(struct object_menu_list *olist, size_t i, int mode)
 
 static void set_olist_extra(struct object_menu_list *olist, int mode)
 {
-	const size_t term_width = Term_width();
+	const size_t term_width =
+		(mode & OLIST_WINDOW) ?  Term_width() : ANGBAND_TERM_STANDARD_WIDTH;
 
 	/* Don't show objects weight if the subwindow is not big enought */
 	if ((mode & OLIST_WINDOW)
