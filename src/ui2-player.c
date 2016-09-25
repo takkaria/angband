@@ -1070,20 +1070,75 @@ bool dump_save(const char *path)
 	return true;
 }
 
-/* Number of screens in character info mode */
-#define INFO_SCREENS 2
+static const struct {
+	keycode_t code;
+	const char *label;
+	enum player_display_mode mode;
+} player_display_tabs[] = {
+	{'1', "Basic", PLAYER_DISPLAY_MODE_BASIC},
+	{'2', "Extra", PLAYER_DISPLAY_MODE_EXTRA},
+};
 
-static int change_mode(int mode, int inc)
+static void change_player_mode(keycode_t code,
+		enum player_display_mode *mode, bool *change)
 {
-	mode += inc;
+	if (code == ARROW_LEFT || code == ARROW_RIGHT) {
+		/* If the user pressed arrow left or right,
+		 * choose next or previous player info screen */
+		for (size_t i = 0; i < N_ELEMENTS(player_display_tabs); i++) {
+			if (*mode == player_display_tabs[i].mode) {
 
-	if (mode > INFO_SCREENS - 1) {
-		mode = 0;
-	} else if (mode < 0) {
-		mode = INFO_SCREENS - 1;
+				size_t tab = 0;
+				if (code == ARROW_LEFT) {
+					tab = (i + 1) % N_ELEMENTS(player_display_tabs);
+				} else if (code == ARROW_RIGHT) {
+					tab = i > 0 ? i - 1 : N_ELEMENTS(player_display_tabs) - 1;
+				}
+
+				*mode = player_display_tabs[tab].mode;
+				*change = true;
+
+				return;
+			}
+		}
+	} else {
+		/* If the user pressed some other key, it was probably
+		 * a key associated with a term tab; try to find it */
+		for (size_t i = 0; i < N_ELEMENTS(player_display_tabs); i++) {
+			if (code == player_display_tabs[i].code) {
+				if (*mode != player_display_tabs[i].mode) {
+					*mode = player_display_tabs[i].mode;
+					*change = true;
+				}
+
+				return;
+			}
+		}
 	}
+}
 
-	return mode;
+static void player_display_term_push(enum player_display_mode mode)
+{
+	struct term_hints hints = {
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
+		.purpose = TERM_PURPOSE_TEXT,
+		.position = TERM_POSITION_CENTER
+	};
+	Term_push_new(&hints);
+
+	for (size_t i = 0; i < N_ELEMENTS(player_display_tabs); i++) {
+		Term_add_tab(player_display_tabs[i].code,
+				player_display_tabs[i].label,
+				player_display_tabs[i].mode == mode ? COLOUR_WHITE : COLOUR_L_DARK,
+				COLOUR_DARK);
+	}
+}
+
+static void player_display_term_pop()
+{
+	Term_pop();
 }
 
 /**
@@ -1093,21 +1148,23 @@ void do_cmd_change_name(void)
 {
 	const char *prompt = "['c' to change name, 'f' to file, 'h' to change mode, or ESC]";
 
-	struct term_hints hints = {
-		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = ANGBAND_TERM_STANDARD_HEIGHT,
-		.purpose = TERM_PURPOSE_TEXT,
-		.position = TERM_POSITION_CENTER
-	};
-	Term_push_new(&hints);
-
 	show_prompt(prompt, false);
 
-	int mode = 0;
+	enum player_display_mode mode = PLAYER_DISPLAY_MODE_BASIC;
 	bool done = false;
+	bool change = false;
+
+	player_display_term_push(mode);
+	display_player(mode);
 
 	while (!done) {
-		display_player(mode);
+
+		if (change) {
+			player_display_term_pop();
+			player_display_term_push(mode);
+			display_player(mode);
+			change = false;
+		}
 
 		ui_event event = inkey_simple();
 
@@ -1121,6 +1178,7 @@ void do_cmd_change_name(void)
 					char namebuf[32] = "";
 					if (get_character_name(namebuf, sizeof(namebuf))) {
 						my_strcpy(op_ptr->full_name, namebuf, sizeof(op_ptr->full_name));
+						change = true;
 					}
 					break;
 				}
@@ -1142,17 +1200,21 @@ void do_cmd_change_name(void)
 					break;
 				}
 				
-				case 'h': case ARROW_RIGHT: case ' ':
-					mode = change_mode(mode, 1);
+				case 'l': case ARROW_LEFT:
+					change_player_mode(ARROW_LEFT, &mode, &change);
 					break;
 
-				case 'l': case ARROW_LEFT:
-					mode = change_mode(mode, -1);
+				case 'h': case ARROW_RIGHT: case ' ':
+					change_player_mode(ARROW_RIGHT, &mode, &change);
+					break;
+
+				default:
+					change_player_mode(event.key.code, &mode, &change);
 					break;
 			}
 		} else if (event.type == EVT_MOUSE) {
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
-				mode = change_mode(mode, 1);
+				change_player_mode(ARROW_LEFT, &mode, &change);
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 				done = true;
 			}
@@ -1162,6 +1224,5 @@ void do_cmd_change_name(void)
 	}
 
 	clear_prompt();
-
-	Term_pop();
+	player_display_term_pop();
 }
