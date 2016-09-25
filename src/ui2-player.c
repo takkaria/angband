@@ -875,16 +875,44 @@ void display_player(enum player_display_mode mode)
 	Term_flush_output();
 }
 
+static void dump_term_line(ang_file *file, int x, int y, int len)
+{
+	char buf[ANGBAND_TERM_STANDARD_WIDTH * MB_LEN_MAX];
+
+	size_t size = 0;
+
+	for (int endx = x + len; x < endx; x++) {
+		struct term_point point;
+		Term_get_point(x, y, &point);
+
+		if (point.fg_char == 0) {
+			point.fg_char = L' ';
+		}
+
+		if (size + MB_LEN_MAX < sizeof(buf)) {
+			size_t n = wctomb(buf + size, point.fg_char);
+			assert(n != (size_t) -1);
+
+			size += n;
+		}
+	}
+
+	/* Back up over spaces */
+	while (size > 0 && buf[size - 1] == ' ') {
+		size--;
+	}
+
+	assert(size < sizeof(buf));
+	buf[size] = 0;
+
+	file_putf(file, "%s\n", buf);
+}
+
 /**
  * Write a character dump
  */
 static void write_character_dump(ang_file *file)
 {
-	struct store *home = &stores[STORE_HOME];
-	struct object **home_list = mem_zalloc(sizeof(*home_list) * z_info->store_inven_max);
-
-	char buf[1024];
-
 	file_putf(file, "  [%s Character Dump]\n\n", buildid);
 
 	struct term_hints hints = {
@@ -893,86 +921,30 @@ static void write_character_dump(ang_file *file)
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
+
+	/* What a hack */
 	Term_push_new(&hints);
 
 	display_player(PLAYER_DISPLAY_MODE_BASIC);
 
 	for (int y = 1; y < 23; y++) {
-		char *b = buf;
-
-		for (int x = 0; x < 79; x++) {
-			struct term_point point;
-			Term_get_point(x, y, &point);
-
-			if (point.fg_char == 0) {
-				point.fg_char = L' ';
-			}
-
-			b += wctomb(b, point.fg_char);
-		}
-
-		/* Back up over spaces */
-		while (b > buf && b[-1] == ' ') {
-			b--;
-		}
-
-		*b = 0;
-		file_putf(file, "%s\n", buf);
+		dump_term_line(file, 0, y, 80);
 	}
-
 	file_put(file, "\n");
 
 	display_player(PLAYER_DISPLAY_MODE_EXTRA);
 
-	for (int y = 11; y < 20; y++) {
-		char *b = buf;
-
-		for (int x = 0; x < 39; x++) {
-			struct term_point point;
-			Term_get_point(x, y, &point);
-
-			if (point.fg_char == 0) {
-				point.fg_char = L' ';
-			}
-
-			b += wctomb(b, point.fg_char);
-		}
-
-		/* Back up over spaces */
-		while (b > buf && b[-1] == ' ') {
-			b--;
-		}
-
-		*b = 0;
-		file_putf(file, "%s\n", buf);
+	for (int y = 12; y < 21; y++) {
+		dump_term_line(file, 0, y, 40);
 	}
+	file_put(file, "\n");
 
-	file_putf(file, "\n");
-
-	for (int y = 11; y < 20; y++) {
-		char *b = buf;
-
-		for (int x = 0; x < 39; x++) {
-			struct term_point point;
-			Term_get_point(x + 40, y, &point);
-
-			if (point.fg_char == 0) {
-				point.fg_char = L' ';
-			}
-
-			b += wctomb(b, point.fg_char);
-		}
-
-		/* Back up over spaces */
-		while (b > buf && b[-1] == ' ') {
-			b--;
-		}
-
-		*b = 0;
-		file_putf(file, "%s\n", buf);
+	for (int y = 12; y < 21; y++) {
+		dump_term_line(file, 40, y, 40);
 	}
-
 	file_put(file, "\n\n");
+
+	Term_pop();
 
 	if (player->is_dead) {
 		unsigned i = messages_num();
@@ -1002,7 +974,7 @@ static void write_character_dump(ang_file *file)
 	file_put(file, "\n\n");
 
 	/* Dump the inventory */
-	file_putf(file, "\n\n  [Character Inventory]\n\n");
+	file_putf(file, "  [Character Inventory]\n\n");
 	for (int i = 0; i < z_info->pack_size; i++) {
 		struct object *obj = player->upkeep->inven[i];
 		if (obj) {
@@ -1014,7 +986,7 @@ static void write_character_dump(ang_file *file)
 	file_put(file, "\n\n");
 
 	/* Dump the quiver */
-	file_putf(file, "\n\n  [Character Quiver]\n\n");
+	file_putf(file, "  [Character Quiver]\n\n");
 	for (int i = 0; i < z_info->quiver_size; i++) {
 		struct object *obj = player->upkeep->quiver[i];
 		if (obj) {
@@ -1026,15 +998,18 @@ static void write_character_dump(ang_file *file)
 	file_put(file, "\n\n");
 
 	/* Dump the home if anything there */
-	store_stock_list(home, home_list, z_info->store_inven_max);
-	if (home->stock_num > 0) {
+	if (stores[STORE_HOME].stock_num > 0) {
 		file_putf(file, "  [Home Inventory]\n\n");
 
-		for (int i = 0; i < z_info->store_inven_max; i++) {
+		struct object **home_list =
+			mem_zalloc(sizeof(*home_list) * z_info->store_inven_max);
+
+		store_stock_list(&stores[STORE_HOME],
+				home_list, z_info->store_inven_max);
+
+		for (int i = 0; i < stores[STORE_HOME].stock_num; i++) {
 			struct object *obj = home_list[i];
-			if (!obj) {
-				break;
-			}
+
 			object_desc(o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
 			file_putf(file, "%c) %s\n", I2A(i), o_name);
 
@@ -1042,6 +1017,8 @@ static void write_character_dump(ang_file *file)
 		}
 
 		file_put(file, "\n\n");
+
+		mem_free(home_list);
 	}
 
 	/* Dump character history */
@@ -1073,13 +1050,10 @@ static void write_character_dump(ang_file *file)
 			file_put(file, "\n");
 		}
 	}
-
-	mem_free(home_list);
-	Term_pop();
 }
 
 /**
- * Save the lore to a file in the user directory.
+ * Save the character dump to a file in the user directory.
  *
  * \param path is the path to the filename
  * \returns true on success, false otherwise.
