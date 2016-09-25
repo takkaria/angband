@@ -1219,8 +1219,6 @@ void do_cmd_change_name(void)
 				done = true;
 			}
 		}
-
-		event_signal(EVENT_MESSAGE_FLUSH);
 	}
 
 	clear_prompt();
