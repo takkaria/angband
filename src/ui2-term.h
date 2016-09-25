@@ -25,6 +25,10 @@
 #define TERM_STACK_MAX \
 	128
 
+/* Use entire string in Term functions
+ * that take length as a parameter */
+#define TERM_MAX_LEN (-1)
+
 typedef struct term *term;
 
 enum term_point_flags {

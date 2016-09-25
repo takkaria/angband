@@ -287,8 +287,8 @@ static int term_set_ws(int x, int y, int len, uint32_t fga, const wchar_t *ws)
 	STACK_OK();
 	COORDS_OK(x, y);
 
-	assert(*ws != 0);
 	assert(len > 0);
+	assert(*ws != 0);
 
 	const wchar_t *curws = ws;
 
@@ -310,6 +310,10 @@ static bool term_put_ws_at_cursor(int len, uint32_t fga, const wchar_t *ws)
 	STACK_OK();
 	CURSOR_OK();
 
+	if (len == TERM_MAX_LEN) {
+		len = wcslen(ws);
+	}
+
 	TOP->cursor.new.x +=
 		term_set_ws(TOP->cursor.new.x, TOP->cursor.new.y, len, fga, ws);
 
@@ -322,11 +326,17 @@ static void term_wipe_line(int x, int y, int len)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
+
+	if (len == TERM_MAX_LEN) {
+		len = TOP->width - x;
+	}
+
 	assert(len > 0);
 
 	for (int curx = x, z = MIN(x + len, TOP->width); curx < z; curx++) {
 		POINT(curx, y) = TOP->blank;
 	}
+
 	term_mark_line_dirty(x, y, len);
 }
 
@@ -560,15 +570,11 @@ bool Term_putwc(uint32_t fga, wchar_t fgc)
 
 bool Term_putws(int len, uint32_t fga, const wchar_t *fgc)
 {
-	assert(len >= 0);
-
 	return term_put_ws_at_cursor(len, fga, fgc);
 }
 
 bool Term_puts(int len, uint32_t fga, const char *fgc)
 {
-	assert(len >= 0);
-
 	wchar_t ws[WIDESTRING_MAX];
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
 
@@ -584,8 +590,6 @@ bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
 
 bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
 {
-	assert(len >= 0);
-
 	term_move_cursor(x, y);
 
 	return term_put_ws_at_cursor(len, fga, fgc);
@@ -593,8 +597,6 @@ bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
 
 bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
 {
-	assert(len >= 0);
-
 	term_move_cursor(x, y);
 
 	wchar_t ws[WIDESTRING_MAX];
@@ -616,8 +618,6 @@ void Term_add_tab(keycode_t code,
 
 void Term_erase(int x, int y, int len)
 {
-	assert(len > 0);
-
 	term_wipe_line(x, y, len);
 }
 
