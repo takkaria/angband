@@ -664,6 +664,7 @@ static const char *show_depth(void)
 static const char *show_speed(void)
 {
 	static char buffer[10];
+
 	int speed = player->state.speed;
 
 	if (player->timed[TMD_FAST]) {
