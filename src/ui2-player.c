@@ -375,9 +375,6 @@ static void display_player_flag_info(void)
 	}
 }
 
-/**
- * Special display, part 2b
- */
 void display_player_stat_info(void)
 {
 	const int col = 42;
@@ -461,8 +458,6 @@ void display_player_stat_info(void)
 }
 
 /**
- * Special display, part 2c
- *
  * How to print out the modifications and sustains.
  * Positive mods with no sustain will be light green.
  * Positive mods with a sustain will be dark green.
