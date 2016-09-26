@@ -501,11 +501,13 @@ static void display_player_sust_info(void)
 	const int col = 26;
 	const int row = 2;
 
-	struct loc loc;
+	struct loc loc = {
+		.x = col,
+		.y = row - 1
+	};
 
-	loc.x = col;
-	loc.y = row - 1;
-	c_put_str(COLOUR_WHITE, "abcdefghijkl@", loc);
+	Term_adds(loc.x, loc.y, player->body.count, COLOUR_WHITE, lower_case);
+	Term_putwc(COLOUR_WHITE, L'@');
 
 	bitflag f[OF_SIZE];
 
@@ -568,11 +570,10 @@ static void display_player_sust_info(void)
 	}
 
 	loc.x = col;
+	Term_adds(loc.x, loc.y, player->body.count, COLOUR_WHITE, lower_case);
+	Term_putwc(COLOUR_WHITE, L'@');
 
-	loc.y = row + STAT_MAX;
-	c_put_str(COLOUR_WHITE, "abcdefghijkl@", loc);
-
-	loc.y = row + STAT_MAX + 1;
+	loc.y++;
 	display_player_equippy(loc);
 }
 
