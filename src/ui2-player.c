@@ -495,7 +495,7 @@ static void display_player_sust_info(void)
 				stat++, loc.y++)
 		{
 			uint32_t attr = COLOUR_SLATE;
-			wchar_t ch = '.';
+			wchar_t ch = L'.';
 
 			if (obj->modifiers[stat] > 0) {
 				attr = COLOUR_L_GREEN;
@@ -511,15 +511,15 @@ static void display_player_sust_info(void)
 
 			if (of_has(f, sustain_flag(stat))) {
 				attr = COLOUR_GREEN;
-				if (ch == '.') {
-					ch = 's';
+				if (ch == L'.') {
+					ch = L's';
 				}
 			}
 
-			if (ch == '.' && obj &&
+			if (ch == L'.' && obj &&
 					!object_flag_is_known(obj, sustain_flag(stat)))
 			{
-				ch = '?';
+				ch = L'?';
 			}
 
 			Term_addwc(loc.x, loc.y, attr, ch);
@@ -534,11 +534,11 @@ static void display_player_sust_info(void)
 	for (int stat = 0; stat < STAT_MAX; stat++, loc.y++) {
 		/* Default */
 		uint32_t attr = COLOUR_SLATE;
-		wchar_t ch = '.';
+		wchar_t ch = L'.';
 
 		if (of_has(f, sustain_flag(stat))) {
 			attr = COLOUR_GREEN;
-			ch = 's';
+			ch = L's';
 		}
 
 		Term_addwc(loc.x, loc.y, attr, ch);
