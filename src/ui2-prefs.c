@@ -931,7 +931,6 @@ static enum parser_error parse_prefs_message(struct parser *p)
 	const char *attr = parser_getsym(p, "attr");
 
 	int msg_index = message_lookup_by_name(type);
-
 	if (msg_index < 0) {
 		return PARSE_ERROR_INVALID_MESSAGE;
 	}
