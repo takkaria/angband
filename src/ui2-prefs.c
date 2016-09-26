@@ -1037,8 +1037,7 @@ static void print_error(const char *name, struct parser *p) {
  *
  * \param path is the name of the pref file.
  * \param quiet means "don't complain about not finding the file".
- * \param user should be true if the pref file is user-specific and not a game
- * default.
+ * \param user should be true if the pref file is user-specific and not a game default.
  */
 static bool process_pref_file_named(const char *path, bool quiet, bool user) {
 	ang_file *file = file_open(path, MODE_READ, -1);
