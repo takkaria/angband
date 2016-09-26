@@ -296,7 +296,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 			/* Set which (if any) symbol and color are used */
 			if (rec[i].mod != -1) {
 				if (j < player->body.count) {
-					res = obj && (obj->modifiers[rec[i].mod] != 0);
+					res = obj && obj->modifiers[rec[i].mod] != 0;
 				} else {
 					/* Messy special cases */
 					if (rec[i].mod == OBJ_MOD_INFRA) {
