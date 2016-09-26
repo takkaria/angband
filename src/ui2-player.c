@@ -387,29 +387,48 @@ static void display_player_flag_info(void)
 	}
 }
 
+static void player_stat_info_new_col(const int col, struct loc *loc)
+{
+	int x = loc->x - col;
+
+	switch (x) {
+		case 0:  loc->x = col + 5;  break;
+		case 5:  loc->x = col + 12; break;
+		case 12: loc->x = col + 16; break;
+		case 16: loc->x = col + 20; break;
+		case 20: loc->x = col + 24; break;
+		case 24: loc->x = col + 31; break;
+
+		default:
+			quit_fmt("%s: bad loc (%d, %d)", __func__, loc->x, loc->y);
+			break;
+	}
+}
+
 void display_player_stat_info(void)
 {
 	const int col = 42;
 	const int row = 2;
 
-	struct loc loc;
+	struct loc loc = {
+		.x = col,
+		.y = row - 1
+	};
 
 	/* Print out the labels for the columns */
-	loc.y = row - 1;
-
-	loc.x = col + 5;
+	player_stat_info_new_col(col, &loc);
 	c_put_str(COLOUR_WHITE, "  Self", loc);
 
-	loc.x = col + 12;
+	player_stat_info_new_col(col, &loc);
 	c_put_str(COLOUR_WHITE, " RB",    loc);
 
-	loc.x = col + 16;
+	player_stat_info_new_col(col, &loc);
 	c_put_str(COLOUR_WHITE, " CB",    loc);
 
-	loc.x = col + 20;
+	player_stat_info_new_col(col, &loc);
 	c_put_str(COLOUR_WHITE, " EB",    loc);
 
-	loc.x = col + 24;
+	player_stat_info_new_col(col, &loc);
 	c_put_str(COLOUR_WHITE, "  Best", loc);
 
 	loc.y = row;
@@ -434,34 +453,34 @@ void display_player_stat_info(void)
 		char buf[80];
 
 		/* Internal "natural" maximum value */
-		loc.x = col + 5;
+		player_stat_info_new_col(col, &loc);
 		cnv_stat(player->stat_max[i], buf, sizeof(buf));
 		c_put_str(COLOUR_L_GREEN, buf, loc);
 
 		/* Race Bonus */
-		loc.x = col + 12;
+		player_stat_info_new_col(col, &loc);
 		strnfmt(buf, sizeof(buf), "%+3d", player->race->r_adj[i]);
 		c_put_str(COLOUR_L_BLUE, buf, loc);
 
 		/* Class Bonus */
-		loc.x = col + 16;
+		player_stat_info_new_col(col, &loc);
 		strnfmt(buf, sizeof(buf), "%+3d", player->class->c_adj[i]);
 		c_put_str(COLOUR_L_BLUE, buf, loc);
 
 		/* Equipment Bonus */
-		loc.x = col + 20;
+		player_stat_info_new_col(col, &loc);
 		strnfmt(buf, sizeof(buf), "%+3d", player->state.stat_add[i]);
 		c_put_str(COLOUR_L_BLUE, buf, loc);
 
 		/* Resulting "modified" maximum value */
-		loc.x = col + 24;
+		player_stat_info_new_col(col, &loc);
 		cnv_stat(player->state.stat_top[i], buf, sizeof(buf));
 		c_put_str(COLOUR_L_GREEN, buf, loc);
 
 		/* Only display stat_use if there has been draining */
 		if (player->stat_cur[i] < player->stat_max[i]) {
+			player_stat_info_new_col(col, &loc);
 			cnv_stat(player->state.stat_use[i], buf, sizeof(buf));
-			loc.x = col + 31;
 			c_put_str(COLOUR_YELLOW, buf, loc);
 		}
 	}
