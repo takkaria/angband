@@ -190,7 +190,7 @@ static void display_player_equippy(struct loc loc)
 #define RES_ROWS 9
 
 struct player_flag_record {
-	const char name[7]; /* Name of resistance/ability */
+	const char *label;  /* Name of resistance/ability */
 	int mod;            /* Modifier */
 	int flag;           /* Flag bit */
 	int element;        /* Element */
@@ -198,57 +198,58 @@ struct player_flag_record {
 };
 
 static const struct player_flag_record player_flag_table[][RES_ROWS] = {
-	{{"rAcid",  -1,              -1,               ELEM_ACID,    TMD_OPP_ACID},
-	 {"rElec",  -1,              -1,               ELEM_ELEC,    TMD_OPP_ELEC},
-	 {"rFire",  -1,              -1,               ELEM_FIRE,    TMD_OPP_FIRE},
-	 {"rCold",  -1,              -1,               ELEM_COLD,    TMD_OPP_COLD},
-	 {"rPois",  -1,              -1,               ELEM_POIS,    TMD_OPP_POIS},
-	 {"rLite",  -1,              -1,               ELEM_LIGHT,  -1},
-	 {"rDark",  -1,              -1,               ELEM_DARK,   -1},
-	 {"Sound",  -1,              -1,               ELEM_SOUND,  -1},
-	 {"Shard",  -1,              -1,               ELEM_SHARD,  -1}},
+	{{"rAcid:",  -1,              -1,               ELEM_ACID,    TMD_OPP_ACID},
+	 {"rElec:",  -1,              -1,               ELEM_ELEC,    TMD_OPP_ELEC},
+	 {"rFire:",  -1,              -1,               ELEM_FIRE,    TMD_OPP_FIRE},
+	 {"rCold:",  -1,              -1,               ELEM_COLD,    TMD_OPP_COLD},
+	 {"rPois:",  -1,              -1,               ELEM_POIS,    TMD_OPP_POIS},
+	 {"rLite:",  -1,              -1,               ELEM_LIGHT,  -1},
+	 {"rDark:",  -1,              -1,               ELEM_DARK,   -1},
+	 {"Sound:",  -1,              -1,               ELEM_SOUND,  -1},
+	 {"Shard:",  -1,              -1,               ELEM_SHARD,  -1}},
 
-	{{"Nexus",  -1,              -1,               ELEM_NEXUS,  -1},
-	 {"Nethr",  -1,              -1,               ELEM_NETHER, -1},
-	 {"Chaos",  -1,              -1,               ELEM_CHAOS,  -1},
-	 {"Disen",  -1,              -1,               ELEM_DISEN,  -1},
-	 {"pFear",  -1,               OF_PROT_FEAR,   -1,            TMD_BOLD},
-	 {"pBlnd",  -1,               OF_PROT_BLIND,  -1,           -1},
-	 {"pConf",  -1,               OF_PROT_CONF,   -1,            TMD_OPP_CONF},
-	 {"pStun",  -1,               OF_PROT_STUN,   -1,           -1},
-	 {"HLife",  -1,               OF_HOLD_LIFE,   -1,           -1}},
+	{{"Nexus:",  -1,              -1,               ELEM_NEXUS,  -1},
+	 {"Nethr:",  -1,              -1,               ELEM_NETHER, -1},
+	 {"Chaos:",  -1,              -1,               ELEM_CHAOS,  -1},
+	 {"Disen:",  -1,              -1,               ELEM_DISEN,  -1},
+	 {"pFear:",  -1,               OF_PROT_FEAR,   -1,            TMD_BOLD},
+	 {"pBlnd:",  -1,               OF_PROT_BLIND,  -1,           -1},
+	 {"pConf:",  -1,               OF_PROT_CONF,   -1,            TMD_OPP_CONF},
+	 {"pStun:",  -1,               OF_PROT_STUN,   -1,           -1},
+	 {"HLife:",  -1,               OF_HOLD_LIFE,   -1,           -1}},
 
-	{{"Regen",  -1,               OF_REGEN,       -1,           -1},
-	 {"  ESP",  -1,               OF_TELEPATHY,   -1,            TMD_TELEPATHY},
-	 {"Invis",  -1,               OF_SEE_INVIS,   -1,            TMD_SINVIS},
-	 {"FrAct",  -1,               OF_FREE_ACT,    -1,           -1},
-	 {"Feath",  -1,               OF_FEATHER,     -1,           -1},
-	 {"S.Dig",  -1,               OF_SLOW_DIGEST, -1,           -1},
-	 {"ImpHP",  -1,               OF_IMPAIR_HP,   -1,           -1},
-	 {" Fear",  -1,               OF_AFRAID,      -1,            TMD_AFRAID},
-	 {"Aggrv",  -1,               OF_AGGRAVATE,   -1,           -1}},
+	{{"Regen:",  -1,               OF_REGEN,       -1,           -1},
+	 {"  ESP:",  -1,               OF_TELEPATHY,   -1,            TMD_TELEPATHY},
+	 {"Invis:",  -1,               OF_SEE_INVIS,   -1,            TMD_SINVIS},
+	 {"FrAct:",  -1,               OF_FREE_ACT,    -1,           -1},
+	 {"Feath:",  -1,               OF_FEATHER,     -1,           -1},
+	 {"S.Dig:",  -1,               OF_SLOW_DIGEST, -1,           -1},
+	 {"ImpHP:",  -1,               OF_IMPAIR_HP,   -1,           -1},
+	 {" Fear:",  -1,               OF_AFRAID,      -1,            TMD_AFRAID},
+	 {"Aggrv:",  -1,               OF_AGGRAVATE,   -1,           -1}},
 
-	{{"Stea.",   OBJ_MOD_STEALTH, -1,             -1,           -1},
-	 {"Infra",   OBJ_MOD_INFRA,   -1,             -1,            TMD_SINFRA},
-	 {"Tunn.",   OBJ_MOD_TUNNEL,  -1,             -1,           -1},
-	 {"Speed",   OBJ_MOD_SPEED,   -1,             -1,            TMD_FAST},
-	 {"Blows",   OBJ_MOD_BLOWS,   -1,             -1,           -1},
-	 {"Shots",   OBJ_MOD_SHOTS,   -1,             -1,           -1},
-	 {"Might",   OBJ_MOD_MIGHT,   -1,             -1,           -1},
-	 {"Light",   OBJ_MOD_LIGHT,   -1,             -1,           -1},
-	 {"",       -1,               -1,             -1,           -1}},
+	{{"Stea.:",   OBJ_MOD_STEALTH, -1,             -1,           -1},
+	 {"Infra:",   OBJ_MOD_INFRA,   -1,             -1,            TMD_SINFRA},
+	 {"Tunn.:",   OBJ_MOD_TUNNEL,  -1,             -1,           -1},
+	 {"Speed:",   OBJ_MOD_SPEED,   -1,             -1,            TMD_FAST},
+	 {"Blows:",   OBJ_MOD_BLOWS,   -1,             -1,           -1},
+	 {"Shots:",   OBJ_MOD_SHOTS,   -1,             -1,           -1},
+	 {"Might:",   OBJ_MOD_MIGHT,   -1,             -1,           -1},
+	 {"Light:",   OBJ_MOD_LIGHT,   -1,             -1,           -1},
+	 {"",        -1,               -1,             -1,           -1}},
 };
 
 static void display_resistance_panel(const struct player_flag_record *rec,
-		size_t size, struct loc loc) 
+		size_t size, int label_max_len, struct loc loc) 
 {
-	const int res_cols = 6 + player->body.count + 1;
-
-	Term_adds(loc.x, loc.y++, res_cols, COLOUR_WHITE, "      abcdefghijkl@");
+	Term_adds(loc.x + label_max_len, loc.y, player->body.count,
+			COLOUR_WHITE, lower_case);
+	Term_putwc(COLOUR_WHITE, L'@');
+	loc.y++;
 
 	for (size_t i = 0; i < size; i++) {
-		uint32_t name_attr = COLOUR_WHITE;
-		Term_cursor_to_xy(loc.x + 6, loc.y);
+		uint32_t label_attr = COLOUR_WHITE;
+		Term_cursor_to_xy(loc.x + label_max_len, loc.y);
 
 		/* Repeated extraction of flags is inefficient but more natural */
 		for (int j = 0; j <= player->body.count; j++) {
@@ -327,11 +328,11 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 
 			/* Set the symbols and print them */
 			if (imm) {
-				name_attr = COLOUR_GREEN;
+				label_attr = COLOUR_GREEN;
 			} else if (!rune) {
-				name_attr = COLOUR_SLATE;
-			} else if (res && name_attr != COLOUR_GREEN) {
-				name_attr = COLOUR_L_BLUE;
+				label_attr = COLOUR_SLATE;
+			} else if (res && label_attr != COLOUR_GREEN) {
+				label_attr = COLOUR_L_BLUE;
 			}
 
 			if (vuln) {
@@ -349,22 +350,40 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 
 			Term_putwc(attr, sym);
 		}
-		Term_adds(loc.x, loc.y++, 6, name_attr, format("%5s:", rec[i].name));
+
+		if (rec[i].label[0] != 0) {
+			Term_adds(loc.x, loc.y, label_max_len, label_attr, rec[i].label);
+		}
+
+		loc.y++;
 	}
 
-	Term_adds(loc.x, loc.y++, res_cols, COLOUR_WHITE, "      abcdefghijkl@");
+	Term_adds(loc.x + label_max_len, loc.y, player->body.count,
+			COLOUR_WHITE, lower_case);
+	Term_putwc(COLOUR_WHITE, L'@');
+	loc.y++;
 
-	loc.x += 6;
+	loc.x += label_max_len;
 	display_player_equippy(loc);
 }
 
 static void display_player_flag_info(void)
 {
-	const int res_cols = 6 + player->body.count + 1;
-
 	for (size_t i = 0; i < N_ELEMENTS(player_flag_table); i++) {
+		int label_max_len = 0;
+		for (size_t j = 0; j < N_ELEMENTS(player_flag_table[i]); j++) {
+			int len = strlen(player_flag_table[i][j].label);
+			if (label_max_len < len) {
+				label_max_len = len;
+			}
+		}
+
+		struct loc loc = {
+			.x = i * (label_max_len + player->body.count + 1 + 1),
+			.y = 11
+		};
 		display_resistance_panel(player_flag_table[i],
-				N_ELEMENTS(player_flag_table[i]), loc(i * (res_cols + 1), 11));
+				N_ELEMENTS(player_flag_table[i]), label_max_len, loc);
 	}
 }
 
