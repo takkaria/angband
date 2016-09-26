@@ -499,14 +499,10 @@ static void display_player_sust_info(void)
 
 			if (obj->modifiers[stat] > 0) {
 				attr = COLOUR_L_GREEN;
-				if (obj->modifiers[stat] < 10) {
-					ch = I2D(obj->modifiers[stat]);
-				}
+				ch = L'+';
 			} else if (obj->modifiers[stat] < 0) {
 				attr = COLOUR_RED;
-				if (obj->modifiers[stat] > -10) {
-					ch = I2D(-(obj->modifiers[stat]));
-				}
+				ch = L'-';
 			}
 
 			if (of_has(f, sustain_flag(stat))) {
