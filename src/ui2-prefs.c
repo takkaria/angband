@@ -505,9 +505,9 @@ static enum parser_error parse_prefs_expr(struct parser *p)
 	char *str = string_make(parser_getstr(p, "expr"));
 
 	/* Parse the expr */
-	char ch = 0;
+	char end = ' ';
 	char *expr = str;
-	const char *retval = process_pref_file_expr(&expr, &ch);
+	const char *retval = process_pref_file_expr(&expr, &end);
 
 	/* Set flag */
 	d->bypass = streq(retval, "0");
