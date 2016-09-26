@@ -558,32 +558,41 @@ static void display_player_sust_info(void)
 	display_player_equippy(loc);
 }
 
+/**
+ * Returns the maximum length of a panel label
+ */
+static int panel_max_label_len(const struct panel *p)
+{
+	int max_len = 0;
+
+	for (size_t i = 0; i < p->next; i++) {
+		struct panel_line *pl = &p->lines[i];
+		int len = pl->label ? strlen(pl->label) : 0;
+
+		if (max_len < len) {
+			max_len = len;
+		}
+	}
+
+	return max_len;
+}
+
 static void display_panel(const struct panel *p, bool left_adj, region reg)
 {
 	region_erase(reg);
 
-	int offset = 0;
-
-	if (left_adj) {
-		for (size_t i = 0; i < p->next; i++) {
-			struct panel_line *pl = &p->lines[i];
-			int len = pl->label ? strlen(pl->label) : 0;
-
-			offset = MAX(offset, len);
-		}
-		offset += 2;
-	}
+	int offset = left_adj ? panel_max_label_len(p) + 2 : 0;
 
 	for (size_t i = 0; i < p->next; i++, reg.y++) {
 		struct panel_line *pl = &p->lines[i];
 
 		if (pl->label) {
-			Term_adds(reg.x, reg.y, strlen(pl->label), COLOUR_WHITE, pl->label);
+			Term_adds(reg.x, reg.y, TERM_MAX_LEN, COLOUR_WHITE, pl->label);
 
 			int len = strlen(pl->value);
 
 			if (len > 0) {
-				len = MIN(len, reg.w - offset - 1);
+				len = MIN(len, reg.w - offset);
 
 				if (left_adj) {
 					Term_adds(reg.x + offset, reg.y, len, pl->attr, pl->value);
