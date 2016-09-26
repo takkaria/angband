@@ -241,7 +241,7 @@ void dump_features(ang_file *file)
 				case LIGHTING_TORCH: light = "torch"; break;
 				case LIGHTING_LIT:   light = "lit";   break;
 				case LIGHTING_DARK:  light = "dark";  break;
-				default:             light = NULL;    break;
+				default:             light =  NULL;   break;
 			}
 
 			assert(light);
