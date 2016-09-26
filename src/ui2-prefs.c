@@ -318,6 +318,7 @@ bool prefs_save(const char *path, void (*dump)(ang_file *), const char *title)
 
 	file_putf(file, "\n");
 	pref_footer(file, title);
+
 	file_close(file);
 
 	safe_setuid_drop();
@@ -337,8 +338,8 @@ bool prefs_save(const char *path, void (*dump)(ang_file *), const char *title)
 static enum parser_error parse_prefs_load(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
-
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -501,7 +502,6 @@ static const char *process_pref_file_expr(char **next_token, char *end_char)
 static enum parser_error parse_prefs_expr(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
-
 	assert(d != NULL);
 
 	char *str = string_make(parser_getstr(p, "expr"));
@@ -523,6 +523,7 @@ static enum parser_error parse_prefs_object(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -598,6 +599,7 @@ static enum parser_error parse_prefs_monster(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -618,6 +620,7 @@ static enum parser_error parse_prefs_monster_base(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -662,6 +665,7 @@ static enum parser_error parse_prefs_trap(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -712,6 +716,7 @@ static enum parser_error parse_prefs_feat(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -762,6 +767,7 @@ static enum parser_error parse_prefs_gf(struct parser *p)
 
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -820,6 +826,7 @@ static enum parser_error parse_prefs_flavor(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -841,6 +848,7 @@ static enum parser_error parse_prefs_inscribe(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -869,6 +877,7 @@ static enum parser_error parse_prefs_keymap_action(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);	
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -887,6 +896,7 @@ static enum parser_error parse_prefs_keymap_input(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -911,6 +921,7 @@ static enum parser_error parse_prefs_message(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
@@ -944,6 +955,7 @@ static enum parser_error parse_prefs_color(struct parser *p)
 {
 	struct prefs_data *d = parser_priv(p);
 	assert(d != NULL);
+
 	if (d->bypass) {
 		return PARSE_ERROR_NONE;
 	}
