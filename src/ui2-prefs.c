@@ -773,6 +773,7 @@ static enum parser_error parse_prefs_gf(struct parser *p)
 
 	/* Parse the type, which is a | seperated list of GF_ constants */
 	char *str = string_make(parser_getsym(p, "type"));
+
 	char *tok = strtok(str, "| ");
 	while (tok) {
 		if (streq(tok, "*")) {
@@ -792,8 +793,9 @@ static enum parser_error parse_prefs_gf(struct parser *p)
 
 	string_free(str);
 
-	int motion;
 	const char *direction = parser_getsym(p, "direction");
+
+	int motion;
 	if (streq(direction, "static")) {
 		motion = BOLT_NO_MOTION;
 	} else if (streq(direction, "0")) {
