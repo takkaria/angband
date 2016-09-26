@@ -1108,8 +1108,8 @@ static const struct {
 	const char *label;
 	enum player_display_mode mode;
 } player_display_tabs[] = {
-	{'1', "Basic", PLAYER_DISPLAY_MODE_BASIC},
-	{'2', "Extra", PLAYER_DISPLAY_MODE_EXTRA},
+	{'1', "Basic information", PLAYER_DISPLAY_MODE_BASIC},
+	{'2', "Extra information", PLAYER_DISPLAY_MODE_EXTRA},
 };
 
 static void change_player_display_mode(keycode_t code,
