@@ -603,8 +603,9 @@ static enum parser_error parse_prefs_monster(struct parser *p)
 		return PARSE_ERROR_NONE;
 	}
 
-	const char *name = parser_getsym(p, "name");
-	struct monster_race *monster = lookup_monster(name);
+	struct monster_race *monster =
+		lookup_monster(parser_getsym(p, "name"));
+
 	if (!monster) {
 		return PARSE_ERROR_NO_KIND_FOUND;
 	}
