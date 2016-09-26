@@ -539,10 +539,10 @@ static void display_player_sust_info(void)
 
 	loc.x = col;
 
-	loc.y = row + 6;
+	loc.y = row + STAT_MAX;
 	c_put_str(COLOUR_WHITE, "abcdefghijkl@", loc);
 
-	loc.y = row + 7;
+	loc.y = row + STAT_MAX + 1;
 	display_player_equippy(loc);
 }
 
