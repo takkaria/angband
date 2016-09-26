@@ -282,7 +282,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 				known = true;
 
 				/* Timed flags only in the player column */
-				if (rec[i].tmd_flag >= 0) {
+				if (rec[i].tmd_flag != -1) {
 	 				timed = player->timed[rec[i].tmd_flag] ? true : false;
 					/* There has to be one special case... */
 					if (rec[i].tmd_flag == TMD_AFRAID
