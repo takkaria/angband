@@ -472,7 +472,7 @@ static void display_player_sust_info(void)
 	const int row = 2;
 
 	struct loc loc;
-	/* Header */
+
 	loc.x = col;
 	loc.y = row - 1;
 	c_put_str(COLOUR_WHITE, "abcdefghijkl@", loc);
@@ -522,13 +522,10 @@ static void display_player_sust_info(void)
 		}
 	}
 
-	/* Player flags */
 	player_flags(player, f);
 
-	/* Check stats */
 	loc.y = row;
 	for (int stat = 0; stat < STAT_MAX; stat++, loc.y++) {
-		/* Default */
 		uint32_t attr = COLOUR_SLATE;
 		wchar_t ch = L'.';
 
