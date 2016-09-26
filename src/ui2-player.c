@@ -683,7 +683,8 @@ static const uint32_t skill_colour_table[] = {
 	COLOUR_L_BLUE
 };
 
-static struct panel *get_panel_topleft(void) {
+static struct panel *get_panel_topleft(void)
+{
 	struct panel *p = panel_allocate(6);
 
 	panel_line(p, COLOUR_L_BLUE, "Name",  "%s", op_ptr->full_name);
@@ -696,7 +697,8 @@ static struct panel *get_panel_topleft(void) {
 	return p;
 }
 
-static struct panel *get_panel_midleft(void) {
+static struct panel *get_panel_midleft(void)
+{
 	struct panel *p = panel_allocate(9);
 	int diff = weight_remaining(player);
 	uint32_t attr = diff < 0 ? COLOUR_L_RED : COLOUR_L_GREEN;
@@ -717,7 +719,8 @@ static struct panel *get_panel_midleft(void) {
 	return p;
 }
 
-static struct panel *get_panel_combat(void) {
+static struct panel *get_panel_combat(void)
+{
 	struct panel *p = panel_allocate(9);
 	int melee_dice = 1;
 	int melee_sides = 1;
@@ -758,7 +761,8 @@ static struct panel *get_panel_combat(void) {
 	return p;
 }
 
-static struct panel *get_panel_skills(void) {
+static struct panel *get_panel_skills(void)
+{
 	struct panel *p = panel_allocate(8);
 
 	int depth = cave ? cave->depth : 0;
@@ -807,7 +811,8 @@ static struct panel *get_panel_skills(void) {
 	return p;
 }
 
-static struct panel *get_panel_misc(void) {
+static struct panel *get_panel_misc(void)
+{
 	struct panel *p = panel_allocate(7);
 	uint32_t attr = COLOUR_L_BLUE;
 
