@@ -636,8 +636,9 @@ static const char *show_title(void)
 
 static const char *show_adv_exp(void)
 {
+	static char buffer[30];
+
 	if (player->lev < PY_MAX_LEVEL) {
-		static char buffer[30];
 		int advance = player_exp[player->lev - 1] * player->expfact / 100L;
 		strnfmt(buffer, sizeof(buffer), "%d", advance);
 		return buffer;
