@@ -407,10 +407,10 @@ void display_player_stat_info(void)
 
 		if (player->stat_cur[i] < player->stat_max[i]) {
 			/* Reduced stat; use lowercase stat name */
-			put_str(stat_names_reduced[i], loc);
+			c_put_str(COLOUR_YELLOW, stat_names_reduced[i], loc);
 		} else {
 			/* Normal stat; use uppercase stat name */
-			put_str(stat_names[i], loc);
+			c_put_str(COLOUR_WHITE, stat_names[i], loc);
 		}
 
 		/* Indicate natural maximum */
