@@ -335,16 +335,16 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 			}
 
 			if (vuln) {
-				sym = '-';
+				sym = L'-';
 			} else if (imm) {
-				sym = '*';
+				sym = L'*';
 			} else if (res) {
-				sym = '+';
+				sym = L'+';
 			} else if (timed) {
-				sym = '!';
+				sym = L'!';
 				attr = COLOUR_L_GREEN;
 			} else if (j < player->body.count && obj && !known && !rune) {
-				sym = '?';
+				sym = L'?';
 			}
 
 			Term_putwc(attr, sym);
