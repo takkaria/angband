@@ -625,8 +625,9 @@ static enum parser_error parse_prefs_monster_base(struct parser *p)
 		return PARSE_ERROR_NONE;
 	}
 
-	const char *name = parser_getsym(p, "name");
-	struct monster_base *mb = lookup_monster_base(name);
+	struct monster_base *mb =
+		lookup_monster_base(parser_getsym(p, "name"));
+
 	if (!mb) {
 		return PARSE_ERROR_NO_KIND_FOUND;
 	}
