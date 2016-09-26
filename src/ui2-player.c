@@ -1212,9 +1212,7 @@ void do_cmd_change_name(void)
 					break;
 			}
 		} else if (event.type == EVT_MOUSE) {
-			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
-				change_player_display_mode(ARROW_RIGHT, &mode, &change);
-			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
+			if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 				done = true;
 			}
 		}
