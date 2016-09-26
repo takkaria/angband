@@ -258,10 +258,10 @@ void dump_flavors(ang_file *file)
 {
 	for (struct flavor *flavor = flavors; flavor; flavor = flavor->next) {
 		unsigned long long attr = flavor_x_attr[flavor->fidx];
-		unsigned long long chr = flavor_x_char[flavor->fidx];
+		unsigned long long ch = flavor_x_char[flavor->fidx];
 
 		file_putf(file, "# Item flavor: %s\n", flavor->text);
-		file_putf(file, "flavor:%d:%llu:%llu\n\n", flavor->fidx, attr, chr);
+		file_putf(file, "flavor:%d:%llu:%llu\n\n", flavor->fidx, attr, ch);
 	}
 }
 
