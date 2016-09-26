@@ -463,7 +463,6 @@ void display_player_stat_info(void)
  * Positive mods with a sustain will be dark green.
  * Sustains (with no modification) will be a dark green 's'.
  * Negative mods (from a curse) will be red.
- * Huge mods (>9), like from MICoMorgoth, will be a '*'
  * No mod, no sustain, will be a slate '.'
  */
 static void display_player_sust_info(void)
