@@ -29,8 +29,6 @@
 #include "z-file.h"
 
 extern int use_graphics;
-extern int arg_graphics;
-extern bool arg_graphics_nice;
 
 extern uint32_t *monster_x_attr;
 extern wchar_t *monster_x_char;
