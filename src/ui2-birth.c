@@ -281,7 +281,8 @@ static const char *get_flag_desc(bitflag flag)
 		case OF_REGEN:      return "Regenerates quickly";
 		case OF_SEE_INVIS:  return "Sees invisible creatures";
 
-		default: return "Undocumented flag";
+		default:
+			return "Undocumented flag";
 	}
 }
 
@@ -292,7 +293,8 @@ static const char *get_resist_desc(int element)
 		case ELEM_LIGHT: return "Resists light damage";
 		case ELEM_DARK:  return "Resists darkness damage";
 
-		default: return "Undocumented element";
+		default:
+			return "Undocumented element";
 	}
 }
 
