@@ -341,9 +341,7 @@ static void race_help(int index, void *data, region reg)
 	(void) data;
 
 	struct player_race *race = player_id2race(index);
-	if (!race) {
-		return;
-	}
+	assert(race);
 
 	struct text_out_info info = {
 		.indent = reg.x + reg.w
@@ -392,9 +390,7 @@ static void class_help(int index, void *data, region reg)
 	(void) data;
 
 	struct player_class *class = player_id2class(index);
-	if (!class) {
-		return;
-	}
+	assert(class);
 
 	const struct player_race *race = player->race;
 
