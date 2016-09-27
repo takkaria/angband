@@ -70,14 +70,6 @@ enum birth_stage {
 	BIRTH_COMPLETE
 };
 
-enum birth_questions {
-	BQ_METHOD = 0,
-	BQ_RACE,
-	BQ_CLASS,
-	BQ_ROLLER,
-	MAX_BIRTH_QUESTIONS
-};
-
 enum birth_rollers {
 	BR_POINTBASED = 0,
 	BR_NORMAL,
