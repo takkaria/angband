@@ -1131,7 +1131,8 @@ bool process_pref_file(const char *name, bool quiet, bool user)
 	bool user_success = false;
 	bool used_fallback = false;
 
-	/* This supports the old behavior: look for a file first in "pref/",
+	/* This supports the old behavior:
+	 * look for a file first in "customize/"
 	 * and if not found there, then "user/" */
 	root_success = process_pref_file_layered(name, quiet, user,
 			ANGBAND_DIR_CUSTOMIZE, ANGBAND_DIR_USER, &used_fallback);
