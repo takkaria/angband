@@ -308,7 +308,7 @@ static const char *get_pflag_desc(bitflag flag)
 		#undef PF
 
 		default:
-			abort(); /* compilation consistency problem */
+			return "Undocumented flag";
 	}
 }
 
