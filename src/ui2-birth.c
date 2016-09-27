@@ -237,34 +237,36 @@ static void skill_help(struct text_out_info info,
 			skills[SKILL_TO_HIT_THROW]);
 	(*rows)++;
 
+	text_out_e(info, "\n");
+	(*rows)++;
+
 	text_out_e(info,
-			"Hit die: %2d   XP mod: %d%%\n",
+			"Hit die: %3d  XP mod: %d%%\n",
 			mhp, exp);
 	(*rows)++;
 
 	text_out_e(info,
-			"Disarm: %+3d/%+3d   Devices: %+3d\n",
-			skills[SKILL_DISARM_PHYS],
-			skills[SKILL_DISARM_MAGIC],
-			skills[SKILL_DEVICE]);
-	(*rows)++;
-
-	text_out_e(info,
-			"Save:   %+3d   Stealth: %+3d\n",
+			"Save:    %+3d  Stealth: %+3d\n",
 			skills[SKILL_SAVE],
 			skills[SKILL_STEALTH]);
 	(*rows)++;
 
-	if (infra >= 0) {
-		text_out_e(info, "Infravision:  %d ft\n", infra * 10);
-		(*rows)++;
-	}
-
-	text_out_e(info, "Digging:      %+d\n", skills[SKILL_DIGGING]);
+	text_out_e(info,
+			"Digging: %+3d  Devices: %+3d\n",
+			skills[SKILL_DIGGING],
+			skills[SKILL_DEVICE]);
 	(*rows)++;
 
-	if (infra < 0) {
-		text_out_e(info, "\n");
+	text_out_e(info, "\n");
+	(*rows)++;
+
+	text_out_e(info, "Disarm: %+d/%+-d\n",
+			skills[SKILL_DISARM_PHYS],
+			skills[SKILL_DISARM_MAGIC]);
+	(*rows)++;
+
+	if (infra >= 0) {
+		text_out_e(info, "Infravision: %d ft\n", infra * 10);
 		(*rows)++;
 	}
 }
@@ -310,6 +312,30 @@ static const char *get_pflag_desc(bitflag flag)
 	}
 }
 
+static void stats_help(struct text_out_info info,
+		const struct player_race *race, int *num_rows)
+{
+#define STAT_HELP_COLS 3
+
+	const int rows = (STAT_MAX + STAT_HELP_COLS - 1) / STAT_HELP_COLS;
+
+	for (int row = 0; row < rows; row++) {
+		for (int col = 0; col < STAT_HELP_COLS; col++) {
+			if (row + col * rows < STAT_MAX) {
+				const char *name = stat_names_reduced[row + col * rows];
+				int adj = race->r_adj[row + col * rows];
+
+				text_out_e(info, "%s%+3d  ", name, adj);
+			}
+		}
+
+		text_out(info, "\n");
+		(*num_rows)++;
+	}
+
+#undef STAT_HELP_COLS
+}
+
 static void race_help(int index, void *data, region reg)
 {
 	(void) data;
@@ -327,29 +353,12 @@ static void race_help(int index, void *data, region reg)
 
 	int rows = 0;
 
-	for (int stat = 0, len = (STAT_MAX + 1) / 2; stat < len; stat++) {
-		const char *name = stat_names_reduced[stat];
-		int adj = race->r_adj[stat];
+	stats_help(info, race, &rows);
 
-		text_out_e(info, "%s%+3d", name, adj);
-
-		if (stat + len < STAT_MAX) {
-			name = stat_names_reduced[stat + len];
-			adj = race->r_adj[stat + len];
-			text_out_e(info, "  %s%+3d", name, adj);
-		}
-
-		text_out(info, "\n");
-		rows++;
-	}
-	
 	text_out_e(info, "\n");
 	rows++;
 
 	skill_help(info, race->r_skills, NULL, race->r_mhp, race->r_exp, race->infra, &rows);
-
-	text_out_e(info, "\n");
-	rows++;
 
 	for (int flag = 1; flag < OF_MAX && rows < reg.h; flag++) {
 		if (of_has(race->flags, flag)) {
@@ -397,21 +406,7 @@ static void class_help(int index, void *data, region reg)
 
 	int rows = 0;
 
-	for (int stat = 0, len = (STAT_MAX + 1) / 2; stat < len; stat++) {  
-		const char *name = stat_names_reduced[stat];
-		int adj = class->c_adj[stat] + race->r_adj[stat];
-
-		text_out_e(info, "%s%+3d", name, adj);
-
-		if (stat + len < STAT_MAX) {
-			name = stat_names_reduced[stat + len];
-			adj = class->c_adj[stat + len] + race->r_adj[stat + len];
-			text_out_e(info, "  %s%+3d", name, adj);
-		}
-
-		text_out(info, "\n");
-		rows++;
-	}
+	stats_help(info, race, &rows);
 
 	text_out_e(info, "\n");
 	rows++;
@@ -426,8 +421,7 @@ static void class_help(int index, void *data, region reg)
 
 	for (int flag = 1; flag < PF_MAX && rows < reg.h; flag++) {
 		if (pf_has(class->pflags, flag)) {
-			const char *s = get_pflag_desc(flag);
-			text_out_e(info, "\n%s", s);
+			text_out_e(info, "\n%s", get_pflag_desc(flag));
 			rows++;
 		}
 	}
