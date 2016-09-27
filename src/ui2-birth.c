@@ -510,7 +510,7 @@ static void setup_menus(void)
 		"Class affects stats, skills, and other character traits.";
 		
 	/* Roller menu straightforward */
-	const char *roller_choices[MAX_BIRTH_ROLLERS] = { 
+	const char *roller_choices[] = { 
 		"Point-based", 
 		"Standard roller" 
 	};
