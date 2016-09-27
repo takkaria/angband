@@ -594,7 +594,7 @@ static void print_menu_instructions(void)
 
 /**
  * Allow the user to select from the current menu, and return the 
- * corresponding command to the game.  Some actions are handled entirely
+ * corresponding command to the game. Some actions are handled entirely
  * by the UI (displaying help text, for instance).
  */
 static enum birth_stage menu_question(enum birth_stage current_stage,
