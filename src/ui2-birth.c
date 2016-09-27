@@ -148,7 +148,7 @@ static struct menu roller_menu;
 #define CLASS_MENU_WIDTH  17
 #define ROLLER_MENU_WIDTH 34
 
-#define HISTORY_WIDTH 71
+#define HISTORY_WIDTH 72
 #define HISTORY_HEIGHT 3
 
 #define BIRTH_MENU_HEIGHT \
