@@ -1157,6 +1157,23 @@ bool process_pref_file(const char *name, bool quiet, bool user)
 	return root_success || user_success;
 }
 
+static void load_visuals_prefs(void)
+{
+	if (use_graphics) {
+		/* Graphic symbols */
+		graphics_mode *mode = get_graphics_mode(use_graphics);
+		assert(mode);
+
+		/* Build path to the pref file */
+		char buf[4096];
+		path_build(buf, sizeof(buf), mode->path, mode->pref);
+		process_pref_file_named(buf, false, false);
+	} else {
+		/* Normal symbols */
+		process_pref_file("font.prf", false, false);
+	}
+}
+
 /**
  * Reset the "visual" lists
  *
@@ -1169,42 +1186,42 @@ bool process_pref_file(const char *name, bool quiet, bool user)
 void reset_visuals(bool load_prefs)
 {
 	/* Extract default attr/char code for features */
-	for (int i = 0; i < z_info->f_max; i++) {
-		struct feature *feat = &f_info[i];
+	for (int fidx = 0; fidx < z_info->f_max; fidx++) {
+		struct feature *feat = &f_info[fidx];
 
 		/* Assume we will use the underlying values */
 		for (int l = 0; l < LIGHTING_MAX; l++) {
-			feat_x_attr[l][i] = feat->d_attr;
-			feat_x_char[l][i] = feat->d_char;
+			feat_x_attr[l][fidx] = feat->d_attr;
+			feat_x_char[l][fidx] = feat->d_char;
 		}
 	}
 
 	/* Extract default attr/char code for objects */
-	for (int i = 0; i < z_info->k_max; i++) {
-		struct object_kind *kind = &k_info[i];
+	for (int kidx = 0; kidx < z_info->k_max; kidx++) {
+		struct object_kind *kind = &k_info[kidx];
 
 		/* Default attr/char */
-		kind_x_attr[i] = kind->d_attr;
-		kind_x_char[i] = kind->d_char;
+		kind_x_attr[kidx] = kind->d_attr;
+		kind_x_char[kidx] = kind->d_char;
 	}
 
 	/* Extract default attr/char code for monsters */
-	for (int i = 0; i < z_info->r_max; i++) {
-		struct monster_race *race = &r_info[i];
+	for (int midx = 0; midx < z_info->r_max; midx++) {
+		struct monster_race *race = &r_info[midx];
 
 		/* Default attr/char */
-		monster_x_attr[i] = race->d_attr;
-		monster_x_char[i] = race->d_char;
+		monster_x_attr[midx] = race->d_attr;
+		monster_x_char[midx] = race->d_char;
 	}
 
 	/* Extract default attr/char code for traps */
-	for (int i = 0; i < z_info->trap_max; i++) {
-		struct trap_kind *trap = &trap_info[i];
+	for (int tidx = 0; tidx < z_info->trap_max; tidx++) {
+		struct trap_kind *trap = &trap_info[tidx];
 
 		/* Default attr/char */
 		for (int l = 0; l < LIGHTING_MAX; l++) {
-			trap_x_attr[l][i] = trap->d_attr;
-			trap_x_char[l][i] = trap->d_char;
+			trap_x_attr[l][tidx] = trap->d_attr;
+			trap_x_char[l][tidx] = trap->d_char;
 		}
 	}
 
@@ -1214,23 +1231,8 @@ void reset_visuals(bool load_prefs)
 		flavor_x_char[f->fidx] = f->d_char;
 	}
 
-	if (!load_prefs) {
-		return;
-	}
-
-	/* Graphic symbols */
-	if (use_graphics) {
-		/* if we have a graphics mode, see if the mode has a pref file name */
-		graphics_mode *mode = get_graphics_mode(use_graphics);
-		assert(mode);
-
-		/* Build path to the pref file */
-		char buf[4096];
-		path_build(buf, sizeof(buf), mode->path, mode->pref);
-		process_pref_file_named(buf, false, false);
-	} else {
-		/* Normal symbols */
-		process_pref_file("font.prf", false, false);
+	if (load_prefs) {
+		load_visuals_prefs();
 	}
 }
 
