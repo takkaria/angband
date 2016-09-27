@@ -139,7 +139,7 @@ static struct menu roller_menu;
 #define HISTORY_ROW       19
 
 #define HISTORY_COL        1
-#define QUESTION_COL       2
+#define MENU_HINT_COL      2
 #define RACE_MENU_COL      2
 #define CLASS_MENU_COL    19
 #define ROLLER_MENU_COL   36
@@ -584,10 +584,10 @@ static void clear_menu_hint(void)
  */	
 static void print_menu_instructions(void)
 {
-	Term_cursor_to_xy(QUESTION_COL, HEADER_ROW);
+	Term_cursor_to_xy(MENU_HINT_COL, HEADER_ROW);
 	
 	struct text_out_info info  = {
-		.indent = QUESTION_COL
+		.indent = MENU_HINT_COL
 	};
 	text_out_e(info, BIRTH_MENU_HELPTEXT);
 }
@@ -606,7 +606,7 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
 	
 	/* Print the question currently being asked. */
 	clear_menu_hint();
-	Term_adds(QUESTION_COL, MENU_HINT_ROW, TERM_MAX_LEN,
+	Term_adds(MENU_HINT_COL, MENU_HINT_ROW, TERM_MAX_LEN,
 			COLOUR_YELLOW, menu_data->hint);
 
 	current_menu->stop_keys = "?=*\x18"; /* ?, =, *, Ctrl-X */
