@@ -606,7 +606,7 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
 	
 	/* Print the question currently being asked. */
 	clear_question();
-	Term_adds(QUESTION_COL, QUESTION_ROW, Term_width(),
+	Term_adds(QUESTION_COL, QUESTION_ROW, TERM_MAX_LEN,
 			COLOUR_YELLOW, menu_data->hint);
 
 	current_menu->stop_keys = "?=*\x18"; /* ?, =, *, Ctrl-X */
