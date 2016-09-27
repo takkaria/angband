@@ -467,15 +467,13 @@ static void init_birth_menu(struct menu *menu,
 	menu_layout(menu, reg);
 }
 
-static void setup_menus(void)
+static void setup_race_menu(void)
 {
-	/* Count the races */
 	int n_races = 0;
 	for (struct player_race *race = races; race; race = race->next) {
 		n_races++;
 	}
 
-	/* Race menu. */
 	init_birth_menu(&race_menu,
 			n_races, player->race ? player->race->ridx : 0,
 			race_region, true, race_help);
@@ -489,13 +487,15 @@ static void setup_menus(void)
 	race_data->hint =
 		"Race affects stats and skills, and may confer resistances and abilities.";
 
-	/* Count the classes */
+}
+
+static void setup_class_menu(void)
+{
 	int n_classes = 0;
 	for (struct player_class *class = classes; class; class = class->next) {
 		n_classes++;
 	}
 
-	/* Class menu similar to race. */
 	init_birth_menu(&class_menu,
 			n_classes, player->class ? player->class->cidx : 0,
 			class_region, true, class_help);
@@ -509,7 +509,10 @@ static void setup_menus(void)
 	class_data->hint =
 		"Class affects stats, skills, and other character traits.";
 		
-	/* Roller menu straightforward */
+}
+
+static void setup_roller_menu(void)
+{
 	const char *roller_choices[] = { 
 		"Point-based", 
 		"Standard roller" 
@@ -528,6 +531,13 @@ static void setup_menus(void)
 
 	roller_data->hint =
 		"Choose how to generate your intrinsic stats. Point-based is recommended.";
+}
+
+static void setup_menus(void)
+{
+	setup_race_menu();
+	setup_class_menu();
+	setup_roller_menu();
 }
 
 /**
