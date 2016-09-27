@@ -751,7 +751,7 @@ static void point_based_stats(game_event_type type,
 
 /**
  * This is called whenever any of the other miscellaneous stat-dependent things
- * changed.  We are hooked into changes in the amount of gold in this case,
+ * changed. We are hooked into changes in the amount of gold in this case,
  * but redisplay everything because it's easier.
  */
 static void point_based_misc(game_event_type type,
