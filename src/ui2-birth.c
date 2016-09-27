@@ -315,12 +315,12 @@ static const char *get_pflag_desc(bitflag flag)
 static void stats_help(struct text_out_info info,
 		const struct player_race *race, int *num_rows)
 {
-#define STAT_HELP_COLS 3
+	const int stat_help_cols = 3;
 
-	const int rows = (STAT_MAX + STAT_HELP_COLS - 1) / STAT_HELP_COLS;
+	const int rows = (STAT_MAX + stat_help_cols - 1) / stat_help_cols;
 
 	for (int row = 0; row < rows; row++) {
-		for (int col = 0; col < STAT_HELP_COLS; col++) {
+		for (int col = 0; col < stat_help_cols; col++) {
 			if (row + col * rows < STAT_MAX) {
 				const char *name = stat_names_reduced[row + col * rows];
 				int adj = race->r_adj[row + col * rows];
@@ -332,8 +332,6 @@ static void stats_help(struct text_out_info info,
 		text_out(info, "\n");
 		(*num_rows)++;
 	}
-
-#undef STAT_HELP_COLS
 }
 
 static void race_help(int index, void *data, region reg)
