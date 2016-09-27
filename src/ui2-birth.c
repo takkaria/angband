@@ -675,7 +675,7 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
  */
 static enum birth_stage roller_command(bool first_call)
 {
-	char prompt[80] = {0};
+	char prompt[ANGBAND_TERM_STANDARD_WIDTH] = {0};
 
 	enum birth_stage next = BIRTH_ROLLER;
 
