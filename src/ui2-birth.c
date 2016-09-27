@@ -134,7 +134,7 @@ static struct menu roller_menu;
  * Locations of the menus, etc. on the screen
  */
 #define HEADER_ROW         1
-#define QUESTION_ROW       7
+#define MENU_HINT_ROW      7
 #define BIRTH_MENU_ROW     9
 #define HISTORY_ROW       19
 
@@ -562,11 +562,11 @@ static void free_birth_menus(void)
 }
 
 /**
- * Clear the previous question
+ * Clear the previous menu hint
  */
-static void clear_question(void)
+static void clear_menu_hint(void)
 {
-	for (int y = QUESTION_ROW; y < BIRTH_MENU_ROW; y++) {
+	for (int y = MENU_HINT_ROW; y < BIRTH_MENU_ROW; y++) {
 		Term_erase_line(0, y);
 	}
 }
@@ -605,8 +605,8 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
 	enum birth_stage next_stage = BIRTH_RESET;
 	
 	/* Print the question currently being asked. */
-	clear_question();
-	Term_adds(QUESTION_COL, QUESTION_ROW, TERM_MAX_LEN,
+	clear_menu_hint();
+	Term_adds(QUESTION_COL, MENU_HINT_ROW, TERM_MAX_LEN,
 			COLOUR_YELLOW, menu_data->hint);
 
 	current_menu->stop_keys = "?=*\x18"; /* ?, =, *, Ctrl-X */
