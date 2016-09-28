@@ -423,7 +423,7 @@ static void display_player_flag_info(void)
 			N_ELEMENTS(player_flag_tables_resist));
 }
 
-void display_player_stat_info(int offset)
+static void display_player_stat_info(int offset)
 {
 	const int col = 52;
 	const int row = 1 + offset;
@@ -872,7 +872,7 @@ static const struct {
 	{{52, 8, 27, 7}, false, get_panel_skills},
 };
 
-void display_player_basic_info(int offset)
+static void display_player_basic_info(int offset)
 {
 	for (size_t i = 0; i < N_ELEMENTS(panels); i++) {
 		struct panel *p = panels[i].panel();
@@ -907,6 +907,11 @@ void display_player(enum player_display_mode mode)
 	if (mode == PLAYER_DISPLAY_MODE_BASIC) {
 		display_player_stat_info(0);
 		display_player_basic_info(0);
+	} else if (mode == PLAYER_DISPLAY_MODE_BIRTH
+			|| mode == PLAYER_DISPLAY_MODE_DEATH)
+	{
+		display_player_stat_info(1);
+		display_player_basic_info(1);
 	} else if (mode == PLAYER_DISPLAY_MODE_EXTRA) {
 		display_player_sust_info();
 		display_player_flag_info();

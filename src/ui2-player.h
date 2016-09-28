@@ -7,7 +7,11 @@
 #define UI2_PLAYER_H
 
 enum player_display_mode {
-	/* Standard display with skills/history */
+	/* For use in the birth screen */
+	PLAYER_DISPLAY_MODE_BIRTH,
+	/* For use in the death screen */
+	PLAYER_DISPLAY_MODE_DEATH,
+	/* Standard in-game display with skills/history */
 	PLAYER_DISPLAY_MODE_BASIC,
 	/* Special display with equipment flags */
 	PLAYER_DISPLAY_MODE_EXTRA,
@@ -15,8 +19,6 @@ enum player_display_mode {
 	PLAYER_DISPLAY_MODE_MAX
 };
 
-void display_player_stat_info(int offset);
-void display_player_basic_info(int offset);
 void display_player(enum player_display_mode mode);
 bool dump_save(const char *path);
 void do_cmd_change_name(void);

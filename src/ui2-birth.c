@@ -116,16 +116,6 @@ static enum birth_stage textui_birth_quickstart(void)
 	return next;
 }
 
-#define PLAYER_ROW 1
-
-static void birth_display_player(void)
-{
-	Term_clear();
-
-	display_player_stat_info(PLAYER_ROW);
-	display_player_basic_info(PLAYER_ROW);
-}
-
 /**
  * ------------------------------------------------------------------------
  * The various menu bits of the birth process -
@@ -144,6 +134,7 @@ static struct menu roller_menu;
  * Locations of the menus, etc. on the screen
  */
 #define HEADER_ROW         1
+#define PLAYER_ROW         1
 
 #define MENU_HINT_ROW      7
 #define MENU_HINT_COL      2
@@ -694,7 +685,7 @@ static enum birth_stage roller_command(bool first_call)
 	/* Used to keep track of whether we've rolled a character before or not. */
 	static bool prev_roll = false;
 
-	birth_display_player();
+	display_player(PLAYER_DISPLAY_MODE_BIRTH);
 
 	if (first_call) {
 		prev_roll = false;
@@ -757,7 +748,7 @@ static void point_based_stats(game_event_type type,
 	(void) data;
 	(void) user;
 
-	display_player_stat_info(PLAYER_ROW);
+	display_player(PLAYER_DISPLAY_MODE_BIRTH);
 }
 
 /**
@@ -772,7 +763,7 @@ static void point_based_misc(game_event_type type,
 	(void) data;
 	(void) user;
 
-	display_player_basic_info(PLAYER_ROW);
+	display_player(PLAYER_DISPLAY_MODE_BIRTH);
 }
 
 /**
@@ -809,7 +800,7 @@ static void point_based_start(void)
 
 	Term_clear();
 
-	birth_display_player();
+	display_player(PLAYER_DISPLAY_MODE_BIRTH);
 
 	show_prompt(prompt, false);
 
@@ -1207,7 +1198,7 @@ int textui_do_birth(void)
 				break;
 
 			case BIRTH_QUICKSTART:
-				birth_display_player();
+				display_player(PLAYER_DISPLAY_MODE_BIRTH);
 				next = textui_birth_quickstart();
 				if (next == BIRTH_COMPLETE) {
 					done = true;
@@ -1271,7 +1262,7 @@ int textui_do_birth(void)
 
 			case BIRTH_NAME_CHOICE:
 				if (prev < BIRTH_NAME_CHOICE) {
-					birth_display_player();
+					display_player(PLAYER_DISPLAY_MODE_BIRTH);
 				}
 				next = get_name_command();
 				if (next == BIRTH_BACK) {
@@ -1281,7 +1272,7 @@ int textui_do_birth(void)
 
 			case BIRTH_HISTORY_CHOICE:
 				if (prev < BIRTH_HISTORY_CHOICE) {
-					birth_display_player();
+					display_player(PLAYER_DISPLAY_MODE_BIRTH);
 				}
 				next = get_history_command();
 				if (next == BIRTH_BACK) {
@@ -1291,7 +1282,7 @@ int textui_do_birth(void)
 
 			case BIRTH_FINAL_CONFIRM:
 				if (prev < BIRTH_FINAL_CONFIRM) {
-					birth_display_player();
+					display_player(PLAYER_DISPLAY_MODE_BIRTH);
 				}
 				next = get_confirm_command();
 				if (next == BIRTH_BACK) {

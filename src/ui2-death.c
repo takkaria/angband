@@ -69,7 +69,7 @@ static void death_info_term_pop(void)
 
 static void death_info_player(void)
 {
-	display_player(PLAYER_DISPLAY_MODE_BASIC);
+	display_player(PLAYER_DISPLAY_MODE_DEATH);
 }
 
 static void death_info_equip(void)
