@@ -84,7 +84,7 @@ bool arg_force_name;
 
 /**
  * ------------------------------------------------------------------------
- * Quickstart? screen.
+ * Quickstart screen.
  * ------------------------------------------------------------------------
  */
 static enum birth_stage textui_birth_quickstart(void)
@@ -116,6 +116,16 @@ static enum birth_stage textui_birth_quickstart(void)
 	return next;
 }
 
+#define PLAYER_ROW 1
+
+static void birth_display_player(void)
+{
+	Term_clear();
+
+	display_player_stat_info(PLAYER_ROW);
+	display_player_basic_info(PLAYER_ROW);
+}
+
 /**
  * ------------------------------------------------------------------------
  * The various menu bits of the birth process -
@@ -134,12 +144,17 @@ static struct menu roller_menu;
  * Locations of the menus, etc. on the screen
  */
 #define HEADER_ROW         1
-#define MENU_HINT_ROW      7
-#define BIRTH_MENU_ROW     9
-#define HISTORY_ROW       17
 
-#define HISTORY_COL        1
+#define MENU_HINT_ROW      7
 #define MENU_HINT_COL      2
+
+#define HISTORY_ROW      (16 + PLAYER_ROW)
+#define HISTORY_COL        1
+#define HISTORY_WIDTH     78
+#define HISTORY_HEIGHT     3
+
+#define BIRTH_MENU_ROW     9
+
 #define RACE_MENU_COL      2
 #define CLASS_MENU_COL    19
 #define ROLLER_MENU_COL   36
@@ -147,9 +162,6 @@ static struct menu roller_menu;
 #define RACE_MENU_WIDTH   17
 #define CLASS_MENU_WIDTH  17
 #define ROLLER_MENU_WIDTH 34
-
-#define HISTORY_WIDTH 78
-#define HISTORY_HEIGHT 3
 
 #define BIRTH_MENU_HEIGHT \
 	(ANGBAND_TERM_STANDARD_HEIGHT - BIRTH_MENU_ROW - 1)
@@ -682,8 +694,7 @@ static enum birth_stage roller_command(bool first_call)
 	/* Used to keep track of whether we've rolled a character before or not. */
 	static bool prev_roll = false;
 
-	/* Display the player - a bit cheaty, but never mind. */
-	display_player(PLAYER_DISPLAY_MODE_BASIC);
+	birth_display_player();
 
 	if (first_call) {
 		prev_roll = false;
@@ -731,7 +742,7 @@ static enum birth_stage roller_command(bool first_call)
  */
 
 /* The locations of the "costs" area on the birth screen. */
-#define COSTS_ROW  2
+#define COSTS_ROW (1 + PLAYER_ROW)
 #define COSTS_COL 79
 #define TOTAL_COL 62
 
@@ -746,7 +757,7 @@ static void point_based_stats(game_event_type type,
 	(void) data;
 	(void) user;
 
-	display_player_stat_info();
+	display_player_stat_info(PLAYER_ROW);
 }
 
 /**
@@ -761,7 +772,7 @@ static void point_based_misc(game_event_type type,
 	(void) data;
 	(void) user;
 
-	display_player_basic_info();
+	display_player_basic_info(PLAYER_ROW);
 }
 
 /**
@@ -798,8 +809,7 @@ static void point_based_start(void)
 
 	Term_clear();
 
-	display_player_basic_info();
-	display_player_stat_info();
+	birth_display_player();
 
 	show_prompt(prompt, false);
 
@@ -1197,7 +1207,7 @@ int textui_do_birth(void)
 				break;
 
 			case BIRTH_QUICKSTART:
-				display_player(PLAYER_DISPLAY_MODE_BASIC);
+				birth_display_player();
 				next = textui_birth_quickstart();
 				if (next == BIRTH_COMPLETE) {
 					done = true;
@@ -1261,7 +1271,7 @@ int textui_do_birth(void)
 
 			case BIRTH_NAME_CHOICE:
 				if (prev < BIRTH_NAME_CHOICE) {
-					display_player(PLAYER_DISPLAY_MODE_BASIC);
+					birth_display_player();
 				}
 				next = get_name_command();
 				if (next == BIRTH_BACK) {
@@ -1271,7 +1281,7 @@ int textui_do_birth(void)
 
 			case BIRTH_HISTORY_CHOICE:
 				if (prev < BIRTH_HISTORY_CHOICE) {
-					display_player(PLAYER_DISPLAY_MODE_BASIC);
+					birth_display_player();
 				}
 				next = get_history_command();
 				if (next == BIRTH_BACK) {
@@ -1281,7 +1291,7 @@ int textui_do_birth(void)
 
 			case BIRTH_FINAL_CONFIRM:
 				if (prev < BIRTH_FINAL_CONFIRM) {
-					display_player(PLAYER_DISPLAY_MODE_BASIC);
+					birth_display_player();
 				}
 				next = get_confirm_command();
 				if (next == BIRTH_BACK) {

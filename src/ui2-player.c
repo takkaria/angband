@@ -423,10 +423,10 @@ static void display_player_flag_info(void)
 			N_ELEMENTS(player_flag_tables_resist));
 }
 
-void display_player_stat_info(void)
+void display_player_stat_info(int offset)
 {
 	const int col = 52;
-	const int row = 2;
+	const int row = 1 + offset;
 
 	struct loc loc = {.x = col, .y = row - 1};
 
@@ -865,18 +865,21 @@ static const struct {
 	bool align_left;
 	struct panel *(*panel)(void);
 } panels[] = {
-	{{ 1, 1, 20, 7}, false, get_panel_player},
-	{{25, 1, 23, 7}, false, get_panel_misc},
-	{{ 1, 9, 20, 7}, false, get_panel_flavor},
-	{{25, 9, 23, 7}, false, get_panel_combat},
-	{{52, 9, 27, 7}, false, get_panel_skills},
+	{{ 1, 0, 20, 7}, false, get_panel_player},
+	{{25, 0, 23, 7}, false, get_panel_misc},
+	{{ 1, 8, 20, 7}, false, get_panel_flavor},
+	{{25, 8, 23, 7}, false, get_panel_combat},
+	{{52, 8, 27, 7}, false, get_panel_skills},
 };
 
-void display_player_basic_info(void)
+void display_player_basic_info(int offset)
 {
 	for (size_t i = 0; i < N_ELEMENTS(panels); i++) {
 		struct panel *p = panels[i].panel();
-		display_panel(p, panels[i].align_left, panels[i].bounds);
+		region bounds = panels[i].bounds;
+
+		bounds.y += offset;
+		display_panel(p, panels[i].align_left, bounds);
 		panel_free(p);
 	}
 
@@ -887,7 +890,7 @@ void display_player_basic_info(void)
 	};
 
 	/* History */
-	Term_cursor_to_xy(info.indent, 17);
+	Term_cursor_to_xy(info.indent, 16 + offset);
 	text_out_c(info, COLOUR_WHITE, player->history);
 
 	Term_flush_output();
@@ -902,8 +905,8 @@ void display_player(enum player_display_mode mode)
 	Term_clear();
 
 	if (mode == PLAYER_DISPLAY_MODE_BASIC) {
-		display_player_stat_info();
-		display_player_basic_info();
+		display_player_stat_info(0);
+		display_player_basic_info(0);
 	} else if (mode == PLAYER_DISPLAY_MODE_EXTRA) {
 		display_player_sust_info();
 		display_player_flag_info();
