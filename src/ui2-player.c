@@ -37,8 +37,6 @@
 #include "ui2-output.h"
 #include "ui2-player.h"
 
-#define PLAYER_DISPLAY_TERM_HEIGHT 20
-
 /**
  * ------------------------------------------------------------------------
  * Panel utilities
@@ -182,8 +180,8 @@ struct player_flag_table {
 	size_t label_max_len;
 };
 
-#define PLAYER_FLAG_RES_ROW_1 1
-#define PLAYER_FLAG_RES_ROW_2 11
+#define PLAYER_FLAG_RES_ROW_1 3
+#define PLAYER_FLAG_RES_ROW_2 12
 
 #define PLAYER_FLAG_RECORD_LEN 20
 
@@ -867,9 +865,9 @@ static const struct {
 } panels[] = {
 	{{ 1, 0, 20, 7}, false, get_panel_player},
 	{{25, 0, 23, 7}, false, get_panel_misc},
-	{{ 1, 8, 20, 7}, false, get_panel_flavor},
-	{{25, 8, 23, 7}, false, get_panel_combat},
-	{{52, 8, 27, 7}, false, get_panel_skills},
+	{{ 1, 9, 20, 7}, false, get_panel_flavor},
+	{{25, 9, 23, 7}, false, get_panel_combat},
+	{{52, 9, 27, 7}, false, get_panel_skills},
 };
 
 static void display_player_basic_info(int offset)
@@ -890,7 +888,7 @@ static void display_player_basic_info(int offset)
 	};
 
 	/* History */
-	Term_cursor_to_xy(info.indent, 16 + offset);
+	Term_cursor_to_xy(info.indent, 18 + offset);
 	text_out_c(info, COLOUR_WHITE, player->history);
 
 	Term_flush_output();
@@ -904,10 +902,8 @@ void display_player(enum player_display_mode mode)
 {
 	Term_clear();
 
-	if (mode == PLAYER_DISPLAY_MODE_BASIC) {
-		display_player_stat_info(0);
-		display_player_basic_info(0);
-	} else if (mode == PLAYER_DISPLAY_MODE_BIRTH
+	if (mode == PLAYER_DISPLAY_MODE_BASIC
+			|| mode == PLAYER_DISPLAY_MODE_BIRTH
 			|| mode == PLAYER_DISPLAY_MODE_DEATH)
 	{
 		display_player_stat_info(1);
@@ -1166,7 +1162,7 @@ static void player_display_term_push(enum player_display_mode mode)
 {
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = PLAYER_DISPLAY_TERM_HEIGHT,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.tabs = true,
 		.purpose = TERM_PURPOSE_TEXT,
 		.position = TERM_POSITION_CENTER
