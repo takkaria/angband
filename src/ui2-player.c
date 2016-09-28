@@ -869,7 +869,9 @@ static void display_player_stat_info(void)
 	loc.x = best_x;
 	c_put_str(COLOUR_WHITE, best_label, loc);
 
+	/* Add 1 since stats are displayed below the header */
 	loc.y = row + 1;
+
 	/* Display the stats */
 	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
 		loc.x = col;
