@@ -421,92 +421,6 @@ static void display_player_flag_info(void)
 			N_ELEMENTS(player_flag_tables_resist));
 }
 
-static void display_player_stat_info(int offset)
-{
-	const int col = 52;
-	const int row = 1 + offset;
-
-	struct loc loc = {.x = col, .y = row - 1};
-
-	const char *self_label = "Self";
-	const char *rb_label   = "RB";
-	const char *cb_label   = "CB";
-	const char *eb_label   = "EB";
-	const char *best_label = "Best";
-
-	int self_x = col + 5; /* "Str: " */
-	int rb_x   = self_x + strlen(self_label) + 2;
-	int cb_x   = rb_x   + strlen(rb_label) + 2;
-	int eb_x   = cb_x   + strlen(cb_label) + 2;
-	int best_x = eb_x   + strlen(eb_label) + 2;
-
-	/* Print out the labels for the columns */
-	loc.x = self_x;
-	c_put_str(COLOUR_WHITE, self_label, loc);
-
-	loc.x = rb_x;
-	c_put_str(COLOUR_WHITE, rb_label, loc);
-
-	loc.x = cb_x;
-	c_put_str(COLOUR_WHITE, cb_label, loc);
-
-	loc.x = eb_x;
-	c_put_str(COLOUR_WHITE, eb_label, loc);
-
-	loc.x = best_x;
-	c_put_str(COLOUR_WHITE, best_label, loc);
-
-	loc.y = row;
-	/* Display the stats */
-	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
-		loc.x = col;
-
-		if (player->stat_cur[i] < player->stat_max[i]) {
-			/* Reduced stat; use lowercase stat name */
-			c_put_str(COLOUR_YELLOW, stat_names_reduced[i], loc);
-		} else {
-			/* Normal stat; use uppercase stat name */
-			c_put_str(COLOUR_WHITE, stat_names[i], loc);
-		}
-
-		/* Indicate natural maximum */
-		if (player->stat_max[i] == 18 + 100) {
-			loc.x += 3;
-			put_str("!", loc);
-			loc.x -= 3;
-		}
-
-		char buf[8];
-
-		/* Internal "natural" maximum value */
-		loc.x = self_x;
-		cnv_stat("%4d", player->stat_max[i], buf, sizeof(buf));
-		c_put_str(COLOUR_L_GREEN, buf, loc);
-
-		/* Race Bonus */
-		loc.x = rb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->race->r_adj[i]);
-		c_put_str(COLOUR_L_BLUE, buf, loc);
-
-		/* Class Bonus */
-		loc.x = cb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->class->c_adj[i]);
-		c_put_str(COLOUR_L_BLUE, buf, loc);
-
-		/* Equipment Bonus */
-		loc.x = eb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->state.stat_add[i]);
-		c_put_str(COLOUR_L_BLUE, buf, loc);
-
-		/* Resulting maximum value */
-		loc.x = best_x;
-		cnv_stat("%4d", player->state.stat_top[i], buf, sizeof(buf));
-		c_put_str(COLOUR_L_GREEN, buf, loc);
-	}
-
-	Term_flush_output();
-}
-
 /**
  * How to print out the modifications and sustains.
  * Positive mods with no sustain will be light green.
@@ -855,6 +769,15 @@ static struct panel *get_panel_flavor(void)
 	return p;
 }
 
+#define PLAYER_DISPLAY_BASIC_ROW_1 1
+#define PLAYER_DISPLAY_BASIC_ROW_2 9
+
+#define PLAYER_DISPLAY_BASIC_COL_1  1
+#define PLAYER_DISPLAY_BASIC_COL_2 25
+#define PLAYER_DISPLAY_BASIC_COL_3 52
+
+#define PLAYER_DISPLAY_HISTORY_ROW 18
+
 /**
  * Panels for main character screen
  */
@@ -863,21 +786,38 @@ static const struct {
 	bool align_left;
 	struct panel *(*panel)(void);
 } panels[] = {
-	{{ 1, 0, 20, 7}, false, get_panel_player},
-	{{25, 0, 23, 7}, false, get_panel_misc},
-	{{ 1, 9, 20, 7}, false, get_panel_flavor},
-	{{25, 9, 23, 7}, false, get_panel_combat},
-	{{52, 9, 27, 7}, false, get_panel_skills},
+	{
+		.bounds = {PLAYER_DISPLAY_BASIC_COL_1, PLAYER_DISPLAY_BASIC_ROW_1, 20, 7},
+		.align_left = false,
+		.panel = get_panel_player
+	},
+	{
+		.bounds = {PLAYER_DISPLAY_BASIC_COL_2, PLAYER_DISPLAY_BASIC_ROW_1, 23, 7},
+		.align_left = false,
+		.panel = get_panel_misc
+	},
+	{
+		.bounds = {PLAYER_DISPLAY_BASIC_COL_1, PLAYER_DISPLAY_BASIC_ROW_2, 20, 7},
+		.align_left = false,
+		.panel = get_panel_flavor
+	},
+	{
+		.bounds = {PLAYER_DISPLAY_BASIC_COL_2, PLAYER_DISPLAY_BASIC_ROW_2, 23, 7},
+		.align_left = false,
+		.panel = get_panel_combat
+	},
+	{
+		.bounds = {PLAYER_DISPLAY_BASIC_COL_3, PLAYER_DISPLAY_BASIC_ROW_2, 27, 7},
+		.align_left = false,
+		.panel = get_panel_skills
+	},
 };
 
-static void display_player_basic_info(int offset)
+static void display_player_basic_info(void)
 {
 	for (size_t i = 0; i < N_ELEMENTS(panels); i++) {
 		struct panel *p = panels[i].panel();
-		region bounds = panels[i].bounds;
-
-		bounds.y += offset;
-		display_panel(p, panels[i].align_left, bounds);
+		display_panel(p, panels[i].align_left, panels[i].bounds);
 		panel_free(p);
 	}
 
@@ -888,8 +828,94 @@ static void display_player_basic_info(int offset)
 	};
 
 	/* History */
-	Term_cursor_to_xy(info.indent, 18 + offset);
+	Term_cursor_to_xy(info.indent, PLAYER_DISPLAY_HISTORY_ROW);
 	text_out_c(info, COLOUR_WHITE, player->history);
+
+	Term_flush_output();
+}
+
+static void display_player_stat_info(void)
+{
+	const int col = PLAYER_DISPLAY_BASIC_COL_3;
+	const int row = PLAYER_DISPLAY_BASIC_ROW_1;
+
+	struct loc loc = {.x = col, .y = row};
+
+	const char *self_label = "Self";
+	const char *rb_label   = "RB";
+	const char *cb_label   = "CB";
+	const char *eb_label   = "EB";
+	const char *best_label = "Best";
+
+	int self_x = col + 5; /* "Str: " */
+	int rb_x   = self_x + strlen(self_label) + 2;
+	int cb_x   = rb_x   + strlen(rb_label) + 2;
+	int eb_x   = cb_x   + strlen(cb_label) + 2;
+	int best_x = eb_x   + strlen(eb_label) + 2;
+
+	/* Print out the labels for the columns */
+	loc.x = self_x;
+	c_put_str(COLOUR_WHITE, self_label, loc);
+
+	loc.x = rb_x;
+	c_put_str(COLOUR_WHITE, rb_label, loc);
+
+	loc.x = cb_x;
+	c_put_str(COLOUR_WHITE, cb_label, loc);
+
+	loc.x = eb_x;
+	c_put_str(COLOUR_WHITE, eb_label, loc);
+
+	loc.x = best_x;
+	c_put_str(COLOUR_WHITE, best_label, loc);
+
+	loc.y = row + 1;
+	/* Display the stats */
+	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
+		loc.x = col;
+
+		if (player->stat_cur[i] < player->stat_max[i]) {
+			/* Reduced stat; use lowercase stat name */
+			c_put_str(COLOUR_YELLOW, stat_names_reduced[i], loc);
+		} else {
+			/* Normal stat; use uppercase stat name */
+			c_put_str(COLOUR_WHITE, stat_names[i], loc);
+		}
+
+		/* Indicate natural maximum */
+		if (player->stat_max[i] == 18 + 100) {
+			loc.x += 3;
+			put_str("!", loc);
+			loc.x -= 3;
+		}
+
+		char buf[8];
+
+		/* Internal "natural" maximum value */
+		loc.x = self_x;
+		cnv_stat("%4d", player->stat_max[i], buf, sizeof(buf));
+		c_put_str(COLOUR_L_GREEN, buf, loc);
+
+		/* Race Bonus */
+		loc.x = rb_x - 1;
+		strnfmt(buf, sizeof(buf), "%3d", player->race->r_adj[i]);
+		c_put_str(COLOUR_L_BLUE, buf, loc);
+
+		/* Class Bonus */
+		loc.x = cb_x - 1;
+		strnfmt(buf, sizeof(buf), "%3d", player->class->c_adj[i]);
+		c_put_str(COLOUR_L_BLUE, buf, loc);
+
+		/* Equipment Bonus */
+		loc.x = eb_x - 1;
+		strnfmt(buf, sizeof(buf), "%3d", player->state.stat_add[i]);
+		c_put_str(COLOUR_L_BLUE, buf, loc);
+
+		/* Resulting maximum value */
+		loc.x = best_x;
+		cnv_stat("%4d", player->state.stat_top[i], buf, sizeof(buf));
+		c_put_str(COLOUR_L_GREEN, buf, loc);
+	}
 
 	Term_flush_output();
 }
@@ -900,14 +926,12 @@ static void display_player_basic_info(int offset)
  */
 void display_player(enum player_display_mode mode)
 {
-	Term_clear();
-
 	if (mode == PLAYER_DISPLAY_MODE_BASIC
 			|| mode == PLAYER_DISPLAY_MODE_BIRTH
 			|| mode == PLAYER_DISPLAY_MODE_DEATH)
 	{
-		display_player_stat_info(1);
-		display_player_basic_info(1);
+		display_player_stat_info();
+		display_player_basic_info();
 	} else if (mode == PLAYER_DISPLAY_MODE_EXTRA) {
 		display_player_sust_info();
 		display_player_flag_info();

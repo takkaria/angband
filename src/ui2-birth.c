@@ -134,12 +134,11 @@ static struct menu roller_menu;
  * Locations of the menus, etc. on the screen
  */
 #define HEADER_ROW         1
-#define PLAYER_ROW         1
 
 #define MENU_HINT_ROW      7
 #define MENU_HINT_COL      2
 
-#define HISTORY_ROW      (16 + PLAYER_ROW)
+#define HISTORY_ROW       18
 #define HISTORY_COL        1
 #define HISTORY_WIDTH     78
 #define HISTORY_HEIGHT     4
@@ -733,7 +732,7 @@ static enum birth_stage roller_command(bool first_call)
  */
 
 /* The locations of the "costs" area on the birth screen. */
-#define COSTS_ROW (1 + PLAYER_ROW)
+#define COSTS_ROW  2
 #define COSTS_COL 79
 #define TOTAL_COL 62
 
