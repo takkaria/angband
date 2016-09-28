@@ -1018,20 +1018,12 @@ bool edit_text(char *buffer, size_t bufsize) {
 				break;
 
 			case ARROW_DOWN: {
-				size_t down = line_lengths[y] + 1;
-				if (cursor + down < length) {
-					cursor += down;
-				}
+				cursor = MIN(cursor + 20, length);
 				break;
 			}
 
 			case ARROW_UP:
-				if (y > 0) {
-					size_t up = line_lengths[y - 1] + 1;
-					if (cursor >= up) {
-						cursor -= up;
-					}
-				}
+				cursor = cursor > 20 ? cursor - 20 : 0;
 				break;
 
 			case KC_END:
