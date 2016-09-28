@@ -942,6 +942,8 @@ bool edit_text(char *buffer, size_t bufsize) {
 		.h = HISTORY_HEIGHT
 	};
 
+	const size_t max_lines = HISTORY_HEIGHT;
+
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
 
@@ -966,6 +968,20 @@ bool edit_text(char *buffer, size_t bufsize) {
 
 		size_t n_lines = textblock_calculate_lines(tb,
 				&line_starts, &line_lengths, history_region.w);
+
+		/* Limit the number of lines;
+		 * truncate the buffer if there are too many lines */
+		if (n_lines > max_lines) {
+			length =
+				line_starts[history_region.h - 1] +
+				line_lengths[history_region.h - 1];
+
+			assert(length < bufsize);
+
+			cursor = MIN(cursor, length);
+			buffer[length] = 0;
+			n_lines = max_lines;
+		}
 
 		/* Set cursor to current editing position */
 		int x = 0;
@@ -1002,7 +1018,6 @@ bool edit_text(char *buffer, size_t bufsize) {
 				break;
 
 			case ARROW_DOWN: {
-				 /* +1 to step over newline */
 				size_t down = line_lengths[y] + 1;
 				if (cursor + down < length) {
 					cursor += down;
