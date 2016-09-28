@@ -714,12 +714,13 @@ static const uint32_t skill_colour_table[] = {
 
 static struct panel *get_panel_player(void)
 {
-	struct panel *p = panel_allocate(6);
+	struct panel *p = panel_allocate(7);
 
 	panel_line(p, COLOUR_L_GREEN, "Name",  "%s", op_ptr->full_name);
 	panel_line(p, COLOUR_L_GREEN, "Race",  "%s", player->race->name);
 	panel_line(p, COLOUR_L_GREEN, "Class", "%s", player->class->name);
 	panel_line(p, COLOUR_L_GREEN, "Title", "%s", show_title());
+	panel_space(p);
 	panel_line(p, COLOUR_L_GREEN, "HP", "%d/%d", player->chp, player->mhp);
 	panel_line(p, COLOUR_L_GREEN, "SP", "%d/%d", player->csp, player->msp);
 
