@@ -136,7 +136,7 @@ static struct menu roller_menu;
 #define HEADER_ROW         1
 #define MENU_HINT_ROW      7
 #define BIRTH_MENU_ROW     9
-#define HISTORY_ROW       19
+#define HISTORY_ROW       17
 
 #define HISTORY_COL        1
 #define MENU_HINT_COL      2
@@ -148,7 +148,7 @@ static struct menu roller_menu;
 #define CLASS_MENU_WIDTH  17
 #define ROLLER_MENU_WIDTH 34
 
-#define HISTORY_WIDTH 72
+#define HISTORY_WIDTH 78
 #define HISTORY_HEIGHT 3
 
 #define BIRTH_MENU_HEIGHT \
@@ -732,8 +732,8 @@ static enum birth_stage roller_command(bool first_call)
 
 /* The locations of the "costs" area on the birth screen. */
 #define COSTS_ROW  2
-#define COSTS_COL (42 + 32)
-#define TOTAL_COL (42 + 19)
+#define COSTS_COL 79
+#define TOTAL_COL 62
 
 /**
  * This is called whenever a stat changes.  We take the easy road, and just
@@ -777,16 +777,11 @@ static void point_based_points(game_event_type type,
 
 	int *stats = data->birthstats.stats;
 
-	struct loc loc = {COSTS_COL, COSTS_ROW - 1};
-	/* Display the costs header above COSTS_ROW */
-	put_str("Cost", loc);
-	loc.y++;
+	struct loc loc = {COSTS_COL, COSTS_ROW};
 	
 	int sum = 0;
-	/* Display the costs */
 	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
-		/* Display cost */
-		put_str(format("%4d", stats[i]), loc);
+		Term_addwc(loc.x, loc.y, COLOUR_L_GREEN, stats[i] > 0 ? L'+' : L' ');
 		sum += stats[i];
 	}
 	
@@ -833,7 +828,7 @@ static enum birth_stage point_based_command(void)
 	enum birth_stage next = BIRTH_POINTBASED;
 
 	/* Place cursor just after cost of current stat */
-	Term_cursor_to_xy(COSTS_COL + 4, COSTS_ROW + stat);
+	Term_cursor_to_xy(COSTS_COL, COSTS_ROW + stat);
 	Term_flush_output();
 
 	/* Get key */
@@ -902,20 +897,34 @@ static enum birth_stage get_name_command(void)
 	return next;
 }
 
-void get_screen_loc(size_t cursor, int *x, int *y,
-		size_t n_lines, size_t *line_starts, size_t *line_lengths)
+void get_screen_loc(size_t cursor, const char *buf, size_t buflen,
+		int *x, int *y, size_t n_lines, size_t *line_starts, size_t *line_lengths)
 {
-	for (size_t i = 0, lengths_so_far = 0; i < n_lines; i++) {
-		if (cursor >= line_starts[i]
-				&& cursor <= line_starts[i] + line_lengths[i])
-		{
-			*x = cursor - lengths_so_far;
-			*y = i;
-			break;
-		}
 
-		/* +1 for the newline */
-		lengths_so_far += line_lengths[i] + 1;
+	/* Textblock code breaks lines on spaces, so we have to account for them
+	 * in a pretty complicated way; we also have to account for the possibility
+	 * that the cursor is at the end of the text (at the terminating 0) */
+
+	if (cursor < buflen) {
+		for (size_t line = 0, lengths_so_far = 0; line < n_lines; line++) {
+			const size_t start = line_starts[line];
+			const size_t end = line_starts[line] + line_lengths[line];
+
+			if (cursor >= start && cursor <= end) {
+				*x = cursor - lengths_so_far;
+				*y = line;
+			}
+
+			lengths_so_far += line_lengths[line] + (buf[end] == ' ' ? 1 : 0);
+		}
+	} else {
+		if (n_lines > 0) {
+			*x = line_lengths[n_lines - 1];
+			*y = n_lines - 1;
+		} else {
+			*x = 0;
+			*y = 0;
+		}
 	}
 }
 
@@ -923,16 +932,14 @@ void get_screen_loc(size_t cursor, int *x, int *y,
  * This function returns true when the user presses Enter,
  * and false when Escape is pressed.
  */
-bool edit_text(char *buffer, size_t buflen) {
+bool edit_text(char *buffer, size_t bufsize) {
 	Term_cursor_visible(true);
 
 	const region history_region = {
 		.x = HISTORY_COL, 
-		/* +1 for empty line above history */
-		.y = HISTORY_ROW + 1,
+		.y = HISTORY_ROW,
 		.w = HISTORY_WIDTH,
-		/* +1 to account for overflows */
-		.h = HISTORY_HEIGHT + 1
+		.h = HISTORY_HEIGHT
 	};
 
 	size_t *line_starts = NULL;
@@ -948,7 +955,7 @@ bool edit_text(char *buffer, size_t buflen) {
 
 	while (!done) {
 		assert(cursor <= length);
-		assert(length < buflen);
+		assert(length < bufsize);
 
 		textblock *tb = textblock_new();
 
@@ -963,7 +970,8 @@ bool edit_text(char *buffer, size_t buflen) {
 		/* Set cursor to current editing position */
 		int x = 0;
 		int y = 0;
-		get_screen_loc(cursor, &x, &y, n_lines, line_starts, line_lengths);
+		get_screen_loc(cursor, buffer, length,
+				&x, &y, n_lines, line_starts, line_lengths);
 		Term_cursor_to_xy(x + history_region.x, y + history_region.y);
 
 		Term_flush_output();
@@ -1004,7 +1012,6 @@ bool edit_text(char *buffer, size_t buflen) {
 
 			case ARROW_UP:
 				if (y > 0) {
-					 /* +1 to step over newline */
 					size_t up = line_lengths[y - 1] + 1;
 					if (cursor >= up) {
 						cursor -= up;
@@ -1040,7 +1047,7 @@ bool edit_text(char *buffer, size_t buflen) {
 				break;
 			
 			default:
-				if (isprint(key.code) && length + 1 < buflen) {
+				if (isprint(key.code) && length + 1 < bufsize) {
 					if (cursor < length) {
 						/* Cursor is not at the end of the string;
 						 * move the rest of the buffer along to make room */
