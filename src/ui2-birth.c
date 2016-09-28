@@ -900,7 +900,6 @@ static enum birth_stage get_name_command(void)
 void get_screen_loc(size_t cursor, const char *buf, size_t length,
 		int *x, int *y, size_t n_lines, size_t *line_starts, size_t *line_lengths)
 {
-
 	/* Textblock code breaks lines on spaces, so we have to account for them
 	 * in a pretty complicated way; we also have to account for the possibility
 	 * that the cursor is at the end of the text (at the terminating 0) */
