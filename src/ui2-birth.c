@@ -151,7 +151,7 @@ static struct menu roller_menu;
 #define HISTORY_ROW      (16 + PLAYER_ROW)
 #define HISTORY_COL        1
 #define HISTORY_WIDTH     78
-#define HISTORY_HEIGHT     3
+#define HISTORY_HEIGHT     4
 
 #define BIRTH_MENU_ROW     9
 
