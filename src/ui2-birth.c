@@ -1197,6 +1197,7 @@ int textui_do_birth(void)
 				break;
 
 			case BIRTH_QUICKSTART:
+				Term_clear();
 				display_player(PLAYER_DISPLAY_MODE_BIRTH);
 				next = textui_birth_quickstart();
 				if (next == BIRTH_COMPLETE) {
