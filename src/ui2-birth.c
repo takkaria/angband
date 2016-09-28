@@ -897,7 +897,7 @@ static enum birth_stage get_name_command(void)
 	return next;
 }
 
-void get_screen_loc(size_t cursor, const char *buf, size_t buflen,
+void get_screen_loc(size_t cursor, const char *buf, size_t length,
 		int *x, int *y, size_t n_lines, size_t *line_starts, size_t *line_lengths)
 {
 
@@ -905,7 +905,7 @@ void get_screen_loc(size_t cursor, const char *buf, size_t buflen,
 	 * in a pretty complicated way; we also have to account for the possibility
 	 * that the cursor is at the end of the text (at the terminating 0) */
 
-	if (cursor < buflen) {
+	if (cursor < length) {
 		for (size_t line = 0, lengths_so_far = 0; line < n_lines; line++) {
 			const size_t start = line_starts[line];
 			const size_t end = line_starts[line] + line_lengths[line];
