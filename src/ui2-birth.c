@@ -625,14 +625,12 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
 		} else if (event.type == EVT_SELECT) {
 			if (current_stage == BIRTH_ROLLER_CHOICE) {
 				if (current_menu->cursor == BR_POINTBASED) {
-					/* 
-					 * Make sure we've got a point-based char to play with. 
+					/* Make sure we've got a point-based char to play with. 
 					 * We call point_based_start here to make sure we get
 					 * an update on the points totals before trying to
 					 * display the screen. The call to CMD_RESET_STATS
 					 * forces a rebuying of the stats to give us up-to-date
-					 * totals. This is, it should go without saying, a hack.
-					 */
+					 * totals. This is, it should go without saying, a hack. */
 					point_based_start();
 					cmdq_push(CMD_RESET_STATS);
 					cmd_set_arg_choice(cmdq_peek(), "choice", true);
