@@ -60,7 +60,7 @@ void init_display(void);
 
 void message_skip_more(void);
 uint32_t monster_health_attr(const struct monster *mon);
-void cnv_stat(const char *fmt, int val, char *out_val, size_t out_len);
+void cnv_stat(int val, char *out_val, size_t out_len);
 void idle_update(void);
 void toggle_inven_equip(void);
 

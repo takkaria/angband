@@ -120,27 +120,51 @@ static void panel_space(struct panel *p)
 	p->next++;
 }
 
-static uint32_t stealth_attr(void)
+/**
+ * Returns a rating of a depending on b, and sets attr to the
+ * corresponding attribute.
+ */
+static const char *likert(int a, int b, uint32_t *attr)
 {
-	switch (player->state.skills[SKILL_STEALTH]) {
+	if (b <= 0) {
+		b = 1;
+	}
+
+	/* Negative value */
+	if (a < 0) {
+		*attr = COLOUR_RED;
+		return "Very Bad";
+	}
+
+	/* Analyze the value */
+	switch (a / b) {
 		case 0: case 1:
-			return COLOUR_RED;
+			*attr = COLOUR_RED;
+			return "Bad";
 		case 2:
-			return COLOUR_RED;
+			*attr = COLOUR_RED;
+			return "Poor";
 		case 3: case 4:
-			return COLOUR_YELLOW;
+			*attr = COLOUR_YELLOW;
+			return "Fair";
 		case 5:
-			return COLOUR_YELLOW;
+			*attr = COLOUR_YELLOW;
+			return "Good";
 		case 6:
-			return COLOUR_YELLOW;
+			*attr = COLOUR_YELLOW;
+			return "Very Good";
 		case 7: case 8:
-			return COLOUR_L_GREEN;
+			*attr = COLOUR_L_GREEN;
+			return "Excellent";
 		case 9: case 10: case 11: case 12: case 13:
-			return COLOUR_L_GREEN;
+			*attr = COLOUR_L_GREEN;
+			return "Superb";
 		case 14: case 15: case 16: case 17:
-			return COLOUR_L_GREEN;
+			*attr = COLOUR_L_GREEN;
+			return "Heroic";
 		default:
-			return COLOUR_L_GREEN;
+			*attr = COLOUR_L_GREEN;
+			return "Legendary";
 	}
 }
 
@@ -163,7 +187,7 @@ static void display_player_equippy(struct loc loc)
 /**
  * List of resistances and abilities to display
  */
-#define PLAYER_FLAG_RECORDS_PER_TABLE 5
+#define RES_ROWS 9
 
 struct player_flag_record {
 	const char *label;  /* Name of resistance/ability */
@@ -173,103 +197,46 @@ struct player_flag_record {
 	int tmd_flag;       /* corresponding timed flag */
 };
 
-struct player_flag_table {
-	struct loc loc;
-	struct player_flag_record records[PLAYER_FLAG_RECORDS_PER_TABLE];
-	size_t label_max_len;
-};
+static const struct player_flag_record player_flag_table[][RES_ROWS] = {
+	{{"rAcid:",  -1,              -1,               ELEM_ACID,    TMD_OPP_ACID},
+	 {"rElec:",  -1,              -1,               ELEM_ELEC,    TMD_OPP_ELEC},
+	 {"rFire:",  -1,              -1,               ELEM_FIRE,    TMD_OPP_FIRE},
+	 {"rCold:",  -1,              -1,               ELEM_COLD,    TMD_OPP_COLD},
+	 {"rPois:",  -1,              -1,               ELEM_POIS,    TMD_OPP_POIS},
+	 {"rLite:",  -1,              -1,               ELEM_LIGHT,  -1},
+	 {"rDark:",  -1,              -1,               ELEM_DARK,   -1},
+	 {"Sound:",  -1,              -1,               ELEM_SOUND,  -1},
+	 {"Shard:",  -1,              -1,               ELEM_SHARD,  -1}},
 
-#define PLAYER_FLAG_RES_ROW_1 2
-#define PLAYER_FLAG_RES_ROW_2 12
+	{{"Nexus:",  -1,              -1,               ELEM_NEXUS,  -1},
+	 {"Nethr:",  -1,              -1,               ELEM_NETHER, -1},
+	 {"Chaos:",  -1,              -1,               ELEM_CHAOS,  -1},
+	 {"Disen:",  -1,              -1,               ELEM_DISEN,  -1},
+	 {"pFear:",  -1,               OF_PROT_FEAR,   -1,            TMD_BOLD},
+	 {"pBlnd:",  -1,               OF_PROT_BLIND,  -1,           -1},
+	 {"pConf:",  -1,               OF_PROT_CONF,   -1,            TMD_OPP_CONF},
+	 {"pStun:",  -1,               OF_PROT_STUN,   -1,           -1},
+	 {"HLife:",  -1,               OF_HOLD_LIFE,   -1,           -1}},
 
-#define PLAYER_FLAG_RECORD_LEN 20
+	{{"Regen:",  -1,               OF_REGEN,       -1,           -1},
+	 {"  ESP:",  -1,               OF_TELEPATHY,   -1,            TMD_TELEPATHY},
+	 {"Invis:",  -1,               OF_SEE_INVIS,   -1,            TMD_SINVIS},
+	 {"FrAct:",  -1,               OF_FREE_ACT,    -1,           -1},
+	 {"Feath:",  -1,               OF_FEATHER,     -1,           -1},
+	 {"S.Dig:",  -1,               OF_SLOW_DIGEST, -1,           -1},
+	 {"ImpHP:",  -1,               OF_IMPAIR_HP,   -1,           -1},
+	 {" Fear:",  -1,               OF_AFRAID,      -1,            TMD_AFRAID},
+	 {"Aggrv:",  -1,               OF_AGGRAVATE,   -1,           -1}},
 
-#define PLAYER_FLAG_RES_COL_1 (PLAYER_FLAG_RECORD_LEN * 0)
-#define PLAYER_FLAG_RES_COL_2 (PLAYER_FLAG_RECORD_LEN * 1)
-#define PLAYER_FLAG_RES_COL_3 (PLAYER_FLAG_RECORD_LEN * 2)
-#define PLAYER_FLAG_RES_COL_4 (PLAYER_FLAG_RECORD_LEN * 3)
-
-static const struct player_flag_table player_flag_tables_misc[] = {
-	{
-		.loc = {PLAYER_FLAG_RES_COL_1, PLAYER_FLAG_RES_ROW_1},
-		.records = {
-			{"Speed:",  OBJ_MOD_SPEED,   -1, -1,  TMD_FAST},
-			{"Blows:",  OBJ_MOD_BLOWS,   -1, -1, -1},
-			{"Shots:",  OBJ_MOD_SHOTS,   -1, -1, -1},
-			{"Might:",  OBJ_MOD_MIGHT,   -1, -1, -1},
-			{"Light:",  OBJ_MOD_LIGHT,   -1, -1, -1},
-		},
-		.label_max_len = 6,
-	},
-	{
-		.loc = {PLAYER_FLAG_RES_COL_2, PLAYER_FLAG_RES_ROW_1},
-		.records = {
-			{"Regen:", -1,               OF_REGEN,       -1, -1},
-			{"  ESP:", -1,               OF_TELEPATHY,   -1,  TMD_TELEPATHY},
-			{"Invis:", -1,               OF_SEE_INVIS,   -1,  TMD_SINVIS},
-			{"Stea.:", OBJ_MOD_STEALTH, -1,              -1, -1},
-			{"Infra:", OBJ_MOD_INFRA,   -1,              -1,  TMD_SINFRA},
-		},
-		.label_max_len = 6,
-	},
-	{
-		.loc = {PLAYER_FLAG_RES_COL_3, PLAYER_FLAG_RES_ROW_1},
-		.records = {
-			{" Fear:", -1,               OF_AFRAID,      -1,  TMD_AFRAID},
-			{"Aggrv:", -1,               OF_AGGRAVATE,   -1, -1},
-			{"ImpHP:", -1,               OF_IMPAIR_HP,   -1, -1},
-			{"S.Dig:", -1,               OF_SLOW_DIGEST, -1, -1},
-			{"Tunn.:", OBJ_MOD_TUNNEL,  -1,              -1, -1},
-		},
-		.label_max_len = 6,
-	},
-};
-
-static const struct player_flag_table player_flag_tables_resist[] = {
-	{
-		.loc = {PLAYER_FLAG_RES_COL_1, PLAYER_FLAG_RES_ROW_2},
-		.records = {
-			{"rAcid:", -1, -1, ELEM_ACID,   TMD_OPP_ACID},
-			{"rElec:", -1, -1, ELEM_ELEC,   TMD_OPP_ELEC},
-			{"rFire:", -1, -1, ELEM_FIRE,   TMD_OPP_FIRE},
-			{"rCold:", -1, -1, ELEM_COLD,   TMD_OPP_COLD},
-			{"rPois:", -1, -1, ELEM_POIS,   TMD_OPP_POIS},
-		},
-		.label_max_len = 6,
-	},
-	{
-		.loc = {PLAYER_FLAG_RES_COL_2, PLAYER_FLAG_RES_ROW_2},
-		.records = {
-			{"rLite:", -1, -1, ELEM_LIGHT, -1},
-			{"rDark:", -1, -1, ELEM_DARK,  -1},
-			{"Sound:", -1, -1, ELEM_SOUND, -1},
-			{"Shard:", -1, -1, ELEM_SHARD, -1},
-			{"Nexus:", -1, -1,              ELEM_NEXUS,  -1},
-		},
-		.label_max_len = 6,
-	},
-	{
-		.loc = {PLAYER_FLAG_RES_COL_3, PLAYER_FLAG_RES_ROW_2},
-		.records = {
-			{"Nethr:", -1, -1,              ELEM_NETHER, -1},
-			{"Chaos:", -1, -1,              ELEM_CHAOS,  -1},
-			{"Disen:", -1, -1,              ELEM_DISEN,  -1},
-			{"pFear:", -1,  OF_PROT_FEAR,  -1,            TMD_BOLD},
-			{"pBlnd:", -1,  OF_PROT_BLIND, -1,           -1},
-		},
-		.label_max_len = 6,
-	},
-	{
-		.loc = {PLAYER_FLAG_RES_COL_4, PLAYER_FLAG_RES_ROW_2},
-		.records = {
-			{"pConf:", -1, OF_PROT_CONF,  -1,  TMD_OPP_CONF},
-			{"pStun:", -1, OF_PROT_STUN,  -1, -1},
-			{"HLife:", -1, OF_HOLD_LIFE,  -1, -1},
-			{"FrAct:", -1, OF_FREE_ACT,   -1, -1},
-			{"Feath:", -1, OF_FEATHER,    -1, -1},
-		},
-		.label_max_len = 6,
-	},
+	{{"Stea.:",   OBJ_MOD_STEALTH, -1,             -1,           -1},
+	 {"Infra:",   OBJ_MOD_INFRA,   -1,             -1,            TMD_SINFRA},
+	 {"Tunn.:",   OBJ_MOD_TUNNEL,  -1,             -1,           -1},
+	 {"Speed:",   OBJ_MOD_SPEED,   -1,             -1,            TMD_FAST},
+	 {"Blows:",   OBJ_MOD_BLOWS,   -1,             -1,           -1},
+	 {"Shots:",   OBJ_MOD_SHOTS,   -1,             -1,           -1},
+	 {"Might:",   OBJ_MOD_MIGHT,   -1,             -1,           -1},
+	 {"Light:",   OBJ_MOD_LIGHT,   -1,             -1,           -1},
+	 {"",        -1,               -1,             -1,           -1}},
 };
 
 static void display_resistance_panel(const struct player_flag_record *rec,
@@ -400,60 +367,69 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 	display_player_equippy(loc);
 }
 
-static void display_player_flag_tables(const struct player_flag_table *tables,
-		size_t n_tables)
+static void display_player_flag_info(void)
 {
-	for (size_t i = 0; i < n_tables; i++) {
-		const struct player_flag_table *table = &tables[i];
+	for (size_t i = 0; i < N_ELEMENTS(player_flag_table); i++) {
+		int label_max_len = 0;
+		for (size_t j = 0; j < N_ELEMENTS(player_flag_table[i]); j++) {
+			int len = strlen(player_flag_table[i][j].label);
+			if (label_max_len < len) {
+				label_max_len = len;
+			}
+		}
 
-		display_resistance_panel(table->records, N_ELEMENTS(table->records),
-				table->label_max_len, table->loc);
+		struct loc loc = {
+			.x = i * (label_max_len + player->body.count + 1 + 1),
+			.y = 11
+		};
+		display_resistance_panel(player_flag_table[i],
+				N_ELEMENTS(player_flag_table[i]), label_max_len, loc);
 	}
 }
 
-static void display_player_flag_info(void)
+static void player_stat_info_new_col(const int col, struct loc *loc)
 {
-	display_player_flag_tables(player_flag_tables_misc,
-			N_ELEMENTS(player_flag_tables_misc));
+	int x = loc->x - col;
 
-	display_player_flag_tables(player_flag_tables_resist,
-			N_ELEMENTS(player_flag_tables_resist));
+	switch (x) {
+		case 0:  loc->x = col + 5;  break;
+		case 5:  loc->x = col + 12; break;
+		case 12: loc->x = col + 16; break;
+		case 16: loc->x = col + 20; break;
+		case 20: loc->x = col + 24; break;
+		case 24: loc->x = col + 31; break;
+
+		default:
+			quit_fmt("%s: bad loc (%d, %d)", __func__, loc->x, loc->y);
+			break;
+	}
 }
 
 void display_player_stat_info(void)
 {
-	const int col = 51;
+	const int col = 42;
 	const int row = 2;
 
-	struct loc loc = {.x = col, .y = row - 1};
-
-	const char *self_label = "Self";
-	const char *rb_label   = "RB";
-	const char *cb_label   = "CB";
-	const char *eb_label   = "EB";
-	const char *best_label = "Best";
-
-	int self_x = col + 5; /* "Str: " */
-	int rb_x   = self_x + strlen(self_label) + 2;
-	int cb_x   = rb_x   + strlen(rb_label) + 2;
-	int eb_x   = cb_x   + strlen(cb_label) + 2;
-	int best_x = eb_x   + strlen(eb_label) + 2;
+	struct loc loc = {
+		.x = col,
+		.y = row - 1
+	};
 
 	/* Print out the labels for the columns */
-	loc.x = self_x;
-	c_put_str(COLOUR_WHITE, self_label, loc);
+	player_stat_info_new_col(col, &loc);
+	c_put_str(COLOUR_WHITE, "  Self", loc);
 
-	loc.x = rb_x;
-	c_put_str(COLOUR_WHITE, rb_label, loc);
+	player_stat_info_new_col(col, &loc);
+	c_put_str(COLOUR_WHITE, " RB",    loc);
 
-	loc.x = cb_x;
-	c_put_str(COLOUR_WHITE, cb_label, loc);
+	player_stat_info_new_col(col, &loc);
+	c_put_str(COLOUR_WHITE, " CB",    loc);
 
-	loc.x = eb_x;
-	c_put_str(COLOUR_WHITE, eb_label, loc);
+	player_stat_info_new_col(col, &loc);
+	c_put_str(COLOUR_WHITE, " EB",    loc);
 
-	loc.x = best_x;
-	c_put_str(COLOUR_WHITE, best_label, loc);
+	player_stat_info_new_col(col, &loc);
+	c_put_str(COLOUR_WHITE, "  Best", loc);
 
 	loc.y = row;
 	/* Display the stats */
@@ -470,37 +446,43 @@ void display_player_stat_info(void)
 
 		/* Indicate natural maximum */
 		if (player->stat_max[i] == 18 + 100) {
-			loc.x += 3;
+			loc.x = col + 3;
 			put_str("!", loc);
-			loc.x -= 3;
 		}
 
-		char buf[8];
+		char buf[80];
 
 		/* Internal "natural" maximum value */
-		loc.x = self_x;
-		cnv_stat("%4d", player->stat_max[i], buf, sizeof(buf));
+		player_stat_info_new_col(col, &loc);
+		cnv_stat(player->stat_max[i], buf, sizeof(buf));
 		c_put_str(COLOUR_L_GREEN, buf, loc);
 
 		/* Race Bonus */
-		loc.x = rb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->race->r_adj[i]);
+		player_stat_info_new_col(col, &loc);
+		strnfmt(buf, sizeof(buf), "%+3d", player->race->r_adj[i]);
 		c_put_str(COLOUR_L_BLUE, buf, loc);
 
 		/* Class Bonus */
-		loc.x = cb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->class->c_adj[i]);
+		player_stat_info_new_col(col, &loc);
+		strnfmt(buf, sizeof(buf), "%+3d", player->class->c_adj[i]);
 		c_put_str(COLOUR_L_BLUE, buf, loc);
 
 		/* Equipment Bonus */
-		loc.x = eb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->state.stat_add[i]);
+		player_stat_info_new_col(col, &loc);
+		strnfmt(buf, sizeof(buf), "%+3d", player->state.stat_add[i]);
 		c_put_str(COLOUR_L_BLUE, buf, loc);
 
-		/* Resulting maximum value */
-		loc.x = best_x;
-		cnv_stat("%4d", player->state.stat_top[i], buf, sizeof(buf));
+		/* Resulting "modified" maximum value */
+		player_stat_info_new_col(col, &loc);
+		cnv_stat(player->state.stat_top[i], buf, sizeof(buf));
 		c_put_str(COLOUR_L_GREEN, buf, loc);
+
+		/* Only display stat_use if there has been draining */
+		if (player->stat_cur[i] < player->stat_max[i]) {
+			player_stat_info_new_col(col, &loc);
+			cnv_stat(player->state.stat_use[i], buf, sizeof(buf));
+			c_put_str(COLOUR_YELLOW, buf, loc);
+		}
 	}
 
 	Term_flush_output();
@@ -516,24 +498,13 @@ void display_player_stat_info(void)
  */
 static void display_player_sust_info(void)
 {
-	const int col = PLAYER_FLAG_RES_COL_4 + 1;
-	const int row = PLAYER_FLAG_RES_ROW_1;
+	const int col = 26;
+	const int row = 2;
 
-	struct loc loc = {col, row + 1};
-
-	int label_max_len = 0;
-
-	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
-		c_put_str(COLOUR_WHITE, stat_names[i], loc);
-
-		int len = strlen(stat_names[i]);
-		if (label_max_len < len) {
-			label_max_len = len;
-		}
-	}
-
-	loc.x = col + label_max_len;
-	loc.y = row;
+	struct loc loc = {
+		.x = col,
+		.y = row - 1
+	};
 
 	Term_adds(loc.x, loc.y, player->body.count, COLOUR_WHITE, lower_case);
 	Term_putwc(COLOUR_WHITE, L'@');
@@ -550,7 +521,7 @@ static void display_player_sust_info(void)
 
 		object_flags_known(obj, f);
 
-		loc.y = row + 1;
+		loc.y = row;
 		for (int stat = OBJ_MOD_MIN_STAT;
 				stat < OBJ_MOD_MIN_STAT + STAT_MAX;
 				stat++, loc.y++)
@@ -585,7 +556,7 @@ static void display_player_sust_info(void)
 
 	player_flags(player, f);
 
-	loc.y = row + 1;
+	loc.y = row;
 	for (int stat = 0; stat < STAT_MAX; stat++, loc.y++) {
 		uint32_t attr = COLOUR_SLATE;
 		wchar_t ch = L'.';
@@ -598,7 +569,7 @@ static void display_player_sust_info(void)
 		Term_addwc(loc.x, loc.y, attr, ch);
 	}
 
-	loc.x = col + label_max_len;
+	loc.x = col;
 	Term_adds(loc.x, loc.y, player->body.count, COLOUR_WHITE, lower_case);
 	Term_putwc(COLOUR_WHITE, L'@');
 
@@ -690,9 +661,30 @@ static const char *show_depth(void)
 	}
 }
 
+static const char *show_speed(void)
+{
+	static char buffer[10];
+
+	int speed = player->state.speed;
+
+	if (player->timed[TMD_FAST]) {
+		speed -= 10;
+	}
+	if (player->timed[TMD_SLOW]) {
+		speed += 10;
+	}
+
+	if (speed == 110) {
+		return "Normal";
+	} else {
+		strnfmt(buffer, sizeof(buffer), "%d", speed - 110);
+		return buffer;
+	}
+}
+
 static uint32_t max_color(int val, int max)
 {
-	return val < max ? COLOUR_YELLOW : COLOUR_L_BLUE;
+	return val < max ? COLOUR_YELLOW : COLOUR_L_GREEN;
 }
 
 /**
@@ -712,36 +704,38 @@ static const uint32_t skill_colour_table[] = {
 	COLOUR_L_BLUE
 };
 
-static struct panel *get_panel_player(void)
+static struct panel *get_panel_topleft(void)
 {
 	struct panel *p = panel_allocate(6);
 
-	panel_line(p, COLOUR_L_GREEN, "Name",  "%s", op_ptr->full_name);
-	panel_line(p, COLOUR_L_GREEN, "Race",  "%s", player->race->name);
-	panel_line(p, COLOUR_L_GREEN, "Class", "%s", player->class->name);
-	panel_line(p, COLOUR_L_GREEN, "Title", "%s", show_title());
-	panel_line(p, COLOUR_L_GREEN, "HP", "%d/%d", player->chp, player->mhp);
-	panel_line(p, COLOUR_L_GREEN, "SP", "%d/%d", player->csp, player->msp);
+	panel_line(p, COLOUR_L_BLUE, "Name",  "%s", op_ptr->full_name);
+	panel_line(p, COLOUR_L_BLUE, "Race",  "%s", player->race->name);
+	panel_line(p, COLOUR_L_BLUE, "Class", "%s", player->class->name);
+	panel_line(p, COLOUR_L_BLUE, "Title", "%s", show_title());
+	panel_line(p, COLOUR_L_BLUE, "HP", "%d/%d", player->chp, player->mhp);
+	panel_line(p, COLOUR_L_BLUE, "SP", "%d/%d", player->csp, player->msp);
 
 	return p;
 }
 
-static struct panel *get_panel_misc(void)
+static struct panel *get_panel_midleft(void)
 {
-	struct panel *p = panel_allocate(7);
+	struct panel *p = panel_allocate(9);
 	int diff = weight_remaining(player);
-	uint32_t attr = diff < 0 ? COLOUR_L_RED : COLOUR_L_BLUE;
+	uint32_t attr = diff < 0 ? COLOUR_L_RED : COLOUR_L_GREEN;
 
 	panel_line(p, max_color(player->lev, player->max_lev),
 			"Level", "%d", player->lev);
 	panel_line(p, max_color(player->exp, player->max_exp),
 			"Cur Exp", "%d", player->exp);
-	panel_line(p, COLOUR_L_BLUE, "Max Exp", "%d", player->max_exp);
-	panel_line(p, COLOUR_L_BLUE, "Adv Exp", "%s", show_adv_exp());
-	panel_line(p, COLOUR_L_BLUE, "Gold", "%d", player->au);
+	panel_line(p, COLOUR_L_GREEN, "Max Exp", "%d", player->max_exp);
+	panel_line(p, COLOUR_L_GREEN, "Adv Exp", "%s", show_adv_exp());
+	panel_space(p);
+	panel_line(p, COLOUR_L_GREEN, "Gold", "%d", player->au);
 	panel_line(p, attr,
 			"Burden", "%.1f lb", player->upkeep->total_weight / 10.0F);
 	panel_line(p, attr, "Overweight", "%d.%d lb", -diff / 10, abs(diff) % 10);
+	panel_line(p, COLOUR_L_GREEN, "Max Depth", "%s", show_depth());
 
 	return p;
 }
@@ -769,10 +763,8 @@ static struct panel *get_panel_combat(void)
 		melee_sides = obj->ds;
 	}
 
-	panel_line(p, COLOUR_L_BLUE,
-			"Melee damage", "%dd%d,%+d", melee_dice, melee_sides, dam);
-	panel_line(p, COLOUR_L_BLUE,
-			"Melee to-hit", "%d,%+d", bth / 10, hit);
+	panel_line(p, COLOUR_L_BLUE, "Melee", "%dd%d,%+d", melee_dice, melee_sides, dam);
+	panel_line(p, COLOUR_L_BLUE, "To-hit", "%d,%+d", bth / 10, hit);
 	panel_line(p, COLOUR_L_BLUE, "Blows", "%d.%d/turn",
 			player->state.num_blows / 100, (player->state.num_blows / 10 % 10));
 
@@ -783,8 +775,8 @@ static struct panel *get_panel_combat(void)
 	dam = obj ? obj->known->to_d : 0;
 
 	panel_space(p);
-	panel_line(p, COLOUR_L_BLUE, "Shoot to-damage", "%+d", dam);
-	panel_line(p, COLOUR_L_BLUE, "Shoot to-hit", "%d,%+d", bth / 10, hit);
+	panel_line(p, COLOUR_L_BLUE, "Shoot to-dam", "%+d", dam);
+	panel_line(p, COLOUR_L_BLUE, "To-hit", "%d,%+d", bth / 10, hit);
 	panel_line(p, COLOUR_L_BLUE, "Shots", "%d/turn", player->state.num_shots);
 
 	return p;
@@ -792,7 +784,7 @@ static struct panel *get_panel_combat(void)
 
 static struct panel *get_panel_skills(void)
 {
-	struct panel *p = panel_allocate(9);
+	struct panel *p = panel_allocate(8);
 
 	int depth = cave ? cave->depth : 0;
 	uint32_t attr;
@@ -804,17 +796,17 @@ static struct panel *get_panel_skills(void)
 	int skill = BOUND(player->state.skills[SKILL_SAVE], 0, 100);
 	panel_line(p, skill_colour_table[skill / 10], "Saving Throw", "%d%%", skill);
 
-	panel_space(p);
+	/* Stealth */
+	const char *desc = likert(player->state.skills[SKILL_STEALTH], 1, &attr);
+	panel_line(p, attr, "Stealth", "%s", desc);
 
 	/* Physical disarming: assume we're disarming a dungeon trap */
 	skill = BOUND(player->state.skills[SKILL_DISARM_PHYS] - depth / 5, 2, 100);
-	panel_line(p, skill_colour_table[skill / 10], "Disarm - physical", "%d%%", skill);
+	panel_line(p, skill_colour_table[skill / 10], "Disarm - phys.", "%d%%", skill);
 
 	/* Magical disarming */
 	skill = BOUND(player->state.skills[SKILL_DISARM_MAGIC] - depth / 5, 2, 100);
-	panel_line(p, skill_colour_table[skill / 10], "Disarm - magical", "%d%%", skill);
-
-	panel_space(p);
+	panel_line(p, skill_colour_table[skill / 10], "Disarm - magic", "%d%%", skill);
 
 	/* Magic devices */
 	skill = player->state.skills[SKILL_DEVICE];
@@ -823,10 +815,6 @@ static struct panel *get_panel_skills(void)
 	/* Infravision */
 	panel_line(p, COLOUR_L_GREEN,
 			"Infravision", "%d ft", player->state.see_infra * 10);
-
-	/* Stealth */
-	panel_line(p, stealth_attr(),
-			"Stealth", "%d", player->state.skills[SKILL_STEALTH]);
 
 	/* Speed */
 	skill = player->state.speed;
@@ -837,27 +825,25 @@ static struct panel *get_panel_skills(void)
 		skill += 10;
 	}
 	attr = skill < 110 ? COLOUR_L_UMBER : COLOUR_L_GREEN;
-	panel_line(p, attr, "Speed", "%d", skill - 110);
+	panel_line(p, attr, "Speed", "%s", show_speed());
 
 #undef BOUND
 
 	return p;
 }
 
-static struct panel *get_panel_flavor(void)
+static struct panel *get_panel_misc(void)
 {
-	struct panel *p = panel_allocate(9);
-	uint32_t attr = COLOUR_L_GREEN;
+	struct panel *p = panel_allocate(7);
+	uint32_t attr = COLOUR_L_BLUE;
 
 	panel_line(p, attr, "Age", "%d", player->age);
 	panel_line(p, attr, "Height", "%d'%d\"", player->ht / 12, player->ht % 12);
 	panel_line(p, attr, "Weight", "%dst %dlb", player->wt / 14, player->wt % 14);
-	panel_space(p);
-	panel_line(p, attr, "Actions", "%d", player->total_energy / 100);
+	panel_line(p, attr, "Turns used:", "");
+	panel_line(p, attr, "Game", "%d", turn);
+	panel_line(p, attr, "Standard", "%d", player->total_energy / 100);
 	panel_line(p, attr, "Resting", "%d", player->resting_turn);
-	panel_line(p, attr, "Turns", "%d", turn);
-	panel_space(p);
-	panel_line(p, attr, "Max Depth", "%s", show_depth());
 
 	return p;
 }
@@ -870,11 +856,11 @@ static const struct {
 	bool align_left;
 	struct panel *(*panel)(void);
 } panels[] = {
-	{{ 1, 1,  20, 6}, false, get_panel_player},
-	{{24, 1,  24, 7}, false, get_panel_misc},
-	{{ 1, 10, 20, 9}, false, get_panel_flavor},
-	{{24, 10, 24, 9}, false, get_panel_combat},
-	{{51, 10, 27, 9}, false, get_panel_skills},
+	{{ 1, 1, 20, 6}, true,  get_panel_topleft}, /* Name, Class, ... */
+	{{21, 1, 18, 7}, false, get_panel_misc},    /* Age, ht, wt, ... */
+	{{ 1, 9, 24, 9}, false, get_panel_midleft}, /* Cur Exp, Max Exp, ... */
+	{{29, 9, 19, 9}, false, get_panel_combat},
+	{{52, 9, 20, 8}, false, get_panel_skills},
 };
 
 void display_player_basic_info(void)
@@ -885,9 +871,9 @@ void display_player_basic_info(void)
 		panel_free(p);
 	}
 
-	/* Indent output by 1 character, and wrap at column 80 */
+	/* Indent output by 1 character, and wrap at column 72 */
 	struct text_out_info info = {
-		.wrap = ANGBAND_TERM_STANDARD_WIDTH,
+		.wrap = 72,
 		.indent = 1
 	};
 
@@ -906,10 +892,15 @@ void display_player(enum player_display_mode mode)
 {
 	Term_clear();
 
+	display_player_stat_info();
+
 	if (mode == PLAYER_DISPLAY_MODE_BASIC) {
-		display_player_stat_info();
 		display_player_basic_info();
 	} else if (mode == PLAYER_DISPLAY_MODE_EXTRA) {
+		struct panel *p = panels[0].panel();
+		display_panel(p, panels[0].align_left, panels[0].bounds);
+		panel_free(p);
+
 		display_player_sust_info();
 		display_player_flag_info();
 	} else {
@@ -1118,7 +1109,7 @@ static const struct {
 	enum player_display_mode mode;
 } player_display_tabs[] = {
 	{'1', "Basic information", PLAYER_DISPLAY_MODE_BASIC},
-	{'2', "Resistances & Sustains", PLAYER_DISPLAY_MODE_EXTRA},
+	{'2', "Extra information", PLAYER_DISPLAY_MODE_EXTRA},
 };
 
 static void change_player_display_mode(keycode_t code,
