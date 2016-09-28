@@ -2416,8 +2416,10 @@ void redraw_stuff(struct player *p)
 
 	/* Hack - rarely update while resting or running, makes it over quicker */
 	if (((player_resting_count(p) % 100) || (p->upkeep->running % 100))
-		&& !(redraw & PR_MESSAGE))
+			&& !(redraw & PR_MESSAGE) && !(redraw & PR_MAP))
+	{
 		return;
+	}
 
 	/* For each listed flag, send the appropriate signal to the UI */
 	for (i = 0; i < N_ELEMENTS(redraw_events); i++) {
