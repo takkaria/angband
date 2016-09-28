@@ -37,10 +37,13 @@
 #include "ui2-output.h"
 #include "ui2-player.h"
 
+#define PLAYER_DISPLAY_TERM_HEIGHT 20
+
 /**
  * ------------------------------------------------------------------------
  * Panel utilities
- * ------------------------------------------------------------------------ */
+ * ------------------------------------------------------------------------
+ */
 
 /**
  * Panel line type
@@ -179,8 +182,8 @@ struct player_flag_table {
 	size_t label_max_len;
 };
 
-#define PLAYER_FLAG_RES_ROW_1 2
-#define PLAYER_FLAG_RES_ROW_2 12
+#define PLAYER_FLAG_RES_ROW_1 1
+#define PLAYER_FLAG_RES_ROW_2 11
 
 #define PLAYER_FLAG_RECORD_LEN 20
 
@@ -422,7 +425,7 @@ static void display_player_flag_info(void)
 
 void display_player_stat_info(void)
 {
-	const int col = 51;
+	const int col = 52;
 	const int row = 2;
 
 	struct loc loc = {.x = col, .y = row - 1};
@@ -763,8 +766,6 @@ static struct panel *get_panel_combat(void)
 	int dam = player->known_state.to_d + (obj ? obj->known->to_d : 0);
 	int hit = player->known_state.to_h + (obj ? obj->known->to_h : 0);
 
-	panel_space(p);
-
 	if (obj) {
 		melee_dice = obj->dd;
 		melee_sides = obj->ds;
@@ -783,7 +784,6 @@ static struct panel *get_panel_combat(void)
 	hit = player->known_state.to_h + (obj ? obj->known->to_h : 0);
 	dam = obj ? obj->known->to_d : 0;
 
-	panel_space(p);
 	panel_line(p, COLOUR_L_BLUE, "Shoot to-damage", "%+d", dam);
 	panel_line(p, COLOUR_L_BLUE, "Shoot to-hit", "%d,%+d", bth / 10, hit);
 	panel_line(p, COLOUR_L_BLUE, "Shots", "%d/turn", player->state.num_shots);
@@ -805,8 +805,6 @@ static struct panel *get_panel_skills(void)
 	int skill = BOUND(player->state.skills[SKILL_SAVE], 0, 100);
 	panel_line(p, skill_colour_table[skill / 10], "Saving Throw", "%d%%", skill);
 
-	panel_space(p);
-
 	/* Physical disarming: assume we're disarming a dungeon trap */
 	skill = BOUND(player->state.skills[SKILL_DISARM_PHYS] - depth / 5, 2, 100);
 	panel_line(p, skill_colour_table[skill / 10], "Disarm - physical", "%d%%", skill);
@@ -814,8 +812,6 @@ static struct panel *get_panel_skills(void)
 	/* Magical disarming */
 	skill = BOUND(player->state.skills[SKILL_DISARM_MAGIC] - depth / 5, 2, 100);
 	panel_line(p, skill_colour_table[skill / 10], "Disarm - magical", "%d%%", skill);
-
-	panel_space(p);
 
 	/* Magic devices */
 	skill = player->state.skills[SKILL_DEVICE];
@@ -847,17 +843,15 @@ static struct panel *get_panel_skills(void)
 
 static struct panel *get_panel_flavor(void)
 {
-	struct panel *p = panel_allocate(9);
+	struct panel *p = panel_allocate(7);
 	uint32_t attr = COLOUR_L_GREEN;
 
 	panel_line(p, attr, "Age", "%d", player->age);
 	panel_line(p, attr, "Height", "%d'%d\"", player->ht / 12, player->ht % 12);
 	panel_line(p, attr, "Weight", "%dst %dlb", player->wt / 14, player->wt % 14);
-	panel_space(p);
 	panel_line(p, attr, "Actions", "%d", player->total_energy / 100);
 	panel_line(p, attr, "Resting", "%d", player->resting_turn);
 	panel_line(p, attr, "Turns", "%d", turn);
-	panel_space(p);
 	panel_line(p, attr, "Max Depth", "%s", show_depth());
 
 	return p;
@@ -871,11 +865,11 @@ static const struct {
 	bool align_left;
 	struct panel *(*panel)(void);
 } panels[] = {
-	{{ 1, 1,  20, 6}, false, get_panel_player},
-	{{24, 1,  24, 7}, false, get_panel_misc},
-	{{ 1, 10, 20, 9}, false, get_panel_flavor},
-	{{24, 10, 24, 9}, false, get_panel_combat},
-	{{51, 10, 27, 9}, false, get_panel_skills},
+	{{ 1, 1, 20, 7}, false, get_panel_player},
+	{{25, 1, 23, 7}, false, get_panel_misc},
+	{{ 1, 9, 20, 7}, false, get_panel_flavor},
+	{{25, 9, 23, 7}, false, get_panel_combat},
+	{{52, 9, 27, 7}, false, get_panel_skills},
 };
 
 void display_player_basic_info(void)
@@ -893,7 +887,7 @@ void display_player_basic_info(void)
 	};
 
 	/* History */
-	Term_cursor_to_xy(info.indent, 20);
+	Term_cursor_to_xy(info.indent, 17);
 	text_out_c(info, COLOUR_WHITE, player->history);
 
 	Term_flush_output();
@@ -1164,7 +1158,7 @@ static void player_display_term_push(enum player_display_mode mode)
 {
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.height = PLAYER_DISPLAY_TERM_HEIGHT,
 		.tabs = true,
 		.purpose = TERM_PURPOSE_TEXT,
 		.position = TERM_POSITION_CENTER
