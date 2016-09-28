@@ -722,7 +722,7 @@ static bool store_process_command_key(struct keypress kp)
 			toggle_inven_equip();
 			break;
 		case 'C':
-			do_cmd_change_name();
+			do_cmd_view_char();
 			break;
 		case KTRL('P'):
 			do_cmd_messages();

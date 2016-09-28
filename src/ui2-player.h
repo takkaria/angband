@@ -21,6 +21,6 @@ enum player_display_mode {
 
 void display_player(enum player_display_mode mode);
 bool dump_save(const char *path);
-void do_cmd_change_name(void);
+void do_cmd_view_char(void);
 
 #endif /* UI2_PLAYER_H */

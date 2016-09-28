@@ -1209,7 +1209,7 @@ static void player_display_term_pop()
 /**
  * View character and (potentially) change name
  */
-void do_cmd_change_name(void)
+void do_cmd_view_char(void)
 {
 	const char *prompt = "['c' to change name, 'f' to file, 'h' to change mode, or ESC]";
 

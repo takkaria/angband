@@ -136,7 +136,7 @@ struct cmd_info cmd_info[] = {
 	{"Display visible monster list", {'['},       CMD_NULL,         do_cmd_monlist, NULL},
 	{"Locate player on map",         {'L', 'W'},  CMD_NULL,         do_cmd_locate, NULL},
 	{"Help",                         {'?'},       CMD_NULL,         do_cmd_help, NULL},
-	{"Character description",        {'C'},       CMD_NULL,         do_cmd_change_name, NULL},
+	{"Character description",        {'C'},       CMD_NULL,         do_cmd_view_char, NULL},
 	{"Check knowledge",              {'~'},       CMD_NULL,         textui_browse_knowledge, NULL},
 	{"Repeat level feeling",         {KTRL('F')}, CMD_NULL,         do_cmd_feeling, NULL},
 	{"Show previous message",        {KTRL('O')}, CMD_NULL,         do_cmd_message_one, NULL},
