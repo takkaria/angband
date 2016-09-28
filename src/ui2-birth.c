@@ -488,7 +488,6 @@ static void setup_race_menu(void)
 
 	race_data->hint =
 		"Race affects stats and skills, and may confer resistances and abilities.";
-
 }
 
 static void setup_class_menu(void)
