@@ -273,33 +273,25 @@ size_t textblock_calculate_lines(textblock *tb, size_t **line_starts, size_t **l
 			current_line_length++;
 		}
 
-		if (current_line_length == width) {
+		if (current_line_length > width) {
 			/* We're out of space on the line and need to break it. */
 
-			size_t const current_line_start = (*line_starts)[current_line_index];
-			size_t next_line_start_offset = 0;
-			size_t adjusted_line_length = 0;
+			if (breaking_char_offset > (*line_starts)[current_line_index]) {
+				/* If we found a breaking character, break there and start the next
+				 * line on the next character. The loop then backtracks to add the
+				 * already-processed characters to the next line, unless the current
+				 * character is the breaking character (so we can just skip it). */
 
-			if (breaking_char_offset > current_line_start) {
-				/* If we found a breaking character on the current line, break
-				 * there and start the next line on the next character. The loop
-				 * then backtracks to add the already-processed characters to
-				 * the next line. */
-				adjusted_line_length = breaking_char_offset - current_line_start;
-				next_line_start_offset = breaking_char_offset + 1;
+				if (breaking_char_offset < text_offset) {
+					/* Backtrack to the breaking character */
+					(*line_lengths)[current_line_index] =
+						breaking_char_offset - (*line_starts)[current_line_index];
+				}
+
 				text_offset = breaking_char_offset + 1;
 			}
-			else {
-				/* There was no breaking character on the current line, so we
-				 * just break at the current character. This can happen with a 
-				 * word that takes up the whole line, for example. */
-				adjusted_line_length = width;
-				next_line_start_offset = text_offset + 1;
-				text_offset++;
-			}
 
-			(*line_lengths)[current_line_index] = adjusted_line_length;
-			new_line(line_starts, line_lengths, &alloc_lines, &total_lines, next_line_start_offset, 0);
+			new_line(line_starts, line_lengths, &alloc_lines, &total_lines, text_offset, 0);
 			current_line_index++;
 			current_line_length = 0;
 		}
