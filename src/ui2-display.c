@@ -125,21 +125,14 @@ const char *stat_names_reduced[STAT_MAX] = {
 /**
  * Converts stat num into a six-char (right justified) string
  */
-void cnv_stat(int val, char *out_val, size_t out_len)
+void cnv_stat(const char *fmt, int val, char *out_val, size_t out_len)
 {
-	/* Stats above 18 need special treatment*/
+	/* Stats above 18 need special treatment (lol) */
 	if (val > 18) {
 		int bonus = val - 18;
-
-		if (bonus >= 220) {
-			strnfmt(out_val, out_len, "18/***");
-		} else if (bonus >= 100) {
-			strnfmt(out_val, out_len, "18/%03d", bonus);
-		} else {
-			strnfmt(out_val, out_len, " 18/%02d", bonus);
-		}
+		strnfmt(out_val, out_len, fmt, 18 + bonus / 10);
 	} else {
-		strnfmt(out_val, out_len, "    %2d", val);
+		strnfmt(out_val, out_len, fmt, val);
 	}
 }
 
@@ -302,12 +295,12 @@ static void prt_stat(int stat, struct loc coords)
 	/* Injured or healthy stat */
 	if (player->stat_cur[stat] < player->stat_max[stat]) {
 		put_str(stat_names_reduced[stat], coords);
-		cnv_stat(player->state.stat_use[stat], tmp, sizeof(tmp));
-		c_put_str(COLOUR_YELLOW, tmp, loc(coords.x + 6, coords.y));
+		cnv_stat("%2d", player->state.stat_use[stat], tmp, sizeof(tmp));
+		c_put_str(COLOUR_YELLOW, tmp, loc(coords.x + 10, coords.y));
 	} else {
 		put_str(stat_names[stat], coords);
-		cnv_stat(player->state.stat_use[stat], tmp, sizeof(tmp));
-		c_put_str(COLOUR_L_GREEN, tmp, loc(coords.x + 6, coords.y));
+		cnv_stat("%2d", player->state.stat_use[stat], tmp, sizeof(tmp));
+		c_put_str(COLOUR_L_GREEN, tmp, loc(coords.x + 10, coords.y));
 	}
 
 	/* Indicate natural maximum */
