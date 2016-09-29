@@ -92,7 +92,7 @@ bool mouse_in_region(struct mouseclick mouse, region reg)
  */
 
 /**
- * Utility function
+ * This function displays only as many lines of text as region allows.
  */
 static void display_area(const wchar_t *text, const byte *attrs,
 		size_t *line_starts, size_t *line_lengths,
