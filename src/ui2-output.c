@@ -159,7 +159,8 @@ void textui_textblock_show(textblock *tb,
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
 
-	int width = orig_area.w > 0 ? orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
+	int width = orig_area.w > 0 ?
+		orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
 
 	int n_lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, width);
