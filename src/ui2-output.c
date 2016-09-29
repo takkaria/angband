@@ -164,24 +164,22 @@ void textui_textblock_show(textblock *tb,
 	size_t n_lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, width);
 
-	/* Add one line for the header (if present) */
-	int height = (orig_area.h > 0 ? orig_area.h : (int) n_lines) + (header ? 1 : 0);
+	int height = orig_area.h > 0 ? orig_area.h : (int) n_lines;
 
 	struct term_hints hints = {
 		.width = width,
 		.height = height,
+		.tabs = header ? true : false,
 		.position = position,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
 
-	region area = region_calculate(orig_area);
-
-	if (header != NULL) {
-		c_prt(COLOUR_L_BLUE, header, loc(area.x, 0));
-		area.y++;
-		area.h--;
+	if (header) {
+		Term_add_tab(0, header, COLOUR_L_BLUE, COLOUR_DARK);
 	}
+
+	region area = region_calculate(orig_area);
 
 	assert(area.w > 0);
 	assert(area.h > 0);
