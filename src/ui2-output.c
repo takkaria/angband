@@ -224,8 +224,8 @@ void textui_textblock_show(textblock *tb,
 		}
 	} else {
 		show_prompt("(Press any key to continue.)", false);
-		display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
-				line_lengths, n_lines, 0, area);
+		display_area(textblock_text(tb), textblock_attrs(tb),
+				line_starts, line_lengths, n_lines, 0, area);
 		Term_flush_output();
 		inkey_any();
 	}
