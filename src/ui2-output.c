@@ -226,9 +226,9 @@ void textui_textblock_show(textblock *tb,
 
 			Term_flush_output();
 
-			struct keypress ch = inkey_only_key();
+			struct keypress key = inkey_only_key();
 
-			switch (ch.code) {
+			switch (key.code) {
 				case ARROW_UP:
 					start_line--;
 					break;
