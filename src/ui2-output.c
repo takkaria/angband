@@ -150,31 +150,27 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
 	mem_free(line_lengths);
 }
 
-/**
- * Show a textblock interactively
- */
-void textui_textblock_show(textblock *tb,
-		enum term_position position, region orig_area, const char *header)
+static void textblock_term_push(textblock *tb,
+		enum term_position position, region orig_area, const char *header,
+		size_t **line_starts, size_t **line_lengths, int *lines, region *area)
 {
-	size_t *line_starts = NULL;
-	size_t *line_lengths = NULL;
-
 	int width = orig_area.w > 0 ?
 		orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
 
-	int n_lines = textblock_calculate_lines(tb,
-			&line_starts, &line_lengths, width);
+	size_t n_lines =
+		textblock_calculate_lines(tb, line_starts, line_lengths, width);
 
 	/* Remove empty lines from the end of textblock */
-	while (n_lines > 0 && line_lengths[n_lines - 1] == 0) {
+	while (n_lines > 0 && (*line_lengths)[n_lines - 1] == 0) {
 		n_lines--;
 	}
 
-	int height = orig_area.h > 0 ? orig_area.h : n_lines;
+	/* Add 2 lines for term's instructions ("press any key to continue") */
+	int height = (orig_area.h > 0 ? orig_area.h : (int) n_lines) + 2;
 
 	struct term_hints hints = {
 		.width = width,
-		.height = height + 2, /* add some space for instructions */
+		.height = height,
 		.tabs = header ? true : false,
 		.position = position,
 		.purpose = TERM_PURPOSE_TEXT
@@ -185,22 +181,48 @@ void textui_textblock_show(textblock *tb,
 		Term_add_tab(0, header, COLOUR_L_BLUE, COLOUR_DARK);
 	}
 
-	region area = region_calculate(orig_area);
+	*lines = n_lines;
+	*area  = region_calculate(orig_area);
 
-	assert(area.w > 0);
-	assert(area.h > 0);
+	assert(area->w > 0);
+	assert(area->h > 0);
 
-	if (n_lines > area.h) {
+	if (*lines > area->h) { 
 		Term_addws(0, hints.height - 1,
 				TERM_MAX_LEN, COLOUR_WHITE, L"(up/down to scroll or ESC to exit)");
+	} else {
+		Term_addws(0, hints.height - 1,
+				TERM_MAX_LEN, COLOUR_WHITE, L"(press any key to continue)");
+	}
+}
 
+static void textblock_term_pop()
+{
+	Term_pop();
+}
+
+/**
+ * Show a textblock interactively
+ */
+void textui_textblock_show(textblock *tb,
+		enum term_position position, region orig_area, const char *header)
+{
+	size_t *line_starts = NULL;
+	size_t *line_lengths = NULL;
+	int lines = 0;
+	region area = {0};
+
+	textblock_term_push(tb, position, orig_area, header,
+			&line_starts, &line_lengths, &lines, &area);
+
+	if (lines > area.h) {
 		int start_line = 0;
 		bool done = false;
 
 		/* Pager mode */
 		while (!done) {
 			display_area(textblock_text(tb), textblock_attrs(tb), line_starts,
-					line_lengths, n_lines, start_line, area);
+					line_lengths, lines, start_line, area);
 
 			Term_flush_output();
 
@@ -224,16 +246,13 @@ void textui_textblock_show(textblock *tb,
 
 			if (start_line < 0) {
 				start_line = 0;
-			} else if (start_line + area.h > n_lines) {
-				start_line = n_lines - area.h;
+			} else if (start_line + area.h > lines) {
+				start_line = lines - area.h;
 			}
 		}
 	} else {
-		Term_addws(0, hints.height - 1,
-				TERM_MAX_LEN, COLOUR_WHITE, L"(press any key to continue)");
-
 		display_area(textblock_text(tb), textblock_attrs(tb),
-				line_starts, line_lengths, n_lines, 0, area);
+				line_starts, line_lengths, lines, 0, area);
 		Term_flush_output();
 		inkey_any();
 	}
@@ -241,7 +260,7 @@ void textui_textblock_show(textblock *tb,
 	mem_free(line_starts);
 	mem_free(line_lengths);
 
-	Term_pop();
+	textblock_term_pop();
 }
 
 static void text_out_newline(struct text_out_info info, struct loc *cursor)
