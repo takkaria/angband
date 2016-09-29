@@ -55,20 +55,6 @@ region region_calculate(region reg)
 	return reg;
 }
 
-void region_erase_bordered(region reg)
-{
-	region calc = region_calculate(reg);
-
-	calc.x = MAX(calc.x - 1, 0);
-	calc.y = MAX(calc.y - 1, 0);
-	calc.w += 2;
-	calc.h += 2;
-
-	for (int y = 0; y < calc.h; y++) {
-		Term_erase(calc.x, calc.y + y, calc.w);
-	}
-}
-
 void region_erase(region reg)
 {
 	region calc = region_calculate(reg);

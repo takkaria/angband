@@ -53,11 +53,6 @@ struct region {
 void region_erase(region reg);
 
 /**
- * Erase the contents of a region + 1 char each way
- */
-void region_erase_bordered(region reg);
-
-/**
  * Given a region with relative values, make them absolute
  */
 region region_calculate(region reg);
