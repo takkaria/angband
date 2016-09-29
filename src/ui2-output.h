@@ -72,7 +72,8 @@ bool loc_in_region(struct loc loc, region reg);
  * Text display
  * ------------------------------------------------------------------------ */
 
-void textui_textblock_show(textblock *tb, region orig_area, const char *header);
+void textui_textblock_show(textblock *tb,
+		enum term_position position, region orig_area, const char *header);
 void textui_textblock_place(textblock *tb, region orig_area, const char *header);
 
 /**

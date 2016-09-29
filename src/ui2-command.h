@@ -22,7 +22,6 @@
 void do_cmd_redraw(void);
 void do_cmd_options_and_redraw(void);
 void do_cmd_unknown(void);
-void do_cmd_version(void);
 void textui_cmd_suicide(void);
 void textui_cmd_debug(void);
 void textui_cmd_rest(void);

@@ -91,23 +91,6 @@ void do_cmd_unknown(void)
 }
 
 /**
- * Print the version and copyright notice.
- */
-void do_cmd_version(void)
-{
-	char header[ANGBAND_TERM_STANDARD_WIDTH];
-
-	textblock *tb = textblock_new();
-	region reg = {0, 0, 0, 0};
-
-	strnfmt(header, sizeof(header), "You are playing %s.", buildver);
-	textblock_append(tb, "\n");
-	textblock_append(tb, copyright);
-	textui_textblock_show(tb, reg, header);
-	textblock_free(tb);
-}
-
-/**
  * Verify use of "debug" mode
  */
 void textui_cmd_debug(void)

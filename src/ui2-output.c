@@ -153,7 +153,8 @@ void textui_textblock_place(textblock *tb, region orig_area, const char *header)
 /**
  * Show a textblock interactively
  */
-void textui_textblock_show(textblock *tb, region orig_area, const char *header)
+void textui_textblock_show(textblock *tb,
+		enum term_position position, region orig_area, const char *header)
 {
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
@@ -169,7 +170,7 @@ void textui_textblock_show(textblock *tb, region orig_area, const char *header)
 	struct term_hints hints = {
 		.width = width,
 		.height = height,
-		.position = TERM_POSITION_TOP_CENTER,
+		.position = position,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
