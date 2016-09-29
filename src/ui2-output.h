@@ -1,5 +1,5 @@
 /**
- * \file ui-output.h
+ * \file ui2-output.h
  * \brief Putting text on the screen, screen saving and loading, panel handling
  *
  * Copyright (c) 2007 Pete Mack and others.
