@@ -165,6 +165,11 @@ void textui_textblock_show(textblock *tb,
 	int n_lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, width);
 
+	/* Remove empty lines from the end of textblock */
+	while (n_lines > 0 && line_lengths[n_lines - 1] == 0) {
+		n_lines--;
+	}
+
 	int height = orig_area.h > 0 ? orig_area.h : n_lines;
 
 	struct term_hints hints = {
