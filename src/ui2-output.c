@@ -102,16 +102,19 @@ static void display_area(const wchar_t *text, const byte *attrs,
 	assert(area.h > 0);
 	assert(cur_line < n_lines);
 
-	for (size_t l = 0, lines = MIN(n_lines, (size_t) area.h);
-			l < lines;
-			l++, cur_line++)
+	for (size_t y = 0, lines = MIN(n_lines, (size_t) area.h);
+			y < lines;
+			y++, cur_line++)
 	{
-		Term_erase(area.x, area.y + l, area.w);
+		Term_erase(area.x, area.y + y, area.w);
 
-		for (size_t x = 0; x < line_lengths[cur_line]; x++) {
+		for (size_t x = 0, length = MIN(line_lengths[cur_line], (size_t) area.w);
+				x < length;
+				x++)
+		{
 			size_t position = line_starts[cur_line] + x;
 
-			Term_addwc(area.x + x, area.y + l,
+			Term_addwc(area.x + x, area.y + y,
 					attrs[position], text[position]);
 		}
 	}
