@@ -605,7 +605,6 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
 
 	enum birth_stage next_stage = BIRTH_RESET;
 	
-	/* Print the question currently being asked. */
 	clear_menu_hint();
 	Term_adds(MENU_HINT_COL, MENU_HINT_ROW, TERM_MAX_LEN,
 			COLOUR_YELLOW, menu_data->hint);
