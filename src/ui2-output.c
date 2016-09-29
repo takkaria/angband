@@ -100,6 +100,7 @@ static void display_area(const wchar_t *text, const byte *attrs,
 {
 	assert(area.w > 0);
 	assert(area.h > 0);
+	assert(cur_line < n_lines);
 
 	for (size_t l = 0, lines = MIN(n_lines, (size_t) area.h);
 			l < lines;
