@@ -161,10 +161,10 @@ void textui_textblock_show(textblock *tb,
 
 	int width = orig_area.w > 0 ? orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
 
-	size_t n_lines = textblock_calculate_lines(tb,
+	int n_lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, width);
 
-	int height = orig_area.h > 0 ? orig_area.h : (int) n_lines;
+	int height = orig_area.h > 0 ? orig_area.h : n_lines;
 
 	struct term_hints hints = {
 		.width = width,
@@ -184,7 +184,7 @@ void textui_textblock_show(textblock *tb,
 	assert(area.w > 0);
 	assert(area.h > 0);
 
-	if (n_lines > (size_t) area.h) {
+	if (n_lines > area.h) {
 		show_prompt("(Up/down or ESCAPE to exit.)", false);
 
 		int start_line = 0;
@@ -217,7 +217,7 @@ void textui_textblock_show(textblock *tb,
 
 			if (start_line < 0) {
 				start_line = 0;
-			} else if ((size_t) (start_line + area.h) > n_lines) {
+			} else if (start_line + area.h > n_lines) {
 				start_line = n_lines - area.h;
 			}
 		}
