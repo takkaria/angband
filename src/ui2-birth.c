@@ -1325,6 +1325,7 @@ static void ui_enter_birthscreen(game_event_type type,
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_BIRTH
 	};
 	Term_push_new(&hints);
