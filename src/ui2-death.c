@@ -401,7 +401,7 @@ static void death_examine(const char *title, int index)
 				obj, ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL);
 
 		region area = {0, 0, 0, 0};
-		textui_textblock_show(tb, area, header);
+		textui_textblock_show(tb, TERM_POSITION_CENTER, area, header);
 		textblock_free(tb);
 	}
 }

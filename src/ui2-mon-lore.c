@@ -173,7 +173,7 @@ void lore_show_interactive(const struct monster_race *race, const struct monster
 	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);
 	region reg = {0, 0, 0, 0};
-	textui_textblock_show(tb, reg, NULL);
+	textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, reg, NULL);
 	textblock_free(tb);
 }
 

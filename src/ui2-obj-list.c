@@ -369,7 +369,7 @@ void object_list_show_interactive(void)
 		.h = max_height
 	};
 
-	textui_textblock_show(tb, reg, NULL);
+	textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, reg, NULL);
 
 	textblock_free(tb);
 	object_list_free(list);

@@ -1480,7 +1480,7 @@ static void display_object_recall_int(const struct object *obj,
 	region area = {0, 0, 0, 0};
 
 	if (interactive) {
-		textui_textblock_show(tb, area, header);
+		textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, area, header);
 	} else {
 		Term_clear();
 		textui_textblock_place(tb, area, header);

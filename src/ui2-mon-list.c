@@ -389,7 +389,7 @@ void monster_list_show_subwindow(void)
 	/* Draw the list to exactly fit the subwindow. */
 	monster_list_format_textblock(list, tb, height, width, NULL, NULL);
 
-	region reg = {0, 0, 0, 0};
+	region reg = {0};
 	textui_textblock_place(tb, reg, NULL);
 
 	textblock_free(tb);
@@ -431,7 +431,7 @@ void monster_list_show_interactive(void)
 		.h = max_height
 	};
 
-	textui_textblock_show(tb, reg, NULL);
+	textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, reg, NULL);
 
 	textblock_free(tb);
 	monster_list_free(list);

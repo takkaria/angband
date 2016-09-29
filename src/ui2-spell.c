@@ -114,7 +114,7 @@ static void show_spell_description(int index, struct spell_menu_data *data, regi
 	textblock_append(tb, "%s", spell->text);
 
 	region area = {0};
-	textui_textblock_show(tb, area, spell->name);
+	textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, area, spell->name);
 
 	textblock_free(tb);
 }

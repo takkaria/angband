@@ -642,7 +642,7 @@ static void mon_lore(int index)
 	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);
 	region reg = {0};
-	textui_textblock_show(tb, reg, NULL);
+	textui_textblock_show(tb, TERM_POSITION_CENTER, reg, NULL);
 	textblock_free(tb);
 }
 
@@ -935,7 +935,7 @@ static void desc_art_fake(int a_idx)
 	}
 
 	region area = {0, 0, 0, 0};
-	textui_textblock_show(tb, area, header);
+	textui_textblock_show(tb, TERM_POSITION_CENTER, area, header);
 	textblock_free(tb);
 }
 
@@ -1093,8 +1093,8 @@ static void desc_ego_fake(int index)
 	/* List ego flags */
 	textblock *tb = object_info_ego(ego);
 
-	region area = {0, 0, 0, 0};
-	textui_textblock_show(tb, area,
+	region area = {0};
+	textui_textblock_show(tb, TERM_POSITION_CENTER, area,
 			format("%s %s", ego_group_name(default_group_id(index)), ego->name));
 	textblock_free(tb);
 }
@@ -1299,8 +1299,8 @@ static void desc_obj_fake(int k_idx)
 	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_CAPITAL);
 
 	textblock *tb = object_info(obj, OINFO_FAKE);
-	region area = {0, 0, 0, 0};
-	textui_textblock_show(tb, area, header);
+	region area = {0};
+	textui_textblock_show(tb, TERM_POSITION_CENTER, area, header);
 	object_delete(&known_obj);
 	object_delete(&obj);
 	textblock_free(tb);
@@ -1543,8 +1543,8 @@ static void rune_lore(int index)
 
 	my_strcap(title);
 	textblock_append(tb, rune_desc(index));
-	region reg = {0, 0, 0, 0};
-	textui_textblock_show(tb, reg, title);
+	region reg = {0};
+	textui_textblock_show(tb, TERM_POSITION_CENTER, reg, title);
 
 	textblock_free(tb);
 	string_free(title);
@@ -1726,8 +1726,8 @@ static void feat_lore(int index)
 	if (feat->desc) {
 		my_strcap(title);
 		textblock_append(tb, feat->desc);
-		region reg = {0, 0, 0, 0};
-		textui_textblock_show(tb, reg, title);
+		region reg = {0};
+		textui_textblock_show(tb, TERM_POSITION_CENTER, reg, title);
 		textblock_free(tb);
 	}
 
@@ -1882,8 +1882,8 @@ static void trap_lore(int index)
 		my_strcap(title);
 		textblock_append(tb, trap->text);
 
-		region reg = {0, 0, 0, 0};
-		textui_textblock_show(tb, reg, title);
+		region reg = {0};
+		textui_textblock_show(tb, TERM_POSITION_CENTER, reg, title);
 
 		textblock_free(tb);
 		string_free(title);

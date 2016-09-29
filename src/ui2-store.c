@@ -630,7 +630,7 @@ static void store_examine(struct store_context *context, int item)
 			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
 	region reg = {0};
-	textui_textblock_show(tb, reg, header);
+	textui_textblock_show(tb, TERM_POSITION_CENTER, reg, header);
 	textblock_free(tb);
 
 	if (obj_can_browse(obj)) {
