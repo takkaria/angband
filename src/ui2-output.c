@@ -169,7 +169,7 @@ void textui_textblock_show(textblock *tb,
 
 	struct term_hints hints = {
 		.width = width,
-		.height = height,
+		.height = height + 2, /* add some space for instructions */
 		.tabs = header ? true : false,
 		.position = position,
 		.purpose = TERM_PURPOSE_TEXT
@@ -186,7 +186,8 @@ void textui_textblock_show(textblock *tb,
 	assert(area.h > 0);
 
 	if (n_lines > area.h) {
-		show_prompt("(Up/down or ESCAPE to exit.)", false);
+		Term_addws(0, hints.height - 1,
+				TERM_MAX_LEN, COLOUR_WHITE, L"(up/down to scroll or ESC to exit)");
 
 		int start_line = 0;
 		bool done = false;
@@ -223,14 +224,14 @@ void textui_textblock_show(textblock *tb,
 			}
 		}
 	} else {
-		show_prompt("(Press any key to continue.)", false);
+		Term_addws(0, hints.height - 1,
+				TERM_MAX_LEN, COLOUR_WHITE, L"(press any key to continue)");
+
 		display_area(textblock_text(tb), textblock_attrs(tb),
 				line_starts, line_lengths, n_lines, 0, area);
 		Term_flush_output();
 		inkey_any();
 	}
-
-	clear_prompt();
 
 	mem_free(line_starts);
 	mem_free(line_lengths);
