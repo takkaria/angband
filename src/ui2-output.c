@@ -86,9 +86,9 @@ bool mouse_in_region(struct mouseclick mouse, region reg)
  */
 
 /**
- * These functions are designed to display large blocks of text on the screen
- * all at once.  They are the ui-term specific layer on top of the z-textblock.c
- * functions.
+ * These functions are designed to display large blocks of text
+ * on the screen all at once. They are the ui-term specific layer
+ * on top of the z-textblock.c functions.
  */
 
 /**
