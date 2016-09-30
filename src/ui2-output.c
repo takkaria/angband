@@ -500,12 +500,13 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 
 	start = buf;
 	while (next_section(start, 0, &text, &textlen, &tag, &taglen, &next)) {
-		int a = -1;
 
 		assert(textlen < sizeof(smallbuf));
 
 		memcpy(smallbuf, text, textlen);
 		smallbuf[textlen] = 0;
+
+		uint32_t attr;
 
 		if (tag) {
 			char tagbuffer[16];
@@ -516,15 +517,13 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 			memcpy(tagbuffer, tag, taglen);
 			tagbuffer[taglen] = '\0';
 
-			a = color_text_to_attr(tagbuffer);
-		}
-		
-		if (a == -1) {
-			a = COLOUR_WHITE;
+			attr = color_text_to_attr(tagbuffer);
+		} else {
+			attr = COLOUR_WHITE;
 		}
 
 		/* Output now */
-		text_out_to_screen(info, a, smallbuf);
+		text_out_to_screen(info, attr, smallbuf);
 
 		start = next;
 	}
