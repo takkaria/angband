@@ -790,7 +790,7 @@ bool change_panel(enum display_term_index index, int dir)
 /**
  * Verify the current panel (relative to the player location).
  *
- * By default, when the player gets "too close" to the edge of the current
+ * By default, when the player gets too close to the edge of the current
  * panel, the map scrolls one panel in that direction so that the player
  * is no longer so close to the edge.
  *
