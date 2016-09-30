@@ -394,11 +394,10 @@ void text_out_c(struct text_out_info info, uint32_t attr, const char *fmt, ...)
  * 
  * If it returns true, then it also fills 'text' with a pointer to the start
  * of the next printable section of text, and 'len' with the length of that 
- * text, and 'end' with a pointer to the start of the next section.  This
- * may differ from "text + len" because of the presence of tags.  If a tag
- * applies to the section of text, it returns a pointer to the start of that
- * tag in 'tag' and the length in 'taglen'.  Otherwise, 'tag' is filled with
- * NULL.
+ * text, and 'end' with a pointer to the start of the next section. This may
+ * differ from "text + len" because of the presence of tags. If a tag applies
+ * to the section of text, it returns a pointer to the start of that tag in
+ * 'tag' and the length in 'taglen'. Otherwise, 'tag' is filled with NULL.
  *
  * See text_out_e for an example of its use.
  */
