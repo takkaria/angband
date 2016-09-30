@@ -629,12 +629,10 @@ static void store_examine(struct store_context *context, int item)
 	object_desc(header, sizeof(header), obj,
 			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
-	const int store_textblock_width = 72;
-
 	region reg = {
-		.x = (ANGBAND_TERM_STANDARD_WIDTH - store_textblock_width) / 2,
+		.x = (ANGBAND_TERM_STANDARD_WIDTH - ANGBAND_TERM_TEXTBLOCK_WIDTH) / 2,
 		.y = item + context->term_loc[LOC_HEADER].y,
-		.w = store_textblock_width,
+		.w = ANGBAND_TERM_TEXTBLOCK_WIDTH,
 		.h = 0
 	};
 	textui_textblock_show(tb, TERM_POSITION_EXACT, reg, header);

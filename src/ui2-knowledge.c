@@ -117,15 +117,14 @@ static struct join *default_join;
 /*
  * Textblock display utilities
  */
-#define KNOWLEDGE_TEXTBLOCK_WIDTH 72
 #define KNOWLEDGE_HEADER_HEIGHT    2
 
 static void knowledge_textblock_show(textblock *tb, const char *header, int cursor)
 {
 	region reg = {
-		.x = (ANGBAND_TERM_STANDARD_WIDTH - KNOWLEDGE_TEXTBLOCK_WIDTH) / 2,
+		.x = (ANGBAND_TERM_STANDARD_WIDTH - ANGBAND_TERM_TEXTBLOCK_WIDTH) / 2,
 		.y = cursor + KNOWLEDGE_HEADER_HEIGHT,
-		.w = KNOWLEDGE_TEXTBLOCK_WIDTH,
+		.w = ANGBAND_TERM_TEXTBLOCK_WIDTH,
 		.h = 0
 	};
 

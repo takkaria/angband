@@ -28,6 +28,9 @@
  * TODO this should be an option */
 #define SCROLL_DISTANCE 3
 
+/* Default width of a term that is used to display textblocks */
+#define ANGBAND_TERM_TEXTBLOCK_WIDTH 72
+
 /**
  * ------------------------------------------------------------------------
  * Regions
