@@ -486,8 +486,13 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 	char smallbuf[1024];
 	va_list vp;
 
-	const char *start, *next, *text, *tag;
-	size_t textlen, taglen = 0;
+	const char *start;
+	const char *next;
+	const char *text;
+	const char *tag;
+
+	size_t textlen;
+	size_t taglen = 0;
 
 	va_start(vp, fmt);
 	(void) vstrnfmt(buf, sizeof(buf), fmt, vp);
