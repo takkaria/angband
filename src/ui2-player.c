@@ -181,7 +181,7 @@ struct player_flag_table {
 };
 
 #define PLAYER_FLAG_RES_ROW_1 3
-#define PLAYER_FLAG_RES_ROW_2 12
+#define PLAYER_FLAG_RES_ROW_2 13
 
 #define PLAYER_FLAG_RECORD_LEN 20
 
@@ -192,7 +192,7 @@ struct player_flag_table {
 
 static const struct player_flag_table player_flag_tables_misc[] = {
 	{
-		.loc = {PLAYER_FLAG_RES_COL_1, PLAYER_FLAG_RES_ROW_1},
+		.loc = {PLAYER_FLAG_RES_COL_1, PLAYER_FLAG_RES_ROW_2},
 		.records = {
 			{"Speed:",  OBJ_MOD_SPEED,   -1, -1,  TMD_FAST},
 			{"Blows:",  OBJ_MOD_BLOWS,   -1, -1, -1},
@@ -203,7 +203,7 @@ static const struct player_flag_table player_flag_tables_misc[] = {
 		.label_max_len = 6,
 	},
 	{
-		.loc = {PLAYER_FLAG_RES_COL_2, PLAYER_FLAG_RES_ROW_1},
+		.loc = {PLAYER_FLAG_RES_COL_2, PLAYER_FLAG_RES_ROW_2},
 		.records = {
 			{"Regen:", -1,               OF_REGEN,       -1, -1},
 			{"  ESP:", -1,               OF_TELEPATHY,   -1,  TMD_TELEPATHY},
@@ -214,7 +214,7 @@ static const struct player_flag_table player_flag_tables_misc[] = {
 		.label_max_len = 6,
 	},
 	{
-		.loc = {PLAYER_FLAG_RES_COL_3, PLAYER_FLAG_RES_ROW_1},
+		.loc = {PLAYER_FLAG_RES_COL_3, PLAYER_FLAG_RES_ROW_2},
 		.records = {
 			{" Fear:", -1,               OF_AFRAID,      -1,  TMD_AFRAID},
 			{"Aggrv:", -1,               OF_AGGRAVATE,   -1, -1},
@@ -228,7 +228,7 @@ static const struct player_flag_table player_flag_tables_misc[] = {
 
 static const struct player_flag_table player_flag_tables_resist[] = {
 	{
-		.loc = {PLAYER_FLAG_RES_COL_1, PLAYER_FLAG_RES_ROW_2},
+		.loc = {PLAYER_FLAG_RES_COL_1, PLAYER_FLAG_RES_ROW_1},
 		.records = {
 			{"rAcid:", -1, -1, ELEM_ACID,   TMD_OPP_ACID},
 			{"rElec:", -1, -1, ELEM_ELEC,   TMD_OPP_ELEC},
@@ -239,7 +239,7 @@ static const struct player_flag_table player_flag_tables_resist[] = {
 		.label_max_len = 6,
 	},
 	{
-		.loc = {PLAYER_FLAG_RES_COL_2, PLAYER_FLAG_RES_ROW_2},
+		.loc = {PLAYER_FLAG_RES_COL_2, PLAYER_FLAG_RES_ROW_1},
 		.records = {
 			{"rLite:", -1, -1, ELEM_LIGHT, -1},
 			{"rDark:", -1, -1, ELEM_DARK,  -1},
@@ -250,7 +250,7 @@ static const struct player_flag_table player_flag_tables_resist[] = {
 		.label_max_len = 6,
 	},
 	{
-		.loc = {PLAYER_FLAG_RES_COL_3, PLAYER_FLAG_RES_ROW_2},
+		.loc = {PLAYER_FLAG_RES_COL_3, PLAYER_FLAG_RES_ROW_1},
 		.records = {
 			{"Nethr:", -1, -1,              ELEM_NETHER, -1},
 			{"Chaos:", -1, -1,              ELEM_CHAOS,  -1},
@@ -261,7 +261,7 @@ static const struct player_flag_table player_flag_tables_resist[] = {
 		.label_max_len = 6,
 	},
 	{
-		.loc = {PLAYER_FLAG_RES_COL_4, PLAYER_FLAG_RES_ROW_2},
+		.loc = {PLAYER_FLAG_RES_COL_4, PLAYER_FLAG_RES_ROW_1},
 		.records = {
 			{"pConf:", -1, OF_PROT_CONF,  -1,  TMD_OPP_CONF},
 			{"pStun:", -1, OF_PROT_STUN,  -1, -1},
@@ -432,7 +432,7 @@ static void display_player_flag_info(void)
 static void display_player_sust_info(void)
 {
 	const int col = PLAYER_FLAG_RES_COL_4 + 1;
-	const int row = PLAYER_FLAG_RES_ROW_1;
+	const int row = PLAYER_FLAG_RES_ROW_2;
 
 	struct loc loc = {col, row + 1};
 
