@@ -183,7 +183,7 @@ static void textblock_term_push(textblock *tb,
 	Term_push_new(&hints);
 
 	if (header) {
-		Term_add_tab(0, header, COLOUR_L_BLUE, COLOUR_DARK);
+		Term_add_tab(0, header, COLOUR_WHITE, COLOUR_DARK);
 	}
 
 	*lines = n_lines;
