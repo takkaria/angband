@@ -823,7 +823,7 @@ static void display_player_basic_info(void)
 
 	/* Indent output by 1 character, and wrap at column 80 */
 	struct text_out_info info = {
-		.wrap = ANGBAND_TERM_STANDARD_WIDTH,
+		.wrap = ANGBAND_TERM_STANDARD_WIDTH - 1,
 		.indent = 1
 	};
 
