@@ -88,42 +88,44 @@ static void target_display_help_aux(bool monster, bool free)
 {
 	/* Determine help location */
 	struct term_hints hints = {
-		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = 3,
-		.position = TERM_POSITION_TOP_CENTER,
+		.width = ANGBAND_TERM_TEXTBLOCK_WIDTH,
+		.height = 2 + 4 + (free ? 1 : 2) + (monster || free ? 1 : 0),
+		.position = TERM_POSITION_TOP_LEFT,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
 
-	struct text_out_info info = {
-		.indent = 1
-	};
+	struct text_out_info info = {0};
 
 	/* Display help */
 	text_out_c(info, COLOUR_L_GREEN, "<dir>");
 	text_out(info, " and ");
 	text_out_c(info, COLOUR_L_GREEN, "<click>");
-	text_out(info, " look around. ");
+	text_out(info, " look around.\n\n");
+
+	info.indent = 1;
+	Term_cursor_to_xy(info.indent, 2);
+
 	text_out_c(info, COLOUR_L_GREEN, "g");
-	text_out(info, " moves to the selection. ");
+	text_out(info, " moves to the selection.\n");
 	text_out_c(info, COLOUR_L_GREEN, "p");
-	text_out(info, " selects the player. ");
+	text_out(info, " selects the player.\n");
 	text_out_c(info, COLOUR_L_GREEN, "q");
-	text_out(info, " exits. ");
+	text_out(info, " exits.\n");
 	text_out_c(info, COLOUR_L_GREEN, "r");
-	text_out(info, " displays details. ");
+	text_out(info, " displays details.\n");
 
 	if (free) {
 		text_out_c(info, COLOUR_L_GREEN, "m");
-		text_out(info, " restricts to interesting places. ");
+		text_out(info, " restricts to interesting places.\n");
 	}
 	else {
 		text_out_c(info, COLOUR_L_GREEN, "+");
 		text_out(info, " and ");
 		text_out_c(info, COLOUR_L_GREEN, "-");
-		text_out(info, " cycle through interesting places. ");
+		text_out(info, " cycle through interesting places.\n");
 		text_out_c(info, COLOUR_L_GREEN, "o");
-		text_out(info, " allows free selection. ");
+		text_out(info, " allows free selection.\n");
 	}
 	
 	if (monster || free) {
