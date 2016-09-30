@@ -389,20 +389,22 @@ void text_out_c(struct text_out_info info, uint32_t attr, const char *fmt, ...)
 /**
  * Given a "formatted" chunk of text (i.e. one including tags like {red}{/})
  * in 'source', with starting point 'init', this finds the next section of
- * text and any tag that goes with it, return true if it finds something to 
- * print.
+ * text and any tag that goes with it.
+ *
+ * It return true if it finds something to print.
  * 
  * If it returns true, then it also fills 'text' with a pointer to the start
- * of the next printable section of text, and 'len' with the length of that 
- * text, and 'end' with a pointer to the start of the next section. This may
- * differ from "text + len" because of the presence of tags. If a tag applies
- * to the section of text, it returns a pointer to the start of that tag in
- * 'tag' and the length in 'taglen'. Otherwise, 'tag' is filled with NULL.
+ * of the next printable section of text, and 'textlen' with the length of
+ * that text, and 'end' with a pointer to the start of the next section.
+ * This may differ from "text + textlen" because of the presence of tags.
+ * If a tag applies to the section of text, it returns a pointer to the
+ * start of that tag in 'tag' and the length in 'taglen'.
+ * Otherwise, 'tag' is filled with NULL.
  *
  * See text_out_e for an example of its use.
  */
 static bool next_section(const char *source, size_t init,
-		const char **text, size_t *len,
+		const char **text, size_t *textlen,
 		const char **tag, size_t *taglen,
 		const char **end)
 {
@@ -434,25 +436,25 @@ static bool next_section(const char *source, size_t init,
 					*tag = *text + 1;
 					*taglen = s - *text - 1;
 					*text = s + 1;
-					*len = close - *text;
+					*textlen = close - *text;
 					*end = close + 3;
 					return true;
 				} else {
 					/* Otherwise return the chunk up to this */
-					*len = next - *text;
-					*end = *text + *len;
+					*textlen = next - *text;
+					*end = *text + *textlen;
 					return true;
 				}
 			} else {
 				/* No closing thing, therefore all one lump of text. */
-				*len = strlen(*text);
-				*end = *text + *len;
+				*textlen = strlen(*text);
+				*end = *text + *textlen;
 				return true;
 			}
 		} else if (*s == '\0') {
 			/* End of the string, that's fine. */
-			*len = strlen(*text);
-			*end = *text + *len;
+			*textlen = strlen(*text);
+			*end = *text + *textlen;
 			return true;
 		} else {
 			/* An invalid tag, skip it. */
@@ -463,8 +465,8 @@ static bool next_section(const char *source, size_t init,
 	}
 
 	/* Default to the rest of the string */
-	*len = strlen(*text);
-	*end = *text + *len;
+	*textlen = strlen(*text);
+	*end = *text + *textlen;
 
 	return true;
 }
