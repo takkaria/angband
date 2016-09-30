@@ -97,7 +97,7 @@ static void target_display_help_aux(bool monster, bool free)
 
 	struct text_out_info info = {0};
 
-	/* Display help */
+	/* Display 1 line of "header" and 1 empty line */
 	text_out_c(info, COLOUR_L_GREEN, "<dir>");
 	text_out(info, " and ");
 	text_out_c(info, COLOUR_L_GREEN, "<click>");
@@ -106,6 +106,7 @@ static void target_display_help_aux(bool monster, bool free)
 	info.indent = 1;
 	Term_cursor_to_xy(info.indent, 2);
 
+	/* Display rest of help - 4 lines */
 	text_out_c(info, COLOUR_L_GREEN, "g");
 	text_out(info, " moves to the selection.\n");
 	text_out_c(info, COLOUR_L_GREEN, "p");
@@ -116,10 +117,12 @@ static void target_display_help_aux(bool monster, bool free)
 	text_out(info, " displays details.\n");
 
 	if (free) {
+		/* If free selection, display 1 more line */
 		text_out_c(info, COLOUR_L_GREEN, "m");
 		text_out(info, " restricts to interesting places.\n");
 	}
 	else {
+		/* Else display 2 more lines */
 		text_out_c(info, COLOUR_L_GREEN, "+");
 		text_out(info, " and ");
 		text_out_c(info, COLOUR_L_GREEN, "-");
@@ -129,6 +132,7 @@ static void target_display_help_aux(bool monster, bool free)
 	}
 	
 	if (monster || free) {
+		/* If free selection or targetable monster under cursor, add 1 more line */
 		text_out_c(info, COLOUR_L_GREEN, "t");
 		text_out(info, " targets the current selection.");
 	}
