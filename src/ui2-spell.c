@@ -566,6 +566,7 @@ static bool get_spell_book(const struct object **book,
 	}
 
 	free_book_menu_elements(elems);
+	clear_prompt();
 
 	return *book != NULL;
 }
