@@ -659,7 +659,7 @@ static void mon_lore(int index, int cursor)
 
 	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);
-	knowledge_textblock_show(tb, race->name, cursor);
+	knowledge_textblock_show(tb, "Monster knowledge", cursor);
 	textblock_free(tb);
 }
 
