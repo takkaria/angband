@@ -130,6 +130,7 @@ static bool spell_menu_handler(struct menu *menu, const ui_event *event, int ind
 		show_spell_description(index, menu_priv(menu), menu->active);
 		return true;
 	} else if (data->browse) {
+		show_spell_description(index, menu_priv(menu), menu->active);
 		return true;
 	} else if (event->type == EVT_SELECT) {
 		data->selected = data->spells[index].sidx;
@@ -353,12 +354,11 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 	spell_menu_term_push(data);
 	spell_menu_layout(menu);
 
-	show_prompt(format("Browsing %ss. ('?' to read description)", noun), false);
+	menu->command_keys = NULL;
 
 	data->browse = true;
 	menu_select(menu);
 
-	clear_prompt();
 	spell_menu_term_pop();
 }
 
