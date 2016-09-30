@@ -324,7 +324,7 @@ static void text_out_to_screen(struct text_out_info info, uint32_t attr, const c
 {
 	const int width = Term_width();
 	const int wrap = info.wrap > 0 && info.wrap < width ?
-		info.wrap : width - 1;
+		info.wrap : width;
 
 	assert(info.indent + info.pad < wrap);
 
