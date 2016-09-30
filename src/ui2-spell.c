@@ -129,12 +129,14 @@ static bool spell_menu_handler(struct menu *menu, const ui_event *event, int ind
 	if (event->type == EVT_KBRD && event->key.code == '?') {
 		show_spell_description(index, menu_priv(menu), menu->active);
 		return true;
-	} else if (data->browse) {
-		show_spell_description(index, menu_priv(menu), menu->active);
-		return true;
 	} else if (event->type == EVT_SELECT) {
-		data->selected = data->spells[index].sidx;
-		return false;
+		if (data->browse) {
+			show_spell_description(index, menu_priv(menu), menu->active);
+			return true;
+		} else {
+			data->selected = data->spells[index].sidx;
+			return false;
+		}
 	} else {
 		return false;
 	}
