@@ -127,7 +127,6 @@ static void target_display_help_aux(bool monster, bool free)
 	}
 	
 	if (monster || free) {
-		text_out(info, "");
 		text_out_c(info, COLOUR_L_GREEN, "t");
 		text_out(info, " targets the current selection.");
 	}
