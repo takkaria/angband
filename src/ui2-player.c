@@ -770,13 +770,13 @@ static struct panel *get_panel_flavor(void)
 }
 
 #define PLAYER_DISPLAY_BASIC_ROW_1 1
-#define PLAYER_DISPLAY_BASIC_ROW_2 9
+#define PLAYER_DISPLAY_BASIC_ROW_2 10
 
-#define PLAYER_DISPLAY_BASIC_COL_1  1
+#define PLAYER_DISPLAY_BASIC_COL_1  2
 #define PLAYER_DISPLAY_BASIC_COL_2 25
-#define PLAYER_DISPLAY_BASIC_COL_3 52
+#define PLAYER_DISPLAY_BASIC_COL_3 51
 
-#define PLAYER_DISPLAY_HISTORY_ROW 18
+#define PLAYER_DISPLAY_HISTORY_ROW 19
 
 /**
  * Panels for main character screen
