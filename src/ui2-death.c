@@ -400,8 +400,15 @@ static void death_examine(const char *title, int index)
 		object_desc(header, sizeof(header),
 				obj, ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL);
 
-		region area = {0, 0, 0, 0};
-		textui_textblock_show(tb, TERM_POSITION_CENTER, area, header);
+		const int death_textblock_width = 72;
+
+		region reg = {
+			.x = (ANGBAND_TERM_STANDARD_WIDTH - death_textblock_width) / 2,
+			.y = index,
+			.w = death_textblock_width,
+			.h = 0
+		};
+		textui_textblock_show(tb, TERM_POSITION_EXACT, reg, header);
 		textblock_free(tb);
 	}
 }
