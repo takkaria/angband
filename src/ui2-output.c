@@ -168,7 +168,12 @@ static void textblock_term_push(textblock *tb,
 	/* Add 2 lines for term's instructions ("press any key to continue") */
 	int height = (orig_area.h > 0 ? orig_area.h : (int) n_lines) + 2;
 
+	assert(orig_area.x >= 0);
+	assert(orig_area.y >= 0);
+
 	struct term_hints hints = {
+		.x = orig_area.x,
+		.y = orig_area.y,
 		.width = width,
 		.height = height,
 		.tabs = header ? true : false,
@@ -182,10 +187,11 @@ static void textblock_term_push(textblock *tb,
 	}
 
 	*lines = n_lines;
-	*area  = region_calculate(orig_area);
 
-	assert(area->w > 0);
-	assert(area->h > 0);
+	area->x = 0;
+	area->y = 0;
+	area->w = width;
+	area->h = height - 2;
 
 	if (*lines > area->h) { 
 		Term_addws(0, hints.height - 1,
