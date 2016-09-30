@@ -155,7 +155,7 @@ static void textblock_term_push(textblock *tb,
 		size_t **line_starts, size_t **line_lengths, int *lines, region *area)
 {
 	int width = orig_area.w > 0 ?
-		orig_area.w : ANGBAND_TERM_STANDARD_WIDTH;
+		orig_area.w : ANGBAND_TERM_TEXTBLOCK_WIDTH;
 
 	size_t n_lines =
 		textblock_calculate_lines(tb, line_starts, line_lengths, width);
