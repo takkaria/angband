@@ -4595,15 +4595,16 @@ static void position_other_subwindow(struct subwindow *subwindow,
 			break;
 	}
 
+	if (subwindow->tab_bank.tabs != NULL) {
+		subwindow->full_rect.y +=
+			SUBWINDOW_TAB_HEIGHT(subwindow) / 2 - DEFAULT_VISIBLE_BORDER;
+	}
+
 	if (!is_rect_in_rect(&subwindow->full_rect, &subwindow->window->inner_rect)) {
 		fit_rect_in_rect_position(&subwindow->full_rect,
 				&subwindow->window->inner_rect);
 	}
 
-	if (subwindow->tab_bank.tabs != NULL) {
-		subwindow->full_rect.y +=
-			SUBWINDOW_TAB_HEIGHT(subwindow) / 2 - DEFAULT_VISIBLE_BORDER;
-	}
 }
 
 static void position_temporary_subwindow(struct subwindow *subwindow,
