@@ -561,7 +561,7 @@ void show_prompt(const char *str, bool cursor)
 
 	Term_clear();
 	Term_cursor_visible(cursor);
-	Term_adds(0, 0, Term_width(), COLOUR_WHITE, str);
+	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, str);
 	Term_flush_output();
 
 	display_term_pop();
@@ -579,8 +579,6 @@ void show_prompt(const char *str, bool cursor)
  */
 
 void c_put_str_len(uint32_t attr, const char *str, struct loc at, int len) {
-	assert(len >= 0);
-
 	Term_adds(at.x, at.y, len, attr, str);
 }
 
@@ -588,8 +586,6 @@ void c_put_str_len(uint32_t attr, const char *str, struct loc at, int len) {
  * As above, but in white
  */
 void put_str_len(const char *str, struct loc at, int len) {
-	assert(len >= 0);
-
 	c_put_str_len(COLOUR_WHITE, str, at, len);
 }
 
@@ -598,8 +594,6 @@ void put_str_len(const char *str, struct loc at, int len) {
  * end of the line.
  */
 void c_prt_len(uint32_t attr, const char *str, struct loc at, int len) {
-	assert(len >= 0);
-
 	Term_erase_line(at.x, at.y);
 	Term_adds(at.x, at.y, len, attr, str);
 }
@@ -616,19 +610,19 @@ void prt_len(const char *str, struct loc at, int len) {
  */
 
 void c_put_str(uint32_t attr, const char *str, struct loc at) {
-	c_put_str_len(attr, str, at, Term_width());
+	c_put_str_len(attr, str, at, TERM_MAX_LEN);
 }
 
 void put_str(const char *str, struct loc at) {
-	c_put_str_len(COLOUR_WHITE, str, at, Term_width());
+	c_put_str_len(COLOUR_WHITE, str, at, TERM_MAX_LEN);
 }
 
 void c_prt(uint32_t attr, const char *str, struct loc at) {
-	c_prt_len(attr, str, at, Term_width());
+	c_prt_len(attr, str, at, TERM_MAX_LEN);
 }
 
 void prt(const char *str, struct loc at) {
-	c_prt_len(COLOUR_WHITE, str, at, Term_width());
+	c_prt_len(COLOUR_WHITE, str, at, TERM_MAX_LEN);
 }
 
 /*
