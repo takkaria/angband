@@ -1530,7 +1530,7 @@ void textui_obj_examine(void)
 {
 	struct object *obj;
 
-	if (get_item(&obj, "Examine which item? ", "You have nothing to examine.",
+	while (get_item(&obj, "Examine which item? ", "You have nothing to examine.",
 			CMD_NULL, NULL, (USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR | IS_HARMLESS)))
 	{
 		/* Track object for object recall */
