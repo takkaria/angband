@@ -992,23 +992,31 @@ ui_event textui_get_command(int *count)
 }
 
 /**
- * Check no currently worn items are stopping the action 'c'
+ * Check no currently worn items are stopping the action 'ch'
  */
-bool key_confirm_command(unsigned char c)
+bool key_confirm_command(unsigned char ch)
 {
 	/* Set up string to look for, e.g. "^d" */
-	char inscrip[] = {'^', c, 0};
+	char inscrip[] = {'^', ch, 0};
 
 	for (int i = 0; i < player->body.count; i++) {
-		struct object *obj = slot_object(player, i);
+		const struct object *obj = slot_object(player, i);
+
 		if (obj != NULL) {
+			char prompt[ANGBAND_TERM_STANDARD_WIDTH];
+
 			unsigned checks = check_for_inscrip(obj, inscrip);
+			const unsigned n_checks = checks;
 
 			while (checks > 0) {
-				if (!get_check("Are you sure? ")) {
+				strnfmt(prompt, sizeof(prompt),
+						"(%d/%d) Are you sure? ", checks, n_checks);
+
+				if (get_check(prompt)) {
+					checks--;
+				} else {
 					return false;
 				}
-				checks--;
 			}
 		}
 	}
