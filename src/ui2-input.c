@@ -978,7 +978,7 @@ ui_event textui_get_command(int *count)
 
 		if (keymap != NULL) {
 			size_t n = 0;
-			while (keymap[n].type) {
+			while (keymap[n].type == EVT_KBRD) {
 				n++;
 			}
 			inkey_state_add_keymap(keymap, n);
