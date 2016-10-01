@@ -587,14 +587,11 @@ char get_char(const char *prompt, const char *options, size_t len, char fallback
 	strnfmt(buf, sizeof(buf), "%.60s[%s] ", prompt, options);
 
 	show_prompt(prompt, false);
-
 	struct keypress key = inkey_only_key();
-
 	clear_prompt();
 
 	if (key.code < CHAR_MAX) {
 		key.code = tolower(key.code);
-
 		/* See if key is in our options string */
 		if (!strchr(options, key.code)) {
 			key.code = fallback;
