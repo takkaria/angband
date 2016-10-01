@@ -641,15 +641,15 @@ static bool get_file_text(const char *suggested_name,
  */
 bool (*get_file)(const char *suggested_name, char *path, size_t pathlen) = get_file_text;
 
-static bool get_mouse_or_key(const char *prompt, ui_event *command)
+static bool get_mouse_or_key(const char *prompt, ui_event *event)
 {
 	show_prompt(prompt, false);
 
-	*command = inkey_mouse_or_key();
+	*event = inkey_mouse_or_key();
 
 	clear_prompt();
 
-	if (command->type == EVT_KBRD && command->key.code == ESCAPE) {
+	if (event->type == EVT_KBRD && event->key.code == ESCAPE) {
 		return false;
 	} else {
 		return true;
