@@ -68,10 +68,29 @@ void inkey_any(void);
 
 bool auto_more(void);
 
+/**
+ * Type of handler function for askfor_aux()
+ * (such as used in editing char name, etc)
+ *
+ * \param buf is the buffer to edit
+ * \param buflen is the total number of bytes in buffer
+ * \param curs is the cursor position in buffer
+ * \param len is the position of terminating (null) byte
+ * \param key is the key input by the user
+ * \param firsttime indicates whether it's the first key
+ */
+typedef bool (*askfor_aux_handler)(char *buf, size_t buflen,
+		size_t *curs, size_t *len,
+		struct keypress key, bool firsttime);
+
+/**
+ * Default handler for askfor_aux()
+ */
 bool askfor_aux_keypress(char *buf, size_t buflen,
-		size_t *curs, size_t *len, struct keypress keypress, bool firsttime);
-bool askfor_aux(char *buf, size_t len,
-		bool (*keypress_h)(char *, size_t, size_t *, size_t *, struct keypress, bool));
+		size_t *curs, size_t *len,
+		struct keypress keypress, bool firsttime);
+
+bool askfor_aux(char *buf, size_t len, askfor_aux_handler handler);
 
 extern bool (*get_file)(const char *suggested_name, char *path, size_t len);
 

@@ -385,6 +385,28 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 }
 
 /**
+ * Helper function called from askfor_aux()
+ */
+static bool askfor_aux_handle(struct loc loc, struct keypress *key,
+		char *buf, size_t buflen, size_t *curs, size_t *len,
+		bool firsttime, askfor_aux_handler handler)
+{
+	Term_erase(loc.x, loc.y, buflen);
+
+	if (*len > 0) {
+		Term_adds(loc.x, loc.y, *len,
+				firsttime ? COLOUR_YELLOW : COLOUR_WHITE, buf);
+	}
+
+	Term_cursor_to_xy(loc.x + *curs, loc.y);
+	Term_flush_output();
+
+	*key = inkey_only_key();
+
+	return handler(buf, buflen, curs, len, *key, firsttime);
+}
+
+/**
  * Get some input at the cursor location.
  *
  * The buffer is assumed to have been initialized to a default string.
@@ -401,56 +423,33 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
  * Note that 'len' refers to the size of the buffer.  The maximum length
  * of the input is 'len-1'.
  *
- * 'keypress_h' is a pointer to a function to handle keypresses, altering
+ * 'handler' is a pointer to a function to handle keypresses, altering
  * the input buffer, cursor position and suchlike as required.  See
  * 'askfor_aux_keypress' (the default handler if you supply NULL for
- * 'keypress_h') for an example.
+ * 'handler') for an example.
  */
-bool askfor_aux(char *buf, size_t buflen,
-		bool (*keypress_h)(char *, size_t, size_t *, size_t *, struct keypress, bool))
+bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
 {
-	if (keypress_h == NULL) {
-		keypress_h = askfor_aux_keypress;
-	}
-
 	display_term_push(DISPLAY_MESSAGE_LINE);
-
 	Term_cursor_visible(true);
 
 	size_t len = strlen(buf);
-
-	int x;
-	int y;
-	Term_get_cursor(&x, &y, NULL, NULL);
-
-	if (len > 0) {
-		/* Display the default answer */
-		Term_adds(x, y, len, COLOUR_YELLOW, buf);
-	}
-
 	size_t curs = 0;
-	bool done = false;
-	bool firsttime = true;
+
 	struct keypress key;
 
+	struct loc loc;
+	Term_get_cursor(&loc.x, &loc.y, NULL, NULL);
+
+	bool done = askfor_aux_handle(loc, &key, buf, buflen, &curs, &len, true,
+			handler ? handler : askfor_aux_keypress);
+
 	while (!done) {
-		Term_cursor_to_xy(x + curs, y);
-		Term_flush_output();
-
-		key = inkey_only_key();
-		done = keypress_h(buf, buflen, &curs, &len, key, firsttime);
-
-		Term_erase(x, y, buflen);
-
-		if (len > 0) {
-			Term_adds(x, y, len, COLOUR_WHITE, buf);
-		}
-
-		firsttime = false;
+		done = askfor_aux_handle(loc, &key, buf, buflen, &curs, &len, false,
+				handler ? handler : askfor_aux_keypress);
 	}
 
 	Term_cursor_visible(false);
-
 	display_term_pop();
 
 	return key.code != ESCAPE;
