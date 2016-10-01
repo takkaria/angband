@@ -663,9 +663,7 @@ static bool get_mouse_or_key(const char *prompt, ui_event *event)
 bool textui_get_com(const char *prompt, char *command)
 {
 	show_prompt(prompt, true);
-
 	struct keypress key = inkey_only_key();
-
 	clear_prompt();
 
 	if (key.code < CHAR_MAX && key.code != ESCAPE) {
