@@ -572,27 +572,16 @@ static bool target_interactive_aux_square(ui_event *event,
 	return is_target_stop_event(event, mode);
 }
 
-/* returns true when target_interactive_aux() needs to stop */
+/* Returns true when target_interactive_aux() needs to stop */
 static bool target_aux_loop_stop(ui_event event)
 {
-	switch (event.type) {
-		case EVT_MOUSE:
-			if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
-				return true;
-			}
-			break;
-
-		case EVT_KBRD:
-			if (event.key.code != KC_ENTER) {
-				return true;
-			}
-			break;
-
-		default:
-			break;
+	if (event.type == EVT_KBRD
+			&& event.key.code == KC_ENTER)
+	{
+		return false;
+	} else {
+		return true;
 	}
-
-	return false;
 }
 
 static void desc_init(struct desc *desc, struct loc coords)
