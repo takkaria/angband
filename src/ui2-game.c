@@ -265,6 +265,39 @@ static bool cmd_prereq(const struct cmd_info *cmd)
 	}
 }
 
+static bool cmd_resize(void)
+{
+	do_cmd_redraw();
+	return true;
+}
+
+static bool cmd_mouse(ui_event event)
+{
+	textui_process_click(event);
+	return true;
+}
+
+static bool cmd_keyboard(keycode_t code,
+		const struct cmd_info **cmd, unsigned char *key)
+{
+	switch (code) {
+		case KC_ENTER:
+			*cmd = textui_action_menu_choose();
+			return true;
+
+		case ESCAPE: case ' ': case KTRL('G'): case 0:
+			return true; /* silently ignore these keys */
+
+		default:
+			if (code <= UCHAR_MAX) {
+				*key = (unsigned char) code;
+				*cmd = converted_list[KEYMAP_MODE_OPT][*key];
+				return true;
+			}
+			return false;
+	}
+}
+
 static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 {
 	*cmd = NULL;
@@ -275,31 +308,11 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 
 	switch (event.type) {
 		case EVT_RESIZE:
-			do_cmd_redraw();
-			return true;
-
+			return cmd_resize();
 		case EVT_MOUSE:
-			textui_process_click(event);
-			return true;
-
+			return cmd_mouse(event);
 		case EVT_KBRD:
-			if (event.key.code == KC_ENTER) {
-				*cmd = textui_action_menu_choose();
-				return true;
-			} else if (event.key.code == ESCAPE
-					|| event.key.code == ' '
-					|| event.key.code == KTRL('G')
-					|| event.key.code == 0)
-			{
-				return true; /* silently ignore these keys */
-			} else if (event.key.code <= UCHAR_MAX) {
-				*key = (unsigned char) event.key.code;
-				*cmd = converted_list[KEYMAP_MODE_OPT][*key];
-				return true;
-			} else {
-				return false;
-			}
-			break;
+			return cmd_keyboard(event.key.code, cmd, key);
 
 		default:
 			return true; /* Silently ignore all other event types */
