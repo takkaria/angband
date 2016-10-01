@@ -452,7 +452,8 @@ bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
 	Term_cursor_visible(false);
 	display_term_pop();
 
-	return key.code != ESCAPE;
+	/* ESCAPE means "cancel" and we return false then */
+	return key.code == ESCAPE ? false : true;
 }
 
 /**
