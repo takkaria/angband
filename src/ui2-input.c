@@ -852,19 +852,19 @@ bool textui_get_aim_dir(int *dir)
  */
 void textui_input_init(void)
 {
-	get_string_hook = textui_get_string;
-	get_quantity_hook = textui_get_quantity;
-	get_check_hook = textui_get_check;
-	get_com_hook = textui_get_com;
-	get_rep_dir_hook = textui_get_rep_dir;
-	get_aim_dir_hook = textui_get_aim_dir;
+	get_string_hook          = textui_get_string;
+	get_quantity_hook        = textui_get_quantity;
+	get_check_hook           = textui_get_check;
+	get_com_hook             = textui_get_com;
+	get_rep_dir_hook         = textui_get_rep_dir;
+	get_aim_dir_hook         = textui_get_aim_dir;
+	get_spell_hook           = textui_get_spell;
+	get_item_hook            = textui_get_item;
+	get_curse_hook           = textui_get_curse;
+	get_panel_hook           = textui_get_panel;
+	panel_contains_hook      = textui_panel_contains;
+	map_is_visible_hook      = textui_map_is_visible;
 	get_spell_from_book_hook = textui_get_spell_from_book;
-	get_spell_hook = textui_get_spell;
-	get_item_hook = textui_get_item;
-	get_curse_hook = textui_get_curse;
-	get_panel_hook = textui_get_panel;
-	panel_contains_hook = textui_panel_contains;
-	map_is_visible_hook = textui_map_is_visible;
 }
 
 /**
