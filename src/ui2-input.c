@@ -932,11 +932,15 @@ static void textui_get_command_aux(ui_event *event,
 			break;
 
 		case '\\':
-			/* Allow keymaps to be bypassed */
-			if (!get_mouse_or_key("Command: ", event)) {
+			/* Allow keymaps to be bypassed; unlike in previous cases
+			 * we return on success to avoid searching for a keymap */
+			if (get_mouse_or_key("Command: ", event)) {
+				return;
+			} else {
 				event->type = EVT_NONE;
+				return;
 			}
-			return;
+			break;
 	}
 
 	if (keymap != NULL) {
