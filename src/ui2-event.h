@@ -105,16 +105,16 @@ enum {
 };
 
 /**
- * Convert a mouse event into a location (x coordinate)
+ * Convert a mouse event into a location on the map (x coordinate)
  */
-#define EVENT_GRID_X(e) \
-	(event_grid_x((e).mouse.x))
+#define MAP_GRID_X(e) \
+	(map_grid_x((e).mouse.x))
 
 /**
- * Convert a mouse event into a location (y coordinate)
+ * Convert a mouse event into a location on the map (y coordinate)
  */
-#define EVENT_GRID_Y(e) \
-  (event_grid_y((e).mouse.y))
+#define MAP_GRID_Y(e) \
+  (map_grid_y((e).mouse.y))
 
 /**
  * Keyset mappings for various keys.
@@ -246,9 +246,9 @@ void keypress_to_readable(char *buf, size_t len, struct keypress src);
 bool char_matches_key(wchar_t c, keycode_t key);
 
 /*
- * Convert relative coordinates on the grid to absolute ones
+ * Convert relative coordinates on the map to absolute ones
  */
-int event_grid_x(int x);
-int event_grid_y(int y);
+int map_grid_x(int x);
+int map_grid_y(int y);
 
 #endif /* UI2_EVENT_H */

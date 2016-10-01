@@ -963,8 +963,8 @@ void textui_process_click(ui_event event)
 		return;
 	}
 
-	int x = EVENT_GRID_X(event);
-	int y = EVENT_GRID_Y(event);
+	int x = MAP_GRID_X(event);
+	int y = MAP_GRID_Y(event);
 
 	/* Check for a valid location */
 	if (!square_in_bounds_fully(cave, y, x)) {

@@ -380,7 +380,7 @@ bool char_matches_key(wchar_t wc, keycode_t key)
 	return wc == wchar;
 }
 
-int event_grid_x(int x)
+int map_grid_x(int x)
 {
 	struct loc coords;
 	display_term_get_coords(DISPLAY_CAVE, &coords);
@@ -388,7 +388,7 @@ int event_grid_x(int x)
 	return x + coords.x;
 }
 
-int event_grid_y(int y)
+int map_grid_y(int y)
 {
 	struct loc coords;
 	display_term_get_coords(DISPLAY_CAVE, &coords);

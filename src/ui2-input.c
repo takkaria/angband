@@ -724,7 +724,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
 		if (event.type == EVT_MOUSE) {
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 				struct loc from = loc(player->px, player->py);
-				struct loc to = loc(EVENT_GRID_X(event), EVENT_GRID_Y(event));
+				struct loc to = loc(MAP_GRID_X(event), MAP_GRID_Y(event));
 
 				dir = pathfind_direction_to(from, to);
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
@@ -797,7 +797,7 @@ bool textui_get_aim_dir(int *dp)
 		if (event.type == EVT_MOUSE) {
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 				dir = target_set_interactive(TARGET_KILL,
-							loc(EVENT_GRID_X(event), EVENT_GRID_Y(event))) ? 5 : 0;
+							loc(MAP_GRID_X(event), MAP_GRID_Y(event))) ? 5 : 0;
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 				break;
 			}

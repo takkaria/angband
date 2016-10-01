@@ -169,8 +169,8 @@ static bool is_target_recall_event(const ui_event *event, struct loc coords)
 	switch (event->type) {
 		case EVT_MOUSE:
 			if (event->mouse.button == MOUSE_BUTTON_LEFT
-					&& EVENT_GRID_X(*event) == coords.x
-					&& EVENT_GRID_Y(*event) == coords.y)
+					&& MAP_GRID_X(*event) == coords.x
+					&& MAP_GRID_Y(*event) == coords.y)
 			{
 				return true;
 			}
@@ -846,8 +846,8 @@ static void target_restricted_handle_mouse(ui_event event,
 		event.mouse.mods = KC_MOD_CONTROL;
 	}
 
-	int x = EVENT_GRID_X(event);
-	int y = EVENT_GRID_Y(event);
+	int x = MAP_GRID_X(event);
+	int y = MAP_GRID_Y(event);
 
 	coords->x = x;
 	coords->y = y;
@@ -1136,8 +1136,8 @@ static void target_free_select_handle_mouse(ui_event event,
 		event.mouse.mods = KC_MOD_CONTROL;
 	}
 
-	int x = EVENT_GRID_X(event);
-	int y = EVENT_GRID_Y(event);
+	int x = MAP_GRID_X(event);
+	int y = MAP_GRID_Y(event);
 
 	if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 		*done = true;
