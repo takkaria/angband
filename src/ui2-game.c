@@ -320,8 +320,8 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 }
 
 /**
- * Parse and execute the current command
- * Give "Warning" on illegal commands.
+ * Parse and execute the current command.
+ * Give warning on illegal commands.
  */
 static void cmd_process(void)
 {
