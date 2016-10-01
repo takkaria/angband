@@ -504,9 +504,7 @@ bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 	event_signal(EVENT_MESSAGE_FLUSH);
 
 	show_prompt(prompt, false);
-
 	bool res = askfor_aux(buf, buflen, NULL);
-
 	clear_prompt();
 
 	return res;
