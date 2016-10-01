@@ -872,12 +872,13 @@ void textui_input_init(void)
  */
 static int textui_get_count(void)
 {
-	int count = 0;
+	int count = 1;
 
 	while (true) {
 		show_prompt(format("Repeat: %d", count), true);
-
 		struct keypress key = inkey_only_key();
+		clear_prompt();
+
 		if (key.code == ESCAPE) {
 			return -1;
 		} else if (key.code == KC_DELETE || key.code == KC_BACKSPACE) {
@@ -892,13 +893,12 @@ static int textui_get_count(void)
 			}
 		} else {
 			if (key.code != KC_ENTER) {
-				Term_keypress(key.code, key.mods);
+				ui_event event = {.key = key};
+				Term_prepend_events(&event, 1);
 			}
-			break;
+			return count;
 		}
 	}
-
-	return count;
 }
 
 static void textui_get_command_aux(ui_event *event,
