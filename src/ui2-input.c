@@ -778,50 +778,53 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
  * Note that "use old target", if set, will pre-empt user interaction,
  * if there is a usable target already set.
  */
-bool textui_get_aim_dir(int *dp)
+bool textui_get_aim_dir(int *dir)
 {
-	*dp = 0;
+	*dir = OPT(use_old_target) && target_okay() ? 5 : 0;
 
-	int dir = OPT(use_old_target) && target_okay() ? 5 : 0;
+	while (*dir == 0) {
+		struct loc loc;
 
-	while (dir == 0) {
 		const char *prompt = target_okay() ?
 			"Direction ('5' for target, '*' or <click> to re-target, Escape to cancel)? " :
 			"Direction ('*' or <click> to target, \"'\" for closest, Escape to cancel)? ";
 
 		ui_event event;
 		if (!get_mouse_or_key(prompt, &event)) {
-			break;
+			return false;
 		}
 
 		if (event.type == EVT_MOUSE) {
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
-				struct loc loc = {map_grid_x(event.mouse.x), map_grid_y(event.mouse.y)};
-				dir = target_set_interactive(TARGET_KILL, loc) ? 5 : 0;
+				loc.x = map_grid_x(event.mouse.x);
+				loc.y = map_grid_y(event.mouse.y);
+				*dir = target_set_interactive(TARGET_KILL, loc) ? 5 : 0;
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
-				break;
+				return false;
 			}
 		} else if (event.type == EVT_KBRD) {
 			int keypresses_handled = 0;
 
 			switch (event.key.code) {
 				case '*':
-					dir = target_set_interactive(TARGET_KILL, loc(-1, -1)) ? 5 : 0;
+					loc.x = -1;
+					loc.y = -1;
+					*dir = target_set_interactive(TARGET_KILL, loc) ? 5 : 0;
 					break;
 
 				case '\'':
-					dir = target_set_closest(TARGET_KILL) ? 5 : 0;
+					*dir = target_set_closest(TARGET_KILL) ? 5 : 0;
 					break;
 
 				case 't': case '5': case '0': case '.':
-					dir = target_okay() ? 5 : 0;
+					*dir = target_okay() ? 5 : 0;
 					break;
 
 				default:
 					while (event.type == EVT_KBRD && event.key.code != 0) {
-						dir = dir_transitions[dir][target_dir(event.key)];
+						*dir = dir_transitions[*dir][target_dir(event.key)];
 
-						if (dir == 0
+						if (*dir == 0
 								|| op_ptr->lazymove_delay == 0
 								|| ++keypresses_handled > 1)
 						{
@@ -834,15 +837,14 @@ bool textui_get_aim_dir(int *dp)
 			}
 		}
 
-		if (dir == 0) {
+		if (*dir == 0) {
 			bell("Illegal aim direction!");
 		}
 	}
 
 	clear_prompt();
-	*dp = dir;
 
-	return dir != 0;
+	return true;
 }
 
 /**
