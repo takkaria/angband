@@ -49,19 +49,20 @@
 static struct {
 	/**
 	 * Remember the flush, and in the next call to inkey_full(),
-	 * perform the actual flushing, for efficiency,
-	 * and correctness of the "inkey_full()" function.
+	 * perform the actual flushing, for efficiency, and
+	 * correctness of the inkey_full() function.
 	 */
 	bool flush;
 	/**
-	 * This special array allows a sequence of keys to be "inserted" into
-	 * the stream of keys returned by "inkey()".  This key sequence cannot be
-	 * bypassed by the Borg.  We use it to implement keymaps.
+	 * This special array allows a sequence of keys to be inserted into
+	 * the stream of keys returned by inkey_full().
+	 * We use it to implement keymaps.
 	 */
 	struct {
 		struct keypress keys[256];
 		/* currently pending keypress */
 		size_t key;
+		/* total number of keypresses */
 		size_t number;
 	} keymap;
 	/**
