@@ -655,10 +655,10 @@ static bool get_mouse_or_key(const char *prompt, ui_event *event)
 }
 
 /**
- * Prompts for a keypress
+ * Prompts for a keypress.
  * The prompt should take the form "Command: "
  * Returns true unless the character is "Escape",
- * or otherwise not represantable as char
+ * or otherwise not represantable as char (aka byte).
  */
 bool textui_get_com(const char *prompt, char *command)
 {
