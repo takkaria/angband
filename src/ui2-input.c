@@ -62,7 +62,7 @@ static struct {
 		struct keypress keys[KEYMAP_ACTION_MAX];
 		/* currently pending keypress */
 		size_t key;
-		/* total number of keypresses */
+		/* number of remaining keypresses */
 		size_t number;
 	} keymap;
 	/**
