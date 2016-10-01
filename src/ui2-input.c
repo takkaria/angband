@@ -519,9 +519,9 @@ int textui_get_quantity(const char *prompt, int max)
 	int amt = 1;
 
 	/* Prompt if needed */
-	if (max != 1) {
+	if (max > 1) {
+		char buf[ANGBAND_TERM_STANDARD_WIDTH] = "1";
 		char tmp[ANGBAND_TERM_STANDARD_WIDTH];
-		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 		/* Build a prompt if needed */
 		if (prompt == NULL) {
@@ -529,17 +529,15 @@ int textui_get_quantity(const char *prompt, int max)
 			prompt = tmp;
 		}
 
-		strnfmt(buf, sizeof(buf), "%d", amt);
-
-		if (!get_string(prompt, buf, 7)) {
-			return 0;
-		}
-
-		/* A star or letter means "all" */
-		if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
-			amt = max;
+		/* Up to six digits (999999 maximum) */
+		if (get_string(prompt, buf, sizeof("123456"))) {
+			if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
+				amt = max; /* A star or letter means "all" */
+			} else {
+				amt = atoi(buf);
+			}
 		} else {
-			amt = atoi(buf);
+			amt = 0;
 		}
 	}
 
