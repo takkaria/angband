@@ -334,7 +334,7 @@ static void cmd_process(void)
 			if (key_confirm_command(key) && cmd_prereq(cmd)) {
 				if (cmd->hook) {
 					cmd->hook();                       /* UI command */
-				} else if (cmd->cmd) {
+				} else if (cmd->cmd != CMD_NULL) {
 					cmdq_push_repeat(cmd->cmd, count); /* Game command */
 				}
 			}
