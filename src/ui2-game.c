@@ -312,14 +312,12 @@ static void cmd_process(void)
 
 	if (cmd_get(&cmd, &key, &count)) {
 		if (cmd != NULL) {
-			if (!key_confirm_command(key) || !cmd_prereq(cmd)) {
-				return;
-			}
-
-			if (cmd->hook) {
-				cmd->hook();                       /* UI command */
-			} else if (cmd->cmd) {
-				cmdq_push_repeat(cmd->cmd, count); /* Game command */
+			if (key_confirm_command(key) && cmd_prereq(cmd)) {
+				if (cmd->hook) {
+					cmd->hook();                       /* UI command */
+				} else if (cmd->cmd) {
+					cmdq_push_repeat(cmd->cmd, count); /* Game command */
+				}
 			}
 		}
 	} else {
