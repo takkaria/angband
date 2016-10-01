@@ -485,8 +485,9 @@ static bool get_name_keypress(char *buf, size_t buflen,
  */
 bool get_character_name(char *buf, size_t buflen)
 {
-	show_prompt("Enter a name for your character (* for a random name): ", false);
 	my_strcpy(buf, op_ptr->full_name, buflen);
+
+	show_prompt("Enter a name for your character (* for a random name): ", false);
 	bool res = askfor_aux(buf, buflen, get_name_keypress);
 	clear_prompt();
 
