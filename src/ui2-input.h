@@ -92,7 +92,7 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 
 bool askfor_aux(char *buf, size_t len, askfor_aux_handler handler);
 
-extern bool (*get_file)(const char *suggested_name, char *path, size_t len);
+extern bool (*get_file)(const char *suggested_name, char *path, size_t pathlen);
 
 bool get_character_name(char *buf, size_t buflen);
 char get_char(const char *prompt, const char *options, size_t len, char fallback);

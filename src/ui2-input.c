@@ -606,7 +606,8 @@ char get_char(const char *prompt, const char *options, size_t len, char fallback
 /**
  * Text-native way of getting a filename.
  */
-static bool get_file_text(const char *suggested_name, char *path, size_t len)
+static bool get_file_text(const char *suggested_name,
+		char *path, size_t pathlen)
 {
 	char buf[1024];
 
@@ -621,7 +622,7 @@ static bool get_file_text(const char *suggested_name, char *path, size_t len)
 		return false;
 	}
 
-	path_build(path, len, ANGBAND_DIR_USER, buf);
+	path_build(path, pathlen, ANGBAND_DIR_USER, buf);
 
 	if (file_exists(path) && !get_check("Replace existing file? ")) {
 		return false;
@@ -640,7 +641,7 @@ static bool get_file_text(const char *suggested_name, char *path, size_t len)
  * Get a pathname to save a file to, given the suggested name.  Returns the
  * result in path.
  */
-bool (*get_file)(const char *suggested_name, char *path, size_t len) = get_file_text;
+bool (*get_file)(const char *suggested_name, char *path, size_t pathlen) = get_file_text;
 
 static bool get_mouse_or_key(const char *prompt, ui_event *command)
 {
