@@ -87,6 +87,7 @@ static struct keypress inkey_state_take_key(void)
 static void inkey_state_add_keymap(const struct keypress *keys, size_t number)
 {
 	assert(inkey_state.keymap.number == 0);
+	assert(number <= N_ELEMENTS(inkey_state.keymap.keys));
 
 	for (size_t i = 0; i < number; i++) {
 		inkey_state.keymap.keys[i] = keys[i];
