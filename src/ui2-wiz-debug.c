@@ -220,7 +220,7 @@ static void do_cmd_wiz_change_aux(void)
 static void do_cmd_wiz_change(void)
 {
 	do_cmd_wiz_change_aux();
-	do_cmd_redraw();
+	display_terms_redraw();
 }
 
 /**
@@ -728,7 +728,7 @@ static void wiz_create_item(bool art)
 	Term_pop();
 	menu_free(menu);
 
-	do_cmd_redraw();
+	display_terms_redraw();
 }
 
 static void do_cmd_wiz_create_item(void)
@@ -1263,7 +1263,7 @@ static void do_cmd_wiz_cure_all(void)
 	/* No longer hungry */
 	player_set_food(player, PY_FOOD_MAX - 1);
 
-	do_cmd_redraw();
+	display_terms_redraw();
 
 	msg("You feel *much* better!");
 }
@@ -1361,7 +1361,7 @@ static void do_cmd_wiz_rerate(void)
 	int percent = ((long) player->player_hp[PY_MAX_LEVEL - 1] * 200L) /
 			(player->hitdie + ((PY_MAX_LEVEL - 1) * player->hitdie));
 
-	do_cmd_redraw();
+	display_terms_redraw();
 
 	msg("Current Life Rating is %d/100.", percent);
 }
@@ -1865,7 +1865,7 @@ static void do_cmd_wiz_level_50(void)
 	player->csp = player->msp;
 	player->csp_frac = 0;
 
-	do_cmd_redraw();
+	display_terms_redraw();
 }
 
 /*

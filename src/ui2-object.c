@@ -1700,7 +1700,7 @@ void textui_cmd_toggle_ignore(void)
 {
 	player->unignoring = !player->unignoring;
 	player->upkeep->notice |= PN_IGNORE;
-	do_cmd_redraw();
+	display_terms_redraw();
 }
 
 /**

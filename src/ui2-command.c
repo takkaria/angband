@@ -33,53 +33,12 @@
 #include "ui2-wizard.h"
 
 /**
- * Redraw the screen
- *
- * This command performs various low level updates
- * and does a total redraw of the main window.
- */
-void do_cmd_redraw(void)
-{
-	if (!character_dungeon) {
-		return;
-	}
-
-	player->upkeep->notice |= (PN_COMBINE);
-
-	player->upkeep->update |=
-		(PU_TORCH
-		 | PU_INVEN
-		 | PU_BONUS
-		 | PU_HP
-		 | PU_SPELLS
-		 | PU_UPDATE_VIEW
-		 | PU_MONSTERS);
-
-	player->upkeep->redraw |=
-		(PR_BASIC
-		 | PR_EXTRA
-		 | PR_MAP
-		 | PR_INVEN
-		 | PR_EQUIP
-		 | PR_MESSAGE
-		 | PR_MONSTER
-		 | PR_OBJECT
-		 | PR_MONLIST
-		 | PR_ITEMLIST);
-
-	verify_panel(DISPLAY_CAVE);
-	verify_cursor();
-
-	handle_stuff(player);
-}
-
-/**
  * Display the options and redraw afterward.
  */
 void do_cmd_options_and_redraw(void)
 {
 	do_cmd_options();
-	do_cmd_redraw();
+	display_terms_redraw();
 }
 
 /**

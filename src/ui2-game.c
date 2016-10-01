@@ -266,7 +266,7 @@ static bool cmd_prereq(const struct cmd_info *cmd)
 
 static bool cmd_resize(void)
 {
-	do_cmd_redraw();
+	display_terms_redraw();
 	return true;
 }
 

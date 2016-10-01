@@ -1493,7 +1493,7 @@ static void diving_stats(void)
 		print_stats(depth);
 
 		/* Show the level to check on status */
-		do_cmd_redraw();
+		display_terms_redraw();
 	}
 }
 
@@ -1547,7 +1547,7 @@ static void clearing_stats(void)
 	post_process_stats();
 
 	/* Display the current level */
-	do_cmd_redraw(); 
+	display_terms_redraw(); 
 }
 
 /**
@@ -1946,7 +1946,7 @@ void disconnect_stats(void)
 	msg("Total levels isolated from stairs: %ld", dsc_from_stairs);
 
 	/* Redraw the level */
-	do_cmd_redraw();
+	display_terms_redraw();
 }
 
 

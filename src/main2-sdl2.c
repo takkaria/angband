@@ -3666,10 +3666,7 @@ static bool get_event(void)
 
 static void refresh_display_terms(void)
 {
-	if (character_dungeon) {
-		do_cmd_redraw();
-	}
-
+	display_terms_redraw();
 	redraw_all_windows();
 }
 

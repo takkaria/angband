@@ -19,7 +19,6 @@
 #ifndef UI2_COMMAND_H
 #define UI2_COMMAND_H
 
-void do_cmd_redraw(void);
 void do_cmd_options_and_redraw(void);
 void do_cmd_unknown(void);
 void textui_cmd_suicide(void);

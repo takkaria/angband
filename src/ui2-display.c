@@ -1826,7 +1826,7 @@ static void display_term_handler(struct display_term *dt, bool enable)
 	}
 
 	if (enable) {
-		do_cmd_redraw();
+		display_terms_redraw();
 	}
 }
 
@@ -2459,4 +2459,43 @@ static void display_terms_check(void)
 			quit_fmt("Display '%s' is not initialized!", display_terms[i].name);
 		}
 	}
+}
+
+/**
+ * This function performs various low level updates
+ * and does a total redraw of all display terms.
+ */
+void display_terms_redraw(void)
+{
+	if (!character_dungeon) {
+		return;
+	}
+
+	player->upkeep->notice |= (PN_COMBINE);
+
+	player->upkeep->update |=
+		(PU_TORCH
+		 | PU_INVEN
+		 | PU_BONUS
+		 | PU_HP
+		 | PU_SPELLS
+		 | PU_UPDATE_VIEW
+		 | PU_MONSTERS);
+
+	player->upkeep->redraw |=
+		(PR_BASIC
+		 | PR_EXTRA
+		 | PR_MAP
+		 | PR_INVEN
+		 | PR_EQUIP
+		 | PR_MESSAGE
+		 | PR_MONSTER
+		 | PR_OBJECT
+		 | PR_MONLIST
+		 | PR_ITEMLIST);
+
+	verify_panel(DISPLAY_CAVE);
+	verify_cursor();
+
+	handle_stuff(player);
 }
