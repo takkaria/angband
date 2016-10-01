@@ -552,7 +552,7 @@ int textui_get_quantity(const char *prompt, int max)
 bool textui_get_check(const char *prompt)
 {
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(buf, sizeof(buf), "%.70s[y/n]", prompt);
+	strnfmt(buf, sizeof(buf), "%.60s[y/n]", prompt);
 
 	show_prompt(buf, false);
 	ui_event event = inkey_mouse_or_key();
