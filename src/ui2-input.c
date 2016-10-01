@@ -906,8 +906,8 @@ static void textui_get_command_aux(ui_event *event,
 {
 	assert(event->type == EVT_KBRD);
 
-	char ch = 0;
-	int cnt = 0;
+	char ch;
+	int cnt;
 
 	switch (event->key.code) {
 		case '0':
