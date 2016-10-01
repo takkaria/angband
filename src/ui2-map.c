@@ -568,3 +568,19 @@ void verify_cursor(void)
 		verify_cursor_int(DISPLAY_CAVE, &cursor_visible, false);
 	}
 }
+
+int map_grid_x(int x)
+{
+	struct loc coords;
+	display_term_get_coords(DISPLAY_CAVE, &coords);
+
+	return x + coords.x;
+}
+
+int map_grid_y(int y)
+{
+	struct loc coords;
+	display_term_get_coords(DISPLAY_CAVE, &coords);
+
+	return y + coords.y;
+}

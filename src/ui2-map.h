@@ -19,8 +19,9 @@
 #ifndef UI2_MAP_H
 #define UI2_MAP_H
 
-#include "ui2-term.h"
 #include "ui2-display.h"
+#include "ui2-event.h"
+#include "ui2-term.h"
 #include "z-type.h"
 
 extern void grid_data_as_point(struct grid_data *g, struct term_point *point);
@@ -29,5 +30,11 @@ extern void print_rel(enum display_term_index i, uint32_t attr, wchar_t ch, stru
 extern void print_map(enum display_term_index i);
 extern void do_cmd_view_map(void);
 void verify_cursor(void);
+
+/*
+ * Convert relative coordinates on the map to absolute ones
+ */
+int map_grid_x(int x);
+int map_grid_y(int y);
 
 #endif /* UI2_MAP_H */

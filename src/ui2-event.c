@@ -379,19 +379,3 @@ bool char_matches_key(wchar_t wc, keycode_t key)
 
 	return wc == wchar;
 }
-
-int map_grid_x(int x)
-{
-	struct loc coords;
-	display_term_get_coords(DISPLAY_CAVE, &coords);
-
-	return x + coords.x;
-}
-
-int map_grid_y(int y)
-{
-	struct loc coords;
-	display_term_get_coords(DISPLAY_CAVE, &coords);
-
-	return y + coords.y;
-}

@@ -41,6 +41,7 @@
 #include "ui2-input.h"
 #include "ui2-keymap.h"
 #include "ui2-knowledge.h"
+#include "ui2-map.h"
 #include "ui2-menu.h"
 #include "ui2-mon-lore.h"
 #include "ui2-object.h"
@@ -963,8 +964,8 @@ void textui_process_click(ui_event event)
 		return;
 	}
 
-	int x = MAP_GRID_X(event);
-	int y = MAP_GRID_Y(event);
+	int x = map_grid_x(event.mouse.x);
+	int y = map_grid_y(event.mouse.y);
 
 	/* Check for a valid location */
 	if (!square_in_bounds_fully(cave, y, x)) {
