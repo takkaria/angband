@@ -161,11 +161,10 @@ static bool inkey_keymap(ui_event *event)
 	} else if (key.code == ')') {
 		inkey_state_auto_more_off();
 		return inkey_keymap(event);
+	} else {
+		event->key = key;
+		return true;
 	}
-
-	event->key = key;
-
-	return true;
 }
 
 /**
