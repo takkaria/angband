@@ -584,7 +584,7 @@ char get_char(const char *prompt, const char *options, size_t len, char fallback
 	(void) len;
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(buf, sizeof(buf), "%.70s[%s] ", prompt, options);
+	strnfmt(buf, sizeof(buf), "%.60s[%s] ", prompt, options);
 
 	show_prompt(prompt, false);
 
