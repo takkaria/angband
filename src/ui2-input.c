@@ -470,7 +470,6 @@ static bool get_name_keypress(char *buf, size_t buflen,
 					buf, buflen, name_sections);
 			my_strcap(buf);
 			*curs = 0;
-
 			return false;
 
 		default:
