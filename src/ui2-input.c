@@ -486,18 +486,9 @@ static bool get_name_keypress(char *buf, size_t buflen,
 bool get_character_name(char *buf, size_t buflen)
 {
 	show_prompt("Enter a name for your character (* for a random name): ", false);
-
-	/* Save the player name */
 	my_strcpy(buf, op_ptr->full_name, buflen);
-
 	bool res = askfor_aux(buf, buflen, get_name_keypress);
-
 	clear_prompt();
-
-	/* Revert to the old name if the player doesn't pick a new one. */
-	if (!res) {
-		my_strcpy(buf, op_ptr->full_name, buflen);
-	}
 
 	return res;
 }
