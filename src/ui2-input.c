@@ -629,9 +629,7 @@ static bool get_file_text(const char *suggested_name,
 	}
 
 	show_prompt(format("Saving as %s.", path), false);
-
 	inkey_any();
-
 	clear_prompt();
 
 	return true;
