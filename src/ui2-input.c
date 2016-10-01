@@ -644,9 +644,7 @@ bool (*get_file)(const char *suggested_name, char *path, size_t pathlen) = get_f
 static bool get_mouse_or_key(const char *prompt, ui_event *event)
 {
 	show_prompt(prompt, false);
-
 	*event = inkey_mouse_or_key();
-
 	clear_prompt();
 
 	if (event->type == EVT_KBRD && event->key.code == ESCAPE) {
