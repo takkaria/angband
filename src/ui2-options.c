@@ -989,7 +989,9 @@ static void quality_subdisplay(struct menu *menu,
  */
 static bool quality_action(struct menu *m, const ui_event *e, int index)
 {
-	(void) e;
+	if (e->type == EVT_MOUSE) {
+		return false;
+	}
 
 	index++;
 	assert(index > ITYPE_NONE);
