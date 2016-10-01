@@ -974,8 +974,6 @@ ui_event textui_get_command(int *count)
 					inkey_state_has_keymap() ? NULL : &keymap);
 		}
 
-		clear_prompt();
-
 		if (keymap != NULL) {
 			size_t n = 0;
 			while (keymap[n].type == EVT_KBRD) {
@@ -985,6 +983,10 @@ ui_event textui_get_command(int *count)
 			event.type = EVT_NONE;
 		}
 	}
+
+	/* Now that we have an event, clear all remaining
+	 * prompts and messages from the previous turn */
+	clear_prompt();
 
 	return event;
 }
