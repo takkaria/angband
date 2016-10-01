@@ -496,8 +496,8 @@ bool get_character_name(char *buf, size_t buflen)
 /**
  * Prompt for a string from the user.
  * The prompt should take the form "Prompt: ".
- * See askfor_aux() for some notes about buf and len, and about
- * the return value of this function.
+ * See askfor_aux() for some notes about buf and buflen,
+ * and about the return value of this function.
  */
 bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 {
