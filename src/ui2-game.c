@@ -301,7 +301,7 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
  * Parse and execute the current command
  * Give "Warning" on illegal commands.
  */
-static void textui_process_command(void)
+static void cmd_process(void)
 {
 	const struct cmd_info *cmd = NULL;
 	unsigned char key = 0;
@@ -327,7 +327,7 @@ static void textui_process_command(void)
 errr textui_get_cmd(cmd_context context)
 {
 	if (context == CMD_GAME) {
-		textui_process_command();
+		cmd_process();
 	}
 
 	return 0;
