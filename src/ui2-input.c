@@ -775,7 +775,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
  * Return true if a direction was chosen, otherwise return false.
  * The direction "5" is special, and means "use current target".
  *
- * Note that "use old target", if set, will pre-empt user interaction,
+ * Note that "use_old_target" option, will pre-empt user interaction
  * if there is a usable target already set.
  */
 bool textui_get_aim_dir(int *dir)
