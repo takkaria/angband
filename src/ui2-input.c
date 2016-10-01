@@ -666,7 +666,7 @@ bool textui_get_com(const char *prompt, char *command)
 	struct keypress key = inkey_only_key();
 	clear_prompt();
 
-	if (key.code < CHAR_MAX && key.code != ESCAPE) {
+	if (key.code != ESCAPE && key.code < CHAR_MAX) {
 		*command = (char) key.code;
 		return true;
 	} else {
