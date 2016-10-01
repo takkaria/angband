@@ -555,9 +555,7 @@ bool textui_get_check(const char *prompt)
 	strnfmt(buf, sizeof(buf), "%.70s[y/n]", prompt);
 
 	show_prompt(buf, false);
-
 	ui_event event = inkey_mouse_or_key();
-
 	clear_prompt();
 
 	if (event.type == EVT_MOUSE
