@@ -1023,25 +1023,3 @@ bool key_confirm_command(unsigned char ch)
 
 	return true;
 }
-
-/**
- * Process a textui keypress.
- */
-bool textui_process_key(struct keypress key, unsigned char *c)
-{
-	if (key.code == '\0'
-			|| key.code == ESCAPE
-			|| key.code == ' '
-			|| key.code == '\a')
-	{
-		return true;
-	}
-
-	if (key.code > UCHAR_MAX) {
-		return false;
-	}
-
-	*c = key.code;
-
-	return true;
-}

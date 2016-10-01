@@ -283,14 +283,17 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 			return true;
 
 		case EVT_KBRD:
-			if (textui_process_key(event.key, key)) {
-				if (*key == KC_ENTER) {
-					*cmd = textui_action_menu_choose();
-				} else {
-					*cmd = converted_list[KEYMAP_MODE_OPT][*key];
-				}
+			if (event.key.code == KC_ENTER) {
+				*cmd = textui_action_menu_choose();
+				return true;
+			} else if (event.key.code <= UCHAR_MAX) {
+				*key = (unsigned char) event.key.code;
+				*cmd = converted_list[KEYMAP_MODE_OPT][*key];
+				return true;
+			} else {
+				return false;
 			}
-			return *cmd != NULL;
+			break;
 
 		default:
 			return true; /* Silently ignore all other event types */
