@@ -512,7 +512,7 @@ bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 }
 
 /**
- * Request a quantity from the user
+ * Request a quantity from the user.
  */
 int textui_get_quantity(const char *prompt, int max)
 {
@@ -545,7 +545,7 @@ int textui_get_quantity(const char *prompt, int max)
 }
 
 /**
- * Verify something with the user
+ * Verify something with the user.
  * The prompt should take the form "Query? "
  * Note that "[y/n]" is appended to the prompt.
  */
