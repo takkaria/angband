@@ -951,13 +951,13 @@ static void textui_get_command_aux(ui_event *event,
 /**
  * Request a command from the user.
  *
- * Note that "caret" ("^") is treated specially, and is used to
- * allow manual input of control characters.  This can be used
- * on many machines to request repeated tunneling (Ctrl-H) and
+ * Note that "caret" ("^") is treated specially, and is used
+ * to allow manual input of control characters. This can be
+ * used on many machines to request repeated tunneling and
  * on the Macintosh to request "Control-Caret".
  *
  * Note that "backslash" is treated specially, and is used to bypass any
- * keymap entry for the following character.  This is useful for macros.
+ * keymap entry for the following character. This is useful for macros.
  */
 ui_event textui_get_command(int *count)
 {
