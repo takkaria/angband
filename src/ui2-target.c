@@ -119,20 +119,20 @@ static void target_display_help_aux(bool monster, bool free)
 	if (free) {
 		/* If free selection, display 1 more line */
 		text_out_c(info, COLOUR_L_GREEN, "m");
-		text_out(info, " restricts to interesting places.\n");
-	}
-	else {
+		text_out(info, " restricts to interesting places.");
+	} else {
 		/* Else display 2 more lines */
 		text_out_c(info, COLOUR_L_GREEN, "+");
 		text_out(info, " and ");
 		text_out_c(info, COLOUR_L_GREEN, "-");
 		text_out(info, " cycle through interesting places.\n");
 		text_out_c(info, COLOUR_L_GREEN, "o");
-		text_out(info, " allows free selection.\n");
+		text_out(info, " allows free selection.");
 	}
 	
 	if (monster || free) {
 		/* If free selection or targetable monster under cursor, add 1 more line */
+		text_out(info, "\n");
 		text_out_c(info, COLOUR_L_GREEN, "t");
 		text_out(info, " targets the current selection.");
 	}
