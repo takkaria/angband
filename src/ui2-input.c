@@ -59,7 +59,7 @@ static struct {
 	 * We use it to implement keymaps.
 	 */
 	struct {
-		struct keypress keys[256];
+		struct keypress keys[KEYMAP_ACTION_MAX];
 		/* currently pending keypress */
 		size_t key;
 		/* total number of keypresses */
