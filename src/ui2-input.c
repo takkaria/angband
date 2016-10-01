@@ -410,7 +410,7 @@ static bool askfor_aux_handle(struct loc loc, struct keypress *key,
  * Get some input at the cursor location.
  *
  * The buffer is assumed to have been initialized to a default string.
- * Note that this string is often "empty" (see below).
+ * Note that this string is often empty (see below).
  *
  * The default buffer is displayed in yellow until cleared, which happens
  * on the first keypress, unless that keypress is Return.
@@ -420,12 +420,12 @@ static bool askfor_aux_handle(struct loc loc, struct keypress *key,
  * Return accepts the current buffer contents and returns true.
  * Escape clears the buffer and the window and returns false.
  *
- * Note that 'len' refers to the size of the buffer.  The maximum length
- * of the input is 'len-1'.
+ * Note that 'buflen' refers to the size of the buffer. The maximum length
+ * of the input is 'buflen' - 1.
  *
  * 'handler' is a pointer to a function to handle keypresses, altering
- * the input buffer, cursor position and suchlike as required.  See
- * 'askfor_aux_keypress' (the default handler if you supply NULL for
+ * the input buffer, cursor position and suchlike as required.
+ * See askfor_aux_keypress() (the default handler if you supply NULL for
  * 'handler') for an example.
  */
 bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
