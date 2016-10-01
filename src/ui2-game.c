@@ -286,6 +286,12 @@ static bool cmd_get(const struct cmd_info **cmd, unsigned char *key, int *count)
 			if (event.key.code == KC_ENTER) {
 				*cmd = textui_action_menu_choose();
 				return true;
+			} else if (event.key.code == ESCAPE
+					|| event.key.code == ' '
+					|| event.key.code == KTRL('G')
+					|| event.key.code == 0)
+			{
+				return true; /* silently ignore these keys */
 			} else if (event.key.code <= UCHAR_MAX) {
 				*key = (unsigned char) event.key.code;
 				*cmd = converted_list[KEYMAP_MODE_OPT][*key];
