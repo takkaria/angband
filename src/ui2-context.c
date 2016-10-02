@@ -1019,7 +1019,6 @@ void textui_process_click(ui_event event)
 					cmdq_push(CMD_HOLD);
 				}
 			} else if (mouse.button == MOUSE_BUTTON_RIGHT) {
-				/* Show a context menu */
 				context_menu_player(loc(mouse.x, mouse.y));
 			}
 		}
