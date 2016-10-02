@@ -905,7 +905,6 @@ static void show_command_list(struct cmd_info *cmd_list,
 		}
 
 		strnfmt(cmd_name, sizeof(cmd_name), "%s (%s)",  cmd_list[i].desc, key);
-		fprintf(stderr, "name '%s'\n", cmd_name);
 		menu_dynamic_add(m, cmd_name, i + 1);
 	}
 
