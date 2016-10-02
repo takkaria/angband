@@ -1087,6 +1087,13 @@ void textui_process_click(ui_event event)
  * Menu functions
  * ------------------------------------------------------------------------ */
 
+static char cmd_sub_tag(struct menu *menu, int index)
+{
+	struct cmd_info *commands = menu_priv(menu);
+
+	return commands[index].key[KEYMAP_MODE_OPT];
+}
+
 /**
  * Display an entry on a command menu
  */
@@ -1126,6 +1133,7 @@ static bool cmd_menu(struct command_list *list, void *selection_p)
 	struct menu menu;
 
 	menu_iter commands_menu = {
+		.get_tag     = cmd_sub_tag,
 		.display_row = cmd_sub_entry
 	};
 
@@ -1134,7 +1142,7 @@ static bool cmd_menu(struct command_list *list, void *selection_p)
 	/* Set up the menu */
 	menu_init(&menu, MN_SKIN_SCROLL, &commands_menu);
 	menu_setpriv(&menu, list->len, list->list);
-	mnflag_on(menu.flags, MN_NO_TAGS);
+	mnflag_on(menu.flags, MN_NO_DISPLAY_TAGS);
 
 	int maxlen = 0;
 	for (size_t i = 0; i < list->len; i++) {
