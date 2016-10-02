@@ -480,7 +480,8 @@ static void display_menu_row(struct menu *menu,
 
 	Term_erase(loc.x, loc.y, width);
 
-	if (!mnflag_has(menu->flags, MN_NO_TAGS)) {
+	if (!mnflag_has(menu->flags, MN_NO_TAGS)
+			&& !mnflag_has(menu->flags, MN_NO_DISPLAY_TAGS)) {
 		char sel = 0;
 
 		if (menu->selections && !mnflag_has(menu->flags, MN_PVT_TAGS)) {
