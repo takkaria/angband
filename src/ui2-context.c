@@ -56,8 +56,9 @@
 } while (0)
 
 /**
- * Additional constants for menu item values. The values must not collide
- * with the cmd_code enum, since those are the main values for these menu items.
+ * Additional constants for menu item values.
+ * The values must not collide with the cmd_code enum,
+ * since those are the main values for these menu items.
  */
 enum context_menu_value_e {
 	MENU_VALUE_INSPECT = CMD_REPEAT + 1000,
