@@ -1647,6 +1647,9 @@ void do_cmd_buy(struct command *cmd)
 	/* Update the gear */
 	player->upkeep->update |= (PU_INVEN);
 
+	/* Redraw the gold */
+	player->upkeep->redraw |= (PR_GOLD);
+
 	/* Combine the pack (later) */
 	player->upkeep->notice |= (PN_COMBINE | PN_IGNORE);
 
