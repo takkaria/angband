@@ -1162,7 +1162,7 @@ static bool cmd_menu(struct command_list *list, void *selection_p)
 		.height = list->len,
 		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
-		.position = TERM_POSITION_CENTER
+		.position = TERM_POSITION_TOP_LEFT
 	};
 	Term_push_new(&hints);
 	Term_add_tab(0, menu_tab, COLOUR_WHITE, COLOUR_DARK);
@@ -1240,7 +1240,7 @@ struct cmd_info *textui_action_menu_choose(void)
 		.height = count,
 		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
-		.position = TERM_POSITION_CENTER
+		.position = TERM_POSITION_TOP_LEFT
 	};
 	Term_push_new(&hints);
 	Term_add_tab(0, menu_tab, COLOUR_WHITE, COLOUR_DARK);
