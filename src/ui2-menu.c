@@ -71,7 +71,7 @@ static bool menu_has_tags(const struct menu *menu)
 
 static bool menu_inscription(const struct menu *menu, keycode_t code)
 {
-	if (code > UCHAR_MAX) {
+	if (code > CHAR_MAX) {
 		return false;
 	} else {
 		return mnflag_has(menu->flags, MN_INSCRIP_TAGS)
