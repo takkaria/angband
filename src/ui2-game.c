@@ -284,7 +284,7 @@ static bool cmd_keyboard(keycode_t code,
 			*cmd = textui_action_menu_choose();
 			return true;
 
-		case ESCAPE: case ' ': case KTRL('G'): case 0:
+		case ESCAPE: case ' ': case 0:
 			return true; /* silently ignore these keys */
 
 		default:
