@@ -982,8 +982,7 @@ void textui_process_click(ui_event event)
 				Term_keypress('i', 0);
 			}
 		} else if (event.mouse.mods & KC_MOD_CONTROL) {
-			/* ctrl-click - use feature / use inventory item
-			 * switch with default */
+			/* ctrl-click - use feature or use inventory item */
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 				if (square_isupstairs(cave, player->py, player->px)) {
 					cmdq_push(CMD_GO_UP);
