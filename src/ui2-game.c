@@ -167,7 +167,6 @@ struct cmd_info cmd_hidden[] = {
 	{"Center map",              {KTRL('L'), '@'}, CMD_NULL,       do_cmd_center_map, NULL},
 	{"Toggle wizard mode",      {KTRL('W')},      CMD_NULL,       do_cmd_wizard, NULL},
 	{"Repeat previous command", {'n', KTRL('V')}, CMD_REPEAT,     NULL, NULL},
-	{"Do autopickup",           {KTRL('G')},      CMD_AUTOPICKUP, NULL, NULL},
 	{"Debug mode commands",     {KTRL('A')},      CMD_NULL,       textui_cmd_debug, NULL},
 };
 
