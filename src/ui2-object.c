@@ -1284,8 +1284,8 @@ static bool init_menu_data(struct object_menu_data *data,
 		player->upkeep->command_wrk = USE_QUIVER;
 	} else if (player->upkeep->command_wrk == USE_FLOOR && allow_floor) {
 		player->upkeep->command_wrk = USE_FLOOR;
-	} else if ((data->item_mode & QUIVER_TAGS) && allow_quiver) {
-		/* If we are obviously using the quiver then start on quiver */
+	} else if (data->item_cmd == CMD_FIRE && allow_quiver) {
+		/* If we are trying to shoot then start on quiver */
 		player->upkeep->command_wrk = USE_QUIVER;
 	} else {
 		/* Otherwise choose whatever is allowed */
