@@ -1100,29 +1100,26 @@ static char cmd_sub_tag(struct menu *menu, int index)
 static void cmd_sub_entry(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
-	const int mode = KEYMAP_MODE_OPT;
-
 	struct cmd_info *commands = menu_priv(menu);
 
 	uint32_t attr = menu_row_style(true, cursor);
 
 	Term_adds(loc.x, loc.y, width, attr, commands[index].desc);
 
-	/* Include keypress */
-	Term_putwc(attr, L' ');
-	Term_putwc(attr, L'(');
-
 	struct keypress key = {
 		.type = EVT_KBRD,
-		.code = commands[index].key[mode],
+		.code = commands[index].key[KEYMAP_MODE_OPT],
 		.mods = 0
 	};
 	/* Get readable version */
 	char buf[16] = {0};
 	keypress_to_readable(buf, sizeof(buf), key);
-	Term_puts(sizeof(buf), attr, buf);
 
-	Term_putwc(attr, L')');
+	Term_cursor_to_xy(loc.x + width - (int) strlen(buf) - 2, loc.y);
+
+	Term_putwc(COLOUR_L_DARK, L'(');
+	Term_puts(sizeof(buf), attr, buf);
+	Term_putwc(COLOUR_L_DARK, L')');
 }
 
 /**
@@ -1152,18 +1149,29 @@ static bool cmd_menu(struct command_list *list, void *selection_p)
 		}
 	}
 
+	const char *menu_tab = list->name;
+	const int tablen = strlen(menu_tab);
+
+	Term_visible(false);
+
 	struct term_hints hints = {
-		.width = maxlen + 8, /* 8 should be enough for additional chars */
+		/* add 8 to maxlen to make room for command keys
+		 * add 1 to tablen to make it look better */
+		.width = MAX(maxlen + 8, tablen + 1),
 		.height = list->len,
+		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, menu_tab, COLOUR_WHITE, COLOUR_DARK);
+
 	menu_layout_term(&menu);
 
 	ui_event event = menu_select(&menu);
 
 	Term_pop();
+	Term_visible(true);
 
 	if (event.type == EVT_SELECT) {
 		*selection = &list->list[menu.cursor];
