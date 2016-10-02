@@ -421,10 +421,9 @@ bool spell_book_handle(struct menu *menu, const ui_event *event, int index)
 
 	if (event->type == EVT_SELECT) {
 		data->selected = data->books[index].book;
-		return false;
-	} else {
-		return true;
 	}
+
+	return false;
 }
 
 static void find_book_inscriptions(struct menu *menu,
