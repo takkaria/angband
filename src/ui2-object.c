@@ -1265,10 +1265,10 @@ static bool init_menu_data(struct object_menu_data *data,
 	data->f1 = f1;
 	data->f2 = f2;
 
-	const bool allow_inven  = (data->item_mode & USE_INVEN)   ? true : false;
-	const bool allow_equip  = (data->item_mode & USE_EQUIP)   ? true : false;
-	const bool allow_quiver = (data->item_mode & USE_QUIVER)  ? true : false;
-	const bool allow_floor  = (data->item_mode & USE_FLOOR)   ? true : false;
+	const bool allow_inven  = (data->item_mode & USE_INVEN)  ? true : false;
+	const bool allow_equip  = (data->item_mode & USE_EQUIP)  ? true : false;
+	const bool allow_quiver = (data->item_mode & USE_QUIVER) ? true : false;
+	const bool allow_floor  = (data->item_mode & USE_FLOOR)  ? true : false;
 
 	/* Require at least one legal choice */
 	if (!allow_inven && !allow_equip && !allow_quiver && !allow_floor) {
