@@ -970,12 +970,16 @@ static bool is_adjacent_to_player(int x, int y)
  */
 void textui_process_click(ui_event event)
 {
+	assert(event.type == EVT_MOUSE);
+
 	if (!OPT(mouse_movement)) {
 		return;
 	}
 
-	int x = map_grid_x(event.mouse.x);
-	int y = map_grid_y(event.mouse.y);
+	struct mouseclick mouse = event.mouse;
+
+	int x = map_grid_x(mouse.x);
+	int y = map_grid_y(mouse.y);
 
 	/* Check for a valid location */
 	if (!square_in_bounds_fully(cave, y, x)) {
@@ -983,57 +987,57 @@ void textui_process_click(ui_event event)
 	}
 
 	if (player->px == x && player->py == y) {
-		if (event.mouse.mods & KC_MOD_SHIFT) {
+		if (mouse.mods & KC_MOD_SHIFT) {
 			/* shift-click - cast magic or view inventory */
-			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
+			if (mouse.button == MOUSE_BUTTON_LEFT) {
 				cmdq_push(CMD_CAST);
-			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
+			} else if (mouse.button == MOUSE_BUTTON_RIGHT) {
 				Term_keypress('i', 0);
 			}
-		} else if (event.mouse.mods & KC_MOD_CONTROL) {
+		} else if (mouse.mods & KC_MOD_CONTROL) {
 			/* ctrl-click - use feature or use inventory item */
-			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
+			if (mouse.button == MOUSE_BUTTON_LEFT) {
 				if (square_isupstairs(cave, player->py, player->px)) {
 					cmdq_push(CMD_GO_UP);
 				} else if (square_isdownstairs(cave, player->py, player->px)) {
 					cmdq_push(CMD_GO_DOWN);
 				}
-			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
+			} else if (mouse.button == MOUSE_BUTTON_RIGHT) {
 				cmdq_push(CMD_USE);
 			}
-		} else if (event.mouse.mods & KC_MOD_ALT) {
+		} else if (mouse.mods & KC_MOD_ALT) {
 			/* alt-click - show char screen */
-			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
+			if (mouse.button == MOUSE_BUTTON_LEFT) {
 				Term_keypress('C', 0);
 			}
 		} else {
 			/* normal click - pickup item, spend a turn or open a menu */
-			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
+			if (mouse.button == MOUSE_BUTTON_LEFT) {
 				if (square_object(cave, y, x)) {
 					cmdq_push(CMD_PICKUP);
 				} else {
 					cmdq_push(CMD_HOLD);
 				}
-			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
+			} else if (mouse.button == MOUSE_BUTTON_RIGHT) {
 				/* Show a context menu */
-				context_menu_player(loc(event.mouse.x, event.mouse.y));
+				context_menu_player(loc(mouse.x, mouse.y));
 			}
 		}
-	} else if (event.mouse.button == MOUSE_BUTTON_LEFT) {
+	} else if (mouse.button == MOUSE_BUTTON_LEFT) {
 		if (player->timed[TMD_CONFUSED]) {
 			cmdq_push(CMD_WALK);
 		} else {
-			if (event.mouse.mods & KC_MOD_SHIFT) {
+			if (mouse.mods & KC_MOD_SHIFT) {
 				/* shift-click - run */
 				cmdq_push(CMD_RUN);
 				cmd_set_arg_direction(cmdq_peek(),
 						"direction", coords_to_dir(y, x));
-			} else if (event.mouse.mods & KC_MOD_CONTROL) {
+			} else if (mouse.mods & KC_MOD_CONTROL) {
 				/* control-click - alter */
 				cmdq_push(CMD_ALTER);
 				cmd_set_arg_direction(cmdq_peek(),
 						"direction", coords_to_dir(y, x));
-			} else if (event.mouse.mods & KC_MOD_ALT) {
+			} else if (mouse.mods & KC_MOD_ALT) {
 				/* alt-click - look */
 				if (target_set_interactive(TARGET_LOOK, loc(x, y))) {
 					msg("Target Selected.");
@@ -1051,7 +1055,7 @@ void textui_process_click(ui_event event)
 				}
 			}
 		}
-	} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
+	} else if (mouse.button == MOUSE_BUTTON_RIGHT) {
 		struct monster *mon = square_monster(cave, y, x);
 
 		/* set up target information */
@@ -1063,15 +1067,15 @@ void textui_process_click(ui_event event)
 			target_set_location(y, x);
 		}
 
-		if (event.mouse.mods & KC_MOD_SHIFT) {
+		if (mouse.mods & KC_MOD_SHIFT) {
 			/* shift-click - cast spell at target */
 			cmdq_push(CMD_CAST);
 			cmd_set_arg_target(cmdq_peek(), "target", DIR_TARGET);
-		} else if (event.mouse.mods & KC_MOD_CONTROL) {
+		} else if (mouse.mods & KC_MOD_CONTROL) {
 			/* control-click - fire at target */
 			cmdq_push(CMD_USE);
 			cmd_set_arg_target(cmdq_peek(), "target", DIR_TARGET);
-		} else if (event.mouse.mods & KC_MOD_ALT) {
+		} else if (mouse.mods & KC_MOD_ALT) {
 			/* alt-click - throw at target */
 			cmdq_push(CMD_THROW);
 			cmd_set_arg_target(cmdq_peek(), "target", DIR_TARGET);
@@ -1079,10 +1083,10 @@ void textui_process_click(ui_event event)
 			/* normal click - show a menu */
 			if (is_adjacent_to_player(x, y)) {
 				context_menu_cave(cave,
-						loc(x, y), true, loc(event.mouse.x, event.mouse.y));
+						loc(x, y), true, loc(mouse.x, mouse.y));
 			} else {
 				context_menu_cave(cave,
-						loc(x, y), false, loc(event.mouse.x, event.mouse.y));
+						loc(x, y), false, loc(mouse.x, mouse.y));
 			}
 		}
 	}
