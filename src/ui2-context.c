@@ -986,8 +986,7 @@ static void textui_left_click(struct mouseclick mouse, int x, int y)
 				msg("Target Selected.");
 			}
 		} else {
-			 /* normal click - take a step or travel
-			  * to the location that was clicked */
+			 /* normal click - take a step or travel */
 			if (is_adjacent_to_player(x, y)) {
 				cmdq_push(CMD_WALK);
 				cmd_set_arg_direction(cmdq_peek(),
