@@ -1018,10 +1018,13 @@ size_t menu_dynamic_longest_entry(struct menu *menu)
 
 region menu_dynamic_calc_location(struct menu *menu)
 {
+	bool tags = !mnflag_has(menu->flags, MN_NO_TAGS)
+		&& !mnflag_has(menu->flags, MN_NO_DISPLAY_TAGS);
+
 	region reg = {
 		.x = 0,
 		.y = 0,
-		.w = menu_dynamic_longest_entry(menu) + 3, /* 3 for tag */
+		.w = menu_dynamic_longest_entry(menu) + (tags ? 3 : 0),
 		.h = menu->count
 	};
 
