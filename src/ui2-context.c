@@ -1203,8 +1203,8 @@ struct cmd_info *textui_action_menu_choose(void)
 {
 	struct menu command_menu;
 	struct cmd_info *chosen_command = NULL;
-
 	int count = 0;
+
 	int maxlen = 0;
 	while (cmds_all[count].list != NULL) {
 		if (cmds_all[count].len) {
@@ -1235,8 +1235,8 @@ struct cmd_info *textui_action_menu_choose(void)
 	};
 	Term_push_new(&hints);
 	Term_add_tab(0, menu_tab, COLOUR_WHITE, COLOUR_DARK);
-	menu_layout_term(&command_menu);
 
+	menu_layout_term(&command_menu);
 	menu_select(&command_menu);
 
 	Term_pop();
