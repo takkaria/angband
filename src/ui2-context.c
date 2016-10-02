@@ -1030,8 +1030,8 @@ void textui_process_click(ui_event event)
 					msg("Target Selected.");
 				}
 			} else {
-				/* Pathfind does not work well on trap detection borders,
-				 * so if the click is next to the player, force a walk step */
+				 /* normal click - if next to the player, force a walk step,
+				  * else travel to location that was clicked */
 				if ((x - player->px >= -1) && (x - player->px <= 1)
 						&& (y - player->py >= -1) && (y - player->py <= 1))
 				{
