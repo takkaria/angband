@@ -1182,10 +1182,10 @@ static bool cmd_menu(struct command_list *list, void *selection_p)
 	}
 }
 
-static bool cmd_list_action(struct menu *m, const ui_event *event, int index)
+static bool cmd_list_action(struct menu *menu, const ui_event *event, int index)
 {
 	if (event->type == EVT_SELECT) {
-		return cmd_menu(&cmds_all[index], menu_priv(m));
+		return cmd_menu(&cmds_all[index], menu_priv(menu));
 	} else {
 		return false;
 	}
