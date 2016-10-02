@@ -1047,7 +1047,7 @@ static void textui_player_click(struct mouseclick mouse, int x, int y)
 			Term_keypress('i', 0);
 		}
 	} else if (mouse.mods & KC_MOD_CONTROL) {
-		/* ctrl-click - use feature or use inventory item */
+		/* ctrl-click - use stairs or use inventory item */
 		if (mouse.button == MOUSE_BUTTON_LEFT) {
 			if (square_isupstairs(cave, player->py, player->px)) {
 				cmdq_push(CMD_GO_UP);
