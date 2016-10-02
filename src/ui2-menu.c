@@ -473,7 +473,6 @@ static bool tag_eq_code(int tag, int code, bool caseless)
  */
 static int get_cursor_key(struct menu *menu, struct keypress key)
 {
-	const int count = menu_count(menu);
 	const bool caseless = menu_caseless(menu);
 	const char code = code_from_key(menu, key, caseless);
 
@@ -485,7 +484,7 @@ static int get_cursor_key(struct menu *menu, struct keypress key)
 				}
 			}
 		} else if (menu->iter->get_tag) {
-			for (int i = 0; i < count; i++) {
+			for (int i = 0, count = menu_count(menu); i < count; i++) {
 				char tag = menu->iter->get_tag(menu, menu_index(menu, i));
 				if (tag_eq_code(tag, code, caseless)) {
 					return i;
