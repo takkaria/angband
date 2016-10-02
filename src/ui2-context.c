@@ -998,6 +998,7 @@ void textui_process_click(ui_event event)
 				Term_keypress('C', 0);
 			}
 		} else {
+			/* normal click - pickup item, spend a turn or open a menu */
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 				if (square_object(cave, y, x)) {
 					cmdq_push(CMD_PICKUP);
