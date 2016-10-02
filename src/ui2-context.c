@@ -1004,7 +1004,6 @@ static void textui_right_click(struct mouseclick mouse, int x, int y)
 {
 	struct monster *mon = square_monster(cave, y, x);
 
-	/* set up target information */
 	if (mon && target_able(mon)) {
 		monster_race_track(player->upkeep, mon->race);
 		health_track(player->upkeep, mon);
