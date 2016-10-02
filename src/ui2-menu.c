@@ -987,7 +987,7 @@ void menu_dynamic_add(struct menu *menu, const char *text, int value)
 void menu_dynamic_add_label_valid(struct menu *menu,
 		const char *text, const char label, int value, char *label_list, bool valid)
 {
-	if (label && menu->selections && (menu->selections == label_list)) {
+	if (label && menu->selections && menu->selections == label_list) {
 		label_list[menu->count] = label;
 	}
 	menu_dynamic_add_valid(menu, text, value, valid);
