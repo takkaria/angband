@@ -975,7 +975,7 @@ void textui_process_click(ui_event event)
 
 	if (player->px == x && player->py == y) {
 		if (event.mouse.mods & KC_MOD_SHIFT) {
-			/* shift-click - cast magic */
+			/* shift-click - cast magic or view inventory */
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 				cmdq_push(CMD_CAST);
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
