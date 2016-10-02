@@ -1218,15 +1218,21 @@ struct cmd_info *textui_action_menu_choose(void)
 
 	menu_init(&command_menu, MN_SKIN_SCROLL, &command_menu_iter);
 	menu_setpriv(&command_menu, count, &chosen_command);
-	mnflag_on(command_menu.flags, MN_NO_TAGS);
+
+	command_menu.selections = lower_case;
+
+	const char *menu_tab = "Command groups";
+	const int tablen = strlen(menu_tab);
 
 	struct term_hints hints = {
-		.width = maxlen + 1,
+		.width = MAX(maxlen + 3, tablen + 1),
 		.height = count,
+		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
 		.position = TERM_POSITION_CENTER
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, menu_tab, COLOUR_WHITE, COLOUR_DARK);
 	menu_layout_term(&command_menu);
 
 	menu_select(&command_menu);
