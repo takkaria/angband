@@ -56,6 +56,36 @@ uint32_t menu_row_style(bool valid, bool selected)
 }
 
 /**
+ * Helper functions dealing with menu's flags
+ */
+static bool menu_displays_tags(const struct menu *menu)
+{
+	return !mnflag_has(menu->flags, MN_NO_TAGS)
+		&& !mnflag_has(menu->flags, MN_PVT_TAGS);
+}
+
+static bool menu_has_tags(const struct menu *menu)
+{
+	return !mnflag_has(menu->flags, MN_NO_TAGS);
+}
+
+static bool menu_inscription(const struct menu *menu, keycode_t code)
+{
+	if (code > UCHAR_MAX) {
+		return false;
+	} else {
+		return mnflag_has(menu->flags, MN_INSCRIP_TAGS)
+			&& isdigit(code)
+			&& menu->inscriptions[D2I(code)] != 0;
+	}
+}
+
+static bool menu_caseless(const struct menu *menu)
+{
+	return mnflag_has(menu->flags, MN_CASELESS_TAGS);
+}
+
+/**
  * Display an event, with possible preference overrides
  */
 static void display_action_aux(menu_action *act,
@@ -419,10 +449,7 @@ static char code_from_key(const struct menu *menu,
 {
 	char code = (char) key.code;
 
-	if (mnflag_has(menu->flags, MN_INSCRIP_TAGS)
-			&& isdigit((unsigned char) key.code)
-			&& menu->inscriptions[D2I(key.code)])
-	{
+	if (menu_inscription(menu, key.code)) {
 		code = menu->inscriptions[D2I(key.code)];
 	} else if (caseless) {
 		code = toupper((unsigned char) key.code);
@@ -447,22 +474,22 @@ static bool tag_eq_code(int tag, int code, bool caseless)
 static int get_cursor_key(struct menu *menu, struct keypress key)
 {
 	const int count = menu_count(menu);
-	const bool caseless = mnflag_has(menu->flags, MN_CASELESS_TAGS);
+	const bool caseless = menu_caseless(menu);
 	const char code = code_from_key(menu, key, caseless);
 
-	if (mnflag_has(menu->flags, MN_NO_TAGS)) {
-		return -1;
-	} else if (menu->selections && !mnflag_has(menu->flags, MN_PVT_TAGS)) {
-		for (int i = 0; menu->selections[i]; i++) {
-			if (tag_eq_code(menu->selections[i], code, caseless)) {
-				return i;
+	if (menu_has_tags(menu)) {
+		if (menu->selections) {
+			for (int i = 0; menu->selections[i]; i++) {
+				if (tag_eq_code(menu->selections[i], code, caseless)) {
+					return i;
+				}
 			}
-		}
-	} else if (menu->iter->get_tag) {
-		for (int i = 0; i < count; i++) {
-			char tag = menu->iter->get_tag(menu, menu_index(menu, i));
-			if (tag_eq_code(tag, code, caseless)) {
-				return i;
+		} else if (menu->iter->get_tag) {
+			for (int i = 0; i < count; i++) {
+				char tag = menu->iter->get_tag(menu, menu_index(menu, i));
+				if (tag_eq_code(tag, code, caseless)) {
+					return i;
+				}
 			}
 		}
 	}
@@ -480,11 +507,10 @@ static void display_menu_row(struct menu *menu,
 
 	Term_erase(loc.x, loc.y, width);
 
-	if (!mnflag_has(menu->flags, MN_NO_TAGS)
-			&& !mnflag_has(menu->flags, MN_NO_DISPLAY_TAGS)) {
+	if (menu_displays_tags(menu)) {
 		char sel = 0;
 
-		if (menu->selections && !mnflag_has(menu->flags, MN_PVT_TAGS)) {
+		if (menu->selections) {
 			sel = menu->selections[index];
 		} else if (menu->iter->get_tag) {
 			sel = menu->iter->get_tag(menu, id);
@@ -1018,13 +1044,11 @@ size_t menu_dynamic_longest_entry(struct menu *menu)
 
 region menu_dynamic_calc_location(struct menu *menu)
 {
-	bool tags = !mnflag_has(menu->flags, MN_NO_TAGS)
-		&& !mnflag_has(menu->flags, MN_NO_DISPLAY_TAGS);
-
+	int tag_space = menu_has_tags(menu) ? 3 : 0;
 	region reg = {
 		.x = 0,
 		.y = 0,
-		.w = menu_dynamic_longest_entry(menu) + (tags ? 3 : 0),
+		.w = menu_dynamic_longest_entry(menu) + tag_space,
 		.h = menu->count
 	};
 

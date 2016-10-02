@@ -97,8 +97,6 @@ struct curse *curse_menu(struct object *obj)
 	/* Set up the menu */
 	menu_setpriv(menu, count, available);
 	menu->header = "Remove which curse?";
-	menu->selections = lower_case;
-	mnflag_on(menu->flags, MN_PVT_TAGS);
 
 	/* Set up the item list variables */
 	selection = NULL;

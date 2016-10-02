@@ -1158,7 +1158,7 @@ static bool cmd_menu(struct command_list *list, void *selection_p)
 	/* Set up the menu */
 	menu_init(&menu, MN_SKIN_SCROLL, &commands_menu);
 	menu_setpriv(&menu, list->len, list->list);
-	mnflag_on(menu.flags, MN_NO_DISPLAY_TAGS);
+	mnflag_on(menu.flags, MN_PVT_TAGS);
 
 	int maxlen = 0;
 	for (size_t i = 0; i < list->len; i++) {

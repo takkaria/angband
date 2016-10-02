@@ -1081,13 +1081,9 @@ static void item_menu(struct object_menu_data *data)
 
 	menu_setpriv(&menu, data->list->len, data);
 
-	menu.selections =
-		player->upkeep->command_wrk == USE_QUIVER ? all_digits : lower_case;
-
 	menu.stop_keys = "\\=|-";
 	menu.browse_hook = quiver_browser;
 
-	mnflag_on(menu.flags, MN_PVT_TAGS);
 	mnflag_on(menu.flags, MN_INSCRIP_TAGS);
 	mnflag_on(menu.flags, MN_DONT_CLEAR);
 
