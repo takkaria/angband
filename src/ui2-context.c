@@ -956,6 +956,15 @@ void context_menu_command(struct loc mloc)
 	}
 }
 
+static bool is_adjacent_to_player(int x, int y)
+{
+	int relx = x - player->px;
+	int rely = y - player->py;
+
+	return relx >= -1 && relx <= 1
+		&& rely >= -1 && rely <= 1;
+}
+
 /**
  * Handle a mouseclick.
  */
@@ -1032,9 +1041,7 @@ void textui_process_click(ui_event event)
 			} else {
 				 /* normal click - if next to the player, force a walk step,
 				  * else travel to location that was clicked */
-				if ((x - player->px >= -1) && (x - player->px <= 1)
-						&& (y - player->py >= -1) && (y - player->py <= 1))
-				{
+				if (is_adjacent_to_player(x, y)) {
 					cmdq_push(CMD_WALK);
 					cmd_set_arg_direction(cmdq_peek(),
 							"direction", coords_to_dir(y, x));
@@ -1070,9 +1077,7 @@ void textui_process_click(ui_event event)
 			cmd_set_arg_target(cmdq_peek(), "target", DIR_TARGET);
 		} else {
 			/* see if the click was adjacent to the player */
-			if ((x - player->px >= -1) && (x - player->px <= 1)
-					&& (y - player->py >= -1) && (y - player->py <= 1))
-			{
+			if (is_adjacent_to_player(x, y)) {
 				context_menu_cave(cave,
 						loc(x, y), true, loc(event.mouse.x, event.mouse.y));
 			} else {
