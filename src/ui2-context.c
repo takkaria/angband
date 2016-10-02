@@ -1039,8 +1039,8 @@ void textui_process_click(ui_event event)
 					msg("Target Selected.");
 				}
 			} else {
-				 /* normal click - if next to the player, force a walk step,
-				  * else travel to location that was clicked */
+				 /* normal click - take a step or travel
+				  * to the location that was clicked */
 				if (is_adjacent_to_player(x, y)) {
 					cmdq_push(CMD_WALK);
 					cmd_set_arg_direction(cmdq_peek(),
