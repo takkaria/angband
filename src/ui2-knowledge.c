@@ -2181,7 +2181,7 @@ void do_cmd_messages(void)
 
 		if (search[0]) {
 			Term_addws(help_loc.x, help_loc.y, term_width,
-					COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '=' to find]");
+					COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '/' to find]");
 		}
 		else {
 			Term_addws(help_loc.x, help_loc.y, term_width,
