@@ -968,12 +968,8 @@ void menu_dynamic_add_valid(struct menu *menu,
 
 	if (head) {
 		struct menu_entry *tail = head;
-		while (true) {
-			if (tail->next) {
-				tail = tail->next;
-			} else {
-				break;
-			}
+		while (tail->next) {
+			tail = tail->next;
 		}
 
 		tail->next = new;
