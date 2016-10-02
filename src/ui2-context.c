@@ -956,16 +956,16 @@ void context_menu_command(struct loc mloc)
 	}
 }
 
-static bool is_adjacent_to_player(int x, int y)
+static bool is_adjacent_to_player(struct loc coords)
 {
-	int relx = x - player->px;
-	int rely = y - player->py;
+	int relx = coords.x - player->px;
+	int rely = coords.y - player->py;
 
 	return relx >= -1 && relx <= 1
 		&& rely >= -1 && rely <= 1;
 }
 
-static void textui_left_click(struct mouseclick mouse, int x, int y)
+static void textui_left_click(struct mouseclick mouse, struct loc coords)
 {
 	if (player->timed[TMD_CONFUSED]) {
 		cmdq_push(CMD_WALK);
@@ -974,41 +974,41 @@ static void textui_left_click(struct mouseclick mouse, int x, int y)
 			/* shift-click - run */
 			cmdq_push(CMD_RUN);
 			cmd_set_arg_direction(cmdq_peek(),
-					"direction", coords_to_dir(y, x));
+					"direction", coords_to_dir(coords.y, coords.x));
 		} else if (mouse.mods & KC_MOD_CONTROL) {
 			/* control-click - alter */
 			cmdq_push(CMD_ALTER);
 			cmd_set_arg_direction(cmdq_peek(),
-					"direction", coords_to_dir(y, x));
+					"direction", coords_to_dir(coords.y, coords.x));
 		} else if (mouse.mods & KC_MOD_ALT) {
 			/* alt-click - look */
-			if (target_set_interactive(TARGET_LOOK, loc(x, y))) {
+			if (target_set_interactive(TARGET_LOOK, coords)) {
 				msg("Target Selected.");
 			}
 		} else {
 			 /* normal click - take a step or travel */
-			if (is_adjacent_to_player(x, y)) {
+			if (is_adjacent_to_player(coords)) {
 				cmdq_push(CMD_WALK);
 				cmd_set_arg_direction(cmdq_peek(),
-						"direction", coords_to_dir(y, x));
+						"direction", coords_to_dir(coords.y, coords.x));
 			} else {
 				cmdq_push(CMD_PATHFIND);
-				cmd_set_arg_point(cmdq_peek(), "point", y, x);
+				cmd_set_arg_point(cmdq_peek(), "point", coords.y, coords.x);
 			}
 		}
 	}
 }
 
-static void textui_right_click(struct mouseclick mouse, int x, int y)
+static void textui_right_click(struct mouseclick mouse, struct loc coords)
 {
-	struct monster *mon = square_monster(cave, y, x);
+	struct monster *mon = square_monster(cave, coords.y, coords.x);
 
 	if (mon && target_able(mon)) {
 		monster_race_track(player->upkeep, mon->race);
 		health_track(player->upkeep, mon);
 		target_set_monster(mon);
 	} else {
-		target_set_location(y, x);
+		target_set_location(coords.y, coords.x);
 	}
 
 	if (mouse.mods & KC_MOD_SHIFT) {
@@ -1024,18 +1024,17 @@ static void textui_right_click(struct mouseclick mouse, int x, int y)
 		cmdq_push(CMD_THROW);
 		cmd_set_arg_target(cmdq_peek(), "target", DIR_TARGET);
 	} else {
+		struct loc click = {mouse.x, mouse.y};
 		/* normal click - open a menu */
-		if (is_adjacent_to_player(x, y)) {
-			context_menu_cave(cave,
-					loc(x, y), true, loc(mouse.x, mouse.y));
+		if (is_adjacent_to_player(coords)) {
+			context_menu_cave(cave, coords, true, click);
 		} else {
-			context_menu_cave(cave,
-					loc(x, y), false, loc(mouse.x, mouse.y));
+			context_menu_cave(cave, coords, false, click);
 		}
 	}
 }
 
-static void textui_player_click(struct mouseclick mouse, int x, int y)
+static void textui_player_click(struct mouseclick mouse, struct loc coords)
 {
 	if (mouse.mods & KC_MOD_SHIFT) {
 		/* shift-click - cast magic or view inventory */
@@ -1063,13 +1062,14 @@ static void textui_player_click(struct mouseclick mouse, int x, int y)
 	} else {
 		/* normal click - pickup item, spend a turn or open a menu */
 		if (mouse.button == MOUSE_BUTTON_LEFT) {
-			if (square_object(cave, y, x)) {
+			if (square_object(cave, coords.y, coords.x)) {
 				cmdq_push(CMD_PICKUP);
 			} else {
 				cmdq_push(CMD_HOLD);
 			}
 		} else if (mouse.button == MOUSE_BUTTON_RIGHT) {
-			context_menu_player(loc(mouse.x, mouse.y));
+			struct loc click = {mouse.x, mouse.y};
+			context_menu_player(click);
 		}
 	}
 }
@@ -1083,17 +1083,18 @@ void textui_process_click(ui_event event)
 
 	if (OPT(mouse_movement)) {
 		struct mouseclick mouse = event.mouse;
+		struct loc coords = {
+			.x = map_grid_x(mouse.x),
+			.y = map_grid_y(mouse.y)
+		};
 
-		int x = map_grid_x(mouse.x);
-		int y = map_grid_y(mouse.y);
-
-		if (square_in_bounds_fully(cave, y, x)) {
-			if (player->px == x && player->py == y) {
-				textui_player_click(mouse, x, y);
+		if (square_in_bounds_fully(cave, coords.y, coords.x)) {
+			if (player->px == coords.x && player->py == coords.y) {
+				textui_player_click(mouse, coords);
 			} else if (mouse.button == MOUSE_BUTTON_LEFT) {
-				textui_left_click(mouse, x, y);
+				textui_left_click(mouse, coords);
 			} else if (mouse.button == MOUSE_BUTTON_RIGHT) {
-				textui_right_click(mouse, x, y);
+				textui_right_click(mouse, coords);
 			}
 		}
 	}
