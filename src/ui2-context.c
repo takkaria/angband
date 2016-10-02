@@ -1046,8 +1046,9 @@ void textui_process_click(ui_event event)
 		}
 	} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
 		struct monster *mon = square_monster(cave, y, x);
+
+		/* set up target information */
 		if (mon && target_able(mon)) {
-			/* Set up target information */
 			monster_race_track(player->upkeep, mon->race);
 			health_track(player->upkeep, mon);
 			target_set_monster(mon);
