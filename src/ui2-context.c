@@ -1076,7 +1076,6 @@ void textui_process_click(ui_event event)
 			cmdq_push(CMD_THROW);
 			cmd_set_arg_target(cmdq_peek(), "target", DIR_TARGET);
 		} else {
-			/* see if the click was adjacent to the player */
 			if (is_adjacent_to_player(x, y)) {
 				context_menu_cave(cave,
 						loc(x, y), true, loc(event.mouse.x, event.mouse.y));
