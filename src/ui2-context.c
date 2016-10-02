@@ -957,7 +957,7 @@ void context_menu_command(struct loc mloc)
 }
 
 /**
- * Handle a textui mouseclick.
+ * Handle a mouseclick.
  */
 void textui_process_click(ui_event event)
 {
