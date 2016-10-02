@@ -220,12 +220,7 @@ static void context_menu_player_2(struct loc mloc)
 static void context_menu_player_display_floor(void)
 {
 	int diff = weight_remaining(player);
-	struct object *obj;
 
-	/* There is an item on the floor, select from there */
-	player->upkeep->command_wrk = (USE_FLOOR);
-
-	/* Prompt for a command */
 	show_prompt(format("(Inventory) Burden %d.%d lb (%d.%d lb %s). Item for command:",
 				player->upkeep->total_weight / 10,
 				player->upkeep->total_weight % 10,
@@ -233,7 +228,9 @@ static void context_menu_player_display_floor(void)
 				(diff < 0 ? "overweight" : "remaining")), false);
 
 
-	/* Get an item to use a context command on */
+	struct object *obj;
+	player->upkeep->command_wrk = USE_FLOOR;
+
 	if (get_item(&obj, NULL, NULL, CMD_NULL, NULL,
 				USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR | SHOW_EMPTY | IS_HARMLESS))
 	{
