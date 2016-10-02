@@ -1225,6 +1225,8 @@ struct cmd_info *textui_action_menu_choose(void)
 	const int tablen = strlen(menu_tab);
 
 	struct term_hints hints = {
+		/* add 3 to maxlen to account for menu tags,
+		 * add 1 to tablen to make it look better */
 		.width = MAX(maxlen + 3, tablen + 1),
 		.height = count,
 		.tabs = true,
