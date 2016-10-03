@@ -631,87 +631,117 @@ static void context_menu_object_destroy(struct menu *m)
 	Term_pop();
 }
 
-static void context_menu_object_entries(struct menu *m, struct object *obj)
+static void context_menu_object_entry(struct menu *m, char *labels,
+		bool valid, const char *text, cmd_code cmd, int mode)
+{
+	(void) labels;
+	(void) mode;
+
+	menu_dynamic_add_valid(m, text, cmd, valid);
+}
+
+static void context_menu_object_entries(struct menu *m, char *labels,
+		struct object *obj, int mode)
 {
 	if (obj_can_browse(obj)) {
 		if (obj_can_cast_from(obj) && player_can_cast(player, false)) {
-			menu_dynamic_add(m, "Cast", CMD_CAST);
+			context_menu_object_entry(m, labels,
+					true, "Cast", CMD_CAST, mode);
 		}
 
 		if (obj_can_study(obj) && player_can_study(player, false)) {
-			menu_dynamic_add(m, "Study", CMD_STUDY);
+			context_menu_object_entry(m, labels,
+					true, "Study", CMD_STUDY, mode);
 		}
 
 		if (player_can_read(player, false)) {
-			menu_dynamic_add(m, "Browse", CMD_BROWSE_SPELL);
+			context_menu_object_entry(m, labels,
+					true, "Browse", CMD_BROWSE_SPELL, mode);
 		}
-
 	} else if (obj_is_useable(obj)) {
 		if (tval_is_wand(obj)) {
-			menu_dynamic_add_valid(m,
-					"Aim", CMD_USE_WAND, obj_has_charges(obj));
+			context_menu_object_entry(m, labels,
+					obj_has_charges(obj), "Aim", CMD_USE_WAND, mode);
 		} else if (tval_is_rod(obj)) {
-			menu_dynamic_add_valid(m,
-					"Zap", CMD_USE_ROD, obj_can_zap(obj));
+			context_menu_object_entry(m, labels,
+					obj_can_zap(obj), "Zap", CMD_USE_ROD, mode);
 		} else if (tval_is_staff(obj)) {
-			menu_dynamic_add_valid(m,
-					"Use", CMD_USE_STAFF, obj_has_charges(obj));
+			context_menu_object_entry(m, labels,
+					obj_has_charges(obj), "Use", CMD_USE_STAFF, mode);
 		} else if (tval_is_scroll(obj)) {
-			menu_dynamic_add_valid(m,
-					"Read", CMD_READ_SCROLL, player_can_read(player, false));
+			context_menu_object_entry(m, labels,
+					player_can_read(player, false), "Read", CMD_READ_SCROLL, mode);
 		} else if (tval_is_potion(obj)) {
-			menu_dynamic_add(m, "Quaff", CMD_QUAFF);
+			context_menu_object_entry(m, labels,
+					true, "Quaff", CMD_QUAFF, mode);
 		} else if (tval_is_edible(obj)) {
-			menu_dynamic_add(m, "Eat", CMD_EAT);
+			context_menu_object_entry(m, labels,
+					true, "Eat", CMD_EAT, mode);
 		} else if (obj_is_activatable(obj)) {
-			menu_dynamic_add_valid(m,
-					"Activate", CMD_ACTIVATE,
-					object_is_equipped(player->body, obj) && obj_can_activate(obj));
+			context_menu_object_entry(m, labels,
+					object_is_equipped(player->body, obj) && obj_can_activate(obj),
+					"Activate", CMD_ACTIVATE, mode);
 		} else if (obj_can_fire(obj)) {
-			menu_dynamic_add(m, "Fire", CMD_FIRE);
+			context_menu_object_entry(m, labels,
+					true, "Fire", CMD_FIRE, mode);
 		} else {
-			menu_dynamic_add(m, "Use", CMD_USE);
+			context_menu_object_entry(m, labels,
+					true, "Use", CMD_USE, mode);
 		}
 	}
 
 	if (obj_can_refill(obj)) {
-		menu_dynamic_add(m, "Refill", CMD_REFILL);
+		context_menu_object_entry(m, labels,
+				true, "Refill", CMD_REFILL, mode);
 	}
 
-	if (object_is_equipped(player->body, obj) && obj_can_takeoff(obj)) {
-		menu_dynamic_add(m, "Take off", CMD_TAKEOFF);
-	} else if (!object_is_equipped(player->body, obj) && obj_can_wear(obj)) {
-		menu_dynamic_add(m, "Equip", CMD_WIELD);
+	if (object_is_equipped(player->body, obj)
+			&& obj_can_takeoff(obj))
+	{
+		context_menu_object_entry(m, labels,
+				true, "Take off", CMD_TAKEOFF, mode);
+	} else if (!object_is_equipped(player->body, obj)
+			&& obj_can_wear(obj))
+	{
+		context_menu_object_entry(m, labels,
+				true, "Equip", CMD_WIELD, mode);
 	}
 
 	if (object_is_carried(player, obj)) {
 		if (!square_isshop(cave, player->py, player->px)) {
-			menu_dynamic_add(m, "Drop", CMD_DROP);
+			context_menu_object_entry(m, labels,
+					true, "Drop", CMD_DROP, mode);
 			if (obj->number > 1) {
-				menu_dynamic_add(m, "Drop All", MENU_VALUE_DROP_ALL);
+				context_menu_object_entry(m, labels,
+						true, "Drop All", MENU_VALUE_DROP_ALL, mode);
 			}
 		} else if (square_shopnum(cave, player->py, player->px) == STORE_HOME) {
-			menu_dynamic_add(m, "Drop", CMD_DROP);
+			context_menu_object_entry(m, labels,
+					true, "Drop", CMD_DROP, mode);
 			if (obj->number > 1) {
-				menu_dynamic_add(m, "Drop All", MENU_VALUE_DROP_ALL);
+				context_menu_object_entry(m, labels,
+						true, "Drop All", MENU_VALUE_DROP_ALL, mode);
 			}
 		} else if (store_will_buy_tester(obj)) {
-			menu_dynamic_add(m, "Sell", CMD_DROP);
+			context_menu_object_entry(m, labels, true, "Sell", CMD_DROP, mode);
 		}
 	} else {
-		menu_dynamic_add_valid(m, "Pick up", CMD_PICKUP, inven_carry_okay(obj));
+		context_menu_object_entry(m, labels,
+				inven_carry_okay(obj), "Pick up", CMD_PICKUP, mode);
 	}
 
-	menu_dynamic_add(m, "Throw", CMD_THROW);
-	menu_dynamic_add(m, "Inscribe", CMD_INSCRIBE);
+	context_menu_object_entry(m, labels, true, "Throw", CMD_THROW, mode);
+	context_menu_object_entry(m, labels, true, "Inscribe", CMD_INSCRIBE, mode);
 
 	if (obj_has_inscrip(obj)) {
-		menu_dynamic_add(m, "Uninscribe", CMD_UNINSCRIBE);
+		context_menu_object_entry(m, labels,
+				true, "Uninscribe", CMD_UNINSCRIBE, mode);
 	}
 
-	menu_dynamic_add(m,
+	context_menu_object_entry(m, labels,
+			true,
 			object_is_ignored(obj) ? "Unignore" : "Ignore",
-			CMD_IGNORE);
+			CMD_IGNORE, mode);
 }
 
 /**
@@ -723,8 +753,11 @@ bool context_menu_object(struct object *obj)
 	const int mode = KEYMAP_MODE_OPT;
 	struct menu *m = menu_dynamic_new();
 
-	mnflag_on(m->flags, MN_NO_TAGS);
-	context_menu_object_entries(m, obj);
+	char labels[32];
+	my_strcpy(labels, lower_case, sizeof(labels));
+
+	m->selections = labels;
+	context_menu_object_entries(m, labels, obj, mode);
 
 	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_BASE);
