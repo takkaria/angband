@@ -78,7 +78,7 @@ enum context_menu_value_e {
 	MENU_VALUE_MONSTERS,
 	MENU_VALUE_TOGGLE_IGNORED,
 	MENU_VALUE_OPTIONS,
-	MENU_VALUE_HELP,
+	MENU_VALUE_COMMANDS,
 };
 
 static struct term_hints context_term_hints(struct menu *m, struct loc mloc)
@@ -112,7 +112,7 @@ static void context_menu_player_other(struct loc mloc)
 	menu_dynamic_add(m, "Toggle Ignored", MENU_VALUE_TOGGLE_IGNORED);
 	menu_dynamic_add(m, "Ignore an item", CMD_IGNORE);
 	menu_dynamic_add(m, "Options", MENU_VALUE_OPTIONS);
-	menu_dynamic_add(m, "Commands", MENU_VALUE_HELP);
+	menu_dynamic_add(m, "Commands", MENU_VALUE_COMMANDS);
 
 	show_prompt("(Enter to select, ESC) Command:", false);
 
@@ -137,7 +137,7 @@ static void context_menu_player_other(struct loc mloc)
 		case MENU_VALUE_MAP:
 		case MENU_VALUE_MESSAGES:
 		case MENU_VALUE_TOGGLE_IGNORED:
-		case MENU_VALUE_HELP:
+		case MENU_VALUE_COMMANDS:
 		case MENU_VALUE_MONSTERS:
 		case MENU_VALUE_OBJECTS:
 		case MENU_VALUE_OPTIONS:
@@ -181,7 +181,7 @@ static void context_menu_player_other(struct loc mloc)
 			Term_keypress(mode == KEYMAP_MODE_ORIG ? 'K' : 'O', 0);
 			break;
 
-		case MENU_VALUE_HELP:
+		case MENU_VALUE_COMMANDS:
 			context_menu_command(mloc);
 			break;
 
