@@ -50,11 +50,6 @@
 #include "ui2-store.h"
 #include "ui2-target.h"
 
-#define ADD_LABEL(text, cmd, valid) do { \
-	cmdkey = cmd_lookup_key_unktrl((cmd), mode); \
-	menu_dynamic_add_label_valid(m, (text), cmdkey, (cmd), labels, (valid)); \
-} while (0)
-
 /**
  * Additional constants for menu item values.
  * The values must not collide with the cmd_code enum,
