@@ -574,38 +574,6 @@ bool textui_get_check(const char *prompt)
 }
 
 /**
- * Ask the user to respond with a character. Options is a constant string,
- * e.g. "yns"; len is the length of the constant string, and fallback should
- * be the default answer if the user hits escape or an invalid key.
- *
- * Example: get_char("Study? ", "yns", 3, 'n')
- *     This prompts "Study? [yns]" and defaults to 'n'.
- */
-char get_char(const char *prompt, const char *options, size_t len, char fallback)
-{
-	char buf[ANGBAND_TERM_STANDARD_WIDTH + 1];
-	strnfmt(buf, sizeof(buf),
-			"%.*s[%s] ",
-			ANGBAND_TERM_STANDARD_WIDTH - (int) len - 3, prompt, options);
-
-	show_prompt(prompt, false);
-	struct keypress key = inkey_only_key();
-	clear_prompt();
-
-	if (key.code < CHAR_MAX) {
-		key.code = tolower(key.code);
-		/* See if key is in our options string */
-		if (!strchr(options, key.code)) {
-			key.code = fallback;
-		}
-	} else {
-		key.code = fallback;
-	}
-
-	return key.code;
-}
-
-/**
  * Text-native way of getting a filename.
  */
 static bool get_file_text(const char *suggested_name,

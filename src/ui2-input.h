@@ -95,7 +95,6 @@ bool askfor_aux(char *buf, size_t len, askfor_aux_handler handler);
 extern bool (*get_file)(const char *suggested_name, char *path, size_t pathlen);
 
 bool get_character_name(char *buf, size_t buflen);
-char get_char(const char *prompt, const char *options, size_t len, char fallback);
 bool get_com_ex(const char *prompt, ui_event *command);
 bool key_confirm_command(unsigned char c);
 ui_event textui_get_command(int *count);
