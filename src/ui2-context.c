@@ -97,7 +97,7 @@ static struct term_hints context_term_hints(struct menu *m, struct loc mloc)
 	return hints;
 }
 
-static void context_menu_player_2(struct loc mloc)
+static void context_menu_player_other(struct loc mloc)
 {
 	const int mode = KEYMAP_MODE_OPT;
 
@@ -387,7 +387,7 @@ void context_menu_player(struct loc mloc)
 			break;
 
 		case MENU_VALUE_OTHER:
-			context_menu_player_2(mloc);
+			context_menu_player_other(mloc);
 			break;
 
 		case MENU_VALUE_FLOOR:
