@@ -581,45 +581,52 @@ void context_menu_cave(struct chunk *c,
 
 static void context_menu_object_create(struct menu *m, struct object *obj)
 {
-/* 1 for menu padding on both sides */
+/* 2 for menu padding on the right side */
 #define CONTEXT_MENU_OBJECT_WIDTH \
-	(menu_reg.w + 1 + 1)
+	(menu_reg.w + 2)
 
 	region menu_reg = menu_dynamic_calc_location(m);
 	textblock *tb = object_info(obj, OINFO_NONE);
 
-	int textblock_width = ANGBAND_TERM_STANDARD_WIDTH - CONTEXT_MENU_OBJECT_WIDTH;
+	int textblock_width =
+		ANGBAND_TERM_STANDARD_WIDTH - CONTEXT_MENU_OBJECT_WIDTH;
 	assert(textblock_width > 0);
 
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
 	size_t lines = textblock_calculate_lines(tb,
 			&line_starts, &line_lengths, textblock_width);
+
+	/* Remove empty lines from the end of textblock */
+	while (lines > 0 && line_lengths[lines - 1] == 0) {
+		lines--;
+	}
+
 	mem_free(line_starts);
 	mem_free(line_lengths);
 
-	int term_height;
-	if ((int) lines == menu_reg.h + 1) {
-		term_height = menu_reg.h + 2;
-	} else {
-		term_height = MAX(menu_reg.h, (int) lines);
-	}
-
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
-		.height = term_height,
-		.position = TERM_POSITION_TOP_CENTER,
+		.height = MAX(menu_reg.h, (int) lines),
+		.tabs = true,
+		.position = TERM_POSITION_TOP_LEFT,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
 
-	region textblock_reg = {0, 0, textblock_width, 0};
+	char tab[ANGBAND_TERM_STANDARD_WIDTH];
+	object_desc(tab, sizeof(tab), obj, ODESC_PREFIX | ODESC_BASE);
+
+	Term_add_tab(0, tab, COLOUR_WHITE, COLOUR_DARK);
+
+	region textblock_reg = {
+		.x = CONTEXT_MENU_OBJECT_WIDTH,
+		.y = 0,
+		.w = textblock_width,
+		.h = 0
+	};
 	textui_textblock_place(tb, textblock_reg, NULL);
 
-	menu_reg.x = hints.width - menu_reg.w - 1;
-	if (term_height > menu_reg.h + 1) {
-		menu_reg.y = 1;
-	}
 	menu_layout(m, menu_reg);
 
 #undef CONTEXT_MENU_OBJECT_WIDTH
@@ -759,10 +766,6 @@ bool context_menu_object(struct object *obj)
 	m->selections = labels;
 	context_menu_object_entries(m, labels, obj, mode);
 
-	char header[ANGBAND_TERM_STANDARD_WIDTH];
-	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_BASE);
-	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
-
 	context_menu_object_create(m, obj);
 
 	int selected = menu_dynamic_select(m);
@@ -777,8 +780,7 @@ bool context_menu_object(struct object *obj)
 			return false; /* User cancelled the menu. */
 
 		case MENU_VALUE_DROP_ALL:
-			/* Drop entire stack with confirmation. */
-			if (get_check(format("Drop %s? ", header))) {
+			if (get_check("Drop all? ")) {
 				if (square_isshop(cave, player->py, player->px)) {
 					cmdq_push(CMD_STASH);
 				} else {
