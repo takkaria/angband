@@ -341,10 +341,6 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		const char *other_fields)
 {
 	const int g_max = MIN(g_funcs.max_groups, o_count);
-	const int kmode = OPT(rogue_like_commands);
-
-	/* Disable the roguelike commands for the duration */
-	OPT(rogue_like_commands) = false;
 
 	if (g_funcs.gcomp) {
 		sort(o_list, o_count, sizeof(*o_list), g_funcs.gcomp);
@@ -496,9 +492,6 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 				break;
 		}
 	}
-
-	/* Restore roguelike option */
-	OPT(rogue_like_commands) = kmode;
 
 	mem_free(g_list);
 	mem_free(g_names);
