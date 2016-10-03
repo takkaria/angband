@@ -257,7 +257,7 @@ void context_menu_player(struct loc mloc)
 			menu_dynamic_add(m, "Pick up", CMD_PICKUP);
 		}
 	}
-	/* 'C' is used for the character sheet in both keymaps. */
+
 	menu_dynamic_add(m, "Character", MENU_VALUE_CHARACTER);
 
 	if (!OPT(center_player)) {
