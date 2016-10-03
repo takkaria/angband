@@ -224,13 +224,8 @@ static void context_menu_player_display_floor(void)
 	}
 }
 
-void context_menu_player(struct loc mloc)
+static void context_menu_player_entries(struct menu *m)
 {
-	const int mode = KEYMAP_MODE_OPT;
-	struct menu *m = menu_dynamic_new();
-
-	mnflag_on(m->flags, MN_NO_TAGS);
-
 	menu_dynamic_add(m, "Use", CMD_USE);
 
 	/* if player can cast, add casting option */
@@ -265,6 +260,15 @@ void context_menu_player(struct loc mloc)
 	}
 
 	menu_dynamic_add(m, "Other", MENU_VALUE_OTHER);
+}
+
+void context_menu_player(struct loc mloc)
+{
+	const int mode = KEYMAP_MODE_OPT;
+	struct menu *m = menu_dynamic_new();
+
+	mnflag_on(m->flags, MN_NO_TAGS);
+	context_menu_player_entries(m);
 
 	show_prompt("(Enter to select, ESC) Command:", false);
 
@@ -367,24 +371,9 @@ void context_menu_player(struct loc mloc)
 	}
 }
 
-static void context_menu_recall(struct chunk *c, struct loc loc)
+static void context_menu_cave_entries(struct menu *m,
+		struct chunk *c, struct loc loc, bool adjacent)
 {
-	struct monster *mon = square_monster(c, loc.y, loc.x);
-
-	if (mon != NULL) {
-		struct monster_lore *lore = get_lore(mon->race);
-		lore_show_interactive(mon->race, lore);
-	}
-}
-
-void context_menu_cave(struct chunk *c,
-		struct loc loc, bool adjacent, struct loc mloc)
-{
-	const int mode = KEYMAP_MODE_OPT;
-	struct menu *m = menu_dynamic_new();
-
-	mnflag_on(m->flags, MN_NO_TAGS);
-
 	menu_dynamic_add(m, "Look At", MENU_VALUE_LOOK);
 
 	if (c->squares[loc.y][loc.x].mon) {
@@ -399,10 +388,11 @@ void context_menu_cave(struct chunk *c,
 	}
 
 	if (adjacent) {
-		struct object *chest = chest_check(loc.y, loc.x, CHEST_ANY);
 		menu_dynamic_add(m,
 				c->squares[loc.y][loc.x].mon ? "Attack" : "Alter",
 				CMD_ALTER);
+
+		struct object *chest = chest_check(loc.y, loc.x, CHEST_ANY);
 
 		if (chest && !ignore_item_ok(chest)) {
 			if (chest->known->pval) {
@@ -430,9 +420,9 @@ void context_menu_cave(struct chunk *c,
 		} else if (square_isdiggable(c, loc.y, loc.x)) {
 			menu_dynamic_add(m, "Tunnel", CMD_TUNNEL);
 		}
+
 		menu_dynamic_add(m, "Walk Towards", CMD_WALK);
 	} else {
-		/* ',' is used for ignore in rogue keymap, so we'll just swap letters */
 		menu_dynamic_add(m, "Pathfind To", CMD_PATHFIND);
 		menu_dynamic_add(m, "Walk Towards", CMD_WALK);
 		menu_dynamic_add(m, "Run Towards", CMD_RUN);
@@ -444,39 +434,57 @@ void context_menu_cave(struct chunk *c,
 
 	menu_dynamic_add(m, "Throw To", CMD_THROW);
 
-	{
 #define PROMPT(str) \
 	("(Enter to select command, ESC to cancel) " str)
 
-		struct object *square_obj = square_object(c, loc.y, loc.x);
+	struct object *square_obj = square_object(c, loc.y, loc.x);
 
-		if (player->timed[TMD_IMAGE]) {
-			show_prompt(PROMPT("You see something strange:"), false);
-		} else if (c->squares[loc.y][loc.x].mon) {
-			char m_name[ANGBAND_TERM_STANDARD_WIDTH];
-			struct monster *mon = square_monster(c, loc.y, loc.x);
-			/* Get the monster name ("a kobold") */
-			monster_desc(m_name, sizeof(m_name), mon, MDESC_IND_VIS);
-			show_prompt(format(PROMPT("You see %s:"), m_name), false);
-		} else if (square_obj && !ignore_item_ok(square_obj)) {
-			char o_name[ANGBAND_TERM_STANDARD_WIDTH];
-			/* Obtain an object description */
-			object_desc(o_name, sizeof(o_name), square_obj,
-					ODESC_PREFIX | ODESC_FULL);
-			show_prompt(format(PROMPT("You see %s:"), o_name), false);
+	if (player->timed[TMD_IMAGE]) {
+		show_prompt(PROMPT("You see something strange:"), false);
+	} else if (c->squares[loc.y][loc.x].mon) {
+		char m_name[ANGBAND_TERM_STANDARD_WIDTH];
+		struct monster *mon = square_monster(c, loc.y, loc.x);
+		/* Get the monster name ("a kobold") */
+		monster_desc(m_name, sizeof(m_name), mon, MDESC_IND_VIS);
+		show_prompt(format(PROMPT("You see %s:"), m_name), false);
+	} else if (square_obj && !ignore_item_ok(square_obj)) {
+		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
+		/* Obtain an object description */
+		object_desc(o_name, sizeof(o_name), square_obj,
+				ODESC_PREFIX | ODESC_FULL);
+		show_prompt(format(PROMPT("You see %s:"), o_name), false);
+	} else {
+		/* Feature (apply mimic) */
+		const char *name = square_apparent_name(c, player, loc.y, loc.x);
+		if (square_isshop(cave, loc.y, loc.x)) {
+			show_prompt(format(PROMPT("You see the entrance to the %s:"), name), false);
 		} else {
-			/* Feature (apply mimic) */
-			const char *name = square_apparent_name(c, player, loc.y, loc.x);
-			if (square_isshop(cave, loc.y, loc.x)) {
-				show_prompt(format(PROMPT("You see the entrance to the %s:"), name), false);
-			} else {
-				show_prompt(format(PROMPT("You see %s %s:"),
-							(is_a_vowel(name[0]) ? "an" : "a"), name), false);
-			}
+			show_prompt(format(PROMPT("You see %s %s:"),
+						(is_a_vowel(name[0]) ? "an" : "a"), name), false);
 		}
+	}
 
 #undef PROMPT
+}
+
+static void context_menu_recall(struct chunk *c, struct loc loc)
+{
+	struct monster *mon = square_monster(c, loc.y, loc.x);
+
+	if (mon != NULL) {
+		struct monster_lore *lore = get_lore(mon->race);
+		lore_show_interactive(mon->race, lore);
 	}
+}
+
+void context_menu_cave(struct chunk *c,
+		struct loc loc, bool adjacent, struct loc mloc)
+{
+	const int mode = KEYMAP_MODE_OPT;
+	struct menu *m = menu_dynamic_new();
+
+	mnflag_on(m->flags, MN_NO_TAGS);
+	context_menu_cave_entries(m, c, loc, adjacent);
 
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
@@ -623,27 +631,21 @@ static void context_menu_object_destroy(struct menu *m)
 	Term_pop();
 }
 
-/**
- * Pick the context menu options appropiate for the item.
- * Returns true when user selected a command that must be done.
- */
-bool context_menu_object(struct object *obj)
+static void context_menu_object_entries(struct menu *m, struct object *obj)
 {
-	const int mode = KEYMAP_MODE_OPT;
-	struct menu *m = menu_dynamic_new();
-
-	mnflag_on(m->flags, MN_NO_TAGS);
-
 	if (obj_can_browse(obj)) {
 		if (obj_can_cast_from(obj) && player_can_cast(player, false)) {
 			menu_dynamic_add(m, "Cast", CMD_CAST);
 		}
+
 		if (obj_can_study(obj) && player_can_study(player, false)) {
 			menu_dynamic_add(m, "Study", CMD_STUDY);
 		}
+
 		if (player_can_read(player, false)) {
 			menu_dynamic_add(m, "Browse", CMD_BROWSE_SPELL);
 		}
+
 	} else if (obj_is_useable(obj)) {
 		if (tval_is_wand(obj)) {
 			menu_dynamic_add_valid(m,
@@ -710,10 +712,24 @@ bool context_menu_object(struct object *obj)
 	menu_dynamic_add(m,
 			object_is_ignored(obj) ? "Unignore" : "Ignore",
 			CMD_IGNORE);
+}
+
+/**
+ * Pick the context menu options appropiate for the item.
+ * Returns true when user selected a command that must be done.
+ */
+bool context_menu_object(struct object *obj)
+{
+	const int mode = KEYMAP_MODE_OPT;
+	struct menu *m = menu_dynamic_new();
+
+	mnflag_on(m->flags, MN_NO_TAGS);
+	context_menu_object_entries(m, obj);
 
 	char header[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_BASE);
 	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
+
 	context_menu_object_create(m, obj);
 
 	int selected = menu_dynamic_select(m);
