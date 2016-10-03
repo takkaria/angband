@@ -1043,7 +1043,7 @@ size_t menu_dynamic_longest_entry(struct menu *menu)
 
 region menu_dynamic_calc_location(struct menu *menu)
 {
-	int tag_space = menu_has_tags(menu) ? 3 : 0;
+	int tag_space = menu_displays_tags(menu) ? 3 : 0;
 
 	region reg = {
 		.x = 0,
