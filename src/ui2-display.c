@@ -253,6 +253,8 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
 		dt->coords.x = 0;
 	}
 
+	Term_clear();
+	Term_flush_output();
 	Term_pop();
 }
 
