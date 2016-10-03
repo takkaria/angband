@@ -64,6 +64,7 @@ enum context_menu_value_e {
 	MENU_VALUE_INSPECT = CMD_REPEAT + 1000,
 	MENU_VALUE_DROP_ALL,
 	MENU_VALUE_LOOK,
+	MENU_VALUE_TARGET,
 	MENU_VALUE_RECALL,
 	MENU_VALUE_REST,
 	MENU_VALUE_INVENTORY,
@@ -374,6 +375,7 @@ void context_menu_player(struct loc mloc)
 static void context_menu_cave_entries(struct menu *m,
 		struct chunk *c, struct loc loc, bool adjacent)
 {
+	menu_dynamic_add(m, "Target", MENU_VALUE_TARGET);
 	menu_dynamic_add(m, "Look At", MENU_VALUE_LOOK);
 
 	if (c->squares[loc.y][loc.x].mon) {
@@ -477,6 +479,19 @@ static void context_menu_recall(struct chunk *c, struct loc loc)
 	}
 }
 
+static void context_menu_target(struct chunk *c, struct loc loc)
+{
+	struct monster *mon = square_monster(c, loc.y, loc.x);
+
+	if (mon && target_able(mon)) {
+		monster_race_track(player->upkeep, mon->race);
+		health_track(player->upkeep, mon);
+		target_set_monster(mon);
+	} else {
+		target_set_location(loc.y, loc.x);
+	}
+}
+
 void context_menu_cave(struct chunk *c,
 		struct loc loc, bool adjacent, struct loc mloc)
 {
@@ -504,6 +519,7 @@ void context_menu_cave(struct chunk *c,
 			break; /* User cancelled the menu. */
 
 		case MENU_VALUE_LOOK:
+		case MENU_VALUE_TARGET:
 		case MENU_VALUE_RECALL:
 		case CMD_PATHFIND:
 			allowed = true;
@@ -537,6 +553,10 @@ void context_menu_cave(struct chunk *c,
 
 	/* Perform the command. */
 	switch (selected) {
+		case MENU_VALUE_TARGET:
+			context_menu_target(c, loc);
+			break;
+
 		case MENU_VALUE_LOOK:
 			/* Look at the spot */
 			if (target_set_interactive(TARGET_LOOK, loc)) {
@@ -966,16 +986,6 @@ static void textui_left_click(struct mouseclick mouse, struct loc coords)
 
 static void textui_right_click(struct mouseclick mouse, struct loc coords)
 {
-	struct monster *mon = square_monster(cave, coords.y, coords.x);
-
-	if (mon && target_able(mon)) {
-		monster_race_track(player->upkeep, mon->race);
-		health_track(player->upkeep, mon);
-		target_set_monster(mon);
-	} else {
-		target_set_location(coords.y, coords.x);
-	}
-
 	if (mouse.mods & KC_MOD_SHIFT) {
 		/* shift-click - cast spell at target */
 		cmdq_push(CMD_CAST);
