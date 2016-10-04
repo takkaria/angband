@@ -316,7 +316,8 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 	size_t max_esp_line = 0;
 
 	monster_list_format_section(list, tb,
-			MONSTER_LIST_SECTION_LOS, los_lines_to_display, max_width,
+			MONSTER_LIST_SECTION_LOS,
+			los_lines_to_display, max_width,
 			"You can see", false, &max_los_line);
 
 	if (list->total_entries[MONSTER_LIST_SECTION_ESP] > 0) {
@@ -327,7 +328,8 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 		}
 
 		monster_list_format_section(list, tb,
-				MONSTER_LIST_SECTION_ESP, esp_lines_to_display, max_width,
+				MONSTER_LIST_SECTION_ESP,
+				esp_lines_to_display, max_width,
 				"You are aware of", show_others, &max_esp_line);
 	}
 
