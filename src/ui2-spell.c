@@ -353,15 +353,19 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 {
 	struct spell_menu_data *data = menu_priv(menu);
 
+	data->browse = true;
+
 	spell_menu_term_push(data);
 	spell_menu_layout(menu);
 
-	menu->command_keys = NULL;
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
+	strnfmt(buf, sizeof(buf), "Examine which %s?", noun);
+	show_prompt(buf, false);
 
-	data->browse = true;
 	menu_select(menu);
 
 	spell_menu_term_pop();
+	clear_prompt();
 }
 
 static size_t get_spell_books(struct book_menu_element *elems, int n_elems,
