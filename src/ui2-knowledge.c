@@ -2087,15 +2087,6 @@ void textui_browse_knowledge(void)
  */
 
 /**
- * Recall the most recent message
- */
-void do_cmd_message_one(void)
-{
-	/* Recall one message */
-	show_prompt(format("> %s", message_str(0)), false);
-}
-
-/**
  * Show previous messages to the user
  *
  * The screen format uses line 0 and 23 for headers and prompts,

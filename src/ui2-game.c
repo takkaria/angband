@@ -139,7 +139,6 @@ struct cmd_info cmd_info[] = {
 	{"Character description",        {'C'},       CMD_NULL,         do_cmd_view_char, NULL},
 	{"Check knowledge",              {'~'},       CMD_NULL,         textui_browse_knowledge, NULL},
 	{"Repeat level feeling",         {KTRL('F')}, CMD_NULL,         do_cmd_feeling, NULL},
-	{"Show previous message",        {KTRL('O')}, CMD_NULL,         do_cmd_message_one, NULL},
 	{"Show previous messages",       {KTRL('P')}, CMD_NULL,         do_cmd_messages, NULL}
 };
 

@@ -22,7 +22,6 @@
 void do_cmd_knowledge_objects(const char *name, int row);
 void textui_knowledge_init(void);
 void textui_browse_knowledge(void);
-void do_cmd_message_one(void);
 void do_cmd_messages(void);
 void do_cmd_inven(void);
 void do_cmd_equip(void);
