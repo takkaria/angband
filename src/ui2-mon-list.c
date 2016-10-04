@@ -44,7 +44,7 @@
  * \param tb is the textblock to produce or NULL if only the dimensions need to
  * be calculated.
  * \param section is the section of the monster list to format.
- * \param lines_to_display are the number of entries to display (not including
+ * \param max_height are the number of entries to display (not including
  * the header).
  * \param max_width is the maximum line width.
  * \param prefix is the beginning of the header; the remainder is appended with
@@ -60,143 +60,165 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 		const char *prefix, bool show_others,
 		size_t *max_width_result)
 {
-	const char *punctuation = lines_to_display == 0 ? "." : ":";
-	const char *others = show_others ? "other " : "";
+	assert(list != NULL);
+	assert(list->entries != NULL);
 
-	char line_buffer[200];
-
-	if (list == NULL || list->entries == NULL) {
-		return;
-	}
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	if (list->total_monsters[section] == 0) {
-		size_t max_line_length = strnfmt(line_buffer, sizeof(line_buffer),
-				"%s no monsters.\n", prefix);
+		size_t len = strnfmt(buf, sizeof(buf), "%s no monsters.", prefix);
 
 		if (tb != NULL) {
-			textblock_append(tb, "%s", line_buffer);
+			textblock_append(tb, "%s", buf);
 		}
 
 		if (max_width_result != NULL) {
-			*max_width_result = max_line_length;
+			/* Force a minimum width so that
+			 * the prompt doesn't get cut off. */
+			*max_width_result = MAX(len, 40);
 		}
 
 		return;
 	}
 
-	size_t max_line_length = strnfmt(line_buffer, sizeof(line_buffer),
+	size_t max_line_length = strnfmt(buf, sizeof(buf),
 			"%s %d %smonster%s%s\n",
 			prefix,
 			list->total_monsters[section],
-			others,
+			show_others ? "other " : "",
 			PLURAL(list->total_monsters[section]),
-			punctuation);
+			lines_to_display == 0 ? "." : ":");
 
 	if (tb != NULL) {
-		textblock_append(tb, "%s", line_buffer);
+		textblock_append(tb, "%s", buf);
 	}
 
-	int entry;
+	int entry_count;
 	int line_count;
 
-	for (entry = 0, line_count = 0;
-			entry < list->distinct_entries && line_count < lines_to_display;
-			entry++)
+	for (entry_count = 0, line_count = 0;
+			entry_count < list->distinct_entries && line_count < lines_to_display;
+			entry_count++)
 	{
-		char asleep[20] = {0};
-		char location[20] = {0};
+		const monster_list_entry_t *entry = &list->entries[entry_count];
 
-		line_buffer[0] = 0;
-
-		if (list->entries[entry].count[section] == 0) {
+		if (entry->count[section] == 0) {
 			continue;
 		}
 
+		char asleep[20] = "";
+		char coords[20] = "";
+
 		/* Only display directions for the case of a single monster. */
-		if (list->entries[entry].count[section] == 1) {
-			const char *n_or_s = list->entries[entry].dy <= 0 ? "N" : "S";
-			const char *w_or_e = list->entries[entry].dx <= 0 ? "W" : "E";
-			strnfmt(location, sizeof(location),
+		if (entry->count[section] == 1) {
+			const char *n_or_s = list->entries[entry_count].dy <= 0 ? "N" : "S";
+			const char *w_or_e = list->entries[entry_count].dx <= 0 ? "W" : "E";
+			strnfmt(coords, sizeof(coords),
 					" %d %s %d %s",
-					abs(list->entries[entry].dy), n_or_s,
-					abs(list->entries[entry].dx), w_or_e);
+					abs(list->entries[entry_count].dy), n_or_s,
+					abs(list->entries[entry_count].dx), w_or_e);
 		}
 
-		/* Get width available for monster name and sleep tag: 2 for char and
-		 * space; location includes padding; last -1 because textblock (in effect)
-		 * adds one column of padding on the right side of any string */
-		size_t full_width = max_width - 2 - utf8_strlen(location) - 1;
-
-		u16b asleep_in_section = list->entries[entry].asleep[section];
-		u16b count_in_section = list->entries[entry].count[section];
-
-		if (asleep_in_section > 0 && count_in_section > 1) {
-			strnfmt(asleep, sizeof(asleep), " (%d asleep)", asleep_in_section);
-		} else if (asleep_in_section == 1 && count_in_section == 1) {
+		if (entry->asleep[section] > 0 && entry->count[section] > 1) {
+			strnfmt(asleep, sizeof(asleep), " (%d asleep)", entry->asleep[section]);
+		} else if (entry->asleep[section] == 1 && entry->count[section] == 1) {
 			strnfmt(asleep, sizeof(asleep), " (asleep)");
 		}
 
-		/* Clip the monster name to fit, and append the sleep tag. */
-		size_t name_width = MIN(full_width - utf8_strlen(asleep), sizeof(line_buffer));
-		get_mon_name(line_buffer, sizeof(line_buffer),
-				list->entries[entry].race,
-				list->entries[entry].count[section]);
-		utf8_clipto(line_buffer, name_width);
-		my_strcat(line_buffer, asleep, sizeof(line_buffer));
+		size_t pict_width   = 2; /* monster char and space */
+		size_t coords_width = utf8_strlen(coords);
+		size_t asleep_width = utf8_strlen(asleep);
 
-		/* Calculate the width of the line for dynamic sizing; use a fixed max
-		 * width for location and monster char. */
-		max_line_length = MAX(max_line_length, utf8_strlen(line_buffer) + 12 + 2);
+		size_t desc_width; /* monster name (and count) and asleep tag */
+		size_t name_width; /* monster name (and count) */
 
-		/* Append monster symbol in text mode
-		 * (it's called textblock_append_pict() for legacy reasons :) */
-		if (tb != NULL && !use_graphics) {
-			textblock_append_pict(tb,
-					list->entries[entry].attr,
-					monster_x_char[list->entries[entry].race->ridx]);
-			textblock_append(tb, " ");
+		/* Use monster pict and coordinates, if there is enough space */
+		if (max_width < (int) (pict_width + coords_width)) {
+			assert(max_width >= (int) pict_width);
+
+			coords_width = 0;
+			desc_width = max_width - pict_width;
+		} else {
+			desc_width = max_width - pict_width - coords_width;
 		}
 
-		/* Add the left-aligned and padded monster name which will align the
-		 * location to the right. */
+		/* Use as much of asleep tag as possible and maybe shorten name */
+		if (desc_width < asleep_width) {
+			name_width = 0;
+			asleep_width = desc_width;
+			utf8_clipto(asleep, asleep_width);
+		} else {
+			name_width = desc_width - asleep_width;
+		}
+
+		/* See get_mon_name(); we need 5 chars to show something reasonable */
+		if (name_width >= 5) {
+			get_mon_name(buf, sizeof(buf), entry->race, entry->count[section]);
+			utf8_clipto(buf, name_width);
+		} else if (name_width >= 3) {
+			strnfmt(buf, sizeof(buf), "%3d", entry->count[section]);
+		} else {
+			buf[0] = 0;
+		}
+
+		if (asleep_width > 0) {
+			my_strcat(buf, asleep, sizeof(buf));
+		}
+
+		/* Adding 2 has the effect of prepending 2 spaces to coords */
+		size_t total_width = pict_width + utf8_strlen(buf) + coords_width + 2;
+
+		/* Calculate the width of the line for dynamic sizing. */
+		max_line_length = MAX(max_line_length, total_width);
+
 		if (tb != NULL) {
-			uint32_t line_attr = monster_list_entry_line_color(&list->entries[entry]);
+			/* entry->attr is used to animate (shimmer)
+			 * monsters; that doesn't work with tiles */
+			uint32_t attr = use_graphics ?
+				monster_x_attr[entry->race->ridx] : entry->attr;
+
+			textblock_append_pict(tb,
+					attr, monster_x_char[entry->race->ridx]);
+			textblock_append(tb, " ");
+
 			/* Because monster race strings are UTF8, we have to add
-			 * additional padding for any raw bytes that might be consolidated
-			 * into one displayed character. */
-			full_width += strlen(line_buffer) - utf8_strlen(line_buffer);
-			textblock_append_c(tb, line_attr,
-					"%-*s%s\n", full_width, line_buffer, location);
+			 * additional padding for any raw bytes that might be
+			 * consolidated into one displayed character. */
+			int width = desc_width + strlen(buf) - utf8_strlen(buf);
+
+			attr = monster_list_entry_line_color(entry);
+			textblock_append_c(tb, attr, "%-*s", width, buf);
+			if (coords_width > 0) {
+				textblock_append_c(tb, attr, "%s", coords);
+			}
+			textblock_append(tb, "\n");
 		}
 
 		line_count++;
 	}
 
-	/* Don't worry about the "...others" line, since it's probably shorter
-	 * than what's already printed. */
+	/* Don't worry about the "...others" line, since it's
+	 * probably shorter than what's already printed. */
 	if (max_width_result != NULL) {
 		*max_width_result = max_line_length;
 	}
 
-	/* Bail since we don't have enough room to display the remaining count or
-	 * since we've displayed them all. */
-	if (lines_to_display <= 0
-			|| lines_to_display >= list->total_entries[section])
+	/* If we have some lines to display and haven't displayed them all */
+	if (lines_to_display > 0
+			&& lines_to_display < list->total_entries[section])
 	{
-		return;
-	}
+		/* Sum the remaining monsters; start where we left off in the above loop. */
+		int remaining_monster_total = 0;
 
-	/* Sum the remaining monsters; start where we left off in the above loop. */
-	int remaining_monster_total = 0;
+		while (entry_count < list->distinct_entries) {
+			remaining_monster_total += list->entries[entry_count].count[section];
+			entry_count++;
+		}
 
-	while (entry < list->distinct_entries) {
-		remaining_monster_total += list->entries[entry].count[section];
-		entry++;
-	}
-
-	if (tb != NULL) {
-		textblock_append(tb, "%6s...and %d others.\n", " ",
-						 remaining_monster_total);
+		if (tb != NULL) {
+			textblock_append(tb, "%6s...and %d others.\n",
+					" ", remaining_monster_total);
+		}
 	}
 }
 
