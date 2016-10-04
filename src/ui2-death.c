@@ -464,6 +464,11 @@ static menu_action death_actions[] = {
  */
 void death_screen(void)
 {
+	/* Flush all input and output */
+	event_signal(EVENT_INPUT_FLUSH);
+	event_signal(EVENT_MESSAGE_FLUSH);
+	clear_prompt();
+
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
@@ -477,11 +482,6 @@ void death_screen(void)
 	}
 
 	print_tomb();
-
-	/* Flush all input and output */
-	event_signal(EVENT_INPUT_FLUSH);
-	event_signal(EVENT_MESSAGE_FLUSH);
-	clear_prompt();
 
 	/* Display and use the death menu */
 	struct menu *death_menu =
