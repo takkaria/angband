@@ -4508,15 +4508,11 @@ static void position_subwindow_center(struct subwindow *subwindow,
 {
 	(void) hints;
 
-	const struct subwindow *display_cave = get_subwindow_direct(DISPLAY_CAVE);
-	assert(display_cave->loaded);
-	assert(display_cave->window == subwindow->window);
+	subwindow->full_rect.x = subwindow->window->inner_rect.x +
+		(subwindow->window->inner_rect.w - subwindow->full_rect.w) / 2;
 
-	subwindow->full_rect.x = display_cave->full_rect.x +
-		(display_cave->full_rect.w - subwindow->full_rect.w) / 2;
-
-	subwindow->full_rect.y = display_cave->full_rect.y +
-		(display_cave->full_rect.h - subwindow->full_rect.h) / 2;
+	subwindow->full_rect.y = subwindow->window->inner_rect.y +
+		(subwindow->window->inner_rect.h - subwindow->full_rect.h) / 2;
 }
 
 static void position_subwindow_top_left(struct subwindow *subwindow,
