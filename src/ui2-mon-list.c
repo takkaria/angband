@@ -342,13 +342,12 @@ static void monster_list_get_glyphs(monster_list_t *list)
 	/* Run through all monsters in the list. */
 	for (int i = 0; i < (int) list->entries_size; i++) {
 		monster_list_entry_t *entry = &list->entries[i];
-		if (entry->race == NULL) {
-			continue;
-		}
 
-		/* If no monster attribute use the standard UI picture. */
-		if (!entry->attr) {
-			entry->attr = monster_x_attr[entry->race->ridx];
+		if (entry->race != NULL) {
+			/* If no monster attribute use the standard UI picture. */
+			if (entry->attr == 0) {
+				entry->attr = monster_x_attr[entry->race->ridx];
+			}
 		}
 	}
 }
