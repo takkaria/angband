@@ -257,7 +257,7 @@ static bool monster_list_format_special(const monster_list_t *list, textblock *t
  * \param list is the monster list to format.
  * \param tb is the textblock to produce or NULL if only the dimensions need to
  * be calculated.
- * \param max_lines is the maximum number of lines that can be displayed.
+ * \param max_height is the maximum number of lines that can be displayed.
  * \param max_width is the maximum line width that can be displayed.
  * \param max_height_result is returned with the number of lines needed to
  * format the list without truncation.
@@ -265,7 +265,7 @@ static bool monster_list_format_special(const monster_list_t *list, textblock *t
  * without truncation.
  */
 static void monster_list_format_textblock(const monster_list_t *list, textblock *tb,
-		int max_lines, int max_width,
+		int max_height, int max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
 	if (list == NULL || list->entries == NULL) {
@@ -273,7 +273,7 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 	}
 
 	if (monster_list_format_special(list, tb,
-				max_lines, max_width, max_height_result, max_width_result))
+				max_height, max_width, max_height_result, max_width_result))
 	{
 		return;
 	}
@@ -292,7 +292,7 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 	}
 
 	int lines_remaining =
-		max_lines - header_lines - list->total_entries[MONSTER_LIST_SECTION_LOS];
+		max_height - header_lines - list->total_entries[MONSTER_LIST_SECTION_LOS];
 
 	/* Remove ESP lines as needed. */
 	if (lines_remaining < list->total_entries[MONSTER_LIST_SECTION_ESP]) {
@@ -307,7 +307,7 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 	}
 
 	/* Display only headers if we don't have enough space. */
-	if (header_lines >= max_lines) {
+	if (header_lines >= max_height) {
 		los_lines_to_display = 0;
 		esp_lines_to_display = 0;
 	}
