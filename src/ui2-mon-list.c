@@ -55,8 +55,10 @@
  * without truncation.
  */
 static void monster_list_format_section(const monster_list_t *list, textblock *tb,
-		monster_list_section_t section, int lines_to_display, int max_width,
-		const char *prefix, bool show_others, size_t *max_width_result)
+		monster_list_section_t section,
+		int lines_to_display, int max_width,
+		const char *prefix, bool show_others,
+		size_t *max_width_result)
 {
 	const char *punctuation = lines_to_display == 0 ? "." : ":";
 	const char *others = show_others ? "other " : "";
@@ -215,8 +217,8 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
  * without truncation.
  * \return true if further formatting should be bypassed.
  */
-static bool monster_list_format_special(const monster_list_t *list,
-		textblock *tb, int max_lines, int max_width,
+static bool monster_list_format_special(const monster_list_t *list, textblock *tb,
+		int max_lines, int max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
 	(void) list;
@@ -262,8 +264,8 @@ static bool monster_list_format_special(const monster_list_t *list,
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
-static void monster_list_format_textblock(const monster_list_t *list,
-		textblock *tb, int max_lines, int max_width,
+static void monster_list_format_textblock(const monster_list_t *list, textblock *tb,
+		int max_lines, int max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
 	if (list == NULL || list->entries == NULL) {
