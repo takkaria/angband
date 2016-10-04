@@ -268,9 +268,8 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 		int max_height, int max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
-	if (list == NULL || list->entries == NULL) {
-		return;
-	}
+	assert(list != NULL);
+	assert(list->entries != NULL);
 
 	if (monster_list_format_special(list, tb,
 				max_height, max_width, max_height_result, max_width_result))
@@ -278,36 +277,36 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 		return;
 	}
 
-	int los_lines_to_display = list->total_entries[MONSTER_LIST_SECTION_LOS];
-	int esp_lines_to_display = list->total_entries[MONSTER_LIST_SECTION_ESP];
-	int header_lines = 1;
+	const int los_entries = list->total_entries[MONSTER_LIST_SECTION_LOS];
+	const int esp_entries = list->total_entries[MONSTER_LIST_SECTION_ESP];
 
-	if (list->total_entries[MONSTER_LIST_SECTION_ESP] > 0) {
-		header_lines += 2;
-	}
+	int header_lines = 1 + (esp_entries > 0 ? 2 : 0);
 
 	if (max_height_result != NULL) {
-		*max_height_result =
-			header_lines + los_lines_to_display + esp_lines_to_display;
+		*max_height_result = header_lines + los_entries + esp_entries;
 	}
 
-	int lines_remaining =
-		max_height - header_lines - list->total_entries[MONSTER_LIST_SECTION_LOS];
+	int los_lines_to_display;
+	int esp_lines_to_display;
 
-	/* Remove ESP lines as needed. */
-	if (lines_remaining < list->total_entries[MONSTER_LIST_SECTION_ESP]) {
-		esp_lines_to_display = MAX(lines_remaining - 1, 0);
-	}
+	if (header_lines < max_height) {
+		int lines_remaining = max_height - header_lines;
 
-	/* If we don't even have enough room for the ESP header, start removing
-	 * LOS lines, leaving one for the "...others". */
-	if (lines_remaining < 0) {
-		los_lines_to_display =
-			list->total_entries[MONSTER_LIST_SECTION_LOS] - abs(lines_remaining) - 1;
-	}
+		if (lines_remaining < los_entries) {
+			/* Remove some LOS lines, leaving room for "...others" */
+			los_lines_to_display = MAX(lines_remaining - 1, 0);
+			esp_lines_to_display = 0;
+		} else if (lines_remaining < los_entries + esp_entries) {
+			/* Remove some ESP lines, leaving room for "...others" */
+			los_lines_to_display = los_entries;
+			esp_lines_to_display = MAX(lines_remaining - 1, 0);
+		} else {
+			los_lines_to_display = los_entries;
+			esp_lines_to_display = esp_entries;
+		}
+	} else {
+		assert(header_lines == max_height);
 
-	/* Display only headers if we don't have enough space. */
-	if (header_lines >= max_height) {
 		los_lines_to_display = 0;
 		esp_lines_to_display = 0;
 	}
@@ -318,11 +317,10 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 	monster_list_format_section(list, tb,
 			MONSTER_LIST_SECTION_LOS,
 			los_lines_to_display, max_width,
-			"You can see", false, &max_los_line);
+			"You can see", false,
+			&max_los_line);
 
-	if (list->total_entries[MONSTER_LIST_SECTION_ESP] > 0) {
-		bool show_others = list->total_monsters[MONSTER_LIST_SECTION_LOS] > 0;
-
+	if (esp_entries > 0) {
 		if (tb != NULL) {
 			textblock_append(tb, "\n");
 		}
@@ -330,7 +328,8 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 		monster_list_format_section(list, tb,
 				MONSTER_LIST_SECTION_ESP,
 				esp_lines_to_display, max_width,
-				"You are aware of", show_others, &max_esp_line);
+				"You are aware of", los_entries > 0,
+				&max_esp_line);
 	}
 
 	if (max_width_result != NULL) {
