@@ -1964,9 +1964,6 @@ static void new_level_display_update(game_event_type type,
 	player->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
 	/* Redraw "statusy" things */
 	player->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_MONSTER | PR_MONLIST | PR_ITEMLIST);
-	/* Because changing levels doesn't take a turn and PR_MONLIST might not be
-	 * set for a few game turns, manually force an update on level change. */
-	monster_list_force_subwindow_update();
 
 	update_stuff(player);
 	redraw_stuff(player);

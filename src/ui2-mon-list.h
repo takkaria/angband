@@ -24,6 +24,5 @@
 
 void monster_list_show_subwindow(void);
 void monster_list_show_interactive(void);
-void monster_list_force_subwindow_update(void);
 
 #endif /* UI2_MONSTER_LIST_H */

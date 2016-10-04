@@ -373,14 +373,6 @@ void monster_list_show_subwindow(void)
 	textblock *tb = textblock_new();
 	monster_list_t *list = monster_list_shared_instance();
 
-	/* Force an update if detected monsters */
-	for (int i = 1, end = cave_monster_max(cave); i < end; i++) {
-		if (mflag_has(cave_monster(cave, i)->mflag, MFLAG_MARK)) {
-			list->creation_turn = -1;
-			break;
-		}
-	}
-
 	monster_list_reset(list);
 	monster_list_collect(list);
 	monster_list_get_glyphs(list);
@@ -435,16 +427,4 @@ void monster_list_show_interactive(void)
 
 	textblock_free(tb);
 	monster_list_free(list);
-}
-
-/**
- * Force an update to the monster list subwindow.
- *
- * There are conditions that monster_list_reset() can't catch, so we set the
- * turn an invalid value to force the list to update.
- */
-void monster_list_force_subwindow_update(void)
-{
-	monster_list_t *list = monster_list_shared_instance();
-	list->creation_turn = -1;
 }
