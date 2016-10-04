@@ -73,9 +73,7 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 		}
 
 		if (max_width_result != NULL) {
-			/* Force a minimum width so that
-			 * the prompt doesn't get cut off. */
-			*max_width_result = MAX(len, 40);
+			*max_width_result = len;
 		}
 
 		return;
@@ -436,8 +434,8 @@ void monster_list_show_interactive(void)
 	monster_list_format_textblock(list, tb, max_height, max_width, NULL, NULL);
 
 	region reg = {
-		.w = max_width,
-		.h = max_height
+		.w = MAX(ANGBAND_TERM_STANDARD_WIDTH / 2, max_width),
+		.h = MIN(ANGBAND_TERM_STANDARD_HEIGHT, max_height)
 	};
 
 	textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, reg, NULL);
