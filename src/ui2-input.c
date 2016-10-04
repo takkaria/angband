@@ -525,7 +525,7 @@ int textui_get_quantity(const char *prompt, int max)
 
 		/* Build a prompt if needed */
 		if (prompt == NULL) {
-			strnfmt(tmp, sizeof(tmp), "Quantity (0-%d, any letter for all): ", max);
+			strnfmt(tmp, sizeof(tmp), "Quantity (0-%d, 'a' for all): ", max);
 			prompt = tmp;
 		}
 
