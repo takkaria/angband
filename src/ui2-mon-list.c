@@ -337,7 +337,7 @@ static void monster_list_format_textblock(const monster_list_t *list,
 /**
  * Get correct monster glyphs.
  */
-void monster_list_get_glyphs(monster_list_t *list)
+static void monster_list_get_glyphs(monster_list_t *list)
 {
 	/* Run through all monsters in the list. */
 	for (int i = 0; i < (int) list->entries_size; i++) {
