@@ -809,16 +809,16 @@ static void cat_menu_hint(char *buf, size_t bufsize,
 
 	/* Only one of those is allowed, and inventory takes precedence */
 	if (inven) {
-		my_strcat(buf, "\\ for Inven, ", bufsize);
+		my_strcat(buf, "'\\' for Inven, ", bufsize);
 	}
 	if (equip) {
-		my_strcat(buf, "= for Equip, ", bufsize);
+		my_strcat(buf, "'=' for Equip, ", bufsize);
 	}
 	if (quiver) {
-		my_strcat(buf, "| for Quiver, ", bufsize);
+		my_strcat(buf, "'|' for Quiver, ", bufsize);
 	}
 	if (floor) {
-		my_strcat(buf, "- for floor, ", bufsize);
+		my_strcat(buf, "'-' for floor, ", bufsize);
 	}
 }
 
@@ -1114,8 +1114,12 @@ static void show_menu_prompt(const struct object_menu_data *data,
 	menu_hint(data, hint, sizeof(hint));
 
 	char menu_prompt[ANGBAND_TERM_STANDARD_WIDTH];
-	my_strcpy(menu_prompt, prompt, sizeof(menu_prompt));
-	my_strcat(menu_prompt, " ",    sizeof(menu_prompt));
+
+	size_t prompt_len =
+		my_strcpy(menu_prompt, prompt, sizeof(menu_prompt));
+	if (prompt_len > 0 && menu_prompt[prompt_len - 1] != ' ') {
+		my_strcat(menu_prompt, " ",    sizeof(menu_prompt));
+	}
 	my_strcat(menu_prompt, hint,   sizeof(menu_prompt));
 
 	show_prompt(menu_prompt, false);
