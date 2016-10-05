@@ -80,10 +80,12 @@ static void maybe_clipto(char *buf, size_t clip, const textblock *tb)
  * need to be calculated
  * \param max_width is the maximum line width that can be displayed
  * \param max_line_length is updated with the length of the string to display
+ * \param need_coords means that all entries, including groups should pretend
+ * to have coordinates when calculating max_line_length
  */
 static void monster_list_process_entry(const monster_list_entry_t *entry,
 		monster_list_section_t section, textblock *tb,
-		size_t max_width, size_t *max_line_length)
+		size_t max_width, size_t *max_line_length, bool need_coords)
 {
 	char name[ANGBAND_TERM_STANDARD_WIDTH] = "";
 	char count[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
@@ -132,16 +134,16 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 		maybe_clipto(name, name_w, tb);
 	} else if (pict_w + count_w + coords_w < max_width) {
 		name_w = 0;
-		name[0] = 0;
+		maybe_clipto(name, name_w, tb);
 
 		asleep_w = max_width - (pict_w + count_w + coords_w);
 		maybe_clipto(asleep, asleep_w, tb);
 	} else if (pict_w + coords_w < max_width) {
 		name_w = 0;
-		name[0] = 0;
+		maybe_clipto(name, name_w, tb);
 
 		asleep_w = 0;
-		asleep[0] = 0;
+		maybe_clipto(asleep, asleep_w, tb);
 
 		count_w = max_width - (pict_w + coords_w);
 		maybe_clipto(count, count_w, tb);
@@ -149,13 +151,13 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 		assert(max_width >= pict_w);
 
 		name_w = 0;
-		name[0] = 0;
+		maybe_clipto(name, name_w, tb);
 
 		asleep_w = 0;
-		asleep[0] = 0;
+		maybe_clipto(asleep, asleep_w, tb);
 
 		count_w = 0;
-		count[0] = 0;
+		maybe_clipto(count, count_w, tb);
 
 		coords_w = max_width - pict_w;
 		maybe_clipto(coords, coords_w, tb);
@@ -163,33 +165,51 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 
 	/* calculate the width of the line for dynamic sizing */
 	*max_line_length = MAX(*max_line_length,
-			pict_w + count_w + name_w + asleep_w + coords_w);
+			pict_w + count_w + name_w + asleep_w + (need_coords ? 10 : coords_w));
 
 	if (tb != NULL) {
 		/* entry->attr is used to animate (shimmer)
 		 * monsters; that doesn't work with tiles */
 		uint32_t attr = use_graphics ?
 			monster_x_attr[entry->race->ridx] : entry->attr;
+		textblock_append_pict(tb, attr, monster_x_char[entry->race->ridx]);
 
-		textblock_append_pict(tb,
-				attr, monster_x_char[entry->race->ridx]);
-
-		char buf[ANGBAND_TERM_STANDARD_WIDTH];
-		my_strcpy(buf, count,  sizeof(buf));
-		my_strcat(buf, name,   sizeof(buf));
-		my_strcat(buf, asleep, sizeof(buf));
+		textblock_append_c(tb, monster_list_entry_line_color(entry),
+				"%s%s%s", count, name, asleep);
 
 		/* Hack - because monster race strings are UTF8, we have to add some padding
 		 * for any raw bytes that might be consolidated into one displayed character */
-		int width = max_width - pict_w - coords_w - (strlen(buf) - utf8_strlen(buf));
+		name_w += strlen(name) - utf8_strlen(name);
+		int pad = max_width - pict_w - count_w - name_w - asleep_w;
 
-		attr = monster_list_entry_line_color(entry);
-		textblock_append_c(tb, attr, "%-*s", width, buf);
-		if (coords_w > 0) {
-			textblock_append_c(tb, attr, "%s", coords);
-		}
-		textblock_append(tb, "\n");
+		textblock_append(tb, "%*s\n", pad, coords);
 	}
+}
+
+/**
+ * This function returns true if there is at least one entry
+ * with a single monster. Such entries display coordinates of
+ * the monster; to make textblock look better we will format it
+ * (textblock) as if all entries had coordinates (groups don't
+ * actually have them).
+ */
+static bool monster_list_need_coords(const monster_list_t *list,
+		monster_list_section_t section, int lines_to_display)
+{
+	for (int entry_count = 0, line_count = 0;
+			entry_count < list->distinct_entries && line_count < lines_to_display;
+			entry_count++)
+	{
+		const monster_list_entry_t *entry = &list->entries[entry_count];
+
+		if (entry->count[section] == 1) {
+			return true;
+		} else if (entry->count[section] > 0) {
+			line_count++;
+		}
+	}
+
+	return false;
 }
 
 /**
@@ -256,6 +276,11 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 		textblock_append(tb, "%s", buf);
 	}
 
+	/* If textblock is NULL, the caller is just trying to calculate the
+	 * maximum width of the monster text line (instead of displaying it) */
+	bool need_coords = tb == NULL ?
+		monster_list_need_coords(list, section, lines_to_display) : false;
+
 	int entry_count;
 	int line_count;
 
@@ -267,7 +292,7 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 
 		if (entry->count[section] > 0) {
 			monster_list_process_entry(entry, section, tb,
-					max_width, &max_line_length);
+					max_width, &max_line_length, need_coords);
 			line_count++;
 		}
 	}
