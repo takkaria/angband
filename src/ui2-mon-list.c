@@ -28,6 +28,37 @@
 #include "ui2-term.h"
 
 /**
+ * Helper function for display monlist.
+ */
+static size_t get_monster_name(char *buf, size_t bufsize,
+		const struct monster_race *race, int num)
+{
+	assert(race != NULL);
+
+	size_t len;
+
+	my_strcpy(buf, " ", bufsize);
+
+    /* Unique names don't have a number */
+	if (rf_has(race->flags, RF_UNIQUE)) {
+		my_strcat(buf, "[U] ", bufsize);
+        len = my_strcat(buf, race->name, bufsize);
+    } else if (num == 1) {
+        len = my_strcat(buf, race->name, bufsize);
+    } else if (race->plural != NULL) {
+        len = my_strcat(buf, race->plural, bufsize);
+    } else {
+        char race_name[ANGBAND_TERM_TEXTBLOCK_WIDTH];
+		my_strcpy(race_name, race->name, sizeof(race_name));
+        plural_aux(race_name, sizeof(race_name));
+
+        len = my_strcat(buf, race_name, bufsize);
+    }
+
+	return len;
+}
+
+/**
  * Format a section of the monster list: a header followed by monster list
  * entry rows.
  *
@@ -62,6 +93,7 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 {
 	assert(list != NULL);
 	assert(list->entries != NULL);
+	assert(max_width > 0);
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
@@ -102,72 +134,106 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 
 		if (entry->count[section] == 0) {
 			continue;
+		} else {
+			line_count++;
 		}
 
-		char asleep[20] = "";
-		char coords[20] = "";
+		char name[ANGBAND_TERM_STANDARD_WIDTH] = "";
+		char count[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
+		char asleep[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
+		char coords[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
 
-		/* Only display directions for the case of a single monster. */
+		/* monster tile */
+		size_t pict_w = 1;
+
+		/* number of monsters; single monsters dont display it */
+		size_t count_w = 0;
+		if (entry->count[section] > 1) {
+			count_w =
+				strnfmt(count, sizeof(count), " %d", entry->count[section]);
+		}
+
+		/* name of monster(s) */
+		size_t name_w =
+			get_monster_name(name, sizeof(name), entry->race, entry->count[section]);
+
+		/* "(asleep)" tag */
+		size_t asleep_w = 0;
+		if (entry->asleep[section] > 0 && entry->count[section] > 1) {
+			asleep_w =
+				strnfmt(asleep, sizeof(asleep), " (%d asleep)", entry->asleep[section]);
+		} else if (entry->asleep[section] == 1 && entry->count[section] == 1) {
+			asleep_w =
+				my_strcpy(asleep, " (asleep)", sizeof(asleep));
+		}
+
+		/* coordinates of a monster (groups dont display it) */
+		size_t coords_w = 0;
 		if (entry->count[section] == 1) {
 			const char *n_or_s = list->entries[entry_count].dy <= 0 ? "N" : "S";
 			const char *w_or_e = list->entries[entry_count].dx <= 0 ? "W" : "E";
-			strnfmt(coords, sizeof(coords),
+
+			coords_w =
+				strnfmt(coords, sizeof(coords),
 					" %d %s %d %s",
 					abs(list->entries[entry_count].dy), n_or_s,
 					abs(list->entries[entry_count].dx), w_or_e);
 		}
 
-		if (entry->asleep[section] > 0 && entry->count[section] > 1) {
-			strnfmt(asleep, sizeof(asleep), " (%d asleep)", entry->asleep[section]);
-		} else if (entry->asleep[section] == 1 && entry->count[section] == 1) {
-			strnfmt(asleep, sizeof(asleep), " (asleep)");
-		}
+		const size_t max = max_width; /* to avoid casting */
 
-		size_t pict_width   = 2; /* monster char and space */
-		size_t coords_width = utf8_strlen(coords);
-		size_t asleep_width = utf8_strlen(asleep);
+#define WIDTH_WITHOUT(expr) \
+		((pict_w + count_w + name_w + asleep_w + coords_w) - (expr))
 
-		size_t desc_width; /* monster name (and count) and asleep tag */
-		size_t name_width; /* monster name (and count) */
+		if (pict_w + count_w + name_w + asleep_w + coords_w <= max) {
+			/* There is enough space for everything */;
+		} else if (WIDTH_WITHOUT(name_w) < max) {
+			name_w = max - WIDTH_WITHOUT(name_w);
+			if (tb != NULL) {
+				utf8_clipto(name, name_w);
+			}
+		} else if (WIDTH_WITHOUT(name_w + asleep_w) < max) {
+			name_w = 0;
+			name[0] = 0;
 
-		/* Use monster pict and coordinates, if there is enough space */
-		if (max_width < (int) (pict_width + coords_width)) {
-			assert(max_width >= (int) pict_width);
+			asleep_w = max - WIDTH_WITHOUT(name_w + asleep_w);
+			if (tb != NULL) {
+				utf8_clipto(asleep, asleep_w);
+			}
+		} else if (WIDTH_WITHOUT(count_w + name_w + asleep_w) < max) {
+			name_w = 0;
+			name[0] = 0;
 
-			coords_width = 0;
-			desc_width = max_width - pict_width;
+			asleep_w = 0;
+			asleep[0] = 0;
+
+			count_w = max - WIDTH_WITHOUT(count_w + name_w + asleep_w);
+			if (tb != NULL) {
+				utf8_clipto(count, count_w);
+			}
 		} else {
-			desc_width = max_width - pict_width - coords_width;
+			assert(max >= pict_w);
+
+			name_w = 0;
+			name[0] = 0;
+
+			asleep_w = 0;
+			asleep[0] = 0;
+
+			count_w = 0;
+			count[0] = 0;
+
+			coords_w = max - pict_w;
+			if (tb != NULL) {
+				utf8_clipto(coords, coords_w);
+			}
 		}
 
-		/* Use as much of asleep tag as possible and maybe shorten name */
-		if (desc_width < asleep_width) {
-			name_width = 0;
-			asleep_width = desc_width;
-			utf8_clipto(asleep, asleep_width);
-		} else {
-			name_width = desc_width - asleep_width;
-		}
+#undef WIDTH_WITHOUT
 
-		/* See get_mon_name(); we need 5 chars to show something reasonable */
-		if (name_width >= 5) {
-			get_mon_name(buf, sizeof(buf), entry->race, entry->count[section]);
-			utf8_clipto(buf, name_width);
-		} else if (name_width >= 3) {
-			strnfmt(buf, sizeof(buf), "%3d", entry->count[section]);
-		} else {
-			buf[0] = 0;
-		}
-
-		if (asleep_width > 0) {
-			my_strcat(buf, asleep, sizeof(buf));
-		}
-
-		/* Adding 2 has the effect of prepending 2 spaces to coords */
-		size_t total_width = pict_width + utf8_strlen(buf) + coords_width + 2;
-
-		/* Calculate the width of the line for dynamic sizing. */
-		max_line_length = MAX(max_line_length, total_width);
+		/* calculate the width of the line for dynamic sizing */
+		max_line_length = MAX(max_line_length,
+				pict_w + count_w + name_w + asleep_w + coords_w);
 
 		if (tb != NULL) {
 			/* entry->attr is used to animate (shimmer)
@@ -177,26 +243,27 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 
 			textblock_append_pict(tb,
 					attr, monster_x_char[entry->race->ridx]);
-			textblock_append(tb, " ");
 
-			/* Because monster race strings are UTF8, we have to add
-			 * additional padding for any raw bytes that might be
-			 * consolidated into one displayed character. */
-			int width = desc_width + strlen(buf) - utf8_strlen(buf);
+			my_strcpy(buf, count,  sizeof(buf));
+			my_strcat(buf, name,   sizeof(buf));
+			my_strcat(buf, asleep, sizeof(buf));
+
+			/* Hack - because monster race strings are UTF8, we have to add some padding
+			 * for any raw bytes that might be consolidated into one displayed character */
+			int width = max - pict_w - coords_w - (strlen(buf) - utf8_strlen(buf));
 
 			attr = monster_list_entry_line_color(entry);
 			textblock_append_c(tb, attr, "%-*s", width, buf);
-			if (coords_width > 0) {
+			if (coords_w > 0) {
 				textblock_append_c(tb, attr, "%s", coords);
 			}
 			textblock_append(tb, "\n");
 		}
-
-		line_count++;
 	}
 
 	/* Don't worry about the "...others" line, since it's
-	 * probably shorter than what's already printed. */
+	 * probably shorter than what's already printed, and
+	 * if not, it will be split into several lines */
 	if (max_width_result != NULL) {
 		*max_width_result = max_line_length;
 	}
@@ -205,7 +272,7 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 	if (lines_to_display > 0
 			&& lines_to_display < list->total_entries[section])
 	{
-		/* Sum the remaining monsters; start where we left off in the above loop. */
+		/* Sum the remaining monsters; start where we left off in the above loop */
 		int remaining_monster_total = 0;
 
 		while (entry_count < list->distinct_entries) {
