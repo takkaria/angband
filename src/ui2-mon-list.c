@@ -290,18 +290,17 @@ static void monster_list_format_section(const monster_list_t *list, textblock *t
 /**
  * Allow the standard list formatted to be bypassed for special cases.
  *
- * Returning true will bypass any other formatteding in
- * monster_list_format_textblock().
+ * Returning true will bypass any other formatting in monster_list_format_textblock().
  *
  * \param list is the monster list to format.
- * \param tb is the textblock to produce or NULL if only the dimensions need to
- * be calculated.
+ * \param tb is the textblock to produce or NULL if only the dimensions need
+ * to be calculated.
  * \param max_lines is the maximum number of lines that can be displayed.
  * \param max_width is the maximum line width that can be displayed.
- * \param max_height_result is returned with the number of lines needed to
- * format the list without truncation.
- * \param max_width_result is returned with the width needed to format the list
- * without truncation.
+ * \param max_height_result is returned with the number of lines needed
+ * to format the list without truncation.
+ * \param max_width_result is returned with the width needed
+ * to format the list without truncation.
  * \return true if further formatting should be bypassed.
  */
 static bool monster_list_format_special(const monster_list_t *list, textblock *tb,
