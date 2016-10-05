@@ -19,6 +19,7 @@
 
 #include "angband.h"
 #include "init.h"
+#include "obj-desc.h"
 #include "obj-list.h"
 #include "obj-util.h"
 #include "ui2-object.h"
@@ -26,6 +27,114 @@
 #include "ui2-output.h"
 #include "ui2-prefs.h"
 #include "z-textblock.h"
+
+/**
+ * This uses the default logic of object_desc() in order
+ * to handle flavors, artifacts, vowels and so on.
+ *
+ * \param entry is the object list entry that has a name to be formatted.
+ * \param section is section of the entry (LOS or NO_LOS)
+ * \param line_buffer is the buffer to format into.
+ * \param size is the size of line_buffer.
+ */
+static size_t object_list_entry_name(const object_list_entry_t *entry,
+		object_list_section_t section, char *buf, size_t bufsize)
+{
+	assert(entry != NULL);
+	assert(entry->object != NULL);
+	assert(entry->object->kind != NULL);
+
+	char name[ANGBAND_TERM_STANDARD_WIDTH];
+
+	/* Because each entry points to a specific object and not something more
+	 * general, the number of similar objects we counted has to be swapped in.
+	 * This isn't an ideal way to do this, but it's the easiest way until
+	 * object_desc() is more flexible. */
+	int old_number = entry->object->number;
+
+	entry->object->number = entry->count[section];
+	object_desc(name, sizeof(name),
+			cave->objects[entry->object->oidx], ODESC_PREFIX | ODESC_FULL);
+	entry->object->number = old_number;
+
+	my_strcpy(buf, " ", sizeof(buf));
+
+	return my_strcat(buf, name, sizeof(name));
+}
+
+/**
+ * This function is called from object_list_format_section()
+ *
+ * \param entry is the object list entry to process
+ * \param section is the section of the entry (LOS or NO_LOS)
+ * \param tb is the textblock to add text to or NULL if only the dimensions
+ * need to be calculated
+ * \param max_width is the maximum line width that can be displayed
+ * \param max_line_length is updated with the length of the string to display
+ */
+static void object_list_process_entry(const object_list_entry_t *entry,
+		object_list_section_t section, textblock *tb,
+		size_t max_width, size_t *max_line_length)
+{
+	char name[ANGBAND_TERM_STANDARD_WIDTH] = "";
+	char coords[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
+
+	/* object tile */
+	size_t pict_w = 1;
+
+	/* object coordinates */
+	const char *w_or_e = entry->dx <= 0 ? "W" : "E";
+	const char *n_or_s = entry->dy <= 0 ? "N" : "S";
+	size_t coords_w = strnfmt(coords, sizeof(coords),
+			" %d %s %d %s",
+			abs(entry->dy), n_or_s,
+			abs(entry->dx), w_or_e);
+
+	/* object name */
+	size_t name_w =
+		object_list_entry_name(entry, section, name, sizeof(name));
+
+	if (pict_w + name_w + coords_w <= max_width) {
+		/* there is enough space for everything */;
+	} else if (pict_w + coords_w <= max_width) {
+		name_w = max_width - pict_w - coords_w;
+		if (tb != NULL) {
+			utf8_clipto(name, name_w);
+		}
+	} else {
+		assert(max_width >= pict_w);
+
+		name_w = 0;
+		name[0] = 0;
+
+		coords_w = max_width - pict_w;
+		if (tb != NULL) {
+			utf8_clipto(coords, coords_w);
+		}
+	}
+
+	*max_line_length =
+		MAX(*max_line_length, pict_w + name_w + coords_w);
+
+	if (tb != NULL) {
+		uint32_t attr = COLOUR_RED;
+		wchar_t ch = L'*';
+
+		if (!is_unknown(entry->object) && entry->object->kind != NULL) {
+			attr = object_kind_attr(entry->object->kind);
+			ch = object_kind_char(entry->object->kind);
+		}
+
+		textblock_append_pict(tb, attr, ch);
+
+		attr = object_list_entry_line_attribute(entry);
+
+		/* Hack - because object_name strings are UTF8, we have to add some padding
+		 * for any raw bytes that might be consolidated into one displayed character */
+		int width = max_width - pict_w - coords_w - (strlen(name) - utf8_strlen(name));
+		textblock_append_c(tb, attr, "%-*s%s\n", width, name, coords);
+	}
+}
 
 /**
  * Format a section of the object list: a header followed by object list entry
@@ -50,178 +159,87 @@
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
-static void object_list_format_section(const object_list_t *list,
-		textblock *tb, object_list_section_t section,
+static void object_list_format_section(const object_list_t *list, textblock *tb,
+		object_list_section_t section,
 		int lines_to_display, int max_width,
-		const char *prefix, bool show_others, size_t *max_width_result)
+		const char *prefix, bool show_others,
+		size_t *max_width_result)
 {
-	const char *punctuation = lines_to_display == 0 ? "." : ":";
-	const char *others = show_others ? "other " : "";
+	assert(list != NULL);
+	assert(list->entries != NULL);
+	assert(max_width > 0);
 
-	if (list == NULL || list->entries == NULL) {
-		return;
-	}
-
-	char line_buffer[200];
+	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
 	if (list->total_entries[section] == 0) {
-		size_t max_line_length =
-			strnfmt(line_buffer, sizeof(line_buffer), "%s no objects.\n", prefix);
+		size_t len = strnfmt(buf, sizeof(buf), "%s no objects.\n", prefix);
 
 		if (tb != NULL) {
-			textblock_append(tb, "%s", line_buffer);
+			textblock_append(tb, "%s", buf);
 		}
 
-		/* Force a minimum width so that the prompt doesn't get cut off. */
 		if (max_width_result != NULL) {
-			*max_width_result = MAX(max_line_length, 40);
+			*max_width_result = len;
 		}
 
 		return;
 	}
 
-	size_t max_line_length = strnfmt(line_buffer, sizeof(line_buffer),
+	size_t max_line_length = strnfmt(buf, sizeof(buf),
 			"%s %d %sobject%s%s\n",
 			prefix,
 			list->total_entries[section],
-			others,
+			show_others ? "other " : "",
 			PLURAL(list->total_entries[section]),
-			punctuation);
+			lines_to_display == 0 ? "." : ":");
 
 	if (tb != NULL) {
-		textblock_append(tb, "%s", line_buffer);
+		textblock_append(tb, "%s", buf);
 	}
 
-	int entry;
+	int entry_count;
 	int line_count;
-	for (entry = 0, line_count = 0;
-			entry < list->distinct_entries && line_count < lines_to_display;
-			entry++)
+
+	for (entry_count = 0, line_count = 0;
+			entry_count < list->distinct_entries && line_count < lines_to_display;
+			entry_count++)
 	{
-		char location[20] = {0};
-		line_buffer[0] = 0;
+		const object_list_entry_t *entry = &list->entries[entry_count];
 
-		if (list->entries[entry].count[section] == 0) {
-			continue;
+		if (entry->count[section] > 0) {
+			object_list_process_entry(entry, section, tb,
+					max_width, &max_line_length);
+			line_count++;
 		}
-
-		const char *n_or_s = list->entries[entry].dy <= 0 ? "N" : "S";
-		const char *w_or_e = list->entries[entry].dx <= 0 ? "W" : "E";
-
-		/* Build the location string. */
-		strnfmt(location, sizeof(location),
-				" %d %s %d %s",
-				abs(list->entries[entry].dy), n_or_s,
-				abs(list->entries[entry].dx), w_or_e);
-
-		/* Get width available for object name: 2 for char and space;
-		 * location includes padding; last -1 because textblock (in effect)
-		 * adds one column of padding on the right side of any string */
-		size_t full_width = max_width - 2 - utf8_strlen(location) - 1;
-
-		/* Add the object count and clip the object name to fit. */
-		object_list_format_name(&list->entries[entry], line_buffer, sizeof(line_buffer));
-		utf8_clipto(line_buffer, full_width);
-
-		/* Calculate the width of the line for dynamic sizing; use a fixed max
-		 * width for location and object char. */
-		max_line_length = MAX(max_line_length, utf8_strlen(line_buffer) + 12 + 2);
-
-		/* textblock_append_pict() will add the object symbol only in text mode,
-		 * despite its name (should really be renamed) */
-		if (tb != NULL && !use_graphics) {
-			uint32_t attr = COLOUR_RED;
-			wchar_t ch = L'*';
-
-			if (!is_unknown(list->entries[entry].object)
-					&& list->entries[entry].object->kind != NULL)
-			{
-				attr = object_kind_attr(list->entries[entry].object->kind);
-				ch = object_kind_char(list->entries[entry].object->kind);
-			}
-
-			textblock_append_pict(tb, attr, ch);
-			textblock_append(tb, " ");
-		}
-
-		/* Add the left-aligned and padded object name which will align the
-		 * location to the right. */
-		if (tb != NULL) {
-			uint32_t line_attr = object_list_entry_line_attribute(&list->entries[entry]);
-			/*
-			 * Because object name strings are UTF8, we have to add
-			 * additional padding for any raw bytes that might be consolidated
-			 * into one displayed character.
-			 */
-			full_width += strlen(line_buffer) - utf8_strlen(line_buffer);
-			textblock_append_c(tb, line_attr,
-					"%-*s%s\n", full_width, line_buffer, location);
-		}
-
-		line_count++;
 	}
 
-	/* Don't worry about the "...others" line, since it's probably shorter than
-	 * what's already printed. */
+	/* Don't worry about the "...others" line, since it's
+	 * probably shorter than what's already printed, and
+	 * if not, it will be split into several lines */
 	if (max_width_result != NULL) {
 		*max_width_result = max_line_length;
 	}
 
-	/* Bail since we don't have enough room to display the remaining count or
-	 * since we've displayed them all. */
-	if (lines_to_display <= 0
-			|| lines_to_display >= list->total_entries[section])
+	if (lines_to_display > 0
+			&& lines_to_display < list->total_entries[section])
 	{
-		return;
+		/* Count the remaining objects, starting
+		 * where we left off in the above loop. */
+		int remaining_object_total =
+			list->distinct_entries - entry_count;
+
+		if (tb != NULL) {
+			textblock_append(tb, "%6s...and %d others.\n",
+					" ", remaining_object_total);
+		}
 	}
-
-	/* Count the remaining objects, starting where we left off in the above loop. */
-	int remaining_object_total = list->distinct_entries - entry;
-
-	if (tb != NULL) {
-		textblock_append(tb, "%6s...and %d others.\n", " ", remaining_object_total);
-	}
-}
-
-/**
- * Allow the standard list formatted to be bypassed for special cases.
- *
- * Returning true will bypass any other formatteding in
- * object_list_format_textblock().
- *
- * \param list is the object list to format.
- * \param tb is the textblock to produce or NULL if only the dimensions need to
- * be calculated.
- * \param max_lines is the maximum number of lines that can be displayed.
- * \param max_width is the maximum line width that can be displayed.
- * \param max_height_result is returned with the number of lines needed to
- * format the list without truncation.
- * \param max_width_result is returned with the width needed to format the list
- * without truncation.
- * \return true if further formatting should be bypassed.
- */
-static bool object_list_format_special(const object_list_t *list,
-		textblock *tb, int max_lines, int max_width,
-		size_t *max_height_result, size_t *max_width_result)
-{
-	(void) list;
-	(void) tb;
-	(void) max_lines;
-	(void) max_width;
-	(void) max_height_result;
-	(void) max_width_result;
-
-	return false;
 }
 
 /**
  * Format the entire object list with the given parameters.
  *
  * This function can be used to calculate the preferred dimensions for the list
- * by passing in a
- * NULL textblock. This function calls object_list_format_special() first; if
- * that function
- * returns true, it will bypass normal list formatting.
+ * by passing in a NULL textblock.
  *
  * \param list is the object list to format.
  * \param tb is the textblock to produce or NULL if only the dimensions need to
@@ -234,71 +252,68 @@ static bool object_list_format_special(const object_list_t *list,
  * without truncation.
  */
 static void object_list_format_textblock(const object_list_t *list,
-		textblock *tb, int max_lines, int max_width,
+		textblock *tb, int max_height, int max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
+	assert(list != NULL);
+	assert(list->entries != NULL);
 	if (list == NULL || list->entries == NULL) {
 		return;
 	}
 
-	if (object_list_format_special(list,
-				tb, max_lines, max_width, max_height_result, max_width_result))
-	{
-		return;
-	}
+	const int los_entries    = list->total_entries[OBJECT_LIST_SECTION_LOS];
+	const int no_los_entries = list->total_entries[OBJECT_LIST_SECTION_NO_LOS];
 
-	int los_lines_to_display = list->total_entries[OBJECT_LIST_SECTION_LOS];
-	int no_los_lines_to_display = list->total_entries[OBJECT_LIST_SECTION_NO_LOS];
-                                                          
-	int header_lines = 1;
-
-	if (list->total_entries[OBJECT_LIST_SECTION_NO_LOS] > 0) {
-		header_lines += 2;
-	}
+	int header_lines = 1 + (no_los_entries > 0 ? 2 : 0);
 
  	if (max_height_result != NULL) {
-		*max_height_result =
-			header_lines + los_lines_to_display + no_los_lines_to_display;
+		*max_height_result = header_lines + los_entries + no_los_entries;
 	}
 
-	int lines_remaining =
-		max_lines - header_lines - list->total_entries[OBJECT_LIST_SECTION_LOS];
+	int los_lines_to_display;
+	int no_los_lines_to_display;
 
-	/* Remove non-los lines as needed */
-	if (lines_remaining < list->total_entries[OBJECT_LIST_SECTION_NO_LOS]) {
-		no_los_lines_to_display = MAX(lines_remaining - 1, 0);
-	}
+	if (header_lines < max_height) {
+		int lines_remaining = max_height - header_lines;
 
-	/* If we don't even have enough room for the NO_LOS header, start removing
-	 * LOS lines, leaving one for the "...others". */
-	if (lines_remaining < 0) {
-		los_lines_to_display =
-			list->total_entries[OBJECT_LIST_SECTION_LOS] - abs(lines_remaining) - 1;
-	}
+		if (los_entries + no_los_entries >= lines_remaining) {
+			los_lines_to_display = los_entries;
+			no_los_lines_to_display = no_los_entries;
+		} else if (los_entries >= lines_remaining) {
+			/* Remove some NO_LOS lines, leaving room for "...others" */
+			los_lines_to_display = los_entries;
+			no_los_lines_to_display = MAX(lines_remaining - los_entries - 1, 0);
+		} else {
+			/* Remove some LOS lines, leaving room for "...others" */
+			los_lines_to_display = MAX(lines_remaining - 1, 0);
+			no_los_lines_to_display = 0;
+		}
+	} else {
+		assert(header_lines == max_height);
 
-	/* Display only headers if we don't have enough space. */
-	if (header_lines >= max_lines) {
 		los_lines_to_display = 0;
 		no_los_lines_to_display = 0;
 	}
-        
+
 	size_t max_los_line = 0;
 	size_t max_no_los_line = 0;
 
 	object_list_format_section(list, tb,
-			OBJECT_LIST_SECTION_LOS, los_lines_to_display, max_width,
-			"You can see", false, &max_los_line);
+			OBJECT_LIST_SECTION_LOS,
+			los_lines_to_display, max_width,
+			"You can see", false,
+			&max_los_line);
 
-	if (list->total_entries[OBJECT_LIST_SECTION_NO_LOS] > 0) {
-         bool show_others = list->total_objects[OBJECT_LIST_SECTION_LOS] > 0;
-
+	if (no_los_entries > 0) {
          if (tb != NULL) {
 			 textblock_append(tb, "\n");
 		 }
 
          object_list_format_section(list, tb,
-				 OBJECT_LIST_SECTION_NO_LOS, no_los_lines_to_display, max_width,
-				 "You are aware of", show_others, &max_no_los_line);
+				 OBJECT_LIST_SECTION_NO_LOS,
+				 no_los_lines_to_display, max_width,
+				 "You are aware of", los_entries > 0,
+				 &max_no_los_line);
 	}
 
 	if (max_width_result != NULL) {
@@ -328,18 +343,15 @@ void object_list_show_subwindow(void)
 	/* Draw the list to exactly fit the subwindow. */
 	object_list_format_textblock(list, tb, height, width, NULL, NULL);
 
-	region reg = {0, 0, 0, 0};
+	region reg = {0};
 	textui_textblock_place(tb, reg, NULL);
 
 	textblock_free(tb);
 }
 
 /**
- * Display the object list interactively. This will dynamically size the list
- * for the best appearance. This should only be used in the main term.
- *
- * \param height is the height limit for the list.
- * \param width is the width limit for the list.
+ * Display the object list interactively.
+ * This will dynamically size the list for the best appearance.
  */
 void object_list_show_interactive(void)
 {
@@ -349,24 +361,27 @@ void object_list_show_interactive(void)
 	object_list_collect(list);
 	object_list_sort(list, object_list_standard_compare);
 
-	/*
-	 * Large numbers are passed as the height and width limit so that we can
-	 * calculate the maximum number of rows and columns to display the list nicely.
-	 */
-	size_t max_width = 0;
-	size_t max_height = 0;
-	object_list_format_textblock(list, NULL, 1000, 1000, &max_height, &max_width);
+	/* Sufficiently large numbers are passed as the height and width limit so that
+	 * we can calculate the number of rows and columns to display the list nicely */
+	size_t max_width = ANGBAND_TERM_TEXTBLOCK_WIDTH;
+	size_t max_height =
+		list->total_entries[OBJECT_LIST_SECTION_LOS] +
+		list->total_entries[OBJECT_LIST_SECTION_NO_LOS] + 3;
 
-	/*
-	 * Actually draw the list. We pass in max_height to the format function so
+	object_list_format_textblock(list, NULL,
+			max_height, max_width, &max_height, &max_width);
+
+	/* Force max_width in order to avoid clipping the prompt */
+	max_width = MAX(ANGBAND_TERM_STANDARD_WIDTH / 2, max_width);
+
+	/* Actually draw the list. We pass in max_height to the format function so
 	 * that all lines will be appended to the textblock. The textblock itself
-	 * will handle fitting it into the region.
-	 */
+	 * will handle fitting it into the region */
 	object_list_format_textblock(list, tb, max_height, max_width, NULL, NULL);
 
 	region reg = {
 		.w = max_width,
-		.h = max_height
+		.h = MIN(ANGBAND_TERM_STANDARD_HEIGHT, max_height)
 	};
 
 	textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, reg, NULL);
