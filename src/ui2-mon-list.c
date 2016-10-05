@@ -60,6 +60,18 @@ static size_t get_monster_name(char *buf, size_t bufsize,
 }
 
 /**
+ * As an optimization, we don't want to do anything with the
+ * buffer if there is no textblock (since the buffer will not
+ * be appended to it; see monster_list_show_interactive()).
+ */
+static void maybe_clipto(char *buf, size_t clip, const textblock *tb)
+{
+	if (tb != NULL) {
+		utf8_clipto(buf, clip);
+	}
+}
+
+/**
  * This function is called from monster_list_format_section()
  *
  * \param entry is the monster list entry to process
@@ -117,17 +129,13 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 		/* There is enough space for everything */;
 	} else if (pict_w + count_w + asleep_w + coords_w < max_width) {
 		name_w = max_width - (pict_w + count_w + asleep_w + coords_w);
-		if (tb != NULL) {
-			utf8_clipto(name, name_w);
-		}
+		maybe_clipto(name, name_w, tb);
 	} else if (pict_w + count_w + coords_w < max_width) {
 		name_w = 0;
 		name[0] = 0;
 
 		asleep_w = max_width - (pict_w + count_w + coords_w);
-		if (tb != NULL) {
-			utf8_clipto(asleep, asleep_w);
-		}
+		maybe_clipto(asleep, asleep_w, tb);
 	} else if (pict_w + coords_w < max_width) {
 		name_w = 0;
 		name[0] = 0;
@@ -136,9 +144,7 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 		asleep[0] = 0;
 
 		count_w = max_width - (pict_w + coords_w);
-		if (tb != NULL) {
-			utf8_clipto(count, count_w);
-		}
+		maybe_clipto(count, count_w, tb);
 	} else {
 		assert(max_width >= pict_w);
 
@@ -152,9 +158,7 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 		count[0] = 0;
 
 		coords_w = max_width - pict_w;
-		if (tb != NULL) {
-			utf8_clipto(coords, coords_w);
-		}
+		maybe_clipto(coords, coords_w, tb);
 	}
 
 	/* calculate the width of the line for dynamic sizing */
