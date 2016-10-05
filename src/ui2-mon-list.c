@@ -434,8 +434,8 @@ static void monster_list_get_glyphs(monster_list_t *list)
 		monster_list_entry_t *entry = &list->entries[i];
 
 		if (entry->race != NULL) {
-			/* If no monster attribute use the standard UI picture. */
 			if (entry->attr == 0) {
+				/* If no monster attribute use the standard one */
 				entry->attr = monster_x_attr[entry->race->ridx];
 			}
 		}
