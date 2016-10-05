@@ -428,13 +428,16 @@ void monster_list_show_interactive(void)
 	size_t max_height = 0;
 	monster_list_format_textblock(list, NULL, 1000, 1000, &max_height, &max_width);
 
+	/* Force max_width sufficient to not clip the textblock prompt */
+	max_width = MAX(ANGBAND_TERM_STANDARD_WIDTH / 2, max_width);
+
 	/* Actually draw the list. We pass in max_height to the format function so
 	 * that all lines will be appended to the textblock. The textblock itself
 	 * will handle fitting it into the region. */
 	monster_list_format_textblock(list, tb, max_height, max_width, NULL, NULL);
 
 	region reg = {
-		.w = MAX(ANGBAND_TERM_STANDARD_WIDTH / 2, max_width),
+		.w = max_width,
 		.h = MIN(ANGBAND_TERM_STANDARD_HEIGHT, max_height)
 	};
 
