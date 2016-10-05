@@ -395,7 +395,7 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 			esp_lines_to_display = esp_entries;
 		} else if (los_entries >= lines_remaining) {
 			/* Remove some ESP lines, leaving room for "...others" */
-			los_lines_to_display = los_entries
+			los_lines_to_display = los_entries;
 			esp_lines_to_display = MAX(lines_remaining - los_entries - 1, 0);
 		} else {
 			/* Remove some LOS lines, leaving room for "...others" */
