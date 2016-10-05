@@ -113,32 +113,29 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 				" %d %s %d %s", abs(entry->dy), n_or_s, abs(entry->dx), w_or_e);
 	}
 
-#define WIDTH_WITHOUT(expr) \
-	((pict_w + count_w + name_w + asleep_w + coords_w) - (expr))
-
 	if (pict_w + count_w + name_w + asleep_w + coords_w <= max_width) {
 		/* There is enough space for everything */;
-	} else if (WIDTH_WITHOUT(name_w) < max_width) {
-		name_w = max_width - WIDTH_WITHOUT(name_w);
+	} else if (pict_w + count_w + asleep_w + coords_w < max_width) {
+		name_w = max_width - (pict_w + count_w + asleep_w + coords_w);
 		if (tb != NULL) {
 			utf8_clipto(name, name_w);
 		}
-	} else if (WIDTH_WITHOUT(name_w + asleep_w) < max_width) {
+	} else if (pict_w + count_w + coords_w < max_width) {
 		name_w = 0;
 		name[0] = 0;
 
-		asleep_w = max_width - WIDTH_WITHOUT(name_w + asleep_w);
+		asleep_w = max_width - (pict_w + count_w + coords_w);
 		if (tb != NULL) {
 			utf8_clipto(asleep, asleep_w);
 		}
-	} else if (WIDTH_WITHOUT(count_w + name_w + asleep_w) < max_width) {
+	} else if (pict_w + coords_w < max_width) {
 		name_w = 0;
 		name[0] = 0;
 
 		asleep_w = 0;
 		asleep[0] = 0;
 
-		count_w = max_width - WIDTH_WITHOUT(count_w + name_w + asleep_w);
+		count_w = max_width - (pict_w + coords_w);
 		if (tb != NULL) {
 			utf8_clipto(count, count_w);
 		}
@@ -159,8 +156,6 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 			utf8_clipto(coords, coords_w);
 		}
 	}
-
-#undef WIDTH_WITHOUT
 
 	/* calculate the width of the line for dynamic sizing */
 	*max_line_length = MAX(*max_line_length,
