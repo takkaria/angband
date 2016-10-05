@@ -485,8 +485,8 @@ void monster_list_show_subwindow(void)
 }
 
 /**
- * Display the monster list interactively. This will dynamically size the list
- * for the best appearance.
+ * Display the monster list interactively.
+ * This will dynamically size the list for the best appearance.
  */
 void monster_list_show_interactive(void)
 {
