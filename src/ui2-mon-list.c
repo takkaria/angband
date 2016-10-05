@@ -28,7 +28,8 @@
 #include "ui2-term.h"
 
 /**
- * Helper function for display monlist.
+ * Helper function for monlist display;
+ * variant of mon-desc.c:get_mon_name().
  */
 static size_t get_monster_name(char *buf, size_t bufsize,
 		const struct monster_race *race, int num)
