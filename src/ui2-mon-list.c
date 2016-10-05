@@ -390,17 +390,17 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 	if (header_lines < max_height) {
 		int lines_remaining = max_height - header_lines;
 
-		if (lines_remaining < los_entries) {
+		if (los_entries + esp_entries >= lines_remaining) {
+			los_lines_to_display = los_entries;
+			esp_lines_to_display = esp_entries;
+		} else if (los_entries >= lines_remaining) {
+			/* Remove some ESP lines, leaving room for "...others" */
+			los_lines_to_display = los_entries
+			esp_lines_to_display = MAX(lines_remaining - los_entries - 1, 0);
+		} else {
 			/* Remove some LOS lines, leaving room for "...others" */
 			los_lines_to_display = MAX(lines_remaining - 1, 0);
 			esp_lines_to_display = 0;
-		} else if (lines_remaining < los_entries + esp_entries) {
-			/* Remove some ESP lines, leaving room for "...others" */
-			los_lines_to_display = los_entries;
-			esp_lines_to_display = MAX(lines_remaining - 1, 0);
-		} else {
-			los_lines_to_display = los_entries;
-			esp_lines_to_display = esp_entries;
 		}
 	} else {
 		assert(header_lines == max_height);
