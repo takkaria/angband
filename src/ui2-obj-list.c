@@ -131,7 +131,7 @@ static void object_list_process_entry(const object_list_entry_t *entry,
 
 		/* Hack - because object_name strings are UTF8, we have to add some padding
 		 * for any raw bytes that might be consolidated into one displayed character */
-		int width = max_width - pict_w - coords_w - (strlen(name) - utf8_strlen(name));
+		int width = max_width - pict_w - coords_w + (strlen(name) - utf8_strlen(name));
 		textblock_append_c(tb, attr, "%-*s%s\n", width, name, coords);
 	}
 }
