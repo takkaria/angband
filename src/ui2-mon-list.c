@@ -460,9 +460,6 @@ static void monster_list_get_glyphs(monster_list_t *list)
  * In order to support more efficient monster flicker animations, this function
  * uses a shared list object so that it's not constantly allocating and freeing
  * the list.
- *
- * \param height is the height of the list.
- * \param width is the width of the list.
  */
 void monster_list_show_subwindow(void)
 {
