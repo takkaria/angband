@@ -489,18 +489,22 @@ void monster_list_show_interactive(void)
 	monster_list_get_glyphs(list);
 	monster_list_sort(list, monster_list_standard_compare);
 
-	/* Large numbers are passed as the height and width limit so that we can
-	 * calculate the maximum number of rows and columns to display the list nicely. */
-	size_t max_width = 0;
-	size_t max_height = 0;
-	monster_list_format_textblock(list, NULL, 1000, 1000, &max_height, &max_width);
+	/* Sufficiently large numbers are passed as the height and width limit so that
+	 * we can calculate the number of rows and columns to display the list nicely */
+	size_t max_width = ANGBAND_TERM_TEXTBLOCK_WIDTH;
+	size_t max_height =
+		list->total_entries[MONSTER_LIST_SECTION_LOS] +
+		list->total_entries[MONSTER_LIST_SECTION_ESP] + 3;
 
-	/* Force max_width sufficient to not clip the textblock prompt */
+	monster_list_format_textblock(list, NULL,
+			max_height, max_width, &max_height, &max_width);
+
+	/* Force max_width in order to avoid clipping the prompt */
 	max_width = MAX(ANGBAND_TERM_STANDARD_WIDTH / 2, max_width);
 
 	/* Actually draw the list. We pass in max_height to the format function so
 	 * that all lines will be appended to the textblock. The textblock itself
-	 * will handle fitting it into the region. */
+	 * will handle fitting it into the region */
 	monster_list_format_textblock(list, tb, max_height, max_width, NULL, NULL);
 
 	region reg = {
