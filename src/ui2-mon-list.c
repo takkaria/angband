@@ -60,29 +60,28 @@ static size_t get_monster_name(char *buf, size_t bufsize,
 }
 
 /**
- * Format a section of the monster list: a header followed by monster list
- * entry rows.
+ * Format a section of the monster list:
+ * a header followed by monster list entry rows.
  *
  * This function will process each entry for the given section. It will display:
  * - monster char;
  * - number of monsters;
+ *   monster count (number of monsters) if there is a group
  * - monster name (truncated, if needed to fit the line);
  * - whether or not the monster is asleep (and how many if in a group);
  * - monster distance from the player (aligned to the right side of the list).
- * By passing in a NULL textblock, the maximum line width of the section can be
- * found.
+ * By passing in a NULL textblock, the maximum line width of the section can be found.
  *
  * \param list is the monster list to format.
  * \param tb is the textblock to produce or NULL if only the dimensions need to
  * be calculated.
  * \param section is the section of the monster list to format.
- * \param max_height are the number of entries to display (not including
- * the header).
+ * \param max_height are the number of entries to display (not including the header).
  * \param max_width is the maximum line width.
  * \param prefix is the beginning of the header; the remainder is appended with
  * the number of monsters.
- * \param show_others is used to append "other monsters" to the header,
- * after the number of monsters.
+ * \param show_others is used to append "other monsters" to the header, after
+ * the number of monsters.
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
