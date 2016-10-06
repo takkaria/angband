@@ -75,9 +75,9 @@ static void maybe_clipto(char *buf, size_t clip, const textblock *tb)
  * This function is called from monster_list_format_section()
  *
  * \param entry is the monster list entry to process
- * \param section is the section of the entry (LOS or ESP)
  * \param tb is the textblock to add text to or NULL if only the dimensions
  * need to be calculated
+ * \param section is the section of the entry (LOS or ESP)
  * \param max_width is the maximum line width that can be displayed
  * \param max_line_length is updated with the length of the string to display
  * \param need_coords means that all entries, including groups should pretend
@@ -339,7 +339,6 @@ static void monster_list_format_section(const monster_list_t *list,
  * to format the list without truncation.
  * \param max_width_result is returned with the width needed
  * to format the list without truncation.
- * \return true if further formatting should be bypassed.
  */
 static bool monster_list_format_special(const monster_list_t *list, textblock *tb,
 		int max_lines, int max_width,
@@ -388,7 +387,8 @@ static bool monster_list_format_special(const monster_list_t *list, textblock *t
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
-static void monster_list_format_textblock(const monster_list_t *list, textblock *tb,
+static void monster_list_format_textblock(const monster_list_t *list,
+		textblock *tb,
 		int max_height, int max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
@@ -480,12 +480,10 @@ static void monster_list_get_glyphs(monster_list_t *list)
 }
 
 /**
- * Display the monster list statically. This will force the list to be
- * displayed to the provided dimensions. Contents will be adjusted accordingly.
+ * Display the object list statically. Contents will be adjusted accordingly.
  *
- * In order to support more efficient monster flicker animations, this function
- * uses a shared list object so that it's not constantly allocating and freeing
- * the list.
+ * In order to be more efficient, this function uses a shared list object so
+ * that it's not constantly allocating and freeing the list.
  */
 void monster_list_show_subwindow(void)
 {

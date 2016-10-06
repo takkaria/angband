@@ -34,8 +34,8 @@
  *
  * \param entry is the object list entry that has a name to be formatted.
  * \param section is section of the entry (LOS or NO_LOS)
- * \param line_buffer is the buffer to format into.
- * \param size is the size of line_buffer.
+ * \param buf is the buffer to format into.
+ * \param bufsize is the size of line_buffer.
  */
 static size_t object_list_entry_name(const object_list_entry_t *entry,
 		object_list_section_t section, char *buf, size_t bufsize)
@@ -78,9 +78,9 @@ static void maybe_clipto(char *buf, size_t clip, const textblock *tb)
  * This function is called from object_list_format_section()
  *
  * \param entry is the object list entry to process
- * \param section is the section of the entry (LOS or NO_LOS)
  * \param tb is the textblock to add text to or NULL if only the dimensions
  * need to be calculated
+ * \param section is the section of the entry (LOS or NO_LOS)
  * \param max_width is the maximum line width that can be displayed
  * \param max_line_length is updated with the length of the string to display
  */
@@ -166,6 +166,8 @@ static void object_list_process_entry(const object_list_entry_t *entry,
  * \param max_width is the maximum line width.
  * \param prefix is the beginning of the header; the remainder is appended with
  * the number of objects.
+ * \param show_others is used to append "other monsters" to the header, after
+ * the number of monsters.
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
@@ -255,7 +257,7 @@ static void object_list_format_section(const object_list_t *list,
  * \param list is the object list to format.
  * \param tb is the textblock to produce or NULL if only the dimensions need to
  * be calculated.
- * \param max_lines is the maximum number of lines that can be displayed.
+ * \param max_height is the maximum number of lines that can be displayed.
  * \param max_width is the maximum line width that can be displayed.
  * \param max_height_result is returned with the number of lines needed to
  * format the list without truncation.
