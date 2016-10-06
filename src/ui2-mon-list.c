@@ -177,12 +177,13 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 		textblock_append_c(tb, monster_list_entry_line_color(entry),
 				"%s%s%s", count, name, asleep);
 
+		assert(max_width >= pict_w + count_w + name_w + asleep_w + coords_w);
+
 		/* Hack - because monster race strings are UTF8, we have to add some padding
 		 * for any raw bytes that might be consolidated into one displayed character */
-		name_w += strlen(name) - utf8_strlen(name);
-		int pad = max_width - pict_w - count_w - name_w - asleep_w;
-
-		textblock_append(tb, "%*s\n", pad, coords);
+		int coords_width = (max_width - pict_w - count_w - name_w - asleep_w) +
+			(strlen(name) - utf8_strlen(name));
+		textblock_append(tb, "%*s\n", coords_width, coords);
 	}
 }
 

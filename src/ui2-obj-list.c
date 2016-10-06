@@ -119,20 +119,21 @@ static void object_list_process_entry(const object_list_entry_t *entry,
 	if (tb != NULL) {
 		uint32_t attr = COLOUR_RED;
 		wchar_t ch = L'*';
-
 		if (!is_unknown(entry->object) && entry->object->kind != NULL) {
 			attr = object_kind_attr(entry->object->kind);
 			ch = object_kind_char(entry->object->kind);
 		}
-
 		textblock_append_pict(tb, attr, ch);
 
-		attr = object_list_entry_line_attribute(entry);
+		textblock_append_c(tb, object_list_entry_line_attribute(entry), "%s", name); 
+
+		assert(max_width >= pict_w + name_w + coords_w);
 
 		/* Hack - because object_name strings are UTF8, we have to add some padding
 		 * for any raw bytes that might be consolidated into one displayed character */
-		int width = max_width - pict_w - coords_w + (strlen(name) - utf8_strlen(name));
-		textblock_append_c(tb, attr, "%-*s%s\n", width, name, coords);
+		int coords_width = max_width - pict_w - name_w +
+			(strlen(name) - utf8_strlen(name));
+		textblock_append(tb, "%*s\n", coords_width, coords);
 	}
 }
 
