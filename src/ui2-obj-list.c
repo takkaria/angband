@@ -214,9 +214,9 @@ static void object_list_format_section(const object_list_t *list,
 		}
 	}
 
-	/* Don't worry about the "...others" line, since it's
-	 * probably shorter than what's already printed, and
-	 * if not, it will be split into several lines */
+	/* Don't worry about the "...others" line, since it's probably shorter than
+	 * what's already printed, and if not, it will be split into several lines
+	 * by the textblock display functions (textui_textblock_show/place()) */
 	if (max_width_result != NULL) {
 		*max_width_result = max_line_length;
 	}
