@@ -63,6 +63,18 @@ static size_t object_list_entry_name(const object_list_entry_t *entry,
 }
 
 /**
+ * As an optimization, we don't want to do anything with the
+ * buffer if there is no textblock (since the buffer will not
+ * be appended to it; see monster_list_show_interactive()).
+ */
+static void maybe_clipto(char *buf, size_t clip, const textblock *tb)
+{
+	if (tb != NULL) {
+		utf8_clipto(buf, clip);
+	}
+}
+
+/**
  * This function is called from object_list_format_section()
  *
  * \param entry is the object list entry to process
@@ -98,19 +110,15 @@ static void object_list_process_entry(const object_list_entry_t *entry,
 		/* there is enough space for everything */;
 	} else if (pict_w + coords_w <= max_width) {
 		name_w = max_width - pict_w - coords_w;
-		if (tb != NULL) {
-			utf8_clipto(name, name_w);
-		}
+		maybe_clipto(name, name_w, tb);
 	} else {
 		assert(max_width >= pict_w);
 
 		name_w = 0;
-		name[0] = 0;
+		maybe_clipto(name, name_w, tb);
 
 		coords_w = max_width - pict_w;
-		if (tb != NULL) {
-			utf8_clipto(coords, coords_w);
-		}
+		maybe_clipto(coords, coords_w, tb);
 	}
 
 	*max_line_length =
