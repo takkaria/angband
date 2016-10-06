@@ -230,7 +230,7 @@ static void object_list_format_section(const object_list_t *list,
 			&& lines_to_display > 0
 			&& lines_to_display < list->total_entries[section])
 	{
-		/* If we have some lines to display and haven't displayed them all count
+		/* If we have some lines to display and haven't displayed them all, count
 		 * the remaining objects, starting where we left off in the above loop. */
 		int remaining_object_total =
 			list->distinct_entries - entry_count;

@@ -310,7 +310,7 @@ static void monster_list_format_section(const monster_list_t *list,
 			&& lines_to_display > 0
 			&& lines_to_display < list->total_entries[section])
 	{
-		/* If we have some lines to display and haven't displayed them all sum
+		/* If we have some lines to display and haven't displayed them all, sum
 		 * the remaining monsters; start where we left off in the above loop */
 		int remaining_monster_total = 0;
 
