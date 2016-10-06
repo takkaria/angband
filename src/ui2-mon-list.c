@@ -429,7 +429,7 @@ static void monster_list_format_textblock(const monster_list_t *list,
 			esp_lines_to_display = 0;
 		}
 	} else {
-		assert(max_height >= header_lines);
+		assert(max_height == header_lines);
 
 		los_lines_to_display = 0;
 		esp_lines_to_display = 0;
