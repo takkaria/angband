@@ -306,12 +306,12 @@ static void monster_list_format_section(const monster_list_t *list,
 		*max_width_result = max_line_length;
 	}
 
-	/* If we have some lines to display and haven't displayed them all */
 	if (tb != NULL
 			&& lines_to_display > 0
 			&& lines_to_display < list->total_entries[section])
 	{
-		/* Sum the remaining monsters; start where we left off in the above loop */
+		/* If we have some lines to display and haven't displayed them all sum
+		 * the remaining monsters; start where we left off in the above loop */
 		int remaining_monster_total = 0;
 
 		while (entry_count < list->distinct_entries) {
