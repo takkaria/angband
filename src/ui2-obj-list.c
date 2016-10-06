@@ -233,7 +233,8 @@ static void object_list_format_section(const object_list_t *list,
 		*max_width_result = max_line_length;
 	}
 
-	if (lines_to_display > 0
+	if (tb != NULL
+			&& lines_to_display > 0
 			&& lines_to_display < list->total_entries[section])
 	{
 		/* Count the remaining objects, starting
@@ -241,10 +242,8 @@ static void object_list_format_section(const object_list_t *list,
 		int remaining_object_total =
 			list->distinct_entries - entry_count;
 
-		if (tb != NULL) {
-			textblock_append(tb, "  ...and %d others.\n",
-					remaining_object_total);
-		}
+		textblock_append(tb, "  ...and %d others.\n",
+				remaining_object_total);
 	}
 }
 

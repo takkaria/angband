@@ -307,7 +307,8 @@ static void monster_list_format_section(const monster_list_t *list,
 	}
 
 	/* If we have some lines to display and haven't displayed them all */
-	if (lines_to_display > 0
+	if (tb != NULL
+			&& lines_to_display > 0
 			&& lines_to_display < list->total_entries[section])
 	{
 		/* Sum the remaining monsters; start where we left off in the above loop */
@@ -318,10 +319,8 @@ static void monster_list_format_section(const monster_list_t *list,
 			entry_count++;
 		}
 
-		if (tb != NULL) {
-			textblock_append(tb, "  ...and %d others.\n",
-					remaining_monster_total);
-		}
+		textblock_append(tb, "  ...and %d others.\n",
+				remaining_monster_total);
 	}
 }
 
