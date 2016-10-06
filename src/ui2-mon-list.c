@@ -168,9 +168,9 @@ static void monster_list_process_entry(const monster_list_entry_t *entry,
 			pict_w + count_w + name_w + asleep_w + (need_coords ? 10 : coords_w));
 
 	if (tb != NULL) {
-		/* entry->attr is used to animate (shimmer)
-		 * monsters; that doesn't work with tiles */
-		uint32_t attr = use_graphics ?
+		/* entry->attr is used to animate (shimmer) monsters; that doesn't
+		 * work with tiles, or with non-shimmering monsters (obviously) */
+		uint32_t attr = use_graphics || entry->attr == 0 ?
 			monster_x_attr[entry->race->ridx] : entry->attr;
 		textblock_append_pict(tb, attr, monster_x_char[entry->race->ridx]);
 
@@ -462,24 +462,6 @@ static void monster_list_format_textblock(const monster_list_t *list,
 }
 
 /**
- * Get correct monster glyphs.
- */
-static void monster_list_get_glyphs(monster_list_t *list)
-{
-	/* Run through all monsters in the list. */
-	for (int i = 0; i < (int) list->entries_size; i++) {
-		monster_list_entry_t *entry = &list->entries[i];
-
-		if (entry->race != NULL) {
-			if (entry->attr == 0) {
-				/* If no monster attribute use the standard one */
-				entry->attr = monster_x_attr[entry->race->ridx];
-			}
-		}
-	}
-}
-
-/**
  * Display the object list statically. Contents will be adjusted accordingly.
  *
  * In order to be more efficient, this function uses a shared list object so
@@ -496,7 +478,6 @@ void monster_list_show_subwindow(void)
 
 	monster_list_reset(list);
 	monster_list_collect(list);
-	monster_list_get_glyphs(list);
 	monster_list_sort(list, monster_list_standard_compare);
 
 	/* Draw the list to exactly fit the subwindow. */
@@ -518,7 +499,6 @@ void monster_list_show_interactive(void)
 	monster_list_t *list = monster_list_new();
 
 	monster_list_collect(list);
-	monster_list_get_glyphs(list);
 	monster_list_sort(list, monster_list_standard_compare);
 
 	/* Sufficiently large numbers are passed as the height and width limit so that
