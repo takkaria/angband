@@ -153,13 +153,14 @@ static void object_list_process_entry(const object_list_entry_t *entry,
  * \param list is the object list to format.
  * \param tb is the textblock to produce or NULL if only the dimensions need to
  * be calculated.
+ * \param section is the section of the monster list to format.
  * \param lines_to_display are the number of entries to display (not including
  * the header).
  * \param max_width is the maximum line width.
  * \param prefix is the beginning of the header; the remainder is appended with
  * the number of objects.
- * \param show_others is used to append "other monsters" to the header, after
- * the number of monsters.
+ * \param show_others is used to append "other objects" to the header, after
+ * the number of objects.
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
