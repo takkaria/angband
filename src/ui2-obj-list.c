@@ -119,7 +119,7 @@ static void object_list_process_entry(const object_list_entry_t *entry,
 	if (tb != NULL) {
 		uint32_t attr = COLOUR_RED;
 		wchar_t ch = L'*';
-		if (!is_unknown(entry->object) && entry->object->kind != NULL) {
+		if (!is_unknown(entry->object)) {
 			attr = object_kind_attr(entry->object->kind);
 			ch = object_kind_char(entry->object->kind);
 		}
