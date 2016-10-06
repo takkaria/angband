@@ -46,16 +46,8 @@ static size_t object_list_entry_name(const object_list_entry_t *entry,
 
 	char name[ANGBAND_TERM_STANDARD_WIDTH];
 
-	/* Because each entry points to a specific object and not something more
-	 * general, the number of similar objects we counted has to be swapped in.
-	 * This isn't an ideal way to do this, but it's the easiest way until
-	 * object_desc() is more flexible. */
-	int old_number = entry->object->number;
-
-	entry->object->number = entry->count[section];
 	object_desc(name, sizeof(name),
 			cave->objects[entry->object->oidx], ODESC_PREFIX | ODESC_FULL);
-	entry->object->number = old_number;
 
 	my_strcpy(buf, " ", sizeof(buf));
 
