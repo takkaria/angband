@@ -95,8 +95,8 @@ static void object_list_process_entry(const object_list_entry_t *entry,
 	size_t pict_w = 1;
 
 	/* object coordinates */
-	const char *w_or_e = entry->dx <= 0 ? "W" : "E";
 	const char *n_or_s = entry->dy <= 0 ? "N" : "S";
+	const char *w_or_e = entry->dx <= 0 ? "W" : "E";
 	size_t coords_w = strnfmt(coords, sizeof(coords),
 			" %d %s %d %s",
 			abs(entry->dy), n_or_s,
