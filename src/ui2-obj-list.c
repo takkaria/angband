@@ -100,7 +100,7 @@ static void object_list_process_entry(const object_list_entry_t *entry,
 
 	if (pict_w + name_w + coords_w <= max_width) {
 		/* there is enough space for everything */;
-	} else if (pict_w + coords_w <= max_width) {
+	} else if (pict_w + coords_w < max_width) {
 		name_w = max_width - pict_w - coords_w;
 		maybe_clipto(name, name_w, tb);
 	} else {
