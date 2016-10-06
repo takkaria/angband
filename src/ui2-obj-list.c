@@ -73,7 +73,7 @@ static size_t object_list_entry_name(const object_list_entry_t *entry,
  * \param max_line_length is updated with the length of the string to display
  */
 static void object_list_process_entry(const object_list_entry_t *entry,
-		object_list_section_t section, textblock *tb,
+		textblock *tb, object_list_section_t section,
 		size_t max_width, size_t *max_line_length)
 {
 	char name[ANGBAND_TERM_STANDARD_WIDTH] = "";
@@ -208,7 +208,7 @@ static void object_list_format_section(const object_list_t *list,
 		const object_list_entry_t *entry = &list->entries[entry_count];
 
 		if (entry->count[section] > 0) {
-			object_list_process_entry(entry, section, tb,
+			object_list_process_entry(entry, tb, section,
 					max_width, &max_line_length);
 			line_count++;
 		}

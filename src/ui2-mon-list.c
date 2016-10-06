@@ -84,7 +84,7 @@ static void maybe_clipto(char *buf, size_t clip, const textblock *tb)
  * to have coordinates when calculating max_line_length
  */
 static void monster_list_process_entry(const monster_list_entry_t *entry,
-		monster_list_section_t section, textblock *tb,
+		textblock *tb, monster_list_section_t section,
 		size_t max_width, size_t *max_line_length, bool need_coords)
 {
 	char name[ANGBAND_TERM_STANDARD_WIDTH] = "";
@@ -292,7 +292,7 @@ static void monster_list_format_section(const monster_list_t *list,
 		const monster_list_entry_t *entry = &list->entries[entry_count];
 
 		if (entry->count[section] > 0) {
-			monster_list_process_entry(entry, section, tb,
+			monster_list_process_entry(entry, tb, section,
 					max_width, &max_line_length, need_coords);
 			line_count++;
 		}
