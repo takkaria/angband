@@ -65,7 +65,7 @@ static size_t object_list_entry_name(const object_list_entry_t *entry,
 /**
  * As an optimization, we don't want to do anything with the
  * buffer if there is no textblock (since the buffer will not
- * be appended to it; see monster_list_show_interactive()).
+ * be appended to it; see object_list_show_interactive()).
  */
 static void maybe_clipto(char *buf, size_t clip, const textblock *tb)
 {
