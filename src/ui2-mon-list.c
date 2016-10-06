@@ -394,7 +394,6 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 {
 	assert(list != NULL);
 	assert(list->entries != NULL);
-	assert(max_height >= 3);
 
 	if (monster_list_format_special(list, tb,
 				max_height, max_width, max_height_result, max_width_result))
@@ -430,6 +429,8 @@ static void monster_list_format_textblock(const monster_list_t *list, textblock 
 			esp_lines_to_display = 0;
 		}
 	} else {
+		assert(max_height >= header_lines);
+
 		los_lines_to_display = 0;
 		esp_lines_to_display = 0;
 	}

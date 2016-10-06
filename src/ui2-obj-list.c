@@ -268,7 +268,6 @@ static void object_list_format_textblock(const object_list_t *list,
 {
 	assert(list != NULL);
 	assert(list->entries != NULL);
-	assert(max_height >= 3);
 
 	const int los_entries = list->total_entries[OBJECT_LIST_SECTION_LOS];
 	const int no_los_entries = list->total_entries[OBJECT_LIST_SECTION_NO_LOS];
@@ -298,6 +297,8 @@ static void object_list_format_textblock(const object_list_t *list,
 			no_los_lines_to_display = 0;
 		}
 	} else {
+		assert(max_height == header_lines);
+
 		los_lines_to_display = 0;
 		no_los_lines_to_display = 0;
 	}
