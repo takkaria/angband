@@ -238,7 +238,8 @@ static bool monster_list_need_coords(const monster_list_t *list,
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
-static void monster_list_format_section(const monster_list_t *list, textblock *tb,
+static void monster_list_format_section(const monster_list_t *list,
+		textblock *tb,
 		monster_list_section_t section,
 		int lines_to_display, int max_width,
 		const char *prefix, bool show_others,

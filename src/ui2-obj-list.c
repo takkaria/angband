@@ -159,7 +159,8 @@ static void object_list_process_entry(const object_list_entry_t *entry,
  * \param max_width_result is returned with the width needed to format the list
  * without truncation.
  */
-static void object_list_format_section(const object_list_t *list, textblock *tb,
+static void object_list_format_section(const object_list_t *list,
+		textblock *tb,
 		object_list_section_t section,
 		int lines_to_display, int max_width,
 		const char *prefix, bool show_others,
