@@ -277,10 +277,10 @@ static void object_list_format_textblock(const object_list_t *list,
 	if (header_lines < max_height) {
 		int lines_remaining = max_height - header_lines;
 
-		if (los_entries + no_los_entries >= lines_remaining) {
+		if (los_entries + no_los_entries <= lines_remaining) {
 			los_lines_to_display = los_entries;
 			no_los_lines_to_display = no_los_entries;
-		} else if (los_entries >= lines_remaining) {
+		} else if (los_entries <= lines_remaining) {
 			/* Remove some NO_LOS lines, leaving room for "...others" */
 			los_lines_to_display = los_entries;
 			no_los_lines_to_display = MAX(lines_remaining - los_entries - 1, 0);
