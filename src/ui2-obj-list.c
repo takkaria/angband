@@ -133,7 +133,8 @@ static void object_list_process_entry(const object_list_entry_t *entry,
 		}
 		textblock_append_pict(tb, attr, ch);
 
-		textblock_append_c(tb, object_list_entry_line_attribute(entry), "%s", name); 
+		textblock_append_c(tb,
+				object_list_entry_line_attribute(entry), "%s", name); 
 
 		assert(max_width >= pict_w + name_w + coords_w);
 
