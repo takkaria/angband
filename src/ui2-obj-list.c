@@ -258,6 +258,8 @@ static void object_list_format_textblock(const object_list_t *list,
 {
 	assert(list != NULL);
 	assert(list->entries != NULL);
+	assert(max_height >= 3);
+
 	if (list == NULL || list->entries == NULL) {
 		return;
 	}
@@ -290,8 +292,6 @@ static void object_list_format_textblock(const object_list_t *list,
 			no_los_lines_to_display = 0;
 		}
 	} else {
-		assert(header_lines == max_height);
-
 		los_lines_to_display = 0;
 		no_los_lines_to_display = 0;
 	}
