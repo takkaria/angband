@@ -260,7 +260,7 @@ static void object_list_format_textblock(const object_list_t *list,
 	assert(list->entries != NULL);
 	assert(max_height >= 3);
 
-	const int los_entries    = list->total_entries[OBJECT_LIST_SECTION_LOS];
+	const int los_entries = list->total_entries[OBJECT_LIST_SECTION_LOS];
 	const int no_los_entries = list->total_entries[OBJECT_LIST_SECTION_NO_LOS];
 
 	int header_lines = 1 + (no_los_entries > 0 ? 2 : 0);
