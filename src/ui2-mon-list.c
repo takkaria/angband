@@ -340,7 +340,8 @@ static void monster_list_format_section(const monster_list_t *list,
  * \param max_width_result is returned with the width needed
  * to format the list without truncation.
  */
-static bool monster_list_format_special(const monster_list_t *list, textblock *tb,
+static bool monster_list_format_special(const monster_list_t *list,
+		textblock *tb,
 		int max_lines, int max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
