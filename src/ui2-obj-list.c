@@ -230,8 +230,8 @@ static void object_list_format_section(const object_list_t *list,
 			list->distinct_entries - entry_count;
 
 		if (tb != NULL) {
-			textblock_append(tb, "%6s...and %d others.\n",
-					" ", remaining_object_total);
+			textblock_append(tb, "  ...and %d others.\n",
+					remaining_object_total);
 		}
 	}
 }

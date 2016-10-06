@@ -318,8 +318,8 @@ static void monster_list_format_section(const monster_list_t *list,
 		}
 
 		if (tb != NULL) {
-			textblock_append(tb, "%6s...and %d others.\n",
-					" ", remaining_monster_total);
+			textblock_append(tb, "  ...and %d others.\n",
+					remaining_monster_total);
 		}
 	}
 }
