@@ -190,7 +190,6 @@ void lore_show_subwindow(const struct monster_race *race, const struct monster_l
 	assert(race != NULL);
 	assert(lore != NULL);
 
-	/* Erase the window, since textui_textblock_place() only clears what it needs */
 	Term_clear();
 
 	textblock *tb = textblock_new();
