@@ -34,7 +34,7 @@
  * \param tb is the textblock we are placing the title into.
  * \param race is the monster race we are describing.
  */
-void lore_title(textblock *tb, const struct monster_race *race)
+static void lore_title(textblock *tb, const struct monster_race *race)
 {
 	assert(tb != NULL);
 	assert(race != NULL);
