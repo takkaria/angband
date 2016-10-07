@@ -172,8 +172,10 @@ void lore_show_interactive(const struct monster_race *race,
 
 	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);
+
 	region reg = {0, 0, 0, 0};
 	textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, reg, NULL);
+
 	textblock_free(tb);
 }
 
@@ -196,7 +198,9 @@ void lore_show_subwindow(const struct monster_race *race,
 
 	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);
+
 	region reg = {0, 0, 0, 0};
 	textui_textblock_place(tb, reg, NULL);
+
 	textblock_free(tb);
 }
