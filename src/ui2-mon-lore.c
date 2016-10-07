@@ -27,9 +27,8 @@
 /**
  * Place a monster recall title into a textblock.
  *
- * If graphics are turned on, this appends the title with the appropriate tile.
- * Note: if the title is the only thing in the textblock, make sure to append a
- * newline so that the textui stuff works properly. 
+ * If graphics are turned on, this appends the title with the
+ * appropriate tile.
  *
  * \param tb is the textblock we are placing the title into.
  * \param race is the monster race we are describing.
