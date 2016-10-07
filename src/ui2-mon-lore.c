@@ -164,7 +164,8 @@ void lore_description(textblock *tb, const struct monster_race *race,
  * \param race is the monster race we are describing.
  * \param lore is the known information about the monster race.
  */
-void lore_show_interactive(const struct monster_race *race, const struct monster_lore *lore)
+void lore_show_interactive(const struct monster_race *race,
+		const struct monster_lore *lore)
 {
 	assert(race != NULL);
 	assert(lore != NULL);
@@ -185,7 +186,8 @@ void lore_show_interactive(const struct monster_race *race, const struct monster
  * \param race is the monster race we are describing.
  * \param lore is the known information about the monster race.
  */
-void lore_show_subwindow(const struct monster_race *race, const struct monster_lore *lore)
+void lore_show_subwindow(const struct monster_race *race,
+		const struct monster_lore *lore)
 {
 	assert(race != NULL);
 	assert(lore != NULL);
