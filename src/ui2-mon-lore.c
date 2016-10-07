@@ -39,30 +39,30 @@ static void lore_title(textblock *tb, const struct monster_race *race)
 	assert(race != NULL);
 
 	wchar_t standard_char = race->d_char;
-	wchar_t optional_char = monster_x_char[race->ridx];
-
 	uint32_t standard_attr = race->d_attr;
-	uint32_t optional_attr = monster_x_attr[race->ridx];
 
-	/* A title (use "The" for non-uniques) */
-	if (!rf_has(race->flags, RF_UNIQUE)) {
-		textblock_append(tb, "The ");
-	} else if (OPT(purple_uniques)) {
+	const bool unique = rf_has(race->flags, RF_UNIQUE);
+
+	if (unique && OPT(purple_uniques)) {
 		standard_attr = COLOUR_VIOLET;
-		optional_attr = COLOUR_VIOLET;
+	}
+	if (!unique) {
+		textblock_append(tb, "The ");
 	}
 
-	/* Dump the name and then append standard attr/char info */
 	textblock_append(tb, race->name);
 
 	textblock_append(tb, " ('");
 	textblock_append_pict(tb, standard_attr, standard_char);
 	textblock_append(tb, "')");
 
-	if (optional_attr != standard_attr || optional_char != standard_char) {
-		/* Append the optional attr/char info (that's probably a tile) */
+	/* Tile info is in monster_x_attr[] and monster_x_char[] */
+	if (standard_attr != monster_x_attr[race->ridx]
+			|| standard_char != monster_x_char[race->ridx])
+	{
 		textblock_append(tb, " ('");
-		textblock_append_pict(tb, optional_attr, optional_char);
+		textblock_append_pict(tb,
+				monster_x_attr[race->ridx], monster_x_char[race->ridx]);
 		textblock_append(tb, "')");
 	}
 }
