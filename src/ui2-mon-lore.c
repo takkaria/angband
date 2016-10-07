@@ -85,35 +85,30 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	assert(race != NULL);
 	assert(original_lore != NULL);
 
+	/* Create a copy of the monster memory that we can modify */
 	struct monster_lore mutable_lore;
 	struct monster_lore *lore = &mutable_lore;
-	bitflag known_flags[RF_SIZE];
-	int melee_colors[RBE_MAX];
-	int spell_colors[RSF_MAX];
-
-	/* Determine the special attack colors */
-	get_attack_colors(melee_colors, spell_colors);
-
-	/* Create a copy of the monster memory that we can modify */
 	memcpy(lore, original_lore, sizeof(*lore));
 
+	/* Determine the special attack colors */
+	int melee_colors[RBE_MAX];
+	int spell_colors[RSF_MAX];
+	get_attack_colors(melee_colors, spell_colors);
+
 	/* Now get the known monster flags */
+	bitflag known_flags[RF_SIZE];
 	monster_flags_known(race, lore, known_flags);
 
-	/* Cheat - know everything */
 	if (OPT(cheat_know) || spoilers) {
 		cheat_monster_lore(race, lore);
 	}
 
-	/* Appending the title here simplifies code in the callers. It also causes
-	 * a crash when generating spoilers (we don't need titles for them anwyay)*/
 	if (!spoilers) {
+		/* Show monster name and char (and tile) */
 		lore_title(tb, race);
 		textblock_append(tb, "\n");
-	}
 
-	/* Show kills of monster vs. player(s) */
-	if (!spoilers) {
+		/* Show kills of monster vs. player(s) */
 		lore_append_kills(tb, race, lore, known_flags);
 	}
 
@@ -126,11 +121,9 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	lore_append_movement(tb, race, lore, known_flags);
 
 	if (!spoilers) {
+		/* Describe the monster AC, HP, and hit chance */
 		lore_append_toughness(tb, race, lore, known_flags);
-	}
-
-	/* Describe the experience and item reward when killed */
-	if (!spoilers) {
+		/* Describe the experience awarded for killing it */
 		lore_append_exp(tb, race, lore, known_flags);
 	}
 
@@ -145,17 +138,14 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	lore_append_spells(tb, race, lore, known_flags, spell_colors);
 	lore_append_attack(tb, race, lore, known_flags, melee_colors);
 	
-	/* Do we know everything */
 	if (lore_is_fully_known(race)) {
 		textblock_append(tb, "You know everything about this monster.");
 	}
 	
-	/* Notice quest monsters */
 	if (rf_has(race->flags, RF_QUESTOR)) {
-		textblock_append(tb, "You feel an intense desire to kill this monster...  ");
+		/* Notice quest monsters (e.g., Sauron and Morgoth) */
+		textblock_append(tb, "\nYou feel an intense desire to kill this monster...");
 	}
-
-	textblock_append(tb, "\n");
 }
 
 /**
