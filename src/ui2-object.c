@@ -1320,7 +1320,7 @@ static void cleanup_menu_data(struct object_menu_data *data)
 	}
 }
 
-static void add_item_tabs(const struct object_menu_data *data)
+static size_t item_term_tabs(const struct object_menu_data *data, bool add)
 {
 	const bool allow_inven  = (data->item_mode & USE_INVEN)  ? true : false;
 	const bool allow_equip  = (data->item_mode & USE_EQUIP)  ? true : false;
@@ -1332,23 +1332,49 @@ static void add_item_tabs(const struct object_menu_data *data)
 	const bool use_quiver = (player->upkeep->command_wrk & USE_QUIVER) ? true : false;
 	const bool use_floor  = (player->upkeep->command_wrk & USE_FLOOR)  ? true : false;
 
+	/* Add 1 to length of each tab because the frontend will probably
+	 * need some kind of padding (for example, a space after each tab) */
+	size_t len = 0;
+
 #define TAB_FG_COLOR(cond) \
 	((cond) ? COLOUR_WHITE : COLOUR_L_DARK)
 
 	if (allow_equip) {
-		Term_add_tab('=', "Equipment", TAB_FG_COLOR(use_equip),  COLOUR_DARK);
+		const char equip[] = "Equipment";
+		len += N_ELEMENTS(equip) + 1;
+
+		if (add) {
+			Term_add_tab('=', equip, TAB_FG_COLOR(use_equip),  COLOUR_DARK);
+		}
 	}
 	if (allow_inven) {
-		Term_add_tab('\\', "Inventory", TAB_FG_COLOR(use_inven),  COLOUR_DARK);
+		const char inven[] = "Inventory";
+		len += N_ELEMENTS(inven) + 1;
+
+		if (add) {
+			Term_add_tab('\\', inven, TAB_FG_COLOR(use_inven),  COLOUR_DARK);
+		}
 	}
 	if (allow_quiver) {
-		Term_add_tab('|', " Quiver ", TAB_FG_COLOR(use_quiver), COLOUR_DARK);
+		const char quiver[] = " Quiver ";
+		len += N_ELEMENTS(quiver) + 1;
+
+		if (add) {
+			Term_add_tab('|', quiver, TAB_FG_COLOR(use_quiver), COLOUR_DARK);
+		}
 	}
 	if (allow_floor) {
-		Term_add_tab('-', "  Floor  ", TAB_FG_COLOR(use_floor), COLOUR_DARK);
+		const char floor[] = "  Floor  ";
+		len += N_ELEMENTS(floor) + 1;
+
+		if (add) {
+			Term_add_tab('-', floor, TAB_FG_COLOR(use_floor), COLOUR_DARK);
+		}
 	}
 
 #undef TAB_FG_COLOR
+
+	return len;
 }
 
 static void push_item_term(const struct object_menu_data *data)
@@ -1363,11 +1389,12 @@ static void push_item_term(const struct object_menu_data *data)
 	/* Handle empty floor, inventory, quiver */
 	bool empty = data->list->len > 0 ? false : true;
 
-	/* We add 3 to term's width to account for the menu's tags.
-	 * Minimum width 50 is to ensure that term tags have enough space. */
+	size_t tablen = item_term_tabs(data, false);
 
+	/* We add 3 to term's width to account for the menu's tags
+	 * and add 1 to tab's length to make the menu look better */
 	struct term_hints hints = {
-		.width = MAX(50, data->list->total_max_len + 3),
+		.width = MAX(tablen + 1, data->list->total_max_len + 3),
 		.height = empty ? 1 : data->list->len,
 		.tabs = true,
 		.purpose = TERM_PURPOSE_MENU,
@@ -1383,7 +1410,7 @@ static void push_item_term(const struct object_menu_data *data)
 
 	Term_push_new(&hints);
 
-	add_item_tabs(data);
+	item_term_tabs(data, true);
 }
 
 static void pop_item_term(void)
