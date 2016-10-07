@@ -60,7 +60,7 @@ static void lore_title(textblock *tb, const struct monster_race *race)
 	textblock_append(tb, "')");
 
 	if (optional_attr != standard_attr || optional_char != standard_char) {
-		/* Append the "optional" attr/char info */
+		/* Append the optional attr/char info (that's probably a tile) */
 		textblock_append(tb, " ('");
 		textblock_append_pict(tb, optional_attr, optional_char);
 		textblock_append(tb, "')");
