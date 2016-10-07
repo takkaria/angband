@@ -24,7 +24,11 @@
 #include "ui2-display.h"
 #include "ui2-output.h"
 
-static struct curse *selection;
+struct curses_list {
+	struct curse **curses;
+	struct curse *selection;
+	size_t count;
+};
 
 /**
  * Display an entry of the item menu
@@ -32,16 +36,17 @@ static struct curse *selection;
 void get_curse_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
-	(void) width;
+	struct curses_list *list = menu_priv(menu);
 
-	struct curse **choice = menu_priv(menu);
+	Term_adds(loc.x, loc.y, TERM_MAX_LEN,
+			menu_row_style(true, cursor), list->curses[index]->name);
 
-	char buf[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(buf, sizeof(buf),
-			"%s (power %d)", choice[index]->name, choice[index]->power);
+	char power[ANGBAND_TERM_STANDARD_WIDTH / 2];
+	int power_len = strnfmt(power, sizeof(power),
+			"(power %d)", list->curses[index]->power);
 
-	loc.y += index;
-	c_put_str(menu_row_style(true, cursor), buf, loc);
+	loc.x = width - power_len;
+	Term_adds(loc.x, loc.y, power_len, COLOUR_WHITE, power);
 }
 
 /**
@@ -49,13 +54,72 @@ void get_curse_display(struct menu *menu,
  */
 bool get_curse_action(struct menu *menu, const ui_event *event, int index)
 {
-	struct curse **choice = menu_priv(menu);
+	struct curses_list *list = menu_priv(menu);
 
 	if (event->type == EVT_SELECT) {
-		selection = choice[index];
+		list->selection = list->curses[index];
 	}
 
 	return false;
+}
+
+static void curses_list_init(struct curses_list *list, const struct object *obj)
+{
+	assert(list != NULL);
+	assert(obj != NULL);
+
+	memset(list, 0, sizeof(*list));
+	list->selection = NULL;
+	list->curses = NULL;
+	list->count = 0;
+
+	size_t count = 0;
+	for (struct curse *c = obj->curses; c; c = c->next) {
+		count++;
+	}
+
+	if (count > 0) {
+		list->curses = mem_zalloc(count * sizeof(*list->curses));
+		for (struct curse *c = obj->curses; c; c = c->next) {
+			list->curses[list->count] = c;
+			list->count++;
+		}
+	}
+
+	assert(list->count == count);
+}
+
+static void curses_list_destroy(struct curses_list *list)
+{
+	mem_free(list->curses);
+}
+
+static void curse_menu_term_push(const struct curses_list *list)
+{
+	const char *tab = "Remove which curse?";
+
+	size_t maxlen = 0;
+	for (size_t i = 0; i < list->count; i++) {
+		size_t len = strlen(list->curses[i]->name);
+		maxlen = MAX(len, maxlen);
+	}
+
+	maxlen += 15; /* to append, for example " (power 99)" */
+
+	struct term_hints hints = {
+		.width = MAX(maxlen + 1, strlen(tab) + 1),
+		.height = list->count,
+		.tabs = true,
+		.position = TERM_POSITION_TOP_LEFT,
+		.purpose = TERM_PURPOSE_MENU
+	};
+	Term_push_new(&hints);
+	Term_add_tab(0, tab, COLOUR_WHITE, COLOUR_DARK);
+}
+
+static void curse_menu_term_pop(void)
+{
+	Term_pop();
 }
 
 /**
@@ -68,60 +132,34 @@ struct curse *curse_menu(struct object *obj)
 		.row_handler = get_curse_action
 	};
 
-	struct curse *curse = obj->curses;
-	unsigned length;
-	int count;
+	struct curses_list list;
+	curses_list_init(&list, obj);
 
-	/* Count and then list the curses */
-	count = 0;
-	while (curse) {
-		count++;
-		curse = curse->next;
-	}
-	if (count == 0) {
+	if (list.count == 0) {
+		curses_list_destroy(&list);
 		return NULL;
 	}
 
-	struct curse **available = mem_zalloc(count * sizeof(*available));
+	struct menu menu;
+	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
+	menu_setpriv(&menu, list.count, &list);
+	menu.selections = all_letters;
 
-	count = 0;
-	length = 0;
-	for (curse = obj->curses; curse != NULL; curse = curse->next) {
-		available[count] = curse;
-		length = MAX(length, strlen(curse->name));
-		count++;
-	}
+	curse_menu_term_push(&list);
+	menu_layout_term(&menu);
 
-	struct menu *menu = menu_new(MN_SKIN_SCROLL, &menu_f);
+	menu_select(&menu);
 
-	/* Set up the menu */
-	menu_setpriv(menu, count, available);
-	menu->header = "Remove which curse?";
+	curse_menu_term_pop();
+	curses_list_destroy(&list);
 
-	/* Set up the item list variables */
-	selection = NULL;
-
-	struct term_hints hints = {
-		.width = MAX(length + 1, strlen(menu->header)),
-		.height = count + 1,
-		.position = TERM_POSITION_TOP_CENTER,
-		.purpose = TERM_PURPOSE_MENU
-	};
-	Term_push_new(&hints);
-
-	menu_layout_term(menu);
-	menu_select(menu);
-
-	Term_pop();
-	menu_free(menu);
-	mem_free(available);
-
-	return selection;
+	return list.selection;
 }
 
 bool textui_get_curse(struct curse **choice, struct object *obj)
 {
 	struct curse *curse = curse_menu(obj);
+
 	if (curse != NULL) {
 		*choice = curse;
 		return true;
