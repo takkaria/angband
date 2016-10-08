@@ -1124,11 +1124,13 @@ int menu_dynamic_select(struct menu *menu)
 void menu_dynamic_free(struct menu *menu)
 {
 	struct menu_entry *entry = menu_priv(menu);
+
 	while (entry) {
 		struct menu_entry *next = entry->next;
 		string_free(entry->text);
 		mem_free(entry);
 		entry = next;
 	}
+
 	mem_free(menu);
 }
