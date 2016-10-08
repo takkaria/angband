@@ -469,7 +469,7 @@ static void ui_keymap_remove(const char *title, int index)
 
 	struct term_hints hints = {
 		.width = 50,
-		.height = 4,
+		.height = 5,
 		.tabs = true,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
@@ -516,6 +516,8 @@ static void ui_keymap_remove(const char *title, int index)
 				prt("Keymap not removed.", loc);
 			}
 		} else {
+			loc.x = 0;
+			loc.y = hints.height - 2;
 			prt("Keymap not found.", loc);
 		}
 
