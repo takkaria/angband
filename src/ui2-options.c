@@ -491,12 +491,19 @@ static void ui_keymap_remove(const char *title, int index)
 		const struct keypress *act = keymap_find(KEYMAP_MODE_OPT, trigger);
 		
 		if (act != NULL) {
+			char tmp[1024];
+			keypress_to_text(tmp, sizeof(tmp), act, false);
+		
+			loc.y++;
+			prt("Found: ", loc);
+			Term_puts(sizeof(tmp), COLOUR_L_BLUE, tmp);
+
 			loc.x = 0;
 			loc.y = hints.height - 1;
 
 			prt("Remove this keymap? [y/n] ", loc);
 			Term_flush_output();
-			loc.y--;
+			loc.y = hints.height - 2;
 
 			struct keypress key = inkey_only_key();
 			if (key.code == 'y' || key.code == 'Y' || key.code == KC_ENTER) {
