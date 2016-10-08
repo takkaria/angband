@@ -984,11 +984,12 @@ struct menu_entry {
 
 static bool dynamic_valid(struct menu *menu, int index)
 {
-	struct menu_entry *entry;
+	struct menu_entry *entry = menu_priv(menu);
 
-	for (entry = menu_priv(menu); index; index--) {
+	while (index > 0) {
+		assert(entry->next);
 		entry = entry->next;
-		assert(entry);
+		index--;
 	}
 
 	return entry->valid;
