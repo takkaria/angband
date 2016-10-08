@@ -62,6 +62,10 @@ enum context_menu_value_e {
 	MENU_VALUE_TARGET,
 	MENU_VALUE_RECALL,
 	MENU_VALUE_REST,
+	MENU_VALUE_REST_HP_AND_SP,
+	MENU_VALUE_REST_HP_OR_SP,
+	MENU_VALUE_REST_AS_NEEDED,
+	MENU_VALUE_REST_KEYPRESS,
 	MENU_VALUE_INVENTORY,
 	MENU_VALUE_CENTER_MAP,
 	MENU_VALUE_FLOOR,
@@ -198,6 +202,40 @@ static void context_menu_player_other(struct loc mloc)
 	}
 }
 
+static void context_rest(int choice)
+{
+	cmdq_push(CMD_REST);
+	cmd_set_arg_choice(cmdq_peek(), "choice", choice);
+}
+
+static void context_menu_player_rest(struct loc mloc)
+{
+	struct menu *m = menu_dynamic_new();
+	
+	mnflag_on(m->flags, MN_NO_TAGS);
+
+	menu_dynamic_add(m, "For HP and SP", MENU_VALUE_REST_HP_AND_SP);
+	menu_dynamic_add(m, "For HP or SP",  MENU_VALUE_REST_HP_OR_SP);
+	menu_dynamic_add(m, "As needed",     MENU_VALUE_REST_AS_NEEDED);
+	menu_dynamic_add(m, "Specify",       MENU_VALUE_REST_KEYPRESS);
+
+	struct term_hints hints = context_term_hints(m, mloc);
+	Term_push_new(&hints);
+	menu_layout_term(m);
+
+	int selected = menu_dynamic_select(m);
+
+	menu_dynamic_free(m);
+	Term_pop();
+
+	switch (selected) {
+		case MENU_VALUE_REST_AS_NEEDED: context_rest(REST_COMPLETE);    break;
+		case MENU_VALUE_REST_HP_AND_SP: context_rest(REST_ALL_POINTS);  break;
+		case MENU_VALUE_REST_HP_OR_SP:  context_rest(REST_SOME_POINTS); break;
+		case MENU_VALUE_REST_KEYPRESS:  Term_keypress('R', 0);          break;
+	}
+}
+
 static void context_menu_player_display_floor(void)
 {
 	int diff = weight_remaining(player);
@@ -331,7 +369,7 @@ void context_menu_player(struct loc mloc)
 			break;
 
 		case MENU_VALUE_REST:
-			Term_keypress('R', 0);
+			context_menu_player_rest(mloc);
 			break;
 
 		case MENU_VALUE_INVENTORY:
