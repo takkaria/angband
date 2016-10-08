@@ -689,7 +689,7 @@ void menu_handle_keypress(struct menu *menu,
 		if (dir != 0 && has_valid_row(menu)) {
 			*out = menu->skin->process_dir(menu, dir);
 
-			if (out->type == EVT_MOVE) {
+			if (out->type == EVT_MOVE && ddy[dir] != 0) {
 				while (!is_valid_row(menu, menu->cursor)) {
 					/* Loop around */
 					if (menu->cursor > count - 1) {
@@ -700,10 +700,10 @@ void menu_handle_keypress(struct menu *menu,
 						menu->cursor += ddy[dir];
 					}
 				}
-			
-				assert(menu->cursor >= 0);
-				assert(menu->cursor < count);
 			}
+			
+			assert(menu->cursor >= 0);
+			assert(menu->cursor < count);
 		}
 	}
 }
