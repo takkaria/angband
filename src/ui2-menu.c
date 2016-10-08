@@ -609,12 +609,7 @@ void menu_handle_mouse(struct menu *menu,
 {
 	if (mouse.button == MOUSE_BUTTON_RIGHT) {
 		out->type = EVT_ESCAPE;
-	} else if (!mouse_in_region(mouse, menu->active)) {
-		/* A click to the left of the active region is 'back' */
-		if (mouse.x < menu->active.x) {
-			out->type = EVT_ESCAPE;
-		}
-	} else {
+	} else if (mouse_in_region(mouse, menu->active)) {
 		int new_cursor = menu->skin->get_cursor(loc(mouse.x, mouse.y),
 				menu_count(menu), menu->top, menu->active);
 	
