@@ -791,7 +791,11 @@ static int context_menu_store(struct store_context *context,
 	menu->selections = labels;
 
 	menu_dynamic_add_label(menu, "Inspect inventory", 'I', ACT_INSPECT_INVEN, labels);
-	menu_dynamic_add_label(menu, home ? "Stash" : "Sell", 'd', ACT_SELL, labels);
+
+	if (!context->inspect_only) {
+		menu_dynamic_add_label(menu,
+				home ? "Stash" : "Sell", 'd', ACT_SELL, labels);
+	}
 
 	show_prompt("(Enter to select, ESC) Command:", false);
 
@@ -843,9 +847,14 @@ static void context_menu_store_item(struct store_context *context,
 	menu->selections = labels;
 
 	menu_dynamic_add_label(menu, "Examine", 'x', ACT_EXAMINE, labels);
-	menu_dynamic_add_label(menu, home ? "Take" : "Buy", 'd', ACT_BUY, labels);
-	if (obj->number > 1) {
-		menu_dynamic_add_label(menu, home ? "Take one" : "Buy one", 'o', ACT_BUY_ONE, labels);
+
+	if (!context->inspect_only) {
+		menu_dynamic_add_label(menu,
+				home ? "Take" : "Buy", 'd', ACT_BUY, labels);
+		if (obj->number > 1) {
+			menu_dynamic_add_label(menu,
+					home ? "Take one" : "Buy one", 'o', ACT_BUY_ONE, labels);
+		}
 	}
 
 	region reg = menu_dynamic_calc_location(menu);
