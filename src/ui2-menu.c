@@ -1108,8 +1108,8 @@ int menu_dynamic_select(struct menu *menu)
 	if (e.type == EVT_ESCAPE) {
 		return -1;
 	} else {
-		int cursor = menu->cursor;
 		struct menu_entry *entry = menu_priv(menu);
+		int cursor = menu->cursor;
 
 		while (cursor > 0) {
 			assert(entry->next);
