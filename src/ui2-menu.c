@@ -480,7 +480,8 @@ static char code_from_key(const struct menu *menu,
 	if (key.code > CHAR_MAX) {
 		return 0;
 	} else if (menu_has_inscription(menu, key.code)) {
-		return menu->inscriptions[D2I(key.code)];
+		char code = menu->inscriptions[D2I(key.code)];
+		return caseless ? toupper(code) : code;
 	} else if (caseless) {
 		return toupper(key.code);
 	} else {
