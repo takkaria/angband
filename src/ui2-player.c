@@ -944,7 +944,7 @@ void display_player(enum player_display_mode mode)
 	Term_flush_output();
 }
 
-static void dump_term_line(ang_file *file, int x, int y, int len)
+static void dump_term_line(ang_file *file, int x, int y, int len, bool show_empty)
 {
 	char buf[ANGBAND_TERM_STANDARD_WIDTH * MB_LEN_MAX + 1];
 
@@ -974,7 +974,9 @@ static void dump_term_line(ang_file *file, int x, int y, int len)
 	assert(size < sizeof(buf));
 	buf[size] = 0;
 
-	file_putf(file, "%s\n", buf);
+	if (size > 0 || show_empty) {
+		file_putf(file, "%s\n", buf);
+	}
 }
 
 /**
@@ -996,20 +998,31 @@ static void write_character_dump(ang_file *file)
 
 	display_player(PLAYER_DISPLAY_MODE_BASIC);
 
-	for (int y = 1; y < 23; y++) {
-		dump_term_line(file, 0, y, 80);
+	for (int y = PLAYER_DISPLAY_BASIC_ROW_1;
+			y < PLAYER_DISPLAY_BASIC_ROW_2 + 7;
+			y++)
+	{
+		dump_term_line(file, 0, y, ANGBAND_TERM_STANDARD_WIDTH, true);
 	}
-	file_put(file, "\n");
+	file_put(file, "\n\n");
+
+	for (int y = PLAYER_DISPLAY_HISTORY_ROW;
+			y < ANGBAND_TERM_STANDARD_HEIGHT;
+			y++)
+	{
+		dump_term_line(file, 0, y, ANGBAND_TERM_STANDARD_WIDTH, false);
+	}
+	file_put(file, "\n\n");
+
+	Term_clear();
 
 	display_player(PLAYER_DISPLAY_MODE_EXTRA);
 
-	for (int y = 12; y < 21; y++) {
-		dump_term_line(file, 0, y, 40);
-	}
-	file_put(file, "\n");
-
-	for (int y = 12; y < 21; y++) {
-		dump_term_line(file, 40, y, 40);
+	for (int y = PLAYER_FLAG_RES_ROW_1;
+			y < PLAYER_FLAG_RES_ROW_2 + 7;
+			y++)
+	{
+		dump_term_line(file, 0, y, 80, true);
 	}
 	file_put(file, "\n\n");
 
@@ -1040,7 +1053,7 @@ static void write_character_dump(ang_file *file)
 			object_info_chardump(file, obj, 5, 72);
 		}
 	}
-	file_put(file, "\n\n");
+	file_put(file, "\n");
 
 	/* Dump the inventory */
 	file_putf(file, "  [Character Inventory]\n\n");
@@ -1052,7 +1065,7 @@ static void write_character_dump(ang_file *file)
 			object_info_chardump(file, obj, 5, 72);
 		}
 	}
-	file_put(file, "\n\n");
+	file_put(file, "\n");
 
 	/* Dump the quiver */
 	file_putf(file, "  [Character Quiver]\n\n");
@@ -1064,7 +1077,7 @@ static void write_character_dump(ang_file *file)
 			object_info_chardump(file, obj, 5, 72);
 		}
 	}
-	file_put(file, "\n\n");
+	file_put(file, "\n");
 
 	/* Dump the home if anything there */
 	if (stores[STORE_HOME].stock_num > 0) {
@@ -1085,7 +1098,7 @@ static void write_character_dump(ang_file *file)
 			object_info_chardump(file, obj, 5, 72);
 		}
 
-		file_put(file, "\n\n");
+		file_put(file, "\n");
 
 		mem_free(home_list);
 	}
@@ -1095,28 +1108,35 @@ static void write_character_dump(ang_file *file)
 	file_put(file, "\n\n");
 
 	/* Dump options */
-	file_putf(file, "  [Options]\n\n");
+	struct {int type; const char *title;} options[] = {
+		{OP_INTERFACE, "user interface"},
+		{OP_BIRTH,     "birth"},
+	};
 
-	/* Dump options */
-	for (int i = 0; i < OP_MAX; i++) {
+	for (int opt_type = 0, dumped = 0; opt_type < OP_MAX; opt_type++) {
 		const char *title = NULL;
-		switch (i) {
-			case OP_INTERFACE: title = "User interface"; break;
-			case OP_BIRTH:     title = "Birth";          break;
+
+		for (size_t o = 0; o < N_ELEMENTS(options) && title == NULL; o++) {
+			if (options[o].type == opt_type) {
+				title = options[o].title;
+			}
 		}
 
 		if (title != NULL) {
-			file_putf(file, "  [%s]\n\n", title);
-			for (int opt = 0; opt < OPT_MAX; opt++) {
-				if (option_type(opt) == i) {
+			file_putf(file, "  [Options - %s]\n\n", title);
+			for (int option = 0; option < OPT_MAX; option++) {
+				if (option_type(option) == opt_type) {
 					file_putf(file, "%-45s: %s (%s)\n",
-							option_desc(opt),
-							op_ptr->opt[opt] ? "yes" : "no ",
-							option_name(opt));
+							option_desc(option),
+							op_ptr->opt[option] ? "yes" : "no ",
+							option_name(option));
 				}
 			}
 
-			file_put(file, "\n");
+			if (dumped < (int) N_ELEMENTS(options) - 1) {
+				file_put(file, "\n");
+				dumped++;
+			}
 		}
 	}
 }
