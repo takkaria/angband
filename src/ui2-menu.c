@@ -874,7 +874,7 @@ void menu_layout(struct menu *menu, region reg)
 	menu->active = menu->boundary;
 
 	if (menu->title) {
-		/* Shrink menu, move it down and to the right */
+		/* Shrink the menu, move it down and to the right */
 		menu->active.y += 2;
 		menu->active.h -= 2;
 		menu->active.x += 1;
@@ -882,7 +882,7 @@ void menu_layout(struct menu *menu, region reg)
 	}
 
 	if (menu->header) {
-		/* Header is right above menu */
+		/* Header is right above the menu */
 		menu->active.y++;
 		menu->active.h--;
 	}
