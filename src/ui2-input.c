@@ -223,7 +223,7 @@ struct keypress inkey_only_key(void)
 	} else if (event.type == EVT_MOUSE) {
 		if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 			event.type = EVT_KBRD;
-			event.key.code = '\n';
+			event.key.code = KC_ENTER;
 			event.key.mods = 0;
 		} else {
 			event.type = EVT_KBRD;
