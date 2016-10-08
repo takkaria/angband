@@ -441,7 +441,9 @@ static ui_event column_skin_process_direction(struct menu *menu, int dir)
 	return out;
 }
 
-/* Virtual function table for multi-column menu skin */
+/**
+ * Virtual function table for multi-column menu skin
+ */
 static const menu_skin menu_skin_columns = {
 	.get_cursor   = column_skin_get_cursor,
 	.display_list = column_skin_display,
