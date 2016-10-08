@@ -491,7 +491,7 @@ static char code_from_key(const struct menu *menu,
 static bool tag_eq_code(int tag, int code, bool caseless)
 {
 	if (caseless) {
-		tag = toupper((unsigned char) tag);
+		tag = toupper(tag);
 	}
 
 	return tag != 0 && tag == code;
