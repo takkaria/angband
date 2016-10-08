@@ -500,9 +500,9 @@ static void ui_keymap_remove(const char *title, int index)
 
 			loc.x = 0;
 			loc.y = hints.height - 1;
-
 			prt("Remove this keymap? [y/n] ", loc);
 			Term_flush_output();
+
 			loc.y = hints.height - 2;
 
 			struct keypress key = inkey_only_key();
