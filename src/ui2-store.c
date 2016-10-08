@@ -909,6 +909,7 @@ static bool store_menu_handle(struct menu *menu,
 			 * so exit this so that menu_handle_mouse() will be called */
 			return false;
 		} else if (event->mouse.button == MOUSE_BUTTON_LEFT) {
+			const int item_row = menu->active.y + index - menu->top;
 			bool action = false;
 
 			if (event->mouse.y == 0 || event->mouse.y == 1) {
@@ -920,8 +921,7 @@ static bool store_menu_handle(struct menu *menu,
 				}
 
 				action = true;
-			} else if (event->mouse.y == index + context->term_loc[LOC_HEADER].y + 1) {
-				/* If press is on a list item, so store item context */
+			} else if (event->mouse.y == item_row) {
 				if (context->inspect_only) {
 					store_examine(context, index);
 				} else {
