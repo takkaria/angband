@@ -24,14 +24,6 @@
 #include "ui2-menu.h"
 
 /**
- * Cursor colours
- */
-static const uint32_t curs_attrs[2][2] = {
-	{COLOUR_SLATE, COLOUR_BLUE},  /* Greyed row */
-	{COLOUR_WHITE, COLOUR_L_BLUE} /* Valid row */
-};
-
-/**
  * Some useful constants
  */
 const char lower_case[]  = "abcdefghijklmnopqrstuvwxyz";
@@ -47,11 +39,18 @@ static void display_menu_row(struct menu *menu,
 static bool is_valid_row(struct menu *menu, int cursor);
 static bool has_valid_row(struct menu *menu, int count);
 
-/*
- * Helper function for accessing curs_attrs[]
+/**
+ * Select the color of menu's row,
+ * based on whether it's a valid row
+ * and whether it's currently under the cursor.
  */
 uint32_t menu_row_style(bool valid, bool selected)
 {
+	static const uint32_t curs_attrs[2][2] = {
+		{COLOUR_SLATE, COLOUR_BLUE},  /* Greyed row */
+		{COLOUR_WHITE, COLOUR_L_BLUE} /* Valid row */
+	};
+
 	return curs_attrs[valid ? 1 : 0][selected ? 1 : 0];
 }
 
