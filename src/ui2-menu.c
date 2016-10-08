@@ -70,12 +70,14 @@ static bool menu_has_tags(const struct menu *menu)
 
 static bool menu_has_inscription(const struct menu *menu, keycode_t code)
 {
-	if (code > CHAR_MAX) {
-		return false;
-	} else {
-		return mnflag_has(menu->flags, MN_INSCRIP_TAGS)
+	if (mnflag_has(menu->flags, MN_INSCRIP_TAGS)) {
+		assert(menu->inscriptions != NULL);
+
+		return code < CHAR_MAX
 			&& isdigit(code)
 			&& menu->inscriptions[D2I(code)] != 0;
+	} else {
+		return false;
 	}
 }
 
