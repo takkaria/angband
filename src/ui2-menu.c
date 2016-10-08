@@ -36,6 +36,7 @@ const char all_digits[]  = "0123456789";
  */
 static void display_menu_row(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width);
+static void display_menu_more(struct menu *menu, region reg, int row);
 static bool is_valid_row(struct menu *menu, int cursor);
 static bool has_valid_row(struct menu *menu, int count);
 
@@ -231,21 +232,34 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 	/* Limit the top to legal places */
 	menu->top = MAX(0, MIN(menu->top, count - reg.h));
 
+	/* Display "-more-" on the first/last row,
+	 * if the menu has too many entries */
+	int start_row = 0;
+	if (menu->top > 0) {
+		display_menu_more(menu, reg, start_row);
+		start_row++;
+	}
+	int end_row = reg.h;
+	if (menu->top + reg.h < count) {
+		end_row--;
+		display_menu_more(menu, reg, end_row);
+	}
+
 	/* Position of cursor relative to top */
 	int rel_cursor = cursor - menu->top;
 
 	bool clear = mnflag_has(menu->flags, MN_DONT_CLEAR) ? false : true;
 
-	for (int i = 0; i < reg.h; i++) {
+	for (int row = start_row; row < end_row; row++) {
 		if (clear) {
-			Term_erase(reg.x, reg.y + i, reg.w);
+			Term_erase(reg.x, reg.y + row, reg.w);
 		}
-		if (i < count) {
+		if (row < count) {
 			/* Redraw the line if it's within the number of menu items */
-			struct loc loc = {reg.x, reg.y + i};
-			bool is_curs = (i == rel_cursor);
+			struct loc loc = {reg.x, reg.y + row};
+			bool is_curs = (row == rel_cursor);
 
-			display_menu_row(menu, menu->top + i, is_curs, loc, reg.w);
+			display_menu_row(menu, menu->top + row, is_curs, loc, reg.w);
 		}
 	}
 
@@ -520,6 +534,14 @@ static void display_menu_row(struct menu *menu,
 	}
 
 	menu->iter->display_row(menu, id, cursor, loc, width);
+}
+
+static void display_menu_more(struct menu *menu, region reg, int row)
+{
+	const int y = reg.y + row;
+
+	Term_erase(reg.x, y, reg.w);
+	Term_addws(reg.x, y, reg.w, menu_row_style(false, false), L" -more-");
 }
 
 void menu_refresh(struct menu *menu)
