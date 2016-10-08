@@ -219,7 +219,7 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 	int count = menu_count(menu);
 
 	/* Keep a certain distance from the top when possible */
-	if (cursor <= menu->top && menu->top > 0) {
+	if (cursor <= menu->top) {
 		menu->top = cursor - 1;
 	}
 
