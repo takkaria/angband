@@ -68,7 +68,7 @@ static bool menu_has_tags(const struct menu *menu)
 	return !mnflag_has(menu->flags, MN_NO_TAGS);
 }
 
-static bool menu_inscription(const struct menu *menu, keycode_t code)
+static bool menu_has_inscription(const struct menu *menu, keycode_t code)
 {
 	if (code > CHAR_MAX) {
 		return false;
@@ -79,7 +79,7 @@ static bool menu_inscription(const struct menu *menu, keycode_t code)
 	}
 }
 
-static bool menu_caseless(const struct menu *menu)
+static bool menu_is_caseless(const struct menu *menu)
 {
 	return mnflag_has(menu->flags, MN_CASELESS_TAGS);
 }
@@ -448,7 +448,7 @@ static char code_from_key(const struct menu *menu,
 {
 	char code = (char) key.code;
 
-	if (menu_inscription(menu, key.code)) {
+	if (menu_has_inscription(menu, key.code)) {
 		code = menu->inscriptions[D2I(key.code)];
 	} else if (caseless) {
 		code = toupper((unsigned char) key.code);
@@ -472,7 +472,7 @@ static bool tag_eq_code(int tag, int code, bool caseless)
  */
 static int get_cursor_key(struct menu *menu, struct keypress key)
 {
-	const bool caseless = menu_caseless(menu);
+	const bool caseless = menu_is_caseless(menu);
 	const char code = code_from_key(menu, key, caseless);
 
 	if (menu_has_tags(menu)) {
