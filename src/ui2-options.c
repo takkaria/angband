@@ -482,6 +482,8 @@ static void ui_keymap_remove(const char *title, int index)
 	do {
 		struct loc loc = {1, 0};
 
+		Term_clear();
+
 		prt("Key: ", loc);
 
 		Term_cursor_visible(true);
