@@ -136,8 +136,6 @@ static void menu_action_display(struct menu *menu,
 {
 	menu_action *acts = menu_priv(menu);
 
-	Term_erase(loc.x, loc.y, width);
-
 	if (acts[index].name) {
 		bool valid = (acts[index].flags & MN_ACT_GRAYED) ? false : true;
 
