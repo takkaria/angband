@@ -1024,10 +1024,10 @@ struct menu *menu_dynamic_new(void)
 void menu_dynamic_add_valid(struct menu *menu,
 		const char *text, int value, bool valid)
 {
+	assert(menu->iter == &dynamic_iter);
+
 	struct menu_entry *head = menu_priv(menu);
 	struct menu_entry *new = mem_zalloc(sizeof(*new));
-
-	assert(menu->iter == &dynamic_iter);
 
 	new->text = string_make(text);
 	new->value = value;
