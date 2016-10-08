@@ -601,8 +601,8 @@ void menu_refresh(struct menu *menu)
 /**
  * Handle mouse input in a menu.
  * 
- * Mouse output is either moving, selecting, escaping, or nothing.  Returns
- * true if something changes as a result of the click.
+ * Mouse output is either moving, selecting, escaping, or nothing.
+ * Returns true if something changes as a result of the click.
  */
 void menu_handle_mouse(struct menu *menu,
 		struct mouseclick mouse, ui_event *out)
