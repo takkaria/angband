@@ -27,8 +27,8 @@
  * Cursor colours
  */
 static const uint32_t curs_attrs[2][2] = {
-	{COLOUR_SLATE, COLOUR_BLUE},      /* Greyed row */
-	{COLOUR_WHITE, COLOUR_L_BLUE}     /* Valid row */
+	{COLOUR_SLATE, COLOUR_BLUE},  /* Greyed row */
+	{COLOUR_WHITE, COLOUR_L_BLUE} /* Valid row */
 };
 
 /**
