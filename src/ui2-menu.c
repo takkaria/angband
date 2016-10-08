@@ -86,19 +86,6 @@ static bool menu_is_caseless(const struct menu *menu)
 	return mnflag_has(menu->flags, MN_CASELESS_TAGS);
 }
 
-/**
- * Display an event, with possible preference overrides
- */
-static void display_action_aux(menu_action *act,
-		uint32_t color, struct loc loc, int width)
-{
-	Term_erase(loc.x, loc.y, width);
-
-	if (act->name) {
-		Term_adds(loc.x, loc.y, width, color, act->name);
-	}
-}
-
 /*
  * Helper functions for managing menu's filter list
  */
@@ -149,9 +136,14 @@ static void menu_action_display(struct menu *menu,
 {
 	menu_action *acts = menu_priv(menu);
 
-	bool valid = (acts[index].flags & MN_ACT_GRAYED) ? false : true;
+	Term_erase(loc.x, loc.y, width);
 
-	display_action_aux(&acts[index], menu_row_style(valid, cursor), loc, width);
+	if (acts[index].name) {
+		bool valid = (acts[index].flags & MN_ACT_GRAYED) ? false : true;
+
+		Term_adds(loc.x, loc.y, width,
+				menu_row_style(valid, cursor), acts[index].name);
+	}
 }
 
 static bool menu_action_handle(struct menu *menu, const ui_event *event, int index)
