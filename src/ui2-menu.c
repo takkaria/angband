@@ -102,6 +102,11 @@ static bool menu_needs_double_tap(const struct menu *menu)
 	return mnflag_has(menu->flags, MN_DBL_TAP);
 }
 
+static bool menu_can_act(const struct menu *menu)
+{
+	return !mnflag_has(menu->flags, MN_NO_ACTION);
+}
+
 /**
  * Helper functions for managing menu's filter list
  */
@@ -731,7 +736,7 @@ ui_event menu_select(struct menu *menu)
 	assert(menu->active.w != 0);
 	assert(menu->active.h != 0);
 
-	const bool action_ok = mnflag_has(menu->flags, MN_NO_ACTION) ? false : true;
+	const bool action_ok = menu_can_act(menu);
 
 	ui_event in = EVENT_EMPTY;
 
