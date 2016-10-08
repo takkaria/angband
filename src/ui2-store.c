@@ -848,13 +848,10 @@ static void context_menu_store_item(struct store_context *context,
 
 	menu_dynamic_add_label(menu, "Examine", 'x', ACT_EXAMINE, labels);
 
-	if (!context->inspect_only) {
+	menu_dynamic_add_label(menu, home ? "Take" : "Buy", 'd', ACT_BUY, labels);
+	if (obj->number > 1) {
 		menu_dynamic_add_label(menu,
-				home ? "Take" : "Buy", 'd', ACT_BUY, labels);
-		if (obj->number > 1) {
-			menu_dynamic_add_label(menu,
-					home ? "Take one" : "Buy one", 'o', ACT_BUY_ONE, labels);
-		}
+				home ? "Take one" : "Buy one", 'o', ACT_BUY_ONE, labels);
 	}
 
 	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
@@ -925,9 +922,13 @@ static bool store_menu_handle(struct menu *menu,
 				action = true;
 			} else if (event->mouse.y == index + context->term_loc[LOC_HEADER].y + 1) {
 				/* If press is on a list item, so store item context */
-				context_menu_store_item(context, index,
-						loc(event->mouse.x, event->mouse.y));
-				action = true;
+				if (context->inspect_only) {
+					store_examine(context, index);
+				} else {
+					context_menu_store_item(context, index,
+							loc(event->mouse.x, event->mouse.y));
+					action = true;
+				}
 			}
 
 			if (action) {
