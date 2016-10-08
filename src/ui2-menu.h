@@ -144,6 +144,8 @@ enum {
 	MN_CASELESS_TAGS,
 	/* dont erase the contents of menu region before displaying anything */
 	MN_DONT_CLEAR,
+	/* dont display "-more-" in menu */
+	MN_NO_MORE,
 
 	MN_MAX
 };

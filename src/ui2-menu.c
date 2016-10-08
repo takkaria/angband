@@ -87,6 +87,11 @@ static bool menu_is_caseless(const struct menu *menu)
 	return mnflag_has(menu->flags, MN_CASELESS_TAGS);
 }
 
+static bool menu_displays_more(const struct menu *menu)
+{
+	return !mnflag_has(menu->flags, MN_NO_MORE);
+}
+
 /**
  * Helper functions for managing menu's filter list
  */
@@ -235,12 +240,12 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 	/* Display "-more-" on the first/last row,
 	 * if the menu has too many entries */
 	int start_row = 0;
-	if (menu->top > 0) {
+	if (menu->top > 0 && menu_displays_more(menu)) {
 		display_menu_more(menu, reg, start_row);
 		start_row++;
 	}
 	int end_row = reg.h;
-	if (menu->top + reg.h < count) {
+	if (menu->top + reg.h < count && menu_displays_more(menu)) {
 		end_row--;
 		display_menu_more(menu, reg, end_row);
 	}
