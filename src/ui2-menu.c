@@ -641,8 +641,8 @@ static bool menu_handle_action(struct menu *menu, const ui_event *in)
 /**
  * Handle navigation keypresses.
  *
- * Returns true if they key was intelligible as navigation, regardless of
- * whether any action was taken.
+ * Returns true if they key was intelligible as navigation,
+ * regardless of whether any action was taken.
  */
 void menu_handle_keypress(struct menu *menu,
 		struct keypress key, ui_event *out)
