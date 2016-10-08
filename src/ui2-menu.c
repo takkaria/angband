@@ -111,7 +111,7 @@ static int menu_count(const struct menu *menu)
 }
 
 /**
- * MN_ACTIONS HELPER FUNCTIONS
+ * MN_ACTIONS helper functions
  *
  * MN_ACTIONS is the type of menu iterator that displays
  * a simple list of menu_actions.
@@ -172,7 +172,7 @@ static const menu_iter menu_iter_actions = {
 };
 
 /**
- * MN_STRINGS HELPER FUNCTIONS
+ * MN_STRINGS helper functions
  *
  * MN_STRINGS is the type of menu iterator that displays a simple list of 
  * strings - no action is associated, as selection will just return the index.
@@ -186,7 +186,9 @@ static void display_string(struct menu *menu,
 	Term_adds(loc.x, loc.y, width, menu_row_style(true, cursor), items[index]);
 }
 
-/* Virtual function table for displaying arrays of strings */
+/**
+ * Virtual function table for displaying arrays of strings
+ */
 static const menu_iter menu_iter_strings = { 
 	.display_row = display_string,
 };
