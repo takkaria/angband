@@ -998,15 +998,16 @@ static bool dynamic_valid(struct menu *menu, int index)
 static void dynamic_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
-	struct menu_entry *entry;
-	uint32_t color = menu_row_style(true, cursor);
+	struct menu_entry *entry = menu_priv(menu);
 
-	for (entry = menu_priv(menu); index; index--) {
+	while (index > 0) {
+		assert(entry->next);
 		entry = entry->next;
-		assert(entry);
+		index--;
 	}
 
-	Term_adds(loc.x, loc.y, width, color, entry->text);
+	Term_adds(loc.x, loc.y, width,
+			menu_row_style(true, cursor), entry->text);
 }
 
 static const menu_iter dynamic_iter = {
