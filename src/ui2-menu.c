@@ -1072,19 +1072,20 @@ void menu_dynamic_add_label(struct menu *menu,
 
 size_t menu_dynamic_longest_entry(struct menu *menu)
 {
-	size_t biggest = 0;
+	size_t maxlen = 0;
 
 	for (struct menu_entry *entry = menu_priv(menu);
 			entry != NULL;
 			entry = entry->next)
 	{
-		size_t current = strlen(entry->text);
-		if (current > biggest) {
-			biggest = current;
+		size_t len = strlen(entry->text);
+
+		if (len > maxlen) {
+			maxlen = len;
 		}
 	}
 
-	return biggest;
+	return maxlen;
 }
 
 region menu_dynamic_calc_location(struct menu *menu)
