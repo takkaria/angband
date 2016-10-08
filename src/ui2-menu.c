@@ -423,8 +423,10 @@ static ui_event column_skin_process_direction(struct menu *menu, int dir)
 		/* Adjust to the correct location */
 		if (menu->cursor < 0) {
 			menu->cursor = (height * cols) + menu->cursor;
-		}
-		if (menu->cursor >= count) {
+			while (menu->cursor >= count) {
+				menu->cursor -= height;
+			}
+		} else if (menu->cursor >= count) {
 			menu->cursor = menu->cursor % height;
 		}
 
