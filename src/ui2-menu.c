@@ -97,6 +97,11 @@ static bool menu_should_clear(const struct menu *menu)
 	return !mnflag_has(menu->flags, MN_DONT_CLEAR);
 }
 
+static bool menu_needs_double_tap(const struct menu *menu)
+{
+	return mnflag_has(menu->flags, MN_DBL_TAP);
+}
+
 /**
  * Helper functions for managing menu's filter list
  */
@@ -652,7 +657,7 @@ void menu_handle_keypress(struct menu *menu,
 	/* Get the new cursor position from the menu item tags */
 	int new_cursor = get_cursor_key(menu, key);
 	if (is_valid_row(menu, new_cursor)) {
-		if (!mnflag_has(menu->flags, MN_DBL_TAP)
+		if (!menu_needs_double_tap(menu)
 				|| new_cursor == menu->cursor)
 		{
 			out->type = EVT_SELECT;
