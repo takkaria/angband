@@ -322,13 +322,13 @@ static int set_g_names(const int *g_list, int g_count,
 	return group_name_len;
 }
 
-#define SWAP_MENUS(a, b) do { \
+#define SWAP_PTRS(a, b) do { \
 	void *swapspace = (a); \
 	(a) = (b); \
 	(b) = swapspace; \
 } while (0)
 
-#define SWAP_PANEL(p) do { \
+#define SWAP_PANELS(p) do { \
 	(p) = (p) == 0 ? 1 : 0; \
 } while (0)
 
@@ -429,9 +429,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		int index = o_list[g_offsets[g_cursor] + o_cursor];
 
 		if (swap) {
-			SWAP_MENUS(active_menu, inactive_menu);
-			SWAP_MENUS(active_cursor, inactive_cursor);
-			SWAP_PANEL(panel);
+			SWAP_PTRS(active_menu, inactive_menu);
+			SWAP_PTRS(active_cursor, inactive_cursor);
+			SWAP_PANELS(panel);
 			swap = false;
 		}
 
@@ -462,9 +462,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			case EVT_MOUSE:
 				/* Change active panels */
 				if (mouse_in_region(event.mouse, inactive_menu->active)) {
-					SWAP_MENUS(active_menu, inactive_menu);
-					SWAP_MENUS(active_cursor, inactive_cursor);
-					SWAP_PANEL(panel);
+					SWAP_PTRS(active_menu, inactive_menu);
+					SWAP_PTRS(active_cursor, inactive_cursor);
+					SWAP_PANELS(panel);
 				}
 				break;
 
@@ -502,8 +502,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	Term_visible(true);
 }
 
-#undef SWAP_MENUS
-#undef SWAP_PANEL
+#undef SWAP_PTRS
+#undef SWAP_PANELS
 
 /**
  * ------------------------------------------------------------------------
