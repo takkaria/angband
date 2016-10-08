@@ -242,9 +242,10 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 		}
 		if (i < count) {
 			/* Redraw the line if it's within the number of menu items */
+			struct loc loc = {reg.x, reg.y + i};
 			bool is_curs = (i == rel_cursor);
-			display_menu_row(menu,
-					menu->top + i, is_curs, loc(reg.x, reg.y + i), reg.w);
+
+			display_menu_row(menu, menu->top + i, is_curs, loc, reg.w);
 		}
 	}
 
