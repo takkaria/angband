@@ -834,6 +834,22 @@ static const menu_skin *menu_find_skin(skin_id id)
 	}
 }
 
+static void menu_ensure_cursor_valid(struct menu *menu)
+{
+	int count = menu_count(menu);
+
+	for (int row = menu->cursor; row < count; row++) {
+		if (is_valid_row(menu, row)) {
+			menu->cursor = row;
+			return;
+		}
+	}
+
+	/* If we've run off the end, without finding a valid row, put cursor
+	 * on the last row */
+	menu->cursor = MAX(0, count - 1);
+}
+
 void menu_set_filter(struct menu *menu, const int *filter_list, int count)
 {
 	menu->filter_list = filter_list;
@@ -848,22 +864,6 @@ void menu_release_filter(struct menu *menu)
 	menu->filter_count = 0;
 
 	menu_ensure_cursor_valid(menu);
-}
-
-void menu_ensure_cursor_valid(struct menu *menu)
-{
-	int count = menu_count(menu);
-
-	for (int row = menu->cursor; row < count; row++) {
-		if (is_valid_row(menu, row)) {
-			menu->cursor = row;
-			return;
-		}
-	}
-
-	/* If we've run off the end, without finding a valid row, put cursor
-	 * on the last row */
-	menu->cursor = MAX(0, count - 1);
 }
 
 /* ======================== MENU INITIALIZATION ==================== */

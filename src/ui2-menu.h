@@ -300,11 +300,6 @@ uint32_t menu_row_style(bool valid, bool selected);
  */
 ui_event menu_select(struct menu *menu);
 
-/**
- * Set the menu cursor to the next valid row.
- */
-void menu_ensure_cursor_valid(struct menu *menu);
-
 /* Interal menu stuff that knowledge menu needs because it
  * runs its parallel menus "manually" (see ui2-knowledge.c) */
 void menu_handle_mouse(struct menu *menu,
