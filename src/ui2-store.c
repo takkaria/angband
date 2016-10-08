@@ -857,6 +857,8 @@ static void context_menu_store_item(struct store_context *context,
 		}
 	}
 
+	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
+
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
 		.x = mloc.x,
@@ -868,8 +870,6 @@ static void context_menu_store_item(struct store_context *context,
 	};
 	Term_push_new(&hints);
 	menu_layout_term(menu);
-
-	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
 
 	int selected = menu_dynamic_select(menu);
 
