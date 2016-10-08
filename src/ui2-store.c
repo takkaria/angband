@@ -793,6 +793,8 @@ static int context_menu_store(struct store_context *context,
 	menu_dynamic_add_label(menu, "Inspect inventory", 'I', ACT_INSPECT_INVEN, labels);
 	menu_dynamic_add_label(menu, home ? "Stash" : "Sell", 'd', ACT_SELL, labels);
 
+	show_prompt("(Enter to select, ESC) Command:", false);
+
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
 		.x = mloc.x,
@@ -804,8 +806,6 @@ static int context_menu_store(struct store_context *context,
 	};
 	Term_push_new(&hints);
 	menu_layout_term(menu);
-
-	show_prompt("(Enter to select, ESC) Command:", false);
 
 	int selected = menu_dynamic_select(menu);
 
