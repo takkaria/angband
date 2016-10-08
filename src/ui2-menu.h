@@ -77,7 +77,7 @@ typedef struct {
  * Flags for menu_actions.
  */
 enum {
-	MN_ACT_GRAYED = 1 /* Allows selection but no action */
+	MN_ACT_GRAYED = 1, /* Row is displayed, but doesn't allow action */
 };
 
 /**
@@ -94,7 +94,7 @@ typedef struct {
 	void (*display_row)(struct menu *menu,
 			int index, bool cursor, struct loc loc, int width);
 
-	/* Handle 'positive' events (selections or cmd_keys) */
+	/* Handle "positive" events (selections, command keys, stop keys) */
 	bool (*row_handler)(struct menu *menu, const ui_event *event, int index);
 } menu_iter;
 
@@ -104,12 +104,14 @@ typedef struct {
  * Identifiers for the kind of layout to use
  */
 typedef enum {
-	MN_SKIN_SCROLL  = 1,   /**< Ordinary scrollable single-column list */
-	MN_SKIN_OBJECT  = 2,   /**< Special single-column list for object choice */
-	MN_SKIN_COLUMNS = 3   /**< Multicolumn view */
+	MN_SKIN_SCROLL  = 1, /**< Ordinary scrollable single-column list */
+	MN_SKIN_OBJECT  = 2, /**< Special single-column list for object choice */
+	MN_SKIN_COLUMNS = 3, /**< Multicolumn view */
 } skin_id;
 
-/* Class functions for menu layout */
+/**
+ * Class functions for menu layout
+ */
 typedef struct {
 	/* Determines the cursor index given a (mouse) location */
 	int (*get_cursor)(struct loc loc, int count, int top, region reg);
@@ -117,13 +119,13 @@ typedef struct {
 	/* Displays the current list of visible menu items */
 	void (*display_list)(struct menu *menu, int cursor, region reg);
 
-	/* Process a direction */
+	/* Process a direction (up, down, left, right, etc) */
 	ui_event (*process_dir)(struct menu *menu, int dir);
 } menu_skin;
 
 /*** Base menu structure ***/
 
-/* 
+/**
  * Flags for menu appearance & behaviour
  */
 enum {
@@ -167,45 +169,49 @@ enum {
 
 /* Base menu type */
 struct menu {
-	/** Public variables **/
+	/*** Public variables ***/
+
+	/* New code should consider using term tabs
+	 * instead of header, title and prompt */
 	const char *header;
 	const char *title;
 	const char *prompt;
 
-	/* Keyboard shortcuts for menu selection - shouldn't overlap cmd_keys */
+	/* Keyboard shortcuts for menu selection
+	 * (shouldn't overlap with cmd_keys) */
 	const char *selections; 
 
 	/* Menu selections corresponding to inscriptions */
 	const char *inscriptions; 
 
-	/* String of characters that when pressed, menu handler should be called */
-	/* Mustn't overlap with selections or some items may be unselectable */
+	/* String of characters that when pressed, menu handler should be called
+	 * (shouldn't overlap with selections or some items may be unselectable) */
 	const char *command_keys;
 
 	/* String of characters that when pressed, return an EVT_SWITCH
-	 * Mustn't overlap with previous keys
+	 * (shouldn't overlap with selections or command keys)
 	 * if stop handler returns false, the menu stops (exits) */
 	const char *stop_keys;
 
-	/* auxiliary browser help function */
+	/* Auxiliary function that is called before displaying the rest of the menu */
 	void (*browse_hook)(int cursor, void *menu_data, region reg);
 
 	/* Flags specifying the behavior of this menu */
 	bitflag flags[MNFLAG_SIZE];
 
-	/** Private variables **/
+	/*** Private variables ***/
 
 	/* Stored boundary, set by menu_layout() */
 	region boundary;
 
-	int filter_count;        /* number of rows in current view */
-	const int *filter_list;  /* optional filter (view) of menu objects */
+	int filter_count;       /* number of rows in current view */
+	const int *filter_list; /* optional filter (view) of menu objects */
 
-	int count;               /* number of rows in underlying data set */
-	void *menu_data;         /* the data used to access rows. */
+	int count;              /* number of rows in underlying data set */
+	void *menu_data;        /* the data used to access rows. */
 
-	const menu_skin *skin;   /* menu display style functions */
-	const menu_iter *iter;   /* menu skin functions */
+	const menu_skin *skin;  /* menu display style functions */
+	const menu_iter *iter;  /* menu skin functions */
 
 	/* State variables */
 	int cursor;             /* Currently selected row */
@@ -229,15 +235,15 @@ void menu_free(struct menu *menu);
 void menu_init(struct menu *menu, skin_id skin, const menu_iter *iter);
 
 /**
- * Given a predefined menu kind, return its iter functions.
+ * Find a menu iter given its id.
  */
 const menu_iter *menu_find_iter(menu_iter_id iter_id);
 
 /**
  * Set menu private data and the number of menu items.
  *
- * Menu private data is then available from inside menu callbacks using
- * menu_priv().
+ * Menu private data is then available from inside menu callbacks
+ * using menu_priv().
  */
 void menu_setpriv(struct menu *menu, int count, void *data);
 
@@ -251,8 +257,7 @@ void *menu_priv(struct menu *menu);
  *
  * Use this if your menu private data has 100 items, but you want to choose
  * which ones of those to display at any given time, e.g. in an inventory menu.
- * object_list[] should be an array of indexes to display, and count should be its
- * length.
+ * object_list[] should be an array of indexes to display; count should be its length.
  */
 void menu_set_filter(struct menu *menu, const int object_list[], int count);
 
@@ -267,7 +272,7 @@ void menu_release_filter(struct menu *menu);
 void menu_layout(struct menu *menu, region reg);
 
 /**
- * Ready a menu for display with the whole term as region
+ * Ready a menu for display using the whole term area.
  */
 void menu_layout_term(struct menu *menu);
 
@@ -276,29 +281,20 @@ void menu_layout_term(struct menu *menu);
  */
 void menu_refresh(struct menu *menu);
 
-/*
- * Cursor colors for different states
+/**
+ * Cursor colors for different states.
  */
 uint32_t menu_row_style(bool valid, bool selected);
 
 /**
  * Run a menu.
  *
- * 'notify' is a bitwise OR of ui_event_type events that you want to
- * menu_select to return to you if they're not handled inside the menu loop.
- * e.g. if you want to handle key events without specifying a menu_iter->handle
- * function, you can set notify to EVT_KBRD, and any non-navigation keyboard
- * events will stop the menu loop and return them to you.
- *
- * Some events are returned by default, and else are EVT_ESCAPE and EVT_SELECT.
- * 
  * Event types that can be returned:
  *   EVT_ESCAPE: no selection; go back (by default)
  *   EVT_SELECT: menu->cursor is the selected menu item (by default)
  *   EVT_MOVE:   the cursor has moved
  *   EVT_KBRD:   unhandled keyboard events
  *   EVT_MOUSE:  unhandled mouse events  
- *   EVT_RESIZE: resize events
  */
 ui_event menu_select(struct menu *menu);
 
@@ -307,7 +303,8 @@ ui_event menu_select(struct menu *menu);
  */
 void menu_ensure_cursor_valid(struct menu *menu);
 
-/* Interal menu stuff that cmd-know needs because it's quite horrible */
+/* Interal menu stuff that knowledge menu needs because it
+ * runs its parallel menus "manually" (see ui2-knowledge.c) */
 void menu_handle_mouse(struct menu *menu,
 		struct mouseclick mouse, ui_event *out);
 void menu_handle_keypress(struct menu *menu,
@@ -321,7 +318,8 @@ void menu_set_cursor_x_offset(struct menu *menu, int offset);
 /*** Dynamic menu handling ***/
 
 struct menu *menu_dynamic_new(void);
-void menu_dynamic_add(struct menu *menu, const char *text, int value);
+void menu_dynamic_add(struct menu *menu,
+		const char *text, int value);
 void menu_dynamic_add_valid(struct menu *menu,
 		const char *text, int value, bool valid);
 void menu_dynamic_add_label(struct menu *menu,
