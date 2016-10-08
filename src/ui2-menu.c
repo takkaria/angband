@@ -200,12 +200,13 @@ static const menu_iter menu_iter_strings = {
  */
 static int generic_skin_get_cursor(struct loc loc, int count, int top, region reg)
 {
-	int cursor = loc.y - reg.y + top;
-	if (cursor >= count) {
-		cursor = count - 1;
-	}
+	int rely = loc.y - reg.y;
 
-	return cursor;
+	if (rely < 0 || rely >= count) {
+		return -1;
+	} else {
+		return rely + top;
+	}
 }
 
 /**
