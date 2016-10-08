@@ -488,13 +488,28 @@ static void ui_keymap_remove(const char *title, int index)
 		Term_flush_output();
 
 		struct keypress trigger = keymap_get_trigger();
+		const struct keypress *act = keymap_find(KEYMAP_MODE_OPT, trigger);
+		
+		if (act != NULL) {
+			loc.x = 0;
+			loc.y = hints.height - 1;
 
-		loc.x = 0;
-		loc.y = hints.height - 2;
-		if (keymap_remove(KEYMAP_MODE_OPT, trigger)) {
-			prt("Removed.", loc);
+			prt("Remove this keymap? [y/n] ", loc);
+			Term_flush_output();
+			loc.y--;
+
+			struct keypress key = inkey_only_key();
+			if (key.code == 'y' || key.code == 'Y' || key.code == KC_ENTER) {
+				if (keymap_remove(KEYMAP_MODE_OPT, trigger)) {
+					prt("Keymap removed.", loc);
+				} else {
+					prt("Error - can't remove keymap.", loc);
+				}
+			} else {
+				prt("Keymap not removed.", loc);
+			}
 		} else {
-			prt("No keymap to remove.", loc);
+			prt("Keymap not found.", loc);
 		}
 
 		loc.y = hints.height - 1;
