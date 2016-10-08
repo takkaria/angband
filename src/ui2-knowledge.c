@@ -89,7 +89,7 @@ typedef struct {
 	void (*display_member)(int index, bool cursor, struct loc loc, int width);
 
 	/* Displays lore for an index */
-	void (*lore)(int index, int cursor);
+	void (*lore)(int index, int row);
 
 	/* Returns optional extra prompt */
 	const char *(*xtra_prompt)(int index);
@@ -119,11 +119,11 @@ static struct join *default_join;
  */
 #define KNOWLEDGE_HEADER_HEIGHT    2
 
-static void knowledge_textblock_show(textblock *tb, const char *header, int cursor)
+static void knowledge_textblock_show(textblock *tb, const char *header, int row)
 {
 	region reg = {
 		.x = (ANGBAND_TERM_STANDARD_WIDTH - ANGBAND_TERM_TEXTBLOCK_WIDTH) / 2,
-		.y = cursor + KNOWLEDGE_HEADER_HEIGHT,
+		.y = row + KNOWLEDGE_HEADER_HEIGHT,
 		.w = ANGBAND_TERM_TEXTBLOCK_WIDTH,
 		.h = 0
 	};
@@ -453,7 +453,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 		switch (event.type) {
 			case EVT_KBRD:
 				if (event.key.code == 'r' || event.key.code == 'R') {
-					o_funcs.lore(index, o_cursor);
+					o_funcs.lore(index, object_menu.cursor - object_menu.top);
 				} else if (o_funcs.xtra_act) {
 					o_funcs.xtra_act(event.key, index);
 				}
@@ -480,7 +480,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 				if (panel == 0) {
 					swap = true;
 				} else if (panel == 1) {
-					o_funcs.lore(index, o_cursor);
+					o_funcs.lore(index, object_menu.cursor - object_menu.top);
 				}
 				break;
 
@@ -636,7 +636,7 @@ static const char *race_name(int group)
 	return monster_group[group].name;
 }
 
-static void mon_lore(int index, int cursor)
+static void mon_lore(int index, int row)
 {
 	int r_idx = default_item_id(index);
 
@@ -651,7 +651,7 @@ static void mon_lore(int index, int cursor)
 
 	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);
-	knowledge_textblock_show(tb, "Monster knowledge", cursor);
+	knowledge_textblock_show(tb, "Monster knowledge", row);
 	textblock_free(tb);
 }
 
@@ -903,7 +903,7 @@ static struct object *find_artifact(struct artifact *artifact)
 /**
  * Show artifact lore
  */
-static void desc_art_fake(int a_idx, int cursor)
+static void desc_art_fake(int a_idx, int row)
 {
 	struct object *obj = find_artifact(&a_info[a_idx]);
 	struct object *known_obj = NULL;
@@ -943,7 +943,7 @@ static void desc_art_fake(int a_idx, int cursor)
 		object_wipe(obj, true);
 	}
 
-	knowledge_textblock_show(tb, header, cursor);
+	knowledge_textblock_show(tb, header, row);
 
 	textblock_free(tb);
 }
@@ -1094,7 +1094,7 @@ static void display_ego_item(int index, bool cursor, struct loc loc, int width)
 /**
  * Describe fake ego item "lore"
  */
-static void desc_ego_fake(int index, int cursor)
+static void desc_ego_fake(int index, int row)
 {
 	int e_idx = default_item_id(index);
 	struct ego_item *ego = &e_info[e_idx];
@@ -1103,7 +1103,7 @@ static void desc_ego_fake(int index, int cursor)
 	textblock *tb = object_info_ego(ego);
 	knowledge_textblock_show(tb,
 			format("%s %s", ego_group_name(default_group_id(index)), ego->name),
-			cursor);
+			row);
 	textblock_free(tb);
 }
 
@@ -1273,7 +1273,7 @@ static void display_object(int index, bool cursor, struct loc loc, int width)
 /**
  * Describe fake object
  */
-static void desc_obj_fake(int k_idx, int cursor)
+static void desc_obj_fake(int k_idx, int row)
 {
 	struct object_kind *kind = &k_info[k_idx];
 	struct object_kind *old_kind = player->upkeep->object_kind;
@@ -1285,7 +1285,7 @@ static void desc_obj_fake(int k_idx, int cursor)
 	if (kf_has(kind->kind_flags, KF_INSTA_ART)
 			&& artifact_is_known(get_artifact_from_kind(kind)))
 	{
-		desc_art_fake(get_artifact_from_kind(kind), cursor);
+		desc_art_fake(get_artifact_from_kind(kind), row);
 		return;
 	}
 
@@ -1307,7 +1307,7 @@ static void desc_obj_fake(int k_idx, int cursor)
 	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_CAPITAL);
 
 	textblock *tb = object_info(obj, OINFO_FAKE);
-	knowledge_textblock_show(tb, header, cursor);
+	knowledge_textblock_show(tb, header, row);
 	object_delete(&known_obj);
 	object_delete(&obj);
 	textblock_free(tb);
@@ -1543,14 +1543,14 @@ static int rune_var(int index)
 	return rune_variety(index);
 }
 
-static void rune_lore(int index, int cursor)
+static void rune_lore(int index, int row)
 {
 	textblock *tb = textblock_new();
 	char *title = string_make(rune_name(index));
 
 	my_strcap(title);
 	textblock_append(tb, rune_desc(index));
-	knowledge_textblock_show(tb, title, cursor);
+	knowledge_textblock_show(tb, title, row);
 	textblock_free(tb);
 	string_free(title);
 }
@@ -1722,7 +1722,7 @@ static const char *fkind_name(int group)
 	return feature_group_text[group];
 }
 
-static void feat_lore(int index, int cursor)
+static void feat_lore(int index, int row)
 {
 	struct feature *feat = &f_info[index];
 	textblock *tb = textblock_new();
@@ -1731,7 +1731,7 @@ static void feat_lore(int index, int cursor)
 	if (feat->desc) {
 		my_strcap(title);
 		textblock_append(tb, feat->desc);
-		knowledge_textblock_show(tb, title, cursor);
+		knowledge_textblock_show(tb, title, row);
 		textblock_free(tb);
 	}
 
@@ -1875,7 +1875,7 @@ static const char *tkind_name(int group)
 	return trap_group_text[group];
 }
 
-static void trap_lore(int index, int cursor)
+static void trap_lore(int index, int row)
 {
 	struct trap_kind *trap = &trap_info[index];
 
@@ -1885,7 +1885,7 @@ static void trap_lore(int index, int cursor)
 
 		my_strcap(title);
 		textblock_append(tb, trap->text);
-		knowledge_textblock_show(tb, title, cursor);
+		knowledge_textblock_show(tb, title, row);
 		textblock_free(tb);
 		string_free(title);
 	}
