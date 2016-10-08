@@ -632,11 +632,11 @@ void menu_handle_mouse(struct menu *menu,
 static bool menu_handle_action(struct menu *menu, const ui_event *in)
 {
 	if (menu->iter->row_handler) {
-		int index = menu_index(menu, menu->cursor);
-		return menu->iter->row_handler(menu, in, index);
+		return menu->iter->row_handler(menu,
+				in, menu_index(menu, menu->cursor));
+	} else {
+		return false;
 	}
-
-	return false;
 }
 /**
  * Handle navigation keypresses.
