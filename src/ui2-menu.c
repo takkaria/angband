@@ -554,7 +554,7 @@ static void display_menu_more(struct menu *menu, region reg, int row)
 	const int y = reg.y + row;
 
 	Term_erase(reg.x, y, reg.w);
-	Term_addws(reg.x, y, reg.w, menu_row_style(false, false), L" -more-");
+	Term_addws(reg.x, y, reg.w, menu_row_style(false, false), L"-more-");
 }
 
 void menu_refresh(struct menu *menu)
