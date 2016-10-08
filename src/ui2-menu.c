@@ -546,8 +546,10 @@ static void display_menu_row(struct menu *menu,
 		}
 
 		if (sel != 0) {
-			Term_adds(loc.x, loc.y, 3,
-					menu_row_style(true, cursor), format("%c) ", sel));
+			char buf[4];
+			strnfmt(buf, sizeof(buf), "%c) ", sel);
+
+			Term_adds(loc.x, loc.y, 3, menu_row_style(true, cursor), buf);
 		}
 
 		width -= 3;
