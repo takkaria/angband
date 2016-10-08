@@ -929,7 +929,6 @@ void menu_init(struct menu *menu, skin_id skin_id, const menu_iter *iter)
 	assert(skin != NULL);
 	assert(iter != NULL);
 
-	/* Wipe the struct */
 	memset(menu, 0, sizeof(*menu));
 
 	/* Pedantry */
@@ -943,7 +942,6 @@ void menu_init(struct menu *menu, skin_id skin_id, const menu_iter *iter)
 	menu->browse_hook  = NULL;
 	menu->filter_list  = NULL;
 
-	/* Menu-specific initialisation */
 	menu->skin = skin;
 	menu->iter = iter;
 }
@@ -971,7 +969,6 @@ void menu_free(struct menu *menu)
 
 void menu_set_cursor_x_offset(struct menu *menu, int offset)
 {
-	/* This value is used in the menu skin's display_list() function. */
 	menu->cursor_x_offset = offset;
 }
 
