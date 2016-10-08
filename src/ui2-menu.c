@@ -406,29 +406,37 @@ static void column_skin_display(struct menu *menu, int cursor, region reg)
 
 static ui_event column_skin_process_direction(struct menu *menu, int dir)
 {
+	ui_event out = EVENT_EMPTY;
+
+	/* Reject diagonals */
+	if (ddx[dir] && ddy[dir]) {
+		return out;
+	}
+
 	int count = menu_count(menu);
 	int height = menu->active.h;
-
 	int cols = (count + height - 1) / height;
 
 	if (ddx[dir]) {
 		menu->cursor += ddx[dir] * height;
-	}
-	if (ddy[dir]) {
+
+		/* Adjust to the correct location */
+		if (menu->cursor < 0) {
+			menu->cursor = (height * cols) + menu->cursor;
+		}
+		if (menu->cursor >= count) {
+			menu->cursor = menu->cursor % height;
+		}
+
+		assert(menu->cursor >= 0);
+		assert(menu->cursor < count);
+
+		out.type = EVT_MOVE;
+
+	} else if (ddy[dir]) {
 		menu->cursor += ddy[dir];
+		out.type = EVT_MOVE;
 	}
-
-	/* Adjust to the correct locations (roughly) */
-	if (menu->cursor < 0) {
-		menu->cursor = (height * cols) + menu->cursor;
-	}
-	if (menu->cursor > count) {
-		menu->cursor = menu->cursor % height;
-	}
-
-	ui_event out = {
-		.type = EVT_MOVE
-	};
 
 	return out;
 }
