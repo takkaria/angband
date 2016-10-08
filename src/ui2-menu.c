@@ -346,6 +346,10 @@ static int column_skin_get_cursor(struct loc loc, int count, int top, region reg
 {
 	(void) top;
 
+	if (!loc_in_region(loc, reg)) {
+		return -1;
+	}
+
 	int cols = (count + reg.h - 1) / reg.h;
 	int colw = 23;
 
@@ -357,13 +361,11 @@ static int column_skin_get_cursor(struct loc loc, int count, int top, region reg
 
 	int cursor = (loc.y - reg.y) + reg.h * ((loc.x - reg.x) / colw);
 
-	if (cursor > count - 1) {
-		cursor = count - 1;
+	if (cursor >= count) {
+		return -1;
+	} else {
+		return cursor;
 	}
-
-	assert(cursor >= 0);
-
-	return cursor;
 }
 
 static void column_skin_display(struct menu *menu, int cursor, region reg)
