@@ -664,7 +664,7 @@ static struct panel *get_panel_misc(void)
 
 static struct panel *get_panel_combat(void)
 {
-	struct panel *p = panel_allocate(9);
+	struct panel *p = panel_allocate(7);
 	int melee_dice = 1;
 	int melee_sides = 1;
 
@@ -705,7 +705,7 @@ static struct panel *get_panel_combat(void)
 
 static struct panel *get_panel_skills(void)
 {
-	struct panel *p = panel_allocate(9);
+	struct panel *p = panel_allocate(7);
 
 	int depth = cave ? cave->depth : 0;
 	uint32_t attr;
