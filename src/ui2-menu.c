@@ -456,9 +456,7 @@ static bool is_valid_row(struct menu *menu, int index)
 {
 	if (index < 0 || index >= menu_count(menu)) {
 		return false;
-	}
-
-	if (menu->iter->valid_row) {
+	} else if (menu->iter->valid_row) {
 		return menu->iter->valid_row(menu, menu_index(menu, index));
 	} else {
 		return true;
