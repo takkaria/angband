@@ -477,16 +477,14 @@ static bool has_valid_row(struct menu *menu)
 static char code_from_key(const struct menu *menu,
 		struct keypress key, bool caseless)
 {
-	if (key.code > CHAR_MAX) {
-		return 0;
-	} else if (menu_has_inscription(menu, key.code)) {
-		char code = menu->inscriptions[D2I(key.code)];
-		return caseless ? toupper(code) : code;
-	} else if (caseless) {
-		return toupper(key.code);
-	} else {
-		return key.code;
+	char code = 0;
+
+	if (key.code < CHAR_MAX) {
+		code = menu_has_inscription(menu, key.code) ?
+			menu->inscriptions[D2I(key.code)] : (char) key.code;
 	}
+
+	return caseless ? toupper(code) : code;
 }
 
 static bool tag_eq_code(int tag, int code, bool caseless)
