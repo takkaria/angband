@@ -214,7 +214,7 @@ static const menu_iter menu_iter_strings = {
 	.display_row = display_string,
 };
 
-/* ================== SKINS ============== */
+/* ==================== SKINS ==================== */
 
 /**
  * Find the position of a cursor given a subwindow address
@@ -462,7 +462,7 @@ static const menu_skin menu_skin_columns = {
 	.process_dir  = column_skin_process_direction
 };
 
-/* ================== GENERIC HELPER FUNCTIONS ============== */
+/* ==================== GENERIC HELPER FUNCTIONS ==================== */
 
 static bool is_valid_row(struct menu *menu, int index)
 {
@@ -795,7 +795,7 @@ ui_event menu_select(struct menu *menu)
 	return in;
 }
 
-/* ================== MENU ACCESSORS ================ */
+/* ==================== MENU ACCESSORS ==================== */
 
 /**
  * Return the menu iter struct for a given iter ID.
@@ -866,7 +866,7 @@ void menu_release_filter(struct menu *menu)
 	menu_ensure_cursor_valid(menu);
 }
 
-/* ======================== MENU INITIALIZATION ==================== */
+/* ==================== MENU INITIALIZATION ==================== */
 
 void menu_layout(struct menu *menu, region reg)
 {
@@ -972,7 +972,8 @@ void menu_set_cursor_x_offset(struct menu *menu, int offset)
 	menu->cursor_x_offset = offset;
 }
 
-/*** Dynamic menu handling ***/
+/* ==================== DYNAMIC MENU HANDLING ==================== */
+
 struct menu_entry {
 	char *text;
 	int value;
