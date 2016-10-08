@@ -277,7 +277,7 @@ static void ui_keymap_query(const char *title, int index)
 
 		Term_clear();
 
-		prt("Key ", loc);
+		prt("Key: ", loc);
 
 		Term_cursor_visible(true);
 		Term_flush_output();
@@ -295,7 +295,7 @@ static void ui_keymap_query(const char *title, int index)
 			keypress_to_text(tmp, sizeof(tmp), act, false);
 		
 			loc.y++;
-			prt("Found ", loc);
+			prt("Action: ", loc);
 			Term_puts(sizeof(tmp), COLOUR_L_BLUE, tmp);
 		}
 
@@ -495,7 +495,7 @@ static void ui_keymap_remove(const char *title, int index)
 			keypress_to_text(tmp, sizeof(tmp), act, false);
 		
 			loc.y++;
-			prt("Found: ", loc);
+			prt("Action: ", loc);
 			Term_puts(sizeof(tmp), COLOUR_L_BLUE, tmp);
 
 			loc.x = 0;
