@@ -533,8 +533,6 @@ static void display_menu_row(struct menu *menu,
 {
 	int id = menu_index(menu, index);
 
-	Term_erase(loc.x, loc.y, width);
-
 	if (menu_displays_tags(menu)) {
 		char sel = 0;
 
