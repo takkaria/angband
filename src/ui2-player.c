@@ -1023,7 +1023,7 @@ static void write_character_dump(ang_file *file)
 			y < PLAYER_FLAG_RES_ROW_2 + 7;
 			y++)
 	{
-		dump_term_line(file, 0, y, 80, true);
+		dump_term_line(file, 0, y, ANGBAND_TERM_STANDARD_WIDTH, true);
 	}
 	file_put(file, "\n\n");
 
