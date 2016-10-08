@@ -944,7 +944,8 @@ void display_player(enum player_display_mode mode)
 	Term_flush_output();
 }
 
-static void dump_term_line(ang_file *file, int x, int y, int len, bool show_empty)
+static void dump_term_line(ang_file *file,
+		int x, int y, int len, bool dump_empty_lines)
 {
 	char buf[ANGBAND_TERM_STANDARD_WIDTH * MB_LEN_MAX + 1];
 
@@ -974,7 +975,7 @@ static void dump_term_line(ang_file *file, int x, int y, int len, bool show_empt
 	assert(size < sizeof(buf));
 	buf[size] = 0;
 
-	if (size > 0 || show_empty) {
+	if (size > 0 || dump_empty_lines) {
 		file_putf(file, "%s\n", buf);
 	}
 }
