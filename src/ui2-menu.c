@@ -38,7 +38,7 @@ static void display_menu_row(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width);
 static void display_menu_more(struct menu *menu, region reg, int row);
 static bool is_valid_row(struct menu *menu, int cursor);
-static bool has_valid_row(struct menu *menu, int count);
+static bool has_valid_row(struct menu *menu);
 
 /**
  * Select the color of menu's row,
@@ -465,9 +465,9 @@ static bool is_valid_row(struct menu *menu, int index)
 	}
 }
 
-static bool has_valid_row(struct menu *menu, int count)
+static bool has_valid_row(struct menu *menu)
 {
-	for (int i = 0; i < count; i++) {
+	for (int i = 0, count = menu_count(menu); i < count; i++) {
 		if (is_valid_row(menu, i)) {
 			return true;
 		}
@@ -687,7 +687,7 @@ void menu_handle_keypress(struct menu *menu,
 		/* Try directional movement */
 		int dir = target_dir(key);
 
-		if (dir != 0 && has_valid_row(menu, count)) {
+		if (dir != 0 && has_valid_row(menu)) {
 			*out = menu->skin->process_dir(menu, dir);
 
 			if (out->type == EVT_MOVE) {
