@@ -585,6 +585,7 @@ void context_menu_cave(struct chunk *c,
 		case CMD_FIRE:
 		case CMD_THROW:
 		case CMD_USE:
+			context_menu_target(c, loc);
 			cmdq_push(selected);
 			cmd_set_arg_target(cmdq_peek(), "target", DIR_TARGET);
 			break;
