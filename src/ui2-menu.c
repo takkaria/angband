@@ -477,15 +477,15 @@ static bool has_valid_row(struct menu *menu)
 static char code_from_key(const struct menu *menu,
 		struct keypress key, bool caseless)
 {
-	char code = (char) key.code;
-
-	if (menu_has_inscription(menu, key.code)) {
-		code = menu->inscriptions[D2I(key.code)];
+	if (key.code > CHAR_MAX) {
+		return 0;
+	} else if (menu_has_inscription(menu, key.code)) {
+		return menu->inscriptions[D2I(key.code)];
 	} else if (caseless) {
-		code = toupper((unsigned char) key.code);
+		return toupper(key.code);
+	} else {
+		return key.code;
 	}
-
-	return code;
 }
 
 static bool tag_eq_code(int tag, int code, bool caseless)
@@ -506,7 +506,7 @@ static int get_cursor_key(struct menu *menu, struct keypress key)
 	const bool caseless = menu_is_caseless(menu);
 	const char code = code_from_key(menu, key, caseless);
 
-	if (menu_has_tags(menu)) {
+	if (code != 0 && menu_has_tags(menu)) {
 		if (menu->selections) {
 			for (int i = 0; menu->selections[i]; i++) {
 				if (tag_eq_code(menu->selections[i], code, caseless)) {
