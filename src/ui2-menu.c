@@ -92,6 +92,11 @@ static bool menu_displays_more(const struct menu *menu)
 	return !mnflag_has(menu->flags, MN_NO_MORE);
 }
 
+static bool menu_should_clear(const struct menu *menu)
+{
+	return !mnflag_has(menu->flags, MN_DONT_CLEAR);
+}
+
 /**
  * Helper functions for managing menu's filter list
  */
@@ -253,7 +258,8 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 	/* Position of cursor relative to top */
 	int rel_cursor = cursor - menu->top;
 
-	bool clear = mnflag_has(menu->flags, MN_DONT_CLEAR) ? false : true;
+	/* Menu should clear rows before displaying */
+	bool clear = menu_should_clear(menu);
 
 	for (int row = start_row; row < end_row; row++) {
 		if (clear) {
