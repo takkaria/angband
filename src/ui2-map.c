@@ -370,7 +370,6 @@ void print_map(enum display_term_index index)
 	struct loc offset;
 
 	display_term_get_area(index, &offset, &width, &height);
-
 	display_term_push(index);
 
 	/* Dump the map */
