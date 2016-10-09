@@ -179,10 +179,6 @@ void Term_pop_all(void);
 /* make a point "dirty" - it will be passed to
  * draw_hook() the next time term is flushed */
 void Term_dirty_point(int x, int y);
-/* make all points in a region dirty */
-void Term_dirty_region(int x, int y, int w, int h);
-/* make all points of the term dirty */
-void Term_dirty_all(void);
 
 /* erase len characters starting at x, y;
  * this function does not move the cursor */

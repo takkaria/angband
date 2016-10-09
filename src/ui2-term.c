@@ -638,27 +638,6 @@ void Term_dirty_point(int x, int y)
 	term_mark_point_dirty(x, y);
 }
 
-void Term_dirty_region(int left, int top, int right, int bottom)
-{
-	COORDS_OK(left, top);
-	COORDS_OK(right, bottom);
-
-	assert(left <= right);
-	assert(top <= bottom);
-
-	int len = right - left + 1;
-	for (int y = top; y <= bottom; y++) {
-		term_mark_line_dirty(left, y, len);
-	}
-}
-
-void Term_dirty_all(void)
-{
-	for (int y = 0; y < TOP->height; y++) {
-		term_mark_line_dirty(0, y, TOP->width);
-	}
-}
-
 void Term_get_cursor(int *x, int *y, bool *visible, bool *usable)
 {
 	STACK_OK();
