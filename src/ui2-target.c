@@ -694,7 +694,7 @@ void textui_target_closest(void)
 		target_get(&x, &y);
 
 		bool visible;
-		Term_get_cursor(NULL, NULL, &visible, NULL);
+		Term_get_cursor(NULL, NULL, &visible);
 		Term_cursor_visible(true);
 
 		move_cursor_relative(DISPLAY_CAVE, loc(x, y), true);
@@ -1269,7 +1269,7 @@ bool target_set_interactive(int mode, struct loc coords)
 	display_term_push(DISPLAY_CAVE);
 
 	bool saved_cursor;
-	Term_get_cursor(NULL, NULL, &saved_cursor, NULL);
+	Term_get_cursor(NULL, NULL, &saved_cursor);
 	Term_cursor_visible(true);
 
 	target_set_monster(NULL);

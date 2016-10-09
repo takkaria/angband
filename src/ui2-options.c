@@ -336,7 +336,7 @@ static void ui_keymap_edit(struct loc loc)
 	ui_keymap_print_help(help_loc);
 
 	prt("Action: ", loc);
-	Term_get_cursor(&loc.x, &loc.y, NULL, NULL);
+	Term_get_cursor(&loc.x, &loc.y, NULL);
 
 	size_t keymap_buffer_index = 0;
 	bool done = false;

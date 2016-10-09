@@ -328,7 +328,7 @@ static void text_out_to_screen(struct text_out_info info, uint32_t attr, const c
 	assert(info.indent + info.pad < wrap);
 
 	struct loc cursor;
-	Term_get_cursor(&cursor.x, &cursor.y, NULL, NULL);
+	Term_get_cursor(&cursor.x, &cursor.y, NULL);
 
 	wchar_t buf[1024];
 	text_mbstowcs(buf, str, sizeof(buf));

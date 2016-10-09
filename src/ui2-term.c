@@ -666,7 +666,7 @@ void Term_dirty_point(int x, int y)
 	term_mark_point_dirty(x, y);
 }
 
-void Term_get_cursor(int *x, int *y, bool *visible, bool *usable)
+void Term_get_cursor(int *x, int *y, bool *visible)
 {
 	STACK_OK();
 	CURSOR_OK();
@@ -679,9 +679,6 @@ void Term_get_cursor(int *x, int *y, bool *visible, bool *usable)
 	}
 	if (visible != NULL) {
 		*visible = TOP->cursor.new.visible;
-	}
-	if (usable != NULL) {
-		*usable = TOP->cursor.new.x < TOP->width;
 	}
 }
 

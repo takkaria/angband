@@ -439,7 +439,7 @@ bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
 	struct keypress key;
 
 	struct loc loc;
-	Term_get_cursor(&loc.x, &loc.y, NULL, NULL);
+	Term_get_cursor(&loc.x, &loc.y, NULL);
 
 	bool done = askfor_aux_handle(loc, &key, buf, buflen, &curs, &len, true,
 			handler ? handler : askfor_aux_keypress);

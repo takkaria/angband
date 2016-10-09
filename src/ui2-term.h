@@ -220,9 +220,8 @@ bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc);
 bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc);
 
 /* determine the position and visibility of the cursor
- * "usable" means that the cursor is not beyond the edge of the
- * term window; pass NULL for any argument that doesn't interest you */
-void Term_get_cursor(int *x, int *y, bool *visible, bool *usable);
+ * pass NULL for any argument that doesn't interest you */
+void Term_get_cursor(int *x, int *y, bool *visible);
 /* set the position of the cursor */
 void Term_cursor_to_xy(int x, int y);
 /* set visibility of the cursor (Term_put functions will
