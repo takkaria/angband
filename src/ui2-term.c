@@ -447,13 +447,16 @@ static void term_flush_row(int y)
 {
 	STACK_OK();
 
-	int len = TOP->dirty.rows[y].right - TOP->dirty.rows[y].left + 1;
+	const int left = TOP->dirty.rows[y].left;
+	const int right = TOP->dirty.rows[y].right;
+
+	int len = right - left + 1;
 
 	if (len > 0) {
-		term_draw(TOP->dirty.rows[y].left, y, len);
-
 		TOP->dirty.rows[y].left = TOP->width;
 		TOP->dirty.rows[y].right = 0;
+
+		term_draw(left, y, len);
 	}
 }
 
@@ -461,12 +464,15 @@ static void term_flush_out(void)
 {
 	STACK_OK();
 
-	for (int y = TOP->dirty.top; y <= TOP->dirty.bottom; y++) {
-		term_flush_row(y);
-	}
+	const int top = TOP->dirty.top;
+	const int bottom = TOP->dirty.bottom;
 
 	TOP->dirty.top = TOP->height;
 	TOP->dirty.bottom = 0;
+
+	for (int y = top; y <= bottom; y++) {
+		term_flush_row(y);
+	}
 }
 
 static void term_pop_stack(void)
