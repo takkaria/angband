@@ -76,13 +76,13 @@ struct term_create_info;
  * pushed on the stack (with the call Term_push_new())
  * the frontend must supply the desirable parameters for creation in term_create_info
  * (taking term_hints into account as it sees fit; the only thing guaranteed is that
- * the new term's width and height are equal to those specified in term_hints)
+ * the new term's width and height are no smaller than those specified in term_hints)
  * and must be ready to draw on this new term
  * pop_new_hook is called when the temporary term is about to be popped
  * from the stack; the frontend must perform all necessary cleanup
  *
  * note that the frontend shouldn't create or destroy temporary terms;
- * that will be done without it */
+ * that will be done without automatically */
 
 enum term_position {
 	TERM_POSITION_NONE,
@@ -122,23 +122,23 @@ typedef void (*draw_hook)(void *user,
 		int x, int y, int num_points, struct term_point *points);
 /* cursor_hook should draw a cursor at position x, y */
 typedef void (*cursor_hook)(void *user, int x, int y);
-/* redraw_hook should make sure that all that was drawn previously
- * actually appears on the screen */
+/* redraw_hook should make sure that all that was
+ * drawn previously actually appears on the screen */
 typedef void (*redraw_hook)(void *user);
 /* event_hook should call Term_keypress() or Term_mousepress()
- * if there are corresponding events; if wait is true, the frontend should
- * wait for events (as long as necessary to get at least one) */
+ * if there are corresponding events; if wait is true, the frontend
+ * should wait for events (as long as necessary to get at least one) */
 typedef void (*event_hook)(void *user, bool wait);
 /* flush_events_hook should discard all pending events */
 typedef void (*flush_events_hook)(void *user);
 /* delay_hook should pause for specified number of milliseconds */
 typedef void (*delay_hook)(void *user, int msecs);
-/* make_visible_hook should make a term visible or invisible
+/* make_visible_hook should make term visible or invisible
  * (if possible), depending on the argument */
 typedef void (*make_visible_hook)(void *user, bool visible);
 /* add_tab_hook should add a tab to the term and handle mouse clicks on it;
  * if the tab is clicked, Term_keypress() should be called, as if the user
- * pressed key "code" */
+ * pressed a key (on keyboard) with the corresponding keycode_t "code" */
 typedef void (*add_tab_hook)(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 
@@ -176,37 +176,39 @@ void Term_push_new(struct term_hints *hints);
 void Term_pop(void);
 void Term_pop_all(void);
 
-/* make a point "dirty" - it will be passed to draw_hook()
- * at the time of flushing output */
+/* make a point "dirty" - it will be passed to
+ * draw_hook() the next time term is flushed */
 void Term_dirty_point(int x, int y);
-/* make points in a region dirty */
+/* make all points in a region dirty */
 void Term_dirty_region(int x, int y, int w, int h);
 /* make all points of the term dirty */
 void Term_dirty_all(void);
 
-/* erase len characters starting at x, y; this function does not move the cursor */
+/* erase len characters starting at x, y;
+ * this function does not move the cursor */
 void Term_erase(int x, int y, int len);
-/* as above, but erase all characters starting at x, y */
+/* erase all characters starting at x, y */
 void Term_erase_line(int x, int y);
-/* wipe the whole window */
+/* erase the whole window */
 void Term_clear(void);
 
 /* notes about the cursor
- * cursor's X (horizontal) legal positions are (0 <= X <= term width)
- * and Y (vertical) legal positions are (0 <= Y < term height).
- * note that the cursor can be one point beyond the right edge of the term.
+ * X (horizontal) legal positions are (0 <= X <= term width)
+ * Y (vertical) legal positions are (0 <= Y < term height)
+ * note that the cursor can be one point beyond the right edge of the term
  * All other positions are FATAL ERRORS */
 
-/* the following functions move the cursor 
+/* the following functions move the cursor;
  * they return true if all characters were added
- * and return false if some could not be added
- * because of the cursor's inability to advance from its current position
- * (due to it being the last legal position)
- * fga - foreground attr (usually color)
+ * and false if some of them could not be added
+ * because the cursor was at the last legal position
+ * fga - foreground attr (that is, color)
  * fgc - foreground char
- * bga - background attr (usually color)
+ * bga - background attr (that is, color)
  * bgc - background char
  * x and y must be valid */
+
+/* add a character at current cursor position */
 bool Term_putwc(uint32_t fga, wchar_t fgc);
 /* as above, but with a null-terminated string of wchar_t */
 bool Term_putws(int len, uint32_t fga, const wchar_t *fgc);
@@ -219,13 +221,13 @@ bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc);
 bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc);
 
 /* determine the position and visibility of the cursor
- * "usable" means that the cursor is not beyond the edge of the term window
- * pass NULL for any argument that doesn't interest you */
+ * "usable" means that the cursor is not beyond the edge of the
+ * term window; pass NULL for any argument that doesn't interest you */
 void Term_get_cursor(int *x, int *y, bool *visible, bool *usable);
 /* set the position of the cursor */
 void Term_cursor_to_xy(int x, int y);
-/* set visibility of the cursor (Term_put* functions will still
- * move it as usual whether it is visible or not) */
+/* set visibility of the cursor (Term_put functions will
+ * still move it as usual whether it is visible or not) */
 void Term_cursor_visible(bool visible);
 
 /* At a given location, determine the current point */
@@ -248,8 +250,8 @@ int Term_height(void);
 void Term_resize(int w, int h);
 
 /* flush the output (it won't necessarily appear on the screen;
- * that depends on how th frontend does it; what will happen is that
- * draw_hook will be called) */
+ * that depends on how th frontend does it; what will happen is
+ * that draw_hook will be called) */
 void Term_flush_output(void);
 
 /* redraw the display; note that most monitors (at the time of writing this)
@@ -260,9 +262,9 @@ void Term_redraw_screen(void);
 /* append a keypress to ui_event queue;
  * returns false if queue is full and event cannot be added */
 bool Term_keypress(keycode_t key, byte mods);
-/* append a mousepress to ui_event queue
+/* append a mousepress to ui_event queue;
  * returns false if queue is full and event cannot be added
- * see ui2-event.c for the explanation of index */
+ * see list-display_terms.h, which has indexes of all terms */
 bool Term_mousepress(int x, int y, int button, byte mods, int index);
 
 /* get the first event from the event queue
@@ -271,27 +273,26 @@ bool Term_take_event(ui_event *event);
 /* as above, but waits as long as necessary for an event */
 bool Term_wait_event(ui_event *event);
 /* check if there is at least one event in the queue;
- * the event will be copied to the first argument, but not removed
- * from the queue; if you don't want the event, supply NULL as the argument */
+ * the event will be copied to the first argument, but not removed from
+ * the queue; if you don't want the event, supply NULL as the argument */
 bool Term_check_event(ui_event *event);
 /* forget all queued events (make the queue empty */
 void Term_flush_events(void);
-/* prepend an event to the front of the event_queue;
- * or append to the end of the queue;
- * if there is not enough room
- * none of the events will be pushed, and the return value is false */
+/* prepend an event to the front of the event_queue, or append
+ * to the end of the queue; if there is not enough room, none of
+ * the events will be pushed, and the return value will be false */
 bool Term_prepend_events(const ui_event *events, size_t num_events);
 bool Term_append_events(const ui_event *events, size_t num_events);
 
 /* make a term visible or invisible */
 void Term_visible(bool visible);
 
-/* Add a tab to the term on top of the stack;
- * clicking on this tab is equivalent to pressing key "code" */
+/* Add a tab to the term on top of the stack; clicking
+ * on this tab is equivalent to pressing key "code" */
 void Term_add_tab(keycode_t code,
 		const char *label, uint32_t fg_attr, uint32_t bg_attr);
 
-/* pause for some milliseconds */
+/* pause for some time (in milliseconds) */
 void Term_delay(int msecs);
 
 #endif /* UI2_TERM_H */
