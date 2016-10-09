@@ -50,6 +50,7 @@ struct term {
 		struct term_cursor new;
 		struct term_cursor old;
 	} cursor;
+
 	struct term_dirty dirty;
 	struct term_callbacks callbacks;
 	struct term_point blank;
