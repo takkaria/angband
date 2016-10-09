@@ -2,8 +2,6 @@
  * \file ui2-term.c
  * \brief A generic, efficient, terminal window package
  *
- * Copyright (c) 1997 Ben Harrison and others
- *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
  *
