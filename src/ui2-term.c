@@ -180,6 +180,7 @@ static term term_new(const struct term_create_info *info)
 	assert(t->callbacks.add_tab      != NULL);
 	assert(t->callbacks.redraw       != NULL);
 	assert(t->callbacks.cursor       != NULL);
+	assert(t->callbacks.clear        != NULL);
 	assert(t->callbacks.event        != NULL);
 	assert(t->callbacks.delay        != NULL);
 	assert(t->callbacks.draw         != NULL);
@@ -320,7 +321,7 @@ static bool term_put_ws_at_cursor(int len, uint32_t fga, const wchar_t *ws)
 	return TOP->cursor.new.x < TOP->width;
 }
 
-static void term_wipe_line(int x, int y, int len)
+static void term_clear_line(int x, int y, int len)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
@@ -334,7 +335,11 @@ static void term_wipe_line(int x, int y, int len)
 	for (int curx = x, z = MIN(x + len, TOP->width); curx < z; curx++) {
 		POINT(curx, y) = TOP->blank;
 	}
+}
 
+static void term_wipe_line(int x, int y, int len)
+{
+	term_clear_line(x, y, len);
 	term_mark_line_dirty(x, y, len);
 }
 
@@ -443,6 +448,18 @@ static void term_draw_cursor(struct term_cursor cursor)
 	}
 }
 
+static void term_mark_row_flushed(int y)
+{
+	TOP->dirty.rows[y].left = TOP->width;
+	TOP->dirty.rows[y].right = 0;
+}
+
+static void term_mark_all_flushed(void)
+{
+	TOP->dirty.top = TOP->height;
+	TOP->dirty.bottom = 0;
+}
+
 static void term_flush_row(int y)
 {
 	STACK_OK();
@@ -453,9 +470,7 @@ static void term_flush_row(int y)
 	int len = right - left + 1;
 
 	if (len > 0) {
-		TOP->dirty.rows[y].left = TOP->width;
-		TOP->dirty.rows[y].right = 0;
-
+		term_mark_row_flushed(y);
 		term_draw(left, y, len);
 	}
 }
@@ -467,8 +482,7 @@ static void term_flush_out(void)
 	const int top = TOP->dirty.top;
 	const int bottom = TOP->dirty.bottom;
 
-	TOP->dirty.top = TOP->height;
-	TOP->dirty.bottom = 0;
+	term_mark_all_flushed();
 
 	for (int y = top; y <= bottom; y++) {
 		term_flush_row(y);
@@ -634,9 +648,16 @@ void Term_erase_line(int x, int y)
 
 void Term_clear(void)
 {
+	STACK_OK();
+
+	TOP->callbacks.clear(TOP->user);
+
 	for (int y = 0; y < TOP->height; y++) {
-		term_wipe_line(0, y, TOP->width);
+		term_clear_line(0, y, TOP->width);
+		term_mark_row_flushed(y);
 	}
+
+	term_mark_all_flushed();
 }
 
 void Term_dirty_point(int x, int y)

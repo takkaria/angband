@@ -120,6 +120,8 @@ typedef void (*pop_new_hook)(void *user);
 /* draw_hook should draw num_points points starting at position x, y */
 typedef void (*draw_hook)(void *user,
 		int x, int y, int num_points, struct term_point *points);
+/* clear_hook should completely clear the term */
+typedef void (*clear_hook)(void *user);
 /* cursor_hook should draw a cursor at position x, y */
 typedef void (*cursor_hook)(void *user, int x, int y);
 /* redraw_hook should make sure that all that was
@@ -150,6 +152,7 @@ struct term_callbacks {
 	add_tab_hook      add_tab;
 	cursor_hook       cursor;
 	redraw_hook       redraw;
+	clear_hook        clear;
 	event_hook        event;
 	delay_hook        delay;
 	draw_hook         draw;
