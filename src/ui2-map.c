@@ -442,24 +442,26 @@ static void view_map_aux(void)
 			struct grid_data g;
 			map_info(y, x, &g);
 
-			struct term_point point;
-			grid_data_as_point(&g, &point);
+			if ((int) g.f_idx != FEAT_NONE) {
+				struct term_point point;
+				grid_data_as_point(&g, &point);
 
-			if (priority_grid == NULL) {
-				Term_set_point(col, row, point);
-			} else {
-				byte priority = f_info[g.f_idx].priority;
-
-				/* Stuff on top of terrain gets higher priority */
-				if (point.fg_attr != point.bg_attr
-						|| point.fg_char != point.bg_char)
-				{
-					priority = 20;
-				}
-
-				if (priority_grid[row][col] < priority) {
+				if (priority_grid == NULL) {
 					Term_set_point(col, row, point);
-					priority_grid[row][col] = priority;
+				} else {
+					byte priority = f_info[g.f_idx].priority;
+
+					/* Stuff on top of terrain gets higher priority */
+					if (point.fg_attr != point.bg_attr
+							|| point.fg_char != point.bg_char)
+					{
+						priority = 20;
+					}
+
+					if (priority_grid[row][col] < priority) {
+						Term_set_point(col, row, point);
+						priority_grid[row][col] = priority;
+					}
 				}
 			}
 		}
