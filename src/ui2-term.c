@@ -46,7 +46,7 @@ struct term {
 	int width;
 	int height;
 
-	bool clear;
+	bool erased;
 
 	struct {
 		struct term_cursor new;
@@ -183,7 +183,7 @@ static term term_new(const struct term_create_info *info)
 	assert(t->callbacks.add_tab      != NULL);
 	assert(t->callbacks.redraw       != NULL);
 	assert(t->callbacks.cursor       != NULL);
-	assert(t->callbacks.clear        != NULL);
+	assert(t->callbacks.erase        != NULL);
 	assert(t->callbacks.event        != NULL);
 	assert(t->callbacks.delay        != NULL);
 	assert(t->callbacks.draw         != NULL);
@@ -229,7 +229,7 @@ static void term_mark_point_dirty(int x, int y)
 	}
 
 	if (dirty) {
-		TOP->clear = false;
+		TOP->erased = false;
 	}
 }
 
@@ -371,7 +371,7 @@ static void term_wipe_all(void)
 {
 	STACK_OK();
 
-	TOP->callbacks.clear(TOP->user);
+	TOP->callbacks.erase(TOP->user);
 
 	for (int y = 0; y < TOP->height; y++) {
 		term_clear_line(0, y, TOP->width);
@@ -379,7 +379,7 @@ static void term_wipe_all(void)
 	}
 	term_mark_all_flushed();
 
-	TOP->clear = true;
+	TOP->erased = true;
 }
 
 static void term_move_cursor(int x, int y)
@@ -673,11 +673,11 @@ void Term_erase_line(int x, int y)
 	term_wipe_line(x, y, TOP->width);
 }
 
-void Term_clear(void)
+void Term_erase_all(void)
 {
 	STACK_OK();
 
-	if (!TOP->clear) {
+	if (!TOP->erased) {
 		term_wipe_all();
 	}
 }

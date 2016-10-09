@@ -1509,7 +1509,7 @@ static void display_object_recall_int(const struct object *obj,
 	if (interactive) {
 		textui_textblock_show(tb, TERM_POSITION_TOP_LEFT, area, header);
 	} else {
-		Term_clear();
+		Term_erase_all();
 		textui_textblock_place(tb, area, header);
 	}
 

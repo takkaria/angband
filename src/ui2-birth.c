@@ -793,7 +793,7 @@ static void point_based_start(void)
 	const char *prompt =
 		"[up/down to move, left/right to modify, 'r' to reset, 'Enter' to accept]";
 
-	Term_clear();
+	Term_erase_all();
 
 	display_player(PLAYER_DISPLAY_MODE_BIRTH);
 
@@ -1199,7 +1199,7 @@ int textui_do_birth(void)
 				break;
 
 			case BIRTH_QUICKSTART:
-				Term_clear();
+				Term_erase_all();
 				display_player(PLAYER_DISPLAY_MODE_BIRTH);
 				next = textui_birth_quickstart();
 				if (next == BIRTH_COMPLETE) {
@@ -1213,7 +1213,7 @@ int textui_do_birth(void)
 				menu = &race_menu;
 				command = CMD_CHOOSE_RACE;
 
-				Term_clear();
+				Term_erase_all();
 				clear_prompt();
 				print_menu_instructions();
 

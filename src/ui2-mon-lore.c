@@ -184,7 +184,7 @@ void lore_show_subwindow(const struct monster_race *race,
 	assert(race != NULL);
 	assert(lore != NULL);
 
-	Term_clear();
+	Term_erase_all();
 
 	textblock *tb = textblock_new();
 	lore_description(tb, race, lore, false);

@@ -275,7 +275,7 @@ static void ui_keymap_query(const char *title, int index)
 	do {
 		struct loc loc = {1, 0};
 
-		Term_clear();
+		Term_erase_all();
 
 		prt("Key: ", loc);
 
@@ -413,7 +413,7 @@ static void ui_keymap_create(const char *title, int index)
 	do {
 		struct loc loc = {1, 0};
 
-		Term_clear();
+		Term_erase_all();
 
 		prt("Key: ", loc);
 
@@ -482,7 +482,7 @@ static void ui_keymap_remove(const char *title, int index)
 	do {
 		struct loc loc = {1, 0};
 
-		Term_clear();
+		Term_erase_all();
 
 		prt("Key: ", loc);
 

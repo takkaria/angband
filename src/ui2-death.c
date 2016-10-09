@@ -218,7 +218,7 @@ static void put_str_centred(struct loc loc, int width, const char *fmt, ...)
  */
 static void print_tomb(void)
 {
-	Term_clear();
+	Term_erase_all();
 
 	time_t death_time = time(NULL);
 
@@ -294,7 +294,7 @@ static void display_winner(void)
 	path_build(buf, sizeof(buf), ANGBAND_DIR_SCREENS, "crown.txt");
 	ang_file *fp = file_open(buf, MODE_READ, FTYPE_TEXT);
 
-	Term_clear();
+	Term_erase_all();
 
 	struct loc loc;
 

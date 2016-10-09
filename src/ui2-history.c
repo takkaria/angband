@@ -71,7 +71,7 @@ void history_display(void)
 	bool done = false;
 
 	while (!done) {
-		Term_clear();
+		Term_erase_all();
 
 		/* Print everything to screen */
 		print_history_header();

@@ -153,7 +153,7 @@ static void message_more(int x)
 		inkey_any();
 	}
 
-	Term_clear();
+	Term_erase_all();
 }
 
 /**
@@ -184,7 +184,7 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
 
 	if (dt->coords.x < 0) {
-		Term_clear();
+		Term_erase_all();
 		dt->coords.x = 0;
 	}
 
@@ -253,7 +253,7 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
 		dt->coords.x = 0;
 	}
 
-	Term_clear();
+	Term_erase_all();
 	Term_flush_output();
 	Term_pop();
 }
@@ -1126,7 +1126,7 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 	const int width = Term_width();
 
-	Term_clear();
+	Term_erase_all();
 
 	struct loc coords = {0, 0};
 	for (size_t i = 0; i < N_ELEMENTS(status_handlers) && coords.x < width; i++) {
@@ -1540,7 +1540,7 @@ static void update_inven_subwindow(game_event_type type,
 	(void) data;
 
 	Term_push(DISPLAY_TERM(user)->term);
-	Term_clear();
+	Term_erase_all();
 
 	if (!flip_inven_equip) {
 		show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
@@ -1559,7 +1559,7 @@ static void update_equip_subwindow(game_event_type type,
 	(void) data;
 
 	Term_push(DISPLAY_TERM(user)->term);
-	Term_clear();
+	Term_erase_all();
 
 	if (!flip_inven_equip) {
 		show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_FULL, NULL);
@@ -1582,7 +1582,7 @@ void toggle_inven_equip(void)
 	struct display_term *inven = display_term_get(DISPLAY_INVEN);
 	if (inven->term != NULL) {
 		Term_push(inven->term);
-		Term_clear();
+		Term_erase_all();
 
 		if (flip_inven_equip) {
 			show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_FULL, NULL);
@@ -1597,7 +1597,7 @@ void toggle_inven_equip(void)
 	struct display_term *equip = display_term_get(DISPLAY_EQUIP);
 	if (equip->term != NULL) {
 		Term_push(equip->term);
-		Term_clear();
+		Term_erase_all();
 
 		if (flip_inven_equip) {
 			show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER_COMPACT, NULL);
@@ -1617,7 +1617,7 @@ static void update_itemlist_subwindow(game_event_type type,
 	(void) data;
 
 	Term_push(DISPLAY_TERM(user)->term);
-	Term_clear();
+	Term_erase_all();
 
 	object_list_show_subwindow();
 
@@ -1632,7 +1632,7 @@ static void update_monlist_subwindow(game_event_type type,
 	(void) data;
 
 	Term_push(DISPLAY_TERM(user)->term);
-	Term_clear();
+	Term_erase_all();
 
 	monster_list_show_subwindow();
 
@@ -1890,7 +1890,7 @@ static void show_splashscreen(game_event_type type,
 		init_angband_aux(why);
 	}
 
-	Term_clear();
+	Term_erase_all();
 
 	ang_file *fp = file_open(buf, MODE_READ, FTYPE_TEXT);
 
@@ -1948,7 +1948,7 @@ static void new_level_display_update(game_event_type type,
 	verify_panel(DISPLAY_TERM(user)->index);
 
 	Term_push(DISPLAY_TERM(user)->term);
-	Term_clear();
+	Term_erase_all();
 
 	player->upkeep->only_partial = true;
 

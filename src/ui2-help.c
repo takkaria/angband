@@ -383,7 +383,7 @@ static void show_file(const char *name)
 	bool done = false;
 
 	while (!done) {
-		Term_clear();
+		Term_erase_all();
 
 		help_display_page(help, text_reg);
 		help_display_rest(help, term_reg, text_reg);

@@ -722,7 +722,7 @@ static void term_event(void *user, bool wait);
 static void term_draw(void *user,
 		int col, int row, int n_points, struct term_point *points);
 static void term_delay(void *user, int msecs);
-static void term_clear(void *user);
+static void term_erase(void *user);
 static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
 static void term_pop_new(void *user);
@@ -739,7 +739,7 @@ static const struct term_callbacks default_callbacks = {
 	.event        = term_event,
 	.draw         = term_draw,
 	.delay        = term_delay,
-	.clear        = term_clear,
+	.erase        = term_erase,
 	.push_new     = term_push_new,
 	.pop_new      = term_pop_new,
 	.add_tab      = term_add_tab
@@ -3724,7 +3724,7 @@ static void term_big_map_redraw(void *user)
 	SDL_RenderPresent(subwindow->window->renderer);
 }
 
-static void term_clear(void *user)
+static void term_erase(void *user)
 {
 	struct subwindow *subwindow = user;
 
@@ -4064,7 +4064,7 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	}
 
 	Term_push(subwindow->term);
-	Term_clear();
+	Term_erase_all();
 	Term_resize(subwindow->cols, subwindow->rows);
 	Term_flush_output();
 	Term_pop();

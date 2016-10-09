@@ -120,8 +120,8 @@ typedef void (*pop_new_hook)(void *user);
 /* draw_hook should draw num_points points starting at position x, y */
 typedef void (*draw_hook)(void *user,
 		int x, int y, int num_points, struct term_point *points);
-/* clear_hook should completely clear the term */
-typedef void (*clear_hook)(void *user);
+/* erase_hook should completely clear the term */
+typedef void (*erase_hook)(void *user);
 /* cursor_hook should draw a cursor at position x, y */
 typedef void (*cursor_hook)(void *user, int x, int y);
 /* redraw_hook should make sure that all that was
@@ -152,7 +152,7 @@ struct term_callbacks {
 	add_tab_hook      add_tab;
 	cursor_hook       cursor;
 	redraw_hook       redraw;
-	clear_hook        clear;
+	erase_hook        erase;
 	event_hook        event;
 	delay_hook        delay;
 	draw_hook         draw;
@@ -189,7 +189,7 @@ void Term_erase(int x, int y, int len);
 /* erase all characters starting at x, y */
 void Term_erase_line(int x, int y);
 /* erase the whole window */
-void Term_clear(void);
+void Term_erase_all(void);
 
 /* notes about the cursor
  * X (horizontal) legal positions are (0 <= X <= term width)

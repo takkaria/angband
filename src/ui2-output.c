@@ -539,7 +539,7 @@ void clear_prompt(void)
 {
 	display_term_push(DISPLAY_MESSAGE_LINE);
 
-	Term_clear();
+	Term_erase_all();
 	Term_cursor_visible(false);
 	Term_flush_output();
 
@@ -559,7 +559,7 @@ void show_prompt(const char *str, bool cursor)
 
 	display_term_push(DISPLAY_MESSAGE_LINE);
 
-	Term_clear();
+	Term_erase_all();
 	Term_cursor_visible(cursor);
 	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, str);
 	Term_flush_output();

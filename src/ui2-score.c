@@ -64,7 +64,7 @@ static void display_scores_aux(const high_score *scores,
 		char out_val[ANGBAND_TERM_STANDARD_WIDTH];
 		char tmp_val[ANGBAND_TERM_STANDARD_WIDTH];
 
-		Term_clear();
+		Term_erase_all();
 
 		struct loc loc = {0, 2};
 

@@ -310,7 +310,7 @@ static void store_display_frame(int cursor, void *menu_data, region reg)
 	struct store *store = context->store;
 	struct owner *proprietor = store->owner;
 
-	Term_clear();
+	Term_erase_all();
 
 	if (store->sidx == STORE_HOME) {
 		/* The "Home" is special */

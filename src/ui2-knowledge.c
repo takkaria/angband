@@ -2131,7 +2131,7 @@ void do_cmd_messages(void)
 	bool more = true;
 
 	while (more) {
-		Term_clear();
+		Term_erase_all();
 
 		for (int m = 0; m <= last_msg_pos && current + m < n_messages; m++) {
 			const char *msg = message_str(current + m);

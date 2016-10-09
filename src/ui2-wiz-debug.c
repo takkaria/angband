@@ -284,7 +284,7 @@ static void wiz_display_item(const struct object *obj, bool all)
 		object_flags_known(obj, flags);
 	}
 
-	Term_clear();
+	Term_erase_all();
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	object_desc(buf, sizeof(buf), obj,

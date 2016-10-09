@@ -1015,7 +1015,7 @@ static void write_character_dump(ang_file *file)
 	}
 	file_put(file, "\n\n");
 
-	Term_clear();
+	Term_erase_all();
 
 	display_player(PLAYER_DISPLAY_MODE_EXTRA);
 
