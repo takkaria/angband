@@ -4531,29 +4531,6 @@ static void position_subwindow_top_left(struct subwindow *subwindow,
 		display_cave->inner_rect.y + DEFAULT_PERMANENT_SUBWINDOW_BORDER;
 }
 
-static void position_subwindow_top_center(struct subwindow *subwindow,
-		const struct term_hints *hints)
-{
-	(void) hints;
-
-	const struct subwindow *message_line = get_subwindow_direct(DISPLAY_MESSAGE_LINE);
-	assert(message_line->loaded);
-	assert(message_line->window == subwindow->window);
-
-	/* center in in the window horizontally */
-	subwindow->full_rect.x = subwindow->window->inner_rect.x +
-		(subwindow->window->inner_rect.w - subwindow->full_rect.w) / 2;
-
-	/* put it under message line and 'snap' to it */
-	subwindow->full_rect.y =
-		message_line->full_rect.y + message_line->full_rect.h - DEFAULT_VISIBLE_BORDER;
-
-	if (!is_rect_in_rect(&subwindow->full_rect, &subwindow->window->inner_rect)) {
-		/* center it then */
-		position_subwindow_center(subwindow, hints);
-	}
-}
-
 static void position_big_map_subwindow(struct subwindow *subwindow)
 {
 	subwindow->sizing_rect = subwindow->full_rect;
@@ -4579,9 +4556,6 @@ static void position_other_subwindow(struct subwindow *subwindow,
 			break;
 		case TERM_POSITION_TOP_LEFT:
 			position_subwindow_top_left(subwindow, hints);
-			break;
-		case TERM_POSITION_TOP_CENTER:
-			position_subwindow_top_center(subwindow, hints);
 			break;
 		default:
 			position_subwindow_center(subwindow, hints);

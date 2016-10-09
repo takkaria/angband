@@ -89,7 +89,6 @@ enum term_position {
 	TERM_POSITION_EXACT,
 	TERM_POSITION_CENTER,
 	TERM_POSITION_TOP_LEFT,
-	TERM_POSITION_TOP_CENTER,
 };
 
 enum term_purpose {
