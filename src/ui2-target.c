@@ -509,13 +509,17 @@ static bool target_interactive_aux_objects(ui_event *event,
 		struct term_hints hints = {
 			.width = ANGBAND_TERM_STANDARD_WIDTH,
 			.height = floor_num,
+			.tabs = true,
 			.purpose = TERM_PURPOSE_TEXT,
-			.position = TERM_POSITION_TOP_CENTER
+			.position = TERM_POSITION_TOP_LEFT
 		};
 		Term_push_new(&hints);
+		Term_add_tab(0, "Floor", COLOUR_WHITE, COLOUR_DARK);
+
 		show_floor(floor_list, floor_num,
 				   (OLIST_WEIGHT | OLIST_GOLD), NULL);
 		*event = inkey_mouse_or_key();
+
 		Term_pop();
 	} else {
 		struct object *obj = floor_list[0];

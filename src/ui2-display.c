@@ -2064,10 +2064,12 @@ static void see_floor_items(game_event_type type,
 		struct term_hints hints = {
 			.width = ANGBAND_TERM_STANDARD_WIDTH,
 			.height = floor_num,
+			.tabs = true,
 			.purpose = TERM_PURPOSE_TEXT,
-			.position = TERM_POSITION_TOP_CENTER
+			.position = TERM_POSITION_TOP_LEFT
 		};
 		Term_push_new(&hints);
+		Term_add_tab(0, "Floor", COLOUR_WHITE, COLOUR_DARK);
 
 		show_floor(floor_list, floor_num, OLIST_WEIGHT, NULL);
 
