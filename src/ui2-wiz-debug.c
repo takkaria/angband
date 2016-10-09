@@ -656,7 +656,7 @@ static bool wiz_create_item_action(struct menu *menu,
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
-		.position = TERM_POSITION_TOP_CENTER,
+		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
@@ -717,7 +717,7 @@ static void wiz_create_item(bool art)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = count,
-		.position = TERM_POSITION_TOP_CENTER,
+		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
@@ -1116,7 +1116,7 @@ static void do_cmd_wiz_play_item(void)
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
 		.height = ANGBAND_TERM_STANDARD_HEIGHT,
-		.position = TERM_POSITION_TOP_CENTER,
+		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	Term_push_new(&hints);
