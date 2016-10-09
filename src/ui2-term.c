@@ -233,18 +233,6 @@ static void term_mark_point_dirty(int x, int y)
 	}
 }
 
-static void term_mark_line_dirty(int x, int y, int len)
-{
-	STACK_OK();
-	COORDS_OK(x, y);
-	assert(len > 0);
-
-	int z = MIN(x + len, TOP->width) - 1;
-
-	term_mark_point_dirty(x, y);
-	term_mark_point_dirty(z, y);
-}
-
 static void term_set_point(int x, int y, struct term_point point)
 {
 	STACK_OK();
@@ -307,11 +295,8 @@ static int term_set_ws(int x, int y, int len, uint32_t fga, const wchar_t *ws)
 			curx < MIN(TOP->width, x + len) && *curws != 0;
 			curx++, curws++)
 	{
-		POINT(curx, y).fg_attr = fga;
-		POINT(curx, y).fg_char = *curws;
+		term_set_fg(curx, y, fga, *curws);
 	}
-
-	term_mark_line_dirty(x, y, curws - ws);
 
 	return curws - ws;
 }
@@ -364,7 +349,11 @@ static void term_clear_line(int x, int y, int len)
 static void term_wipe_line(int x, int y, int len)
 {
 	term_clear_line(x, y, len);
-	term_mark_line_dirty(x, y, len);
+
+	int z = MIN(x + len, TOP->width) - 1;
+
+	term_mark_point_dirty(x, y);
+	term_mark_point_dirty(z, y);
 }
 
 static void term_wipe_all(void)
