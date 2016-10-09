@@ -1003,7 +1003,7 @@ static void write_character_dump(ang_file *file)
 			y < PLAYER_DISPLAY_BASIC_ROW_2 + 7;
 			y++)
 	{
-		dump_term_line(file, 0, y, ANGBAND_TERM_STANDARD_WIDTH, true);
+		dump_term_line(file, 0, y, hints.width, true);
 	}
 	file_put(file, "\n\n");
 
@@ -1011,7 +1011,7 @@ static void write_character_dump(ang_file *file)
 			y < ANGBAND_TERM_STANDARD_HEIGHT;
 			y++)
 	{
-		dump_term_line(file, 0, y, ANGBAND_TERM_STANDARD_WIDTH, false);
+		dump_term_line(file, 0, y, hints.width, false);
 	}
 	file_put(file, "\n\n");
 
@@ -1023,7 +1023,7 @@ static void write_character_dump(ang_file *file)
 			y < PLAYER_FLAG_RES_ROW_2 + 7;
 			y++)
 	{
-		dump_term_line(file, 0, y, ANGBAND_TERM_STANDARD_WIDTH, true);
+		dump_term_line(file, 0, y, hints.width, true);
 	}
 	file_put(file, "\n\n");
 
