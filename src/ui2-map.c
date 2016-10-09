@@ -372,6 +372,8 @@ void print_map(enum display_term_index index)
 	display_term_get_area(index, &offset, &width, &height);
 	display_term_push(index);
 
+	struct term_point blank = Term_get_blank();
+
 	/* Dump the map */
 	for (int rely = 0, absy = offset.y; rely < height; rely++, absy++) {
 		for (int relx = 0, absx = offset.x; relx < width; relx++, absx++) {
@@ -379,10 +381,14 @@ void print_map(enum display_term_index index)
 				struct grid_data g;
 				map_info(absy, absx, &g);
 
-				struct term_point point;
-				grid_data_as_point(&g, &point);
+				if ((int) g.f_idx != FEAT_NONE) {
+					struct term_point point;
+					grid_data_as_point(&g, &point);
 
-				Term_set_point(relx, rely, point);
+					Term_set_point(relx, rely, point);
+				} else {
+					Term_set_point(relx, rely, blank);
+				}
 			}
 		}
 	}

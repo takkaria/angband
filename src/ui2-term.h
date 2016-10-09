@@ -236,6 +236,9 @@ void Term_set_point(int x, int y, struct term_point point);
 /* as above, but does move the cursor */
 void Term_add_point(int x, int y, struct term_point point);
 
+/* Get a point suitable for initializing other points */
+struct term_point Term_get_blank(void);
+
 /* valid coordinates for point in term */
 bool Term_point_ok(int x, int y);
 

@@ -818,6 +818,13 @@ void Term_get_point(int x, int y, struct term_point *point)
 	*point = term_get_point(INDEX(x, y));
 }
 
+struct term_point Term_get_blank(void)
+{
+	STACK_OK();
+
+	return TOP->blank;
+}
+
 void Term_set_point(int x, int y, struct term_point point)
 {
 	STACK_OK();
