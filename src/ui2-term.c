@@ -23,6 +23,7 @@
 struct term_cursor {
 	int x;
 	int y;
+	int i;
 	bool visible;
 };
 
@@ -33,6 +34,8 @@ struct term_dirty {
 		int left;
 		int right;
 	} *rows;
+
+	bool *points;
 };
 
 struct term {
@@ -78,6 +81,11 @@ struct term {
 	assert((y) < TOP->height); \
 } while (0)
 
+#define INDEX_OK(index) do { \
+	assert((index) >= 0); \
+	assert((index) < TOP->size); \
+} while (0) 
+
 #define STACK_OK() do { \
 	assert(TOP != NULL); \
 	assert(term_stack.top > NOTOP); \
@@ -90,13 +98,12 @@ struct term {
 	assert(TOP->cursor.new.x <= TOP->width); \
 	assert(TOP->cursor.new.y >= 0); \
 	assert(TOP->cursor.new.y < TOP->height); \
+	assert(TOP->cursor.new.i >= 0); \
+	assert(TOP->cursor.new.i <= TOP->size); \
 } while (0)
 
 #define INDEX(x, y) \
 	((x) + (y) * TOP->width)
-
-#define POINT(x, y) \
-	(TOP->points[INDEX(x, y)])
 
 /* Local variables */
 
@@ -119,17 +126,6 @@ static struct {
 
 /* Local functions */
 
-static void term_make_dirty(term t)
-{
-	t->dirty.top = 0;
-	t->dirty.bottom = t->height - 1;
-
-	for (int y = t->dirty.top; y <= t->dirty.bottom; y++) {
-		t->dirty.rows[y].left = 0;
-		t->dirty.rows[y].right = t->width - 1;
-	}
-}
-
 static term term_alloc(int w, int h)
 {
 	assert(w > 0);
@@ -143,6 +139,7 @@ static term term_alloc(int w, int h)
 
 	t->points = mem_zalloc(t->size * sizeof(t->points[0]));
 	t->dirty.rows = mem_zalloc(t->height * sizeof(t->dirty.rows[0]));
+	t->dirty.points = mem_zalloc(t->size * sizeof(t->dirty.points[0]));
 
 	return t;
 }
@@ -151,21 +148,8 @@ static void term_free(term t)
 {
 	mem_free(t->points);
 	mem_free(t->dirty.rows);
+	mem_free(t->dirty.points);
 	mem_free(t);
-}
-
-static void term_copy(term new, term old)
-{
-	int min_width = MIN(new->width, old->width);
-	int min_height = MIN(new->height, old->height);
-
-	for (int y = 0; y < min_height; y++) {
-		int newx = new->width * y;
-		int oldx = old->width * y;
-		for (int x = 0; x < min_width; x++, newx++, oldx++) {
-			new->points[newx] = old->points[oldx];
-		}
-	}
 }
 
 static term term_new(const struct term_create_info *info)
@@ -188,69 +172,151 @@ static term term_new(const struct term_create_info *info)
 	assert(t->callbacks.delay        != NULL);
 	assert(t->callbacks.draw         != NULL);
 
-	term_make_dirty(t);
+	for (int i = 0; i < t->size; i++) {
+		t->points[i] = t->blank;
+	}
+
+	for (int y = 0; y < t->height; y++) {
+		t->dirty.rows[y].left = t->width;
+		t->dirty.rows[y].right = 0;
+	}
+	t->dirty.top = t->height;
+	t->dirty.bottom = 0;
 
 	t->temporary = false;
 	
 	return t;
 }
 
-static void term_draw(int x, int y, int len)
+static void term_draw(int x, int y, int index, int len)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
+	INDEX_OK(index);
+
 	assert(len > 0);
 
-	TOP->callbacks.draw(TOP->user, x, y, len, &POINT(x, y));
+	INDEX_OK(index + len - 1);
+
+	TOP->callbacks.draw(TOP->user, x, y, len, &TOP->points[index]);
 }
 
-static void term_mark_point_dirty(int x, int y)
+static bool term_points_equal(struct term_point original, struct term_point compare)
+{
+	return original.fg_attr == compare.fg_attr
+		&& original.fg_char == compare.fg_char
+		&& original.bg_attr == compare.bg_attr
+		&& original.bg_char == compare.bg_char
+		&& original.terrain_attr == compare.terrain_attr
+		&& tpf_is_equal(original.flags, compare.flags);
+}
+
+static bool term_fg_equal(struct term_point original, uint32_t fga, wchar_t fgc)
+{
+	return original.fg_attr == fga
+		&& original.fg_char == fgc;
+}
+
+static void term_mark_point_dirty(int x, int y, int index)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
+	INDEX_OK(index);
 
-	bool dirty = false;
+	if (!TOP->dirty.points[index]) {
 
-	if (y < TOP->dirty.top) {
-		TOP->dirty.top = y;
-		dirty = true;
-	}
-	if (y > TOP->dirty.bottom) {
-		TOP->dirty.bottom = y;
-		dirty = true;
-	}
-	if (x < TOP->dirty.rows[y].left) {
-		TOP->dirty.rows[y].left = x;
-		dirty = true;
-	}
-	if (x > TOP->dirty.rows[y].right) {
-		TOP->dirty.rows[y].right = x;
-		dirty = true;
-	}
+		if (y < TOP->dirty.top) {
+			TOP->dirty.top = y;
+		}
+		if (y > TOP->dirty.bottom) {
+			TOP->dirty.bottom = y;
+		}
 
-	if (dirty) {
+		if (x < TOP->dirty.rows[y].left) {
+			TOP->dirty.rows[y].left = x;
+		}
+		if (x > TOP->dirty.rows[y].right) {
+			TOP->dirty.rows[y].right = x;
+		}
+
 		TOP->erased = false;
+		TOP->dirty.points[index] = true;
 	}
 }
 
-static void term_set_point(int x, int y, struct term_point point)
+static void term_mark_row_flushed(int y)
 {
 	STACK_OK();
-	COORDS_OK(x, y);
 
-	POINT(x, y) = point;
-	term_mark_point_dirty(x, y);
+	TOP->dirty.rows[y].left = TOP->width;
+	TOP->dirty.rows[y].right = 0;
 }
 
-static void term_set_fg(int x, int y, uint32_t fga, wchar_t fgc)
+static void term_mark_all_flushed(void)
+{
+	STACK_OK();
+
+	TOP->dirty.top = TOP->height;
+	TOP->dirty.bottom = 0;
+}
+
+static struct term_point term_get_point(int index)
+{
+	STACK_OK();
+	INDEX_OK(index);
+	
+	return TOP->points[index];
+}
+
+static void term_set_point(int x, int y, int index, struct term_point point)
+{
+	STACK_OK();
+	COORDS_OK(x, y);
+	INDEX_OK(index);
+
+	if (!term_points_equal(TOP->points[index], point)) {
+		TOP->points[index] = point;
+		term_mark_point_dirty(x, y, index);
+	}
+}
+
+static void term_set_fg(int x, int y, int index, uint32_t fga, wchar_t fgc)
+{
+	STACK_OK();
+	COORDS_OK(x, y);
+	INDEX_OK(index);
+
+	if (!term_fg_equal(TOP->points[index], fga, fgc)) {
+		TOP->points[index].fg_attr = fga;
+		TOP->points[index].fg_char = fgc;
+
+		term_mark_point_dirty(x, y, index);
+	}
+}
+
+static int term_set_ws(int x, int y, int index, int len,
+		uint32_t fga, const wchar_t *ws)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
 
-	POINT(x, y).fg_attr = fga;
-	POINT(x, y).fg_char = fgc;
+	if (len == TERM_MAX_LEN) {
+		len = TOP->width;
+	}
 
-	term_mark_point_dirty(x, y);
+	assert(len > 0);
+	assert(*ws != 0);
+
+	const wchar_t *curws = ws;
+
+	for (int z = MIN(TOP->width, x + len);
+			x < z && *curws != 0;
+			x++, index++, curws++)
+	{
+		term_set_fg(x, y, index, fga, *curws);
+	}
+
+	return curws - ws;
 }
 
 static bool term_put_point_at_cursor(struct term_point point)
@@ -259,8 +325,10 @@ static bool term_put_point_at_cursor(struct term_point point)
 	CURSOR_OK();
 	
 	if (TOP->cursor.new.x < TOP->width) {
-		term_set_point(TOP->cursor.new.x, TOP->cursor.new.y, point);
+		term_set_point(TOP->cursor.new.x, TOP->cursor.new.y,
+				TOP->cursor.new.i, point);
 		TOP->cursor.new.x++;
+		TOP->cursor.new.i++;
 		return true;
 	} else {
 		return false;
@@ -273,32 +341,14 @@ static bool term_put_fg_at_cursor(uint32_t fga, wchar_t fgc)
 	CURSOR_OK();
 	
 	if (TOP->cursor.new.x < TOP->width) {
-		term_set_fg(TOP->cursor.new.x, TOP->cursor.new.y, fga, fgc);
+		term_set_fg(TOP->cursor.new.x, TOP->cursor.new.y,
+				TOP->cursor.new.i, fga, fgc);
 		TOP->cursor.new.x++;
+		TOP->cursor.new.i++;
 		return true;
 	} else {
 		return false;
 	}
-}
-
-static int term_set_ws(int x, int y, int len, uint32_t fga, const wchar_t *ws)
-{
-	STACK_OK();
-	COORDS_OK(x, y);
-
-	assert(len > 0);
-	assert(*ws != 0);
-
-	const wchar_t *curws = ws;
-
-	for (int curx = x;
-			curx < MIN(TOP->width, x + len) && *curws != 0;
-			curx++, curws++)
-	{
-		term_set_fg(curx, y, fga, *curws);
-	}
-
-	return curws - ws;
 }
 
 static bool term_put_ws_at_cursor(int len, uint32_t fga, const wchar_t *ws)
@@ -306,34 +356,22 @@ static bool term_put_ws_at_cursor(int len, uint32_t fga, const wchar_t *ws)
 	STACK_OK();
 	CURSOR_OK();
 
-	if (len == TERM_MAX_LEN) {
-		len = wcslen(ws);
-	}
+	int add = term_set_ws(TOP->cursor.new.x, TOP->cursor.new.y,
+			TOP->cursor.new.i, len, fga, ws);
 
-	TOP->cursor.new.x +=
-		term_set_ws(TOP->cursor.new.x, TOP->cursor.new.y, len, fga, ws);
+	TOP->cursor.new.x += add;
+	TOP->cursor.new.i += add;
 
 	CURSOR_OK();
 
 	return TOP->cursor.new.x < TOP->width;
 }
 
-static void term_mark_row_flushed(int y)
-{
-	TOP->dirty.rows[y].left = TOP->width;
-	TOP->dirty.rows[y].right = 0;
-}
-
-static void term_mark_all_flushed(void)
-{
-	TOP->dirty.top = TOP->height;
-	TOP->dirty.bottom = 0;
-}
-
-static void term_clear_line(int x, int y, int len)
+static void term_wipe_line(int x, int y, int index, int len)
 {
 	STACK_OK();
 	COORDS_OK(x, y);
+	INDEX_OK(index);
 
 	if (len == TERM_MAX_LEN) {
 		len = TOP->width - x;
@@ -341,19 +379,13 @@ static void term_clear_line(int x, int y, int len)
 
 	assert(len > 0);
 
-	for (int curx = x, z = MIN(x + len, TOP->width); curx < z; curx++) {
-		POINT(curx, y) = TOP->blank;
+	for (int z = MIN(x + len, TOP->width); x < z; x++, index++) {
+
+		if (!term_points_equal(TOP->points[index], TOP->blank)) {
+			TOP->points[index] = TOP->blank;
+			term_mark_point_dirty(x, y, index);
+		}
 	}
-}
-
-static void term_wipe_line(int x, int y, int len)
-{
-	term_clear_line(x, y, len);
-
-	int z = MIN(x + len, TOP->width) - 1;
-
-	term_mark_point_dirty(x, y);
-	term_mark_point_dirty(z, y);
 }
 
 static void term_wipe_all(void)
@@ -362,8 +394,12 @@ static void term_wipe_all(void)
 
 	TOP->callbacks.erase(TOP->user);
 
+	for (int i = 0; i < TOP->size; i++) {
+		TOP->points[i] = TOP->blank;
+		TOP->dirty.points[i] = false;
+	}
+
 	for (int y = 0; y < TOP->height; y++) {
-		term_clear_line(0, y, TOP->width);
 		term_mark_row_flushed(y);
 	}
 	term_mark_all_flushed();
@@ -371,13 +407,14 @@ static void term_wipe_all(void)
 	TOP->erased = true;
 }
 
-static void term_move_cursor(int x, int y)
+static void term_move_cursor(int x, int y, int index)
 {
 	STACK_OK();
 	CURSOR_OK();
 
 	TOP->cursor.new.x = x;
 	TOP->cursor.new.y = y;
+	TOP->cursor.new.i = index;
 
 	CURSOR_OK();
 }
@@ -463,7 +500,7 @@ static void term_erase_cursor(struct term_cursor cursor)
 	STACK_OK();
 
 	if (cursor.visible && cursor.x < TOP->width) {
-		term_draw(cursor.x, cursor.y, 1);
+		term_draw(cursor.x, cursor.y, cursor.i, 1);
 	}
 }
 
@@ -473,6 +510,42 @@ static void term_draw_cursor(struct term_cursor cursor)
 
 	if (cursor.visible && cursor.x < TOP->width) {
 		TOP->callbacks.cursor(TOP->user, cursor.x, cursor.y);
+	}
+}
+
+static void term_flush_pending(int x, int y, int index, int len)
+{
+	STACK_OK();
+	COORDS_OK(x, y);
+	INDEX_OK(index);
+
+	assert(len > 0);
+
+	int pending_x = 0;
+	int pending_i = 0;
+	int pending_len = 0;
+
+	for (int z = x + len; x < z; x++, index++) {
+
+		if (TOP->dirty.points[index]) {
+			if (pending_len == 0) {
+				pending_x = x;
+				pending_i = index;
+			}
+			pending_len++;
+
+		} else {
+			if (pending_len > 0) {
+				term_draw(pending_x, y, pending_i, pending_len);
+				pending_len = 0;
+			}
+		}
+
+		TOP->dirty.points[index] = false;
+	}
+
+	if (pending_len > 0) {
+		term_draw(pending_x, y, pending_i, pending_len);
 	}
 }
 
@@ -486,8 +559,8 @@ static void term_flush_row(int y)
 	int len = right - left + 1;
 
 	if (len > 0) {
+		term_flush_pending(left, y, INDEX(left, y), len);
 		term_mark_row_flushed(y);
-		term_draw(left, y, len);
 	}
 }
 
@@ -495,14 +568,11 @@ static void term_flush_out(void)
 {
 	STACK_OK();
 
-	const int top = TOP->dirty.top;
-	const int bottom = TOP->dirty.bottom;
-
-	term_mark_all_flushed();
-
-	for (int y = top; y <= bottom; y++) {
+	for (int y = TOP->dirty.top; y <= TOP->dirty.bottom; y++) {
 		term_flush_row(y);
 	}
+
+	term_mark_all_flushed();
 }
 
 static void term_pop_stack(void)
@@ -617,21 +687,21 @@ bool Term_puts(int len, uint32_t fga, const char *fgc)
 
 bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
 {
-	term_move_cursor(x, y);
+	term_move_cursor(x, y, INDEX(x, y));
 
 	return term_put_fg_at_cursor(fga, fgc);
 }
 
 bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
 {
-	term_move_cursor(x, y);
+	term_move_cursor(x, y, INDEX(x, y));
 
 	return term_put_ws_at_cursor(len, fga, fgc);
 }
 
 bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
 {
-	term_move_cursor(x, y);
+	term_move_cursor(x, y, INDEX(x, y));
 
 	wchar_t ws[WIDESTRING_MAX];
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
@@ -652,14 +722,16 @@ void Term_add_tab(keycode_t code,
 
 void Term_erase(int x, int y, int len)
 {
-	term_wipe_line(x, y, len);
+	STACK_OK();
+
+	term_wipe_line(x, y, INDEX(x, y), len);
 }
 
 void Term_erase_line(int x, int y)
 {
 	STACK_OK();
 
-	term_wipe_line(x, y, TOP->width);
+	term_wipe_line(x, y, INDEX(x, y), TOP->width);
 }
 
 void Term_erase_all(void)
@@ -673,7 +745,10 @@ void Term_erase_all(void)
 
 void Term_dirty_point(int x, int y)
 {
-	term_mark_point_dirty(x, y);
+	STACK_OK();
+	COORDS_OK(x, y);
+
+	term_mark_point_dirty(x, y, INDEX(x, y));
 }
 
 void Term_get_cursor(int *x, int *y, bool *visible)
@@ -694,7 +769,9 @@ void Term_get_cursor(int *x, int *y, bool *visible)
 
 void Term_cursor_to_xy(int x, int y)
 {
-	term_move_cursor(x, y);
+	STACK_OK();
+
+	term_move_cursor(x, y, INDEX(x, y));
 }
 
 void Term_cursor_visible(bool visible)
@@ -738,18 +815,21 @@ void Term_get_point(int x, int y, struct term_point *point)
 	STACK_OK();
 	COORDS_OK(x, y);
 
-	*point = POINT(x, y);
+	*point = term_get_point(INDEX(x, y));
 }
 
 void Term_set_point(int x, int y, struct term_point point)
 {
-	term_set_point(x, y, point);
+	STACK_OK();
+
+	term_set_point(x, y, INDEX(x, y), point);
 }
 
 void Term_add_point(int x, int y, struct term_point point)
 {
-	term_move_cursor(x, y);
+	STACK_OK();
 
+	term_move_cursor(x, y, INDEX(x, y));
 	term_put_point_at_cursor(point);
 }
 
@@ -766,6 +846,7 @@ bool Term_point_ok(int x, int y)
 void Term_resize(int w, int h)
 {
 	STACK_OK();
+
 	assert(w > 0);
 	assert(h > 0);
 
@@ -778,20 +859,18 @@ void Term_resize(int w, int h)
 	TOP->points = mem_zalloc(TOP->size * sizeof(TOP->points[0]));
 
 	TOP->dirty.rows = mem_zalloc(TOP->height * sizeof(TOP->dirty.rows[0]));
+	TOP->dirty.points = mem_zalloc(TOP->size * sizeof(TOP->dirty.points[0]));
 	TOP->dirty.top = w;
 	TOP->dirty.bottom = 0;
 
 	/* put cursor (in effect) in top left corner and make it invisible */
 	memset(&TOP->cursor, 0, sizeof(TOP->cursor));
 
-	for (int y = 0; y < TOP->height; y++) {
-		term_wipe_line(0, y, TOP->width);
-	}
-
-	term_copy(TOP, &old);
+	term_wipe_all();
 
 	mem_free(old.points);
 	mem_free(old.dirty.rows);
+	mem_free(old.dirty.points);
 }
 
 void Term_flush_output(void)
@@ -904,6 +983,7 @@ void Term_flush_events(void)
 void Term_delay(int msecs)
 {
 	STACK_OK();
+
 	assert(msecs > 0);
 
 	TOP->callbacks.delay(TOP->user, msecs);
