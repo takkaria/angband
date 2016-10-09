@@ -894,7 +894,6 @@ void Term_flush_events(void)
 void Term_delay(int msecs)
 {
 	STACK_OK();
-
 	assert(msecs > 0);
 
 	TOP->callbacks.delay(TOP->user, msecs);
