@@ -194,30 +194,28 @@ void Term_erase_all(void);
 /* notes about the cursor
  * X (horizontal) legal positions are (0 <= X <= term width)
  * Y (vertical) legal positions are (0 <= Y < term height)
- * note that the cursor can be one point beyond the right edge of the term
- * All other positions are FATAL ERRORS */
+ * note that the cursor can be one point beyond the right
+ * edge of the term (in which case nothing will be added);
+ * all other cursor positions are FATAL ERRORS */
 
 /* the following functions move the cursor;
- * they return true if all characters were added
- * and false if some of them could not be added
- * because the cursor was at the last legal position
  * fga - foreground attr (that is, color)
  * fgc - foreground char
  * bga - background attr (that is, color)
  * bgc - background char
  * x and y must be valid */
 
-/* add a character at current cursor position */
-bool Term_putwc(uint32_t fga, wchar_t fgc);
+/* add a char at current cursor position */
+void Term_putwc(uint32_t fga, wchar_t fgc);
 /* as above, but with a null-terminated string of wchar_t */
-bool Term_putws(int len, uint32_t fga, const wchar_t *fgc);
+void Term_putws(int len, uint32_t fga, const wchar_t *fgc);
 /* as above, but with a (utf-8 encoded) string of bytes; len is length in codepoints
  * only the part of the string that fits in the term window will be used */
-bool Term_puts(int len, uint32_t fga, const char *fgc);
+void Term_puts(int len, uint32_t fga, const char *fgc);
  /* Term_add* are like Term_put* functions, but allow to specify coordinates */
-bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc);
-bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc);
-bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc);
+void Term_addwc(int x, int y, uint32_t fga, wchar_t fgc);
+void Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc);
+void Term_adds(int x, int y, int len, uint32_t fga, const char *fgc);
 
 /* determine the position and visibility of the cursor
  * pass NULL for any argument that doesn't interest you */
@@ -258,13 +256,11 @@ void Term_flush_output(void);
  * flickering, tearing of frames, slowdowns and other undesirable things */
 void Term_redraw_screen(void);
 
-/* append a keypress to ui_event queue;
- * returns false if queue is full and event cannot be added */
-bool Term_keypress(keycode_t key, byte mods);
-/* append a mousepress to ui_event queue;
- * returns false if queue is full and event cannot be added
- * see list-display_terms.h, which has indexes of all terms */
-bool Term_mousepress(int x, int y, int button, byte mods, int index);
+/* append a keypress to ui_event queue */
+void Term_keypress(keycode_t key, byte mods);
+/* append a mousepress to ui_event queue; see
+ * list-display_terms.h, which has indexes of all terms */
+void Term_mousepress(int x, int y, int button, byte mods, int index);
 
 /* get the first event from the event queue
  * returns false if there are no events */
@@ -277,11 +273,11 @@ bool Term_wait_event(ui_event *event);
 bool Term_check_event(ui_event *event);
 /* forget all queued events (make the queue empty */
 void Term_flush_events(void);
-/* prepend an event to the front of the event_queue, or append
- * to the end of the queue; if there is not enough room, none of
- * the events will be pushed, and the return value will be false */
-bool Term_prepend_events(const ui_event *events, size_t num_events);
-bool Term_append_events(const ui_event *events, size_t num_events);
+/* prepend an event to the front of the event_queue,
+ * or append to the end of the queue;
+ * not enough space in the queue is a FATAL ERROR */
+void Term_prepend_events(const ui_event *events, size_t num_events);
+void Term_append_events(const ui_event *events, size_t num_events);
 
 /* make a term visible or invisible */
 void Term_visible(bool visible);

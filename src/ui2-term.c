@@ -319,7 +319,7 @@ static int term_set_ws(int x, int y, int index, int len,
 	return curws - ws;
 }
 
-static bool term_put_fg_at_cursor(uint32_t fga, wchar_t fgc)
+static void term_put_fg_at_cursor(uint32_t fga, wchar_t fgc)
 {
 	STACK_OK();
 	CURSOR_OK();
@@ -329,13 +329,10 @@ static bool term_put_fg_at_cursor(uint32_t fga, wchar_t fgc)
 				TOP->cursor.new.i, fga, fgc);
 		TOP->cursor.new.x++;
 		TOP->cursor.new.i++;
-		return true;
-	} else {
-		return false;
 	}
 }
 
-static bool term_put_ws_at_cursor(int len, uint32_t fga, const wchar_t *ws)
+static void term_put_ws_at_cursor(int len, uint32_t fga, const wchar_t *ws)
 {
 	STACK_OK();
 	CURSOR_OK();
@@ -347,8 +344,6 @@ static bool term_put_ws_at_cursor(int len, uint32_t fga, const wchar_t *ws)
 	TOP->cursor.new.i += add;
 
 	CURSOR_OK();
-
-	return TOP->cursor.new.x < TOP->width;
 }
 
 static void term_wipe_line(int x, int y, int index, int len)
@@ -434,11 +429,10 @@ static bool term_take_event(ui_event *event)
 	return true;
 }
 
-static bool term_prepend_events(const ui_event *events, size_t num_events)
+static void term_prepend_events(const ui_event *events, size_t num_events)
 {
-	if (event_queue.size - event_queue.number < num_events) {
-		return false;
-	}
+	assert(event_queue.number <= event_queue.size);
+	assert(num_events <= event_queue.size - event_queue.number);
 
 	for (size_t i = num_events; i > 0; i--) {
 		if (event_queue.tail == 0) {
@@ -449,15 +443,12 @@ static bool term_prepend_events(const ui_event *events, size_t num_events)
 		event_queue.queue[event_queue.tail] = events[i - 1];
 		event_queue.number++;
 	}
-
-	return true;
 }
 
-static bool term_append_events(const ui_event *events, size_t num_events)
+static void term_append_events(const ui_event *events, size_t num_events)
 {
-	if (event_queue.size - event_queue.number < num_events) {
-		return false;
-	}
+	assert(event_queue.number <= event_queue.size);
+	assert(num_events <= event_queue.size - event_queue.number);
 
 	for (size_t i = 0; i < num_events; i++) {
 		event_queue.queue[event_queue.head] = events[i];
@@ -468,8 +459,6 @@ static bool term_append_events(const ui_event *events, size_t num_events)
 			event_queue.head = 0;
 		}
 	}
-
-	return true;
 }
 
 static void term_mbstowcs(wchar_t *ws, const char *mbs, size_t ws_max_len)
@@ -655,46 +644,46 @@ void Term_pop_all(void)
 	}
 }
 
-bool Term_putwc(uint32_t fga, wchar_t fgc)
+void Term_putwc(uint32_t fga, wchar_t fgc)
 {
-	return term_put_fg_at_cursor(fga, fgc);
+	term_put_fg_at_cursor(fga, fgc);
 }
 
-bool Term_putws(int len, uint32_t fga, const wchar_t *fgc)
+void Term_putws(int len, uint32_t fga, const wchar_t *fgc)
 {
-	return term_put_ws_at_cursor(len, fga, fgc);
+	term_put_ws_at_cursor(len, fga, fgc);
 }
 
-bool Term_puts(int len, uint32_t fga, const char *fgc)
+void Term_puts(int len, uint32_t fga, const char *fgc)
 {
 	wchar_t ws[WIDESTRING_MAX];
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
 
-	return term_put_ws_at_cursor(len, fga, ws);
+	term_put_ws_at_cursor(len, fga, ws);
 }
 
-bool Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
+void Term_addwc(int x, int y, uint32_t fga, wchar_t fgc)
 {
 	term_move_cursor(x, y, INDEX(x, y));
 
-	return term_put_fg_at_cursor(fga, fgc);
+	term_put_fg_at_cursor(fga, fgc);
 }
 
-bool Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
+void Term_addws(int x, int y, int len, uint32_t fga, const wchar_t *fgc)
 {
 	term_move_cursor(x, y, INDEX(x, y));
 
-	return term_put_ws_at_cursor(len, fga, fgc);
+	term_put_ws_at_cursor(len, fga, fgc);
 }
 
-bool Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
+void Term_adds(int x, int y, int len, uint32_t fga, const char *fgc)
 {
 	term_move_cursor(x, y, INDEX(x, y));
 
 	wchar_t ws[WIDESTRING_MAX];
 	term_mbstowcs(ws, fgc, WIDESTRING_MAX);
 
-	return term_put_ws_at_cursor(len, fga, ws);
+	term_put_ws_at_cursor(len, fga, ws);
 }
 
 void Term_add_tab(keycode_t code,
@@ -882,7 +871,7 @@ void Term_redraw_screen(void)
 	TOP->callbacks.redraw(TOP->user);
 }
 
-bool Term_keypress(keycode_t key, byte mods)
+void Term_keypress(keycode_t key, byte mods)
 {
 	STACK_OK();
 
@@ -894,10 +883,10 @@ bool Term_keypress(keycode_t key, byte mods)
 		}
 	};
 
-	return term_append_events(&event, 1);
+	term_append_events(&event, 1);
 }
 
-bool Term_mousepress(int x, int y, int button, byte mods, int index)
+void Term_mousepress(int x, int y, int button, byte mods, int index)
 {
 	STACK_OK();
 
@@ -912,7 +901,7 @@ bool Term_mousepress(int x, int y, int button, byte mods, int index)
 		}
 	};
 
-	return term_append_events(&event, 1);
+	term_append_events(&event, 1);
 }
 
 bool Term_take_event(ui_event *event)
@@ -950,14 +939,14 @@ bool Term_check_event(ui_event *event)
 	return term_check_event(event);
 }
 
-bool Term_prepend_events(const ui_event *events, size_t num_events)
+void Term_prepend_events(const ui_event *events, size_t num_events)
 {
-	return term_prepend_events(events, num_events);
+	term_prepend_events(events, num_events);
 }
 
-bool Term_append_events(const ui_event *events, size_t num_events)
+void Term_append_events(const ui_event *events, size_t num_events)
 {
-	return term_append_events(events, num_events);
+	term_append_events(events, num_events);
 }
 
 void Term_flush_events(void)
