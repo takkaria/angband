@@ -870,7 +870,6 @@ void Term_resize(int w, int h)
 	TOP->dirty.top = w;
 	TOP->dirty.bottom = 0;
 
-	TOP->cursor = old.cursor;
 	TOP->cursor.new.x = 0;
 	TOP->cursor.new.y = 0;
 	TOP->cursor.new.i = 0;
