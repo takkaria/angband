@@ -533,7 +533,7 @@ static void term_flush_row(int y)
 	int len = right - left + 1;
 
 	if (len > 0) {
-		term_mark_row_flushed(y);
+		term_mark_row_flushed(y); /* see comments in term_flush_out() */
 
 		term_flush_pending(left, y, INDEX(left, y), len);
 	}
@@ -546,6 +546,9 @@ static void term_flush_out(void)
 	const int top = TOP->dirty.top;
 	const int bottom = TOP->dirty.bottom;
 
+	/* XXX note that the frontend can make some points (double tiles) dirty
+	 * while we're flushing, so mark term as flushed before drawing them;
+	 * otherwise, they cant be made dirty in the process. */
 	term_mark_all_flushed();
 
 	for (int y = top; y <= bottom; y++) {
