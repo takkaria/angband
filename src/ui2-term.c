@@ -319,22 +319,6 @@ static int term_set_ws(int x, int y, int index, int len,
 	return curws - ws;
 }
 
-static bool term_put_point_at_cursor(struct term_point point)
-{
-	STACK_OK();
-	CURSOR_OK();
-	
-	if (TOP->cursor.new.x < TOP->width) {
-		term_set_point(TOP->cursor.new.x, TOP->cursor.new.y,
-				TOP->cursor.new.i, point);
-		TOP->cursor.new.x++;
-		TOP->cursor.new.i++;
-		return true;
-	} else {
-		return false;
-	}
-}
-
 static bool term_put_fg_at_cursor(uint32_t fga, wchar_t fgc)
 {
 	STACK_OK();
@@ -834,14 +818,6 @@ void Term_set_point(int x, int y, struct term_point point)
 	STACK_OK();
 
 	term_set_point(x, y, INDEX(x, y), point);
-}
-
-void Term_add_point(int x, int y, struct term_point point)
-{
-	STACK_OK();
-
-	term_move_cursor(x, y, INDEX(x, y));
-	term_put_point_at_cursor(point);
 }
 
 bool Term_point_ok(int x, int y)

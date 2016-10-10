@@ -233,8 +233,6 @@ void Term_get_point(int x, int y, struct term_point *point);
 /* set a point at x, y, and don't move the cursor;
  * this is the most efficient way to add a point to a term */
 void Term_set_point(int x, int y, struct term_point point);
-/* as above, but does move the cursor */
-void Term_add_point(int x, int y, struct term_point point);
 
 /* Get a point suitable for initializing other points */
 struct term_point Term_get_blank(void);
