@@ -1985,10 +1985,13 @@ static void handle_player_move(game_event_type type,
 	verify_panel(DISPLAY_TERM(user)->index);
 
 	if (player->upkeep->running) {
+		handle_stuff(player);
+
 		if (OPT(highlight_player)) {
 			move_cursor_relative(DISPLAY_CAVE,
 					loc(player->px, player->py), true);
 		}
+
 		Term_redraw_screen();
 	}
 }
