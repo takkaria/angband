@@ -740,28 +740,23 @@ static void verify_panel_int(enum display_term_index index, bool centered)
 	region t;
 	get_term_region(index, &t);
 
+	/* scroll the panel if @ is closer than this to the edge */
+	int scroll = MAX(SCROLL_DISTANCE, MIN(t.w / 4, t.h / 4));
+
 	/* New coords (about to be modified) */
 	struct loc n = {t.x, t.y};
 
 	/* Player coords (just to save some keystrokes) */
 	struct loc p = {player->px, player->py};
 
-	/* center screen horizontally
-	 * when '@' is off-center and not running
-	 * OR
-	 * when '@' is less than SCROLL_DISTANCE grids from top/bottom edge */
-	if ((centered && !player->upkeep->running && p.x != t.x + t.w / 2)
-			|| (p.x < t.x + SCROLL_DISTANCE || p.x >= t.x + t.w - SCROLL_DISTANCE))
+	if ((centered && p.x != t.x + t.w / 2)
+			|| (p.x < t.x + scroll || p.x >= t.x + t.w - scroll))
 	{
 		n.x = p.x - t.w / 2;
 	}
 
-	/* center screen vertically
-	 * when '@' is off-center and not running
-	 * OR
-	 * when '@' is less than SCROLL_DISTANCE grids from top/bottom edge */
-	if ((centered && !player->upkeep->running && p.y != t.y + t.h / 2)
-			|| (p.y < t.y + SCROLL_DISTANCE || p.y >= t.y + t.h - SCROLL_DISTANCE))
+	if ((centered && p.y != t.y + t.h / 2)
+			|| (p.y < t.y + scroll || p.y >= t.y + t.h - scroll))
 	{
 		n.y = p.y - t.h / 2;
 	}
