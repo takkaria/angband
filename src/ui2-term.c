@@ -870,8 +870,13 @@ void Term_resize(int w, int h)
 	TOP->dirty.top = w;
 	TOP->dirty.bottom = 0;
 
-	/* put cursor (in effect) in top left corner and make it invisible */
-	memset(&TOP->cursor, 0, sizeof(TOP->cursor));
+	TOP->cursor = old.cursor;
+	TOP->cursor.new.x = 0;
+	TOP->cursor.new.y = 0;
+	TOP->cursor.new.i = 0;
+	TOP->cursor.old.x = 0;
+	TOP->cursor.old.y = 0;
+	TOP->cursor.old.i = 0;
 
 	term_wipe_all();
 
