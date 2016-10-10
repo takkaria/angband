@@ -24,9 +24,8 @@
 #include "z-type.h"
 #include "z-textblock.h"
 
-/* scroll when player is too close to the edge of a term
- * TODO this should be an option */
-#define SCROLL_DISTANCE 3
+/* scroll when player is too close to the edge of a term */
+#define SCROLL_MIN_DISTANCE 3
 
 /* Default width of a term that is used to display textblocks */
 #define ANGBAND_TERM_TEXTBLOCK_WIDTH 72

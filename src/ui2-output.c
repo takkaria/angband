@@ -741,7 +741,7 @@ static void verify_panel_int(enum display_term_index index, bool centered)
 	get_term_region(index, &t);
 
 	/* scroll the panel if @ is closer than this to the edge */
-	int scroll = MAX(SCROLL_DISTANCE, MIN(t.w / 4, t.h / 4));
+	int scroll = MAX(SCROLL_MIN_DISTANCE, MIN(t.w / 4, t.h / 4));
 
 	/* New coords (about to be modified) */
 	struct loc n = {t.x, t.y};

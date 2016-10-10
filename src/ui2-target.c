@@ -1154,13 +1154,13 @@ static void target_free_select_handle_mouse(ui_event event,
 				&offsets, &term_width, &term_height);
 
 		/* scroll the map to, resp., west, east, north or south */
-		if (event.mouse.x < SCROLL_DISTANCE) {
+		if (event.mouse.x < SCROLL_MIN_DISTANCE) {
 			x = offsets.x - 1;
-		} else if (event.mouse.x >= term_width - SCROLL_DISTANCE) {
+		} else if (event.mouse.x >= term_width - SCROLL_MIN_DISTANCE) {
 			x = offsets.x + term_width;
-		} else if (event.mouse.y < SCROLL_DISTANCE) {
+		} else if (event.mouse.y < SCROLL_MIN_DISTANCE) {
 			y = offsets.y - 1;
-		} else if (event.mouse.y >= term_height - SCROLL_DISTANCE) {
+		} else if (event.mouse.y >= term_height - SCROLL_MIN_DISTANCE) {
 			y = offsets.y + term_height;
 		}
 
