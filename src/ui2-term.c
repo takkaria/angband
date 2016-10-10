@@ -59,6 +59,12 @@ struct term {
 	struct term_dirty dirty;
 	struct term_callbacks callbacks;
 	struct term_point blank;
+
+	struct {
+		int x;
+		int y;
+		int i;
+	} *double_points;
 };
 
 #define TERM_EVENT_QUEUE_MAX \
@@ -71,6 +77,12 @@ struct term {
 	(term_stack.stack[term_stack.top])
 
 #define NOTOP \
+	(-1)
+
+#define NOPOINT \
+	(-1)
+
+#define NOINDEX \
 	(-1)
 
 #define COORDS_OK(x, y) do { \
@@ -149,6 +161,7 @@ static void term_free(term t)
 	mem_free(t->points);
 	mem_free(t->dirty.rows);
 	mem_free(t->dirty.points);
+	mem_free(t->double_points);
 	mem_free(t);
 }
 
@@ -183,9 +196,36 @@ static term term_new(const struct term_create_info *info)
 	t->dirty.top = t->height;
 	t->dirty.bottom = 0;
 
+	t->double_points = NULL;
 	t->temporary = false;
 	
 	return t;
+}
+
+static void term_wipe_double_point(int index)
+{
+	STACK_OK();
+	INDEX_OK(index);
+	
+	assert(TOP->double_points != NULL);
+
+	TOP->double_points[index].x = NOPOINT;
+	TOP->double_points[index].y = NOPOINT;
+	TOP->double_points[index].i = NOINDEX;
+}
+
+static void term_double_points_alloc(void)
+{
+	STACK_OK();
+	
+	assert(TOP->double_points == NULL);
+
+	TOP->double_points =
+		mem_alloc(TOP->size * sizeof(TOP->double_points[0]));
+
+	for (int i = 0; i < TOP->size; i++) {
+		term_wipe_double_point(i);
+	}
 }
 
 static void term_draw(int x, int y, int index, int len)
@@ -215,6 +255,28 @@ static bool term_fg_equal(struct term_point original, uint32_t fga, wchar_t fgc)
 {
 	return original.fg_attr == fga
 		&& original.fg_char == fgc;
+}
+
+static void term_mark_point_double(int ax, int ay, int index_a,
+		int bx, int by, int index_b)
+{
+	STACK_OK();
+	COORDS_OK(ax, ay);
+	COORDS_OK(bx, by);
+	INDEX_OK(index_a);
+	INDEX_OK(index_b);
+
+	if (TOP->double_points == NULL) {
+		term_double_points_alloc();
+	}
+
+	TOP->double_points[index_a].x = bx;
+	TOP->double_points[index_a].y = by;
+	TOP->double_points[index_a].i = index_b;
+
+	TOP->double_points[index_b].x = ax;
+	TOP->double_points[index_b].y = ay;
+	TOP->double_points[index_b].i = index_a;
 }
 
 static void term_mark_point_dirty(int x, int y, int index)
@@ -268,6 +330,26 @@ static struct term_point term_get_point(int index)
 	return TOP->points[index];
 }
 
+static void term_check_double_point(int index)
+{
+	STACK_OK();
+	INDEX_OK(index);
+
+	if (TOP->double_points != NULL) {
+		const int other_index = TOP->double_points[index].i;
+
+		if (other_index != NOINDEX) {
+			const int other_x = TOP->double_points[index].x;
+			const int other_y = TOP->double_points[index].y;
+
+			term_mark_point_dirty(other_x, other_y, other_index);
+
+			term_wipe_double_point(index);
+			term_wipe_double_point(other_index);
+		}
+	}
+}
+
 static void term_set_point(int x, int y, int index, struct term_point point)
 {
 	STACK_OK();
@@ -275,6 +357,8 @@ static void term_set_point(int x, int y, int index, struct term_point point)
 	INDEX_OK(index);
 
 	if (!term_points_equal(TOP->points[index], point)) {
+		term_check_double_point(index);
+
 		TOP->points[index] = point;
 		term_mark_point_dirty(x, y, index);
 	}
@@ -287,6 +371,8 @@ static void term_set_fg(int x, int y, int index, uint32_t fga, wchar_t fgc)
 	INDEX_OK(index);
 
 	if (!term_fg_equal(TOP->points[index], fga, fgc)) {
+		term_check_double_point(index);
+
 		TOP->points[index].fg_attr = fga;
 		TOP->points[index].fg_char = fgc;
 
@@ -362,6 +448,8 @@ static void term_wipe_line(int x, int y, int index, int len)
 	for (int z = MIN(x + len, TOP->width); x < z; x++, index++) {
 
 		if (!term_points_equal(TOP->points[index], TOP->blank)) {
+			term_check_double_point(index);
+
 			TOP->points[index] = TOP->blank;
 			term_mark_point_dirty(x, y, index);
 		}
@@ -474,7 +562,8 @@ static void term_erase_cursor(struct term_cursor cursor)
 	STACK_OK();
 
 	if (cursor.visible && cursor.x < TOP->width) {
-		term_draw(cursor.x, cursor.y, cursor.i, 1);
+		term_check_double_point(cursor.i);
+		term_mark_point_dirty(cursor.x, cursor.y, cursor.i);
 	}
 }
 
@@ -507,7 +596,7 @@ static void term_flush_pending(int x, int y, int index, int len)
 				pending_i = index;
 			}
 			pending_len++;
-			TOP->dirty.points[index] = false; /* see comments in term_flush_out() */
+			TOP->dirty.points[index] = false;
 		} else {
 			if (pending_len > 0) {
 				term_draw(pending_x, y, pending_i, pending_len);
@@ -531,9 +620,8 @@ static void term_flush_row(int y)
 	int len = right - left + 1;
 
 	if (len > 0) {
-		term_mark_row_flushed(y); /* see comments in term_flush_out() */
-
 		term_flush_pending(left, y, INDEX(left, y), len);
+		term_mark_row_flushed(y);
 	}
 }
 
@@ -544,14 +632,11 @@ static void term_flush_out(void)
 	const int top = TOP->dirty.top;
 	const int bottom = TOP->dirty.bottom;
 
-	/* XXX note that the frontend can make some points (double tiles) dirty
-	 * while we're flushing, so mark term as flushed before drawing them;
-	 * otherwise, they cant be made dirty in the process. */
-	term_mark_all_flushed();
-
 	for (int y = top; y <= bottom; y++) {
 		term_flush_row(y);
 	}
+
+	term_mark_all_flushed();
 }
 
 static void term_pop_stack(void)
@@ -722,12 +807,13 @@ void Term_erase_all(void)
 	}
 }
 
-void Term_dirty_point(int x, int y)
+void Term_double_point(int ax, int ay, int bx, int by)
 {
 	STACK_OK();
-	COORDS_OK(x, y);
+	COORDS_OK(ax, ay);
+	COORDS_OK(bx, by);
 
-	term_mark_point_dirty(x, y, INDEX(x, y));
+	term_mark_point_double(ax, ay, INDEX(ax, ay), bx, by, INDEX(bx, by));
 }
 
 void Term_get_cursor(int *x, int *y, bool *visible)
@@ -848,11 +934,14 @@ void Term_resize(int w, int h)
 	TOP->cursor.old.y = 0;
 	TOP->cursor.old.i = 0;
 
+	TOP->double_points = NULL;
+
 	term_wipe_all();
 
 	mem_free(old.points);
 	mem_free(old.dirty.rows);
 	mem_free(old.dirty.points);
+	mem_free(old.double_points);
 }
 
 void Term_flush_output(void)

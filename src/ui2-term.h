@@ -179,9 +179,9 @@ void Term_push_new(struct term_hints *hints);
 void Term_pop(void);
 void Term_pop_all(void);
 
-/* make a point "dirty" - it will be passed to
- * draw_hook() the next time term is flushed */
-void Term_dirty_point(int x, int y);
+/* inform the term code of the existence of double tile;
+ * it will be redrawn when any part of it is redrawn */
+void Term_double_point(int ax, int ay, int bx, int by);
 
 /* erase len characters starting at x, y;
  * this function does not move the cursor */

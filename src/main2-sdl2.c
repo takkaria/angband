@@ -1138,8 +1138,7 @@ static void render_tile(const struct subwindow *subwindow,
 			dst.y -= dst.h;
 			dst.h *= 2;
 
-			Term_dirty_point(dst_col, dst_row - 1);
-			Term_dirty_point(dst_col, dst_row);
+			Term_double_point(dst_col, dst_row, dst_col, dst_row - 1);
 
 		} else if (subwindow->index != DISPLAY_CAVE) {
 			src.y -= src.h;
