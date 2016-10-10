@@ -507,15 +507,13 @@ static void term_flush_pending(int x, int y, int index, int len)
 				pending_i = index;
 			}
 			pending_len++;
-
+			TOP->dirty.points[index] = false; /* see comments in term_flush_out() */
 		} else {
 			if (pending_len > 0) {
 				term_draw(pending_x, y, pending_i, pending_len);
 				pending_len = 0;
 			}
 		}
-
-		TOP->dirty.points[index] = false;
 	}
 
 	if (pending_len > 0) {
