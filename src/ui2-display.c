@@ -1295,22 +1295,6 @@ static void animate(game_event_type type, game_event_data *data, void *user)
 	do_animation();
 }
 
-static void redraw_when_running(game_event_type type,
-		game_event_data *data, void *user)
-{
-	(void) type;
-	(void) data;
-	(void) user;
-
-	if (player->upkeep->running) {
-		if (OPT(highlight_player)) {
-			move_cursor_relative(DISPLAY_CAVE,
-					loc(player->px, player->py), true);
-		}
-		Term_redraw_screen();
-	}
-}
-
 /**
  * This is used when the user is idle to allow for simple animations.
  * Currently the only thing it really does is animate shimmering monsters.
@@ -1992,12 +1976,21 @@ static void cheat_death(game_event_type type, game_event_data *data, void *user)
 	wiz_cheat_death();
 }
 
-static void check_panel(game_event_type type, game_event_data *data, void *user)
+static void handle_player_move(game_event_type type,
+		game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
 
 	verify_panel(DISPLAY_TERM(user)->index);
+
+	if (player->upkeep->running) {
+		if (OPT(highlight_player)) {
+			move_cursor_relative(DISPLAY_CAVE,
+					loc(player->px, player->py), true);
+		}
+		Term_redraw_screen();
+	}
 }
 
 static void see_floor_items(game_event_type type,
@@ -2170,11 +2163,9 @@ static void ui_enter_world(game_event_type type,
 	event_add_handler(EVENT_MAP, trace_map_updates, display_cave);
 #endif
 
-	/* Check if the panel should shift when the player's moved */
-	event_add_handler(EVENT_PLAYERMOVED, check_panel, display_cave);
-
-	/* Redraw the display after player movement, to animate it */
-	event_add_handler(EVENT_PLAYERMOVED, redraw_when_running, NULL);
+	/* Check if the panel should shift when the player's
+	 * moved and redraw the display, to animate it */
+	event_add_handler(EVENT_PLAYERMOVED, handle_player_move, display_cave);
 
 	/* Take note of what's on the floor */
 	event_add_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
@@ -2226,10 +2217,7 @@ static void ui_leave_world(game_event_type type,
 #endif
 
 	/* Check if the panel should shift when the player's moved */
-	event_remove_handler(EVENT_PLAYERMOVED, check_panel, NULL);
-
-	/* Redraw the display after player movement, to animate it */
-	event_remove_handler(EVENT_PLAYERMOVED, redraw_when_running, NULL);
+	event_remove_handler(EVENT_PLAYERMOVED, handle_player_move, display_cave);
 
 	/* Take note of what's on the floor */
 	event_remove_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
