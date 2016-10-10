@@ -1120,26 +1120,8 @@ static void render_tile(const struct subwindow *subwindow,
 
 	SDL_SetRenderTarget(subwindow->window->renderer, subwindow->texture);
 
-	if (graphics->overdraw_row != 0
-			&& dst_row >= 1
-			&& src_row >= graphics->overdraw_row
-			&& src_row <= graphics->overdraw_max)
-	{
-		src.y -= src.h;
-		src.h *= 2;
-
-		dst.y -= dst.h;
-		dst.h *= 2;
-
-		SDL_RenderCopy(subwindow->window->renderer,
-				graphics->texture, &src, &dst);
-
-		Term_dirty_point(dst_col, dst_row - 1);
-		Term_dirty_point(dst_col, dst_row);
-	} else {
-		SDL_RenderCopy(subwindow->window->renderer,
-				graphics->texture, &src, &dst);
-	}
+	SDL_RenderCopy(subwindow->window->renderer,
+			graphics->texture, &src, &dst);
 }
 
 static void render_tab(struct subwindow *subwindow,
