@@ -299,6 +299,7 @@ static int term_set_ws(int x, int y, int index, int len,
 {
 	STACK_OK();
 	COORDS_OK(x, y);
+	INDEX_OK(index);
 
 	if (len == TERM_MAX_LEN) {
 		len = TOP->width;
