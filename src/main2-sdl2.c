@@ -58,8 +58,12 @@
 #define DEFAULT_ALPHA_FULL 0xFF
 #define ALPHA_PERCENT(p) \
 	(DEFAULT_ALPHA_FULL * (p) / 100)
-#define DEFAULT_ALPHA_LOW \
+#define DEFAULT_ALPHA_HIGH \
 	ALPHA_PERCENT(80)
+#define DEFAULT_ALPHA_MIDDLE \
+	ALPHA_PERCENT(40)
+#define DEFAULT_ALPHA_LOW \
+	ALPHA_PERCENT(20)
 /* for "Alpha" button; in percents */
 #define DEFAULT_ALPHA_STEP  10
 #define DEFAULT_ALPHA_LOWEST 0
@@ -143,6 +147,9 @@
 
 #define DEFAULT_MENU_PANEL_OUTLINE_COLOR \
 	COLOUR_SHADE
+
+#define DEFAULT_TARGET_COLOR \
+	COLOUR_WHITE
 
 #define DEFAULT_ERROR_COLOR \
 	COLOUR_RED
@@ -1671,7 +1678,7 @@ static void signal_move_state(struct window *window)
 
 	SDL_SetWindowGrab(window->window,
 			was_active ? SDL_FALSE : SDL_TRUE);
-	window->alpha = was_active ? DEFAULT_ALPHA_FULL : DEFAULT_ALPHA_LOW;
+	window->alpha = was_active ? DEFAULT_ALPHA_FULL : DEFAULT_ALPHA_HIGH;
 }
 
 static void signal_size_state(struct window *window)
@@ -1694,7 +1701,7 @@ static void signal_size_state(struct window *window)
 
 	SDL_SetWindowGrab(window->window,
 			was_active ? SDL_FALSE : SDL_TRUE);
-	window->alpha = was_active ? DEFAULT_ALPHA_FULL : DEFAULT_ALPHA_LOW;
+	window->alpha = was_active ? DEFAULT_ALPHA_FULL : DEFAULT_ALPHA_HIGH;
 }
 
 static bool do_button_movesize(struct window *window,
@@ -3867,6 +3874,34 @@ static void term_draw_text(const struct subwindow *subwindow,
 	}
 }
 
+static void term_draw_target(const struct subwindow *subwindow,
+		SDL_Rect rect, const struct term_point *point)
+{
+	assert(point->terrain_attr < N_ELEMENTS(g_colors));
+	assert(subwindow->aux_texture != NULL);
+
+	SDL_Color color = g_colors[point->terrain_attr];
+
+	if (point->terrain_attr == DEFAULT_TARGET_COLOR) {
+		color.a = DEFAULT_ALPHA_LOW;
+
+		rect.x += rect.w / 4;
+		rect.y += rect.h / 4;
+		rect.w /= 2;
+		rect.h /= 2;
+	} else {
+		color.a = DEFAULT_ALPHA_MIDDLE;
+	}
+
+	render_fill_rect(subwindow->window,
+			subwindow->aux_texture, NULL, &color);
+
+	SDL_SetRenderTarget(subwindow->window->renderer,
+			subwindow->texture);
+	SDL_RenderCopy(subwindow->window->renderer,
+			subwindow->aux_texture, NULL, &rect);
+}
+
 static void term_draw_tile(const struct subwindow *subwindow,
 		const struct graphics *graphics,
 		int col, int row, SDL_Rect rect,
@@ -3886,12 +3921,14 @@ static void term_draw_tile(const struct subwindow *subwindow,
 		render_tile(subwindow, graphics, bg_col, bg_row, col, row, rect);
 	}
 
-	if (bg_col == fg_col && bg_row == fg_row) {
-		return;
+	if (!IS_BLANK_POINT_FG(point)
+			&& (fg_col != bg_col || fg_row != bg_row))
+	{
+		render_tile(subwindow, graphics, fg_col, fg_row, col, row, rect);
 	}
 
-	if (!IS_BLANK_POINT_FG(point)) {
-		render_tile(subwindow, graphics, fg_col, fg_row, col, row, rect);
+	if (!IS_BLANK_POINT_TERRAIN(point)) {
+		term_draw_target(subwindow, rect, point);
 	}
 }
 

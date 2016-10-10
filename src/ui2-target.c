@@ -19,6 +19,7 @@
 #include "angband.h"
 #include "cave.h"
 #include "game-input.h"
+#include "grafmode.h"
 #include "init.h"
 #include "mon-desc.h"
 #include "mon-lore.h"
@@ -38,6 +39,7 @@
 #include "ui2-mon-lore.h"
 #include "ui2-object.h"
 #include "ui2-output.h"
+#include "ui2-prefs.h"
 #include "ui2-target.h"
 #include "ui2-term.h"
 
@@ -776,7 +778,7 @@ static size_t draw_path(struct loc *path_points, size_t path_number,
 
 	size_t i;
 	for (i = 0; i < path_number; i++) {
-		/*
+		/**
 		 * If the square being drawn is visible, this is part of it.
 		 * If some of it has been drawn, finish now as there are no
 		 * more visible squares to draw.
@@ -787,14 +789,15 @@ static size_t draw_path(struct loc *path_points, size_t path_number,
 
 			 Term_get_point(relx, rely, &term_points[i]);
 
-			 struct term_point point = {
-				 .fg_char = L'*',
-				 .fg_attr = draw_path_get_color(path_points[i]),
-				 .bg_char = term_points[i].bg_char,
-				 .bg_attr = term_points[i].bg_attr,
-				 .terrain_attr = term_points[i].terrain_attr
-			 };
-			 Term_set_point(relx, rely, point);
+			 struct term_point new = term_points[i];
+			 if (use_graphics == GRAPHICS_NONE) {
+				 new.fg_attr = draw_path_get_color(path_points[i]);
+				 new.fg_char = L'*';
+			 } else {
+				 new.terrain_attr = draw_path_get_color(path_points[i]);
+			 }
+
+			 Term_set_point(relx, rely, new);
 
 			 on_screen = true;
 		 } else if (on_screen) {
@@ -820,6 +823,7 @@ static void load_path(struct loc *path_points, size_t path_number,
 		if (loc_in_region(path_points[i], cave_reg)) {
 			int relx = path_points[i].x - cave_reg.x;
 			int rely = path_points[i].y - cave_reg.y;
+
 			Term_set_point(relx, rely, term_points[i]);
 		}
 	}
