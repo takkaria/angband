@@ -557,12 +557,10 @@ bool effect_handler_DRAIN_STAT(effect_handler_context_t *context)
 bool effect_handler_LOSE_RANDOM_STAT(effect_handler_context_t *context)
 {
 	int safe_stat = context->p1;
-	int loss_stat = randint0(STAT_MAX - 1);
+	int loss_stat = randint1(STAT_MAX - 1);
 
-	/* Skip the safe stat */
-	if (loss_stat == safe_stat) {
-		loss_stat++;
-	}
+	/* Avoid the safe stat */
+	loss_stat = (loss_stat + safe_stat) % STAT_MAX;
 
 	/* Attempt to reduce the stat */
 	if (player_stat_dec(player, loss_stat, true)) {
@@ -935,7 +933,7 @@ bool effect_handler_DEEP_DESCENT(effect_handler_context_t *context)
 bool effect_handler_ALTER_REALITY(effect_handler_context_t *context)
 {
 	msg("The world changes!");
-	dungeon_change_level(player->depth);
+	dungeon_change_level(player, player->depth);
 	context->ident = true;
 	return true;
 }
@@ -2847,16 +2845,16 @@ bool effect_handler_TELEPORT_LEVEL(effect_handler_context_t *context)
 	if (up) {
 		msgt(MSG_TPLEVEL, "You rise up through the ceiling.");
 		target_depth = dungeon_get_next_level(player->depth, -1);
-		dungeon_change_level(target_depth);
+		dungeon_change_level(player, target_depth);
 	} else if (down) {
 		msgt(MSG_TPLEVEL, "You sink through the floor.");
 
 		if (OPT(birth_force_descend)) {
 			target_depth = dungeon_get_next_level(player->max_depth, 1);
-			dungeon_change_level(target_depth);
+			dungeon_change_level(player, target_depth);
 		} else {
 			target_depth = dungeon_get_next_level(player->depth, 1);
-			dungeon_change_level(target_depth);
+			dungeon_change_level(player, target_depth);
 		}
 	} else {
 		msg("Nothing happens.");
@@ -2975,7 +2973,7 @@ bool effect_handler_DESTRUCTION(effect_handler_context_t *context)
 							!(obj->known && obj->known->artifact))
 							obj->artifact->created = false;
 						else
-							history_lose_artifact(obj->artifact);
+							history_lose_artifact(player, obj->artifact);
 					}
 					obj = obj->next;
 				}

@@ -5130,7 +5130,6 @@ extern struct init_module player_module;
 extern struct init_module store_module;
 extern struct init_module messages_module;
 extern struct init_module options_module;
-extern struct init_module monmsg_module;
 
 static struct init_module *modules[] = {
 	&z_quark_module,
@@ -5144,7 +5143,6 @@ static struct init_module *modules[] = {
 	&mon_make_module,
 	&store_module,
 	&options_module,
-	&monmsg_module,
 	NULL
 };
 
@@ -5211,9 +5209,6 @@ void cleanup_angband(void)
 		cave_free(cave);
 		cave = NULL;
 	}
-
-	/* Free the history */
-	history_clear();
 
 	monster_list_finalize();
 	object_list_finalize();

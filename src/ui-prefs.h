@@ -25,8 +25,10 @@
 #include "ui-keymap.h"
 #include "ui-term.h"
 #include "parser.h"
+#include "player.h"
 #include "z-file.h"
 
+extern char arg_name[PLAYER_NAME_LEN];
 extern int use_graphics;
 extern int arg_graphics;
 extern bool arg_graphics_nice;

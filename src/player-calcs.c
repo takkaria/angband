@@ -2261,6 +2261,12 @@ void notice_stuff(struct player *p)
 		ignore_drop();
 	}
 
+	/* Look for adjacent traps and doors */
+	if (p->upkeep->notice & PN_SEARCH) {
+		p->upkeep->notice &= ~(PN_SEARCH);
+		search(p);
+	}
+
 	/* Combine the pack */
 	if (p->upkeep->notice & PN_COMBINE) {
 		p->upkeep->notice &= ~(PN_COMBINE);
@@ -2272,7 +2278,7 @@ void notice_stuff(struct player *p)
 		p->upkeep->notice &= ~(PN_MON_MESSAGE);
 
 		/* Make sure this comes after all of the monster messages */
-		flush_all_monster_messages();
+		show_monster_messages();
 	}
 }
 
