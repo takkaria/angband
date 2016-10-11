@@ -31,6 +31,7 @@
 #include "ui2-menu.h"
 #include "ui2-options.h"
 #include "ui2-player.h"
+#include "ui2-prefs.h"
 #include "ui2-target.h"
 
 /**
@@ -878,7 +879,12 @@ static enum birth_stage point_based_command(void)
 static enum birth_stage get_name_command(void)
 {
 	enum birth_stage next;
-	char name[32];
+	char name[PLAYER_NAME_LEN];
+
+	if (arg_name[0] != 0) {
+		/* Use frontend-provided savefile name if requested */
+		my_strcpy(player->full_name, arg_name, sizeof(player->full_name));
+	}
 	
 	if (arg_force_name) {
 		next = BIRTH_HISTORY_CHOICE;
@@ -1340,9 +1346,9 @@ static void ui_leave_birthscreen(game_event_type type,
 	(void) data;
 	(void) user;
 
-	/* Set the savefile name if it's not already set */
-	if (!savefile[0]) {
-		savefile_set_name(player_safe_name(player, true));
+	if (savefile[0] == 0) {
+		/* Set the savefile name if it's not already set */
+		savefile_set_name(player->full_name, true, true);
 	}
 
 	free_birth_menus();

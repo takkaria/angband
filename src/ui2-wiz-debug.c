@@ -1214,7 +1214,7 @@ void wiz_cheat_death(void)
 	my_strcpy(player->died_from, "Cheating death", sizeof(player->died_from));
 
 	/* Back to the town */
-	dungeon_change_level(0);
+	dungeon_change_level(player, 0);
 }
 
 /**
@@ -1291,7 +1291,7 @@ static void do_cmd_wiz_jump(void)
 		}
 
 		msg("You jump to dungeon level %d.", depth);
-		dungeon_change_level(depth);
+		dungeon_change_level(player, depth);
 		cmdq_push(CMD_HOLD);
 	}
 }

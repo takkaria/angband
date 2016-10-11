@@ -616,7 +616,7 @@ void context_menu_cave(struct chunk *c,
 		case CMD_RUN:
 			cmdq_push(selected);
 			cmd_set_arg_direction(cmdq_peek(),
-					"direction", coords_to_dir(loc.y, loc.x));
+					"direction", coords_to_dir(player, loc.y, loc.x));
 			break;
 
 		case CMD_CAST:
@@ -996,12 +996,12 @@ static void textui_left_click(struct mouseclick mouse, struct loc coords)
 			/* shift-click - run */
 			cmdq_push(CMD_RUN);
 			cmd_set_arg_direction(cmdq_peek(),
-					"direction", coords_to_dir(coords.y, coords.x));
+					"direction", coords_to_dir(player, coords.y, coords.x));
 		} else if (mouse.mods & KC_MOD_CONTROL) {
 			/* control-click - alter */
 			cmdq_push(CMD_ALTER);
 			cmd_set_arg_direction(cmdq_peek(),
-					"direction", coords_to_dir(coords.y, coords.x));
+					"direction", coords_to_dir(player, coords.y, coords.x));
 		} else if (mouse.mods & KC_MOD_ALT) {
 			/* alt-click - look */
 			if (target_set_interactive(TARGET_LOOK, coords)) {
@@ -1012,7 +1012,7 @@ static void textui_left_click(struct mouseclick mouse, struct loc coords)
 			if (is_adjacent_to_player(coords)) {
 				cmdq_push(CMD_WALK);
 				cmd_set_arg_direction(cmdq_peek(),
-						"direction", coords_to_dir(coords.y, coords.x));
+						"direction", coords_to_dir(player, coords.y, coords.x));
 			} else {
 				cmdq_push(CMD_PATHFIND);
 				cmd_set_arg_point(cmdq_peek(), "point", coords.y, coords.x);

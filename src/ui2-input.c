@@ -485,7 +485,7 @@ static bool get_name_keypress(char *buf, size_t buflen,
  */
 bool get_character_name(char *buf, size_t buflen)
 {
-	my_strcpy(buf, op_ptr->full_name, buflen);
+	my_strcpy(buf, player->full_name, buflen);
 
 	show_prompt("Enter a name for your character (* for a random name): ", false);
 	bool res = askfor_aux(buf, buflen, get_name_keypress);
@@ -713,13 +713,13 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
 				dir = dir_transitions[dir][target_dir_allow(event.key, allow_5)];
 
 				if (dir == 0
-						|| op_ptr->lazymove_delay == 0
+						|| player->opts.lazymove_delay == 0
 						|| ++keypresses_handled > 1)
 				{
 					break;
 				}
 
-				event = inkey_wait(op_ptr->lazymove_delay);
+				event = inkey_wait(player->opts.lazymove_delay);
 			}
 
 			/* 5 is equivalent to "escape" */
@@ -795,13 +795,13 @@ bool textui_get_aim_dir(int *dir)
 						*dir = dir_transitions[*dir][target_dir(event.key)];
 
 						if (*dir == 0
-								|| op_ptr->lazymove_delay == 0
+								|| player->opts.lazymove_delay == 0
 								|| ++keypresses_handled > 1)
 						{
 							break;
 						}
 
-						event = inkey_wait(op_ptr->lazymove_delay);
+						event = inkey_wait(player->opts.lazymove_delay);
 					}
 					break;
 			}

@@ -50,7 +50,7 @@ void history_display(void)
 	struct history_info *history_list_local = NULL;
 
 	static int first_item = 0;
-	int max_item = history_get_list(&history_list_local);
+	int max_item = history_get_list(player, &history_list_local);
 
 	const int term_width = ANGBAND_TERM_STANDARD_WIDTH;
 	const int term_height = ANGBAND_TERM_STANDARD_HEIGHT;
@@ -132,7 +132,7 @@ void history_display(void)
 void dump_history(ang_file *file)
 {
 	struct history_info *history_list_local = NULL;
-	size_t max_item = history_get_list(&history_list_local);
+	size_t max_item = history_get_list(player, &history_list_local);
 
 	file_putf(file, "  [Player history]\n");
 	file_putf(file, "      Turn   Depth  Note\n");

@@ -243,7 +243,7 @@ static void print_tomb(void)
 	const int width = 33;
 	struct loc loc = {7, 7};
 
-	put_str_centred(loc, width, "%s", op_ptr->full_name);
+	put_str_centred(loc, width, "%s", player->full_name);
 	loc.y++;
 
 	put_str_centred(loc, width, "the");
@@ -343,7 +343,9 @@ static void death_file(const char *title, int index)
 	char buf[1024];
 	char ftmp[ANGBAND_TERM_STANDARD_WIDTH];
 
-	strnfmt(ftmp, sizeof(ftmp), "%s.txt", player_safe_name(player, false));
+	/* Get the filesystem-safe name and append .txt */
+	player_safe_name(ftmp, sizeof(ftmp), player->full_name, false);
+	my_strcat(ftmp, ".txt", sizeof(ftmp));
 
 	if (get_file(ftmp, buf, sizeof(buf))) {
 		if (dump_save(buf)) {

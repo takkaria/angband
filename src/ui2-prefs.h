@@ -22,12 +22,14 @@
 #define UI2_PREFS_H
 
 #include "cave.h"
+#include "parser.h"
+#include "player.h"
 #include "ui2-display.h"
 #include "ui2-keymap.h"
 #include "ui2-term.h"
-#include "parser.h"
 #include "z-file.h"
 
+extern char arg_name[PLAYER_NAME_LEN];
 extern int use_graphics;
 
 extern uint32_t *monster_x_attr;

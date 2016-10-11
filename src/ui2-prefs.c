@@ -36,6 +36,9 @@
 #include "ui2-term.h"
 #include "sound.h"
 
+/* Command arg - request character name */
+char arg_name[PLAYER_NAME_LEN];
+
 /* The graphics (tiles) mode is enabled */
 int use_graphics;
 
@@ -475,8 +478,6 @@ static const char *process_pref_file_expr(char **next_token, char *end_char)
 				retval = player->race->name + 1;
 			} else if (streq(start + 1, "CLASS")) {
 				retval = player->class->name;
-			} else if (streq(start + 1, "PLAYER")) {
-				retval = player_safe_name(player, true);
 			}
 		} else {
 			retval = start;

@@ -45,8 +45,10 @@ static bool get_pref_path(char *buf, size_t bufsize, const char *title)
 	show_prompt(format("%s to a pref file: ", title), false);
 
 	char filename[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(filename, sizeof(filename), "%s.prf", player_safe_name(player, true));
-	
+	/* Get the filesystem-safe name and append .prf */
+	player_safe_name(filename, sizeof(filename), player->full_name, true);
+	my_strcat(filename, ".prf", sizeof(filename));
+
 	bool use_filename = askfor_aux(filename, sizeof(filename), NULL);
 
 	clear_prompt();
@@ -110,7 +112,7 @@ static bool option_toggle_handle(struct menu *menu,
 		/* Birth options can not be toggled after birth
 		 * After birth, menu->flags has MN_NO_TAGS */
 		if (!mnflag_has(menu->flags, MN_NO_TAGS)) {
-			option_set(option_name(index), !op_ptr->opt[index]);
+			option_set(option_name(index), !player->opts.opt[index]);
 		}
 	} else if (event->type == EVT_KBRD) {
 		if (event->key.code == 'y' || event->key.code == 'Y') {
@@ -118,7 +120,7 @@ static bool option_toggle_handle(struct menu *menu,
 		} else if (event->key.code == 'n' || event->key.code == 'N') {
 			option_set(option_name(index), false);
 		} else if (event->key.code == 't' || event->key.code == 'T') {
-			option_set(option_name(index), !op_ptr->opt[index]);
+			option_set(option_name(index), !player->opts.opt[index]);
 		} else if (event->key.code == '?') {
 			Term_visible(false);
 			show_help(format("option.txt#%s", option_name(index)));
@@ -175,7 +177,7 @@ static void option_toggle_menu(const char *name, int page)
 	}
 
 	/* Set the data to the player's options */
-	menu_setpriv(menu, OPT_MAX, &op_ptr->opt);
+	menu_setpriv(menu, OPT_MAX, &player->opts.opt);
 	menu_set_filter(menu, option_page[page], count);
 
 	/* Run the menu */
@@ -615,13 +617,13 @@ static void do_cmd_delay(const char *name, int index)
 	(void) index;
 
 	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%d", op_ptr->delay_factor);
+	strnfmt(tmp, sizeof(tmp), "%d", player->opts.delay_factor);
 	show_prompt("New animation delay (0-255 milliseconds): ", false);
 
 	/* Ask for a numeric value */
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
 		u16b val = strtoul(tmp, NULL, 0);
-		op_ptr->delay_factor = MIN(val, 255);
+		player->opts.delay_factor = MIN(val, 255);
 	}
 
 	clear_prompt();
@@ -636,7 +638,7 @@ static void do_cmd_hp_warn(const char *name, int index)
 	(void) index;
 
 	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%d", op_ptr->hitpoint_warn);
+	strnfmt(tmp, sizeof(tmp), "%d", player->opts.hitpoint_warn);
 	show_prompt("New hitpoint warning (0-9): ", false);
 
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
@@ -644,7 +646,7 @@ static void do_cmd_hp_warn(const char *name, int index)
 		if (warn > 9) {
 			warn = 0;
 		}
-		op_ptr->hitpoint_warn = warn;
+		player->opts.hitpoint_warn = warn;
 	}
 
 	clear_prompt();
@@ -659,11 +661,11 @@ static void do_cmd_lazymove_delay(const char *name, int index)
 	(void) index;
 
 	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%d", op_ptr->lazymove_delay);
+	strnfmt(tmp, sizeof(tmp), "%d", player->opts.lazymove_delay);
 	show_prompt("New movement delay: ", false);
 
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
-		op_ptr->lazymove_delay = strtoul(tmp, NULL, 0);
+		player->opts.lazymove_delay = strtoul(tmp, NULL, 0);
 	}
 
 	clear_prompt();
@@ -682,7 +684,9 @@ static void do_cmd_pref_file(const char *prompt)
 
 	/* Default filename */
 	char filename[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(filename, sizeof(filename), "%s.prf", player_safe_name(player, true));
+	/* Get the filesystem-safe name and append .prf */
+	player_safe_name(filename, sizeof(filename), player->full_name, true);
+	my_strcat(filename, ".prf", sizeof(filename));
 
 	/* Ask for a file (or cancel) */
 	if (askfor_aux(filename, sizeof(filename), NULL)) {

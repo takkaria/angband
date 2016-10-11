@@ -150,7 +150,7 @@ static void prt_welcome(const struct owner *proprietor)
 		if (i % 2 && one_in_(2)) {
 			player_name = player->class->title[l];
 		} else if (one_in_(2)) {
-			player_name = op_ptr->full_name;
+			player_name = player->full_name;
 		} else {
 			player_name = "valued customer";
 		}
@@ -314,7 +314,7 @@ static void store_display_frame(int cursor, void *menu_data, region reg)
 
 	if (store->sidx == STORE_HOME) {
 		/* The "Home" is special */
-		put_str(op_ptr->full_name, context->term_loc[LOC_OWNER]);
+		put_str(player->full_name, context->term_loc[LOC_OWNER]);
 		put_str("Home Inventory", context->term_loc[LOC_HEADER]);
 		put_str("  Weight", context->term_loc[LOC_WEIGHT]);
 	} else {

@@ -1390,9 +1390,9 @@ static void display_explosion(game_event_type type,
 			if (drawn || drawing) {
 				Term_flush_output();
 
-				if (op_ptr->delay_factor > 0) {
+				if (player->opts.delay_factor > 0) {
 					Term_redraw_screen();
-					Term_delay(op_ptr->delay_factor);
+					Term_delay(player->opts.delay_factor);
 				}
 			}
 		}
@@ -1409,7 +1409,7 @@ static void display_explosion(game_event_type type,
 		}
 
 		Term_flush_output();
-		if (op_ptr->delay_factor > 0) {
+		if (player->opts.delay_factor > 0) {
 			Term_redraw_screen();
 		}
 	}
@@ -1445,9 +1445,9 @@ static void display_bolt(game_event_type type,
 		print_rel(DISPLAY_TERM(user)->index, attr, ch, new);
 
 		Term_flush_output();
-		if (op_ptr->delay_factor > 0) {
+		if (player->opts.delay_factor > 0) {
 			Term_redraw_screen();
-			Term_delay(op_ptr->delay_factor);
+			Term_delay(player->opts.delay_factor);
 		}
 
 		event_signal_point(EVENT_MAP, new.x, new.y);
@@ -1462,8 +1462,8 @@ static void display_bolt(game_event_type type,
 
 	} else if (data->bolt.drawing) {
 		/* Delay for consistency */
-		if (op_ptr->delay_factor > 0) {
-			Term_delay(op_ptr->delay_factor);
+		if (player->opts.delay_factor > 0) {
+			Term_delay(player->opts.delay_factor);
 		}
 	}
 
@@ -1493,9 +1493,9 @@ static void display_missile(game_event_type type,
 				object_attr(obj), object_char(obj), coords);
 
 		Term_flush_output();
-		if (op_ptr->delay_factor > 0) {
+		if (player->opts.delay_factor > 0) {
 			Term_redraw_screen();
-			Term_delay(op_ptr->delay_factor);
+			Term_delay(player->opts.delay_factor);
 		}
 
 		event_signal_point(EVENT_MAP, coords.x, coords.y);
@@ -2089,12 +2089,14 @@ static void see_floor_items(game_event_type type,
  */
 static void process_character_pref_files(void)
 {
+	char buf[1024];
+
 	/* Process the "user.prf" file */
 	process_pref_file("user.prf", true, true);
 
-	/* Process the pref file based on the character name */
-	char buf[1024];
-	strnfmt(buf, sizeof(buf), "%s.prf", player_safe_name(player, true));
+	/* Get the filesystem-safe name and append .prf */
+	player_safe_name(buf, sizeof(buf), player->full_name, true);
+	my_strcat(buf, ".prf", sizeof(buf));
 
 	/* Try pref file using savefile name if we fail using character name */
 	if (!process_pref_file(buf, true, true)) {
