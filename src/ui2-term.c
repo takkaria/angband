@@ -302,7 +302,8 @@ static void term_check_double_point(int index)
 			const int other_index = TOP->double_points[index].linked[i];
 
 			if (other_index != NOINDEX) {
-				term_unlink_point(index, other_index);
+				TOP->double_points[index].linked[i] = NOINDEX;
+
 				term_unlink_point(other_index, index);
 
 				const int other_x = other_index % TOP->width;
