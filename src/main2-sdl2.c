@@ -3040,7 +3040,6 @@ static void resize_subwindow(struct subwindow *subwindow)
 
 	Term_push(subwindow->term);
 	Term_resize(subwindow->cols, subwindow->rows);
-	Term_flush_output();
 	Term_pop();
 
 	refresh_display_terms();
@@ -4102,9 +4101,7 @@ static void reload_graphics(struct window *window, graphics_mode *mode)
 	}
 
 	Term_push(subwindow->term);
-	Term_erase_all();
 	Term_resize(subwindow->cols, subwindow->rows);
-	Term_flush_output();
 	Term_pop();
 }
 
