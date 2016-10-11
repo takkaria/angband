@@ -250,7 +250,7 @@ static bool term_fg_equal(struct term_point original, uint32_t fga, wchar_t fgc)
 		&& original.fg_char == fgc;
 }
 
-static void term_link_points(int index, int other_index)
+static void term_link_point(int index, int other_index)
 {
 	STACK_OK();
 	INDEX_OK(index);
@@ -264,7 +264,7 @@ static void term_link_points(int index, int other_index)
 	}
 }
 
-static void term_unlink_points(int index, int other_index)
+static void term_unlink_point(int index, int other_index)
 {
 	STACK_OK();
 	INDEX_OK(index);
@@ -288,8 +288,8 @@ static void term_mark_point_double(int index_a, int index_b)
 		term_double_points_alloc();
 	}
 
-	term_link_points(index_a, index_b);
-	term_link_points(index_b, index_a);
+	term_link_point(index_a, index_b);
+	term_link_point(index_b, index_a);
 }
 
 static void term_check_double_point(int index)
@@ -302,8 +302,8 @@ static void term_check_double_point(int index)
 			const int other_index = TOP->double_points[index].linked[i];
 
 			if (other_index != NOINDEX) {
-				term_unlink_points(index, other_index);
-				term_unlink_points(other_index, index);
+				term_unlink_point(index, other_index);
+				term_unlink_point(other_index, index);
 
 				const int other_x = other_index % TOP->width;
 				const int other_y = other_index / TOP->width;
