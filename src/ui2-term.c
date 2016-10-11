@@ -18,6 +18,23 @@
 #include "z-virt.h"
 #include "z-util.h"
 
+#define TERM_EVENT_QUEUE_MAX \
+	1024
+
+#define WIDESTRING_MAX \
+	1024
+
+#define TOP \
+	(term_stack.stack[term_stack.top])
+
+#define NOTOP \
+	(-1)
+
+#define NOINDEX \
+	(-1)
+
+#define TERM_MAX_POINT_LINKS 2
+
 /* Local declarations */
 
 struct term_cursor {
@@ -61,29 +78,11 @@ struct term {
 	struct term_point blank;
 
 	struct {
-		int x;
-		int y;
-		int i;
+		int linked[TERM_MAX_POINT_LINKS];
 	} *double_points;
 };
 
-#define TERM_EVENT_QUEUE_MAX \
-	1024
-
-#define WIDESTRING_MAX \
-	1024
-
-#define TOP \
-	(term_stack.stack[term_stack.top])
-
-#define NOTOP \
-	(-1)
-
-#define NOPOINT \
-	(-1)
-
-#define NOINDEX \
-	(-1)
+static void term_mark_point_dirty(int x, int y, int index);
 
 #define COORDS_OK(x, y) do { \
 	assert(TOP != NULL); \
@@ -116,6 +115,9 @@ struct term {
 
 #define INDEX(x, y) \
 	((x) + (y) * TOP->width)
+
+#define MAX_LINKED \
+	N_ELEMENTS(TOP->double_points[0].linked)
 
 /* Local variables */
 
@@ -152,6 +154,8 @@ static term term_alloc(int w, int h)
 	t->points = mem_zalloc(t->size * sizeof(t->points[0]));
 	t->dirty.rows = mem_zalloc(t->height * sizeof(t->dirty.rows[0]));
 	t->dirty.points = mem_zalloc(t->size * sizeof(t->dirty.points[0]));
+
+	t->double_points = NULL;
 
 	return t;
 }
@@ -196,22 +200,9 @@ static term term_new(const struct term_create_info *info)
 	t->dirty.top = t->height;
 	t->dirty.bottom = 0;
 
-	t->double_points = NULL;
 	t->temporary = false;
 	
 	return t;
-}
-
-static void term_wipe_double_point(int index)
-{
-	STACK_OK();
-	INDEX_OK(index);
-	
-	assert(TOP->double_points != NULL);
-
-	TOP->double_points[index].x = NOPOINT;
-	TOP->double_points[index].y = NOPOINT;
-	TOP->double_points[index].i = NOINDEX;
 }
 
 static void term_double_points_alloc(void)
@@ -223,8 +214,10 @@ static void term_double_points_alloc(void)
 	TOP->double_points =
 		mem_alloc(TOP->size * sizeof(TOP->double_points[0]));
 
-	for (int i = 0; i < TOP->size; i++) {
-		term_wipe_double_point(i);
+	for (int index = 0; index < TOP->size; index++) {
+		for (unsigned i = 0; i < MAX_LINKED; i++) {
+			TOP->double_points[index].linked[i] = NOINDEX;
+		}
 	}
 }
 
@@ -257,12 +250,37 @@ static bool term_fg_equal(struct term_point original, uint32_t fga, wchar_t fgc)
 		&& original.fg_char == fgc;
 }
 
-static void term_mark_point_double(int ax, int ay, int index_a,
-		int bx, int by, int index_b)
+static void term_link_points(int index, int other_index)
 {
 	STACK_OK();
-	COORDS_OK(ax, ay);
-	COORDS_OK(bx, by);
+	INDEX_OK(index);
+	INDEX_OK(other_index);
+
+	for (unsigned i = 0; i < MAX_LINKED; i++) {
+		if (TOP->double_points[index].linked[i] == NOINDEX) {
+			TOP->double_points[index].linked[i] = other_index;
+			return;
+		}
+	}
+}
+
+static void term_unlink_points(int index, int other_index)
+{
+	STACK_OK();
+	INDEX_OK(index);
+	INDEX_OK(other_index);
+
+	for (unsigned i = 0; i < MAX_LINKED; i++) {
+		if (TOP->double_points[index].linked[i] == other_index) {
+			TOP->double_points[index].linked[i] = NOINDEX;
+			return;
+		}
+	}
+}
+
+static void term_mark_point_double(int index_a, int index_b)
+{
+	STACK_OK();
 	INDEX_OK(index_a);
 	INDEX_OK(index_b);
 
@@ -270,13 +288,30 @@ static void term_mark_point_double(int ax, int ay, int index_a,
 		term_double_points_alloc();
 	}
 
-	TOP->double_points[index_a].x = bx;
-	TOP->double_points[index_a].y = by;
-	TOP->double_points[index_a].i = index_b;
+	term_link_points(index_a, index_b);
+	term_link_points(index_b, index_a);
+}
 
-	TOP->double_points[index_b].x = ax;
-	TOP->double_points[index_b].y = ay;
-	TOP->double_points[index_b].i = index_a;
+static void term_check_double_point(int index)
+{
+	STACK_OK();
+	INDEX_OK(index);
+
+	if (TOP->double_points != NULL) {
+		for (unsigned i = 0; i < MAX_LINKED; i++) {
+			const int other_index = TOP->double_points[index].linked[i];
+
+			if (other_index != NOINDEX) {
+				term_unlink_points(index, other_index);
+				term_unlink_points(other_index, index);
+
+				const int other_x = other_index % TOP->width;
+				const int other_y = other_index / TOP->width;
+
+				term_mark_point_dirty(other_x, other_y, other_index);
+			}
+		}
+	}
 }
 
 static void term_mark_point_dirty(int x, int y, int index)
@@ -303,6 +338,8 @@ static void term_mark_point_dirty(int x, int y, int index)
 
 		TOP->erased = false;
 		TOP->dirty.points[index] = true;
+
+		term_check_double_point(index);
 	}
 }
 
@@ -330,26 +367,6 @@ static struct term_point term_get_point(int index)
 	return TOP->points[index];
 }
 
-static void term_check_double_point(int index)
-{
-	STACK_OK();
-	INDEX_OK(index);
-
-	if (TOP->double_points != NULL) {
-		const int other_index = TOP->double_points[index].i;
-
-		if (other_index != NOINDEX) {
-			const int other_x = TOP->double_points[index].x;
-			const int other_y = TOP->double_points[index].y;
-
-			term_mark_point_dirty(other_x, other_y, other_index);
-
-			term_wipe_double_point(index);
-			term_wipe_double_point(other_index);
-		}
-	}
-}
-
 static void term_set_point(int x, int y, int index, struct term_point point)
 {
 	STACK_OK();
@@ -357,8 +374,6 @@ static void term_set_point(int x, int y, int index, struct term_point point)
 	INDEX_OK(index);
 
 	if (!term_points_equal(TOP->points[index], point)) {
-		term_check_double_point(index);
-
 		TOP->points[index] = point;
 		term_mark_point_dirty(x, y, index);
 	}
@@ -371,8 +386,6 @@ static void term_set_fg(int x, int y, int index, uint32_t fga, wchar_t fgc)
 	INDEX_OK(index);
 
 	if (!term_fg_equal(TOP->points[index], fga, fgc)) {
-		term_check_double_point(index);
-
 		TOP->points[index].fg_attr = fga;
 		TOP->points[index].fg_char = fgc;
 
@@ -448,8 +461,6 @@ static void term_wipe_line(int x, int y, int index, int len)
 	for (int z = MIN(x + len, TOP->width); x < z; x++, index++) {
 
 		if (!term_points_equal(TOP->points[index], TOP->blank)) {
-			term_check_double_point(index);
-
 			TOP->points[index] = TOP->blank;
 			term_mark_point_dirty(x, y, index);
 		}
@@ -562,7 +573,6 @@ static void term_erase_cursor(struct term_cursor cursor)
 	STACK_OK();
 
 	if (cursor.visible && cursor.x < TOP->width) {
-		term_check_double_point(cursor.i);
 		term_mark_point_dirty(cursor.x, cursor.y, cursor.i);
 	}
 }
@@ -813,7 +823,7 @@ void Term_double_point(int ax, int ay, int bx, int by)
 	COORDS_OK(ax, ay);
 	COORDS_OK(bx, by);
 
-	term_mark_point_double(ax, ay, INDEX(ax, ay), bx, by, INDEX(bx, by));
+	term_mark_point_double(INDEX(ax, ay), INDEX(bx, by));
 }
 
 void Term_get_cursor(int *x, int *y, bool *visible)
