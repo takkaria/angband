@@ -3831,9 +3831,15 @@ static void term_push_new(const struct term_hints *hints,
 	struct term_callbacks callbacks = default_callbacks;
 
 	if (hints->purpose == TERM_PURPOSE_BIG_MAP) {
+		const struct subwindow *cave =
+			get_subwindow_by_index(window, DISPLAY_CAVE, false);
+
 		subwindow->big_map = true;
+		subwindow->use_graphics = cave->use_graphics;
+
 		callbacks.redraw = term_big_map_redraw;
 		callbacks.cursor = term_big_map_cursor;
+
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 	}
 
