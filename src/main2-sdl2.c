@@ -3729,7 +3729,7 @@ static bool handle_text_input(struct window *window, const SDL_TextInputEvent *i
 		return true;
 	} else {
 		SDL_FlushEvent(SDL_TEXTINPUT);
-		return true;
+		return false;
 	}
 }
 
