@@ -1076,7 +1076,7 @@ static void dump_term_line(ang_file *file,
 		struct term_point point;
 		Term_get_point(x, y, &point);
 
-		if (point.fg_char == 0) {
+		if (point.fg_char == 0 || point.fg_char >= 0x80) {
 			point.fg_char = L' ';
 		}
 
@@ -1141,10 +1141,18 @@ static void write_character_dump(ang_file *file)
 	display_player(PLAYER_DISPLAY_MODE_EXTRA);
 
 	for (int y = PLAYER_FLAG_RES_ROW_1;
-			y < PLAYER_FLAG_RES_ROW_2 + 7;
+			y < PLAYER_FLAG_RES_ROW_1 + 8;
 			y++)
 	{
-		dump_term_line(file, 0, y, hints.width, true);
+		dump_term_line(file, 0, y, hints.width, false);
+	}
+	file_put(file, "\n\n");
+
+	for (int y = PLAYER_FLAG_RES_ROW_2;
+			y < PLAYER_FLAG_RES_ROW_2 + 8;
+			y++)
+	{
+		dump_term_line(file, 0, y, hints.width, false);
 	}
 	file_put(file, "\n\n");
 
