@@ -598,15 +598,15 @@ static const char *get_adv_exp(void)
 	}
 }
 
-static const char *show_depth(void)
+static const char *get_max_depth(const struct player *p)
 {
 	static char buffer[13];
 
-	if (player->max_depth == 0) {
+	if (p->max_depth == 0) {
 		return "Town";
 	} else {
 		strnfmt(buffer, sizeof(buffer),
-				"%d' (L%d)", player->max_depth * 50, player->max_depth);
+				"%d' (L%d)", p->max_depth * 50, p->max_depth);
 		return buffer;
 	}
 }
@@ -876,7 +876,7 @@ static struct panel *get_panel_flavor(void)
 	panel_line(p, COLOUR_L_WHITE, "Actions", "%d", player->total_energy / 100);
 	panel_line(p, COLOUR_L_WHITE, "Resting", "%d", player->resting_turn);
 	panel_line(p, COLOUR_L_WHITE, "Turns", "%d", turn);
-	panel_line(p, COLOUR_L_WHITE, "Max Depth", "%s", show_depth());
+	panel_line(p, COLOUR_L_WHITE, "Max Depth", "%s", get_max_depth(player));
 
 	return p;
 }
