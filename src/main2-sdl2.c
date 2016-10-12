@@ -3696,7 +3696,9 @@ static keycode_t utf8_to_codepoint(const char *utf8_string)
 static bool handle_text_input(struct window *window, const SDL_TextInputEvent *input)
 {
 	keycode_t ch = utf8_to_codepoint(input->text);
-	if (ch == 0) {
+
+	if (ch == 0 || !is_key_repeat_allowed(window)) {
+		SDL_FlushEvent(SDL_TEXTINPUT);
 		return false;
 	}
 
@@ -3724,13 +3726,9 @@ static bool handle_text_input(struct window *window, const SDL_TextInputEvent *i
 		mods &= ~KC_MOD_SHIFT;
 	}
 
-	if (is_key_repeat_allowed(window)) {
-		Term_keypress(ch, mods);
-		return true;
-	} else {
-		SDL_FlushEvent(SDL_TEXTINPUT);
-		return false;
-	}
+	Term_keypress(ch, mods);
+
+	return true;
 }
 
 static void wait_anykey(void)
