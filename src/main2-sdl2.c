@@ -575,6 +575,10 @@ struct window {
 	/* and this is our id, mostly for debugging */
 	unsigned index;
 
+	/* the window has changed since the last
+	 * redraw and should be updated again */
+	bool is_dirty;
+
 	struct window_config *config;
 
 	/* does window have mouse focus? */
@@ -1018,13 +1022,14 @@ static void redraw_window(struct window *window)
 	SDL_RenderPresent(window->renderer);
 }
 
-static void redraw_all_windows(void)
+static void redraw_all_windows(bool only_dirty)
 {
 	for (unsigned i = 0; i < MAX_WINDOWS; i++) {
 		struct window *window = get_loaded_window(i);
-		if (window != NULL) {
+		if (window != NULL && (!only_dirty || window->is_dirty)) {
 			render_status_bar(window);
 			redraw_window(window);
+			window->is_dirty = false;
 		}
 	}
 }
@@ -3125,7 +3130,7 @@ static void handle_windowevent(const SDL_WindowEvent *event)
 		handle_last_resize_event(num_events, events);
 	}
 
-	redraw_all_windows();
+	redraw_all_windows(false);
 }
 
 static void resize_subwindow(struct subwindow *subwindow)
@@ -3797,7 +3802,7 @@ static bool get_event(struct window *window)
 static void refresh_display_terms(void)
 {
 	display_terms_redraw();
-	redraw_all_windows();
+	redraw_all_windows(true);
 }
 
 static void term_event(void *user, bool wait)
@@ -3835,13 +3840,14 @@ static void term_make_visible(void *user, bool visible)
 	struct subwindow *subwindow = user;
 
 	subwindow->visible = visible;
+	subwindow->window->is_dirty = true;
 }
 
 static void term_redraw(void *user)
 {
-	struct subwindow *subwindow = user;
+	(void) user;
 
-	redraw_window(subwindow->window);
+	redraw_all_windows(true);
 }
 
 static void term_big_map_redraw(void *user)
@@ -3859,6 +3865,8 @@ static void term_erase(void *user)
 	render_clear(subwindow->window,
 			subwindow->texture, &subwindow->color);
 	render_borders(subwindow);
+
+	subwindow->window->is_dirty = true;
 }
 
 static void term_delay(void *user, int msecs)
@@ -3876,6 +3884,8 @@ static void term_pop_new(void *user)
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	}
 
+	subwindow->window->is_dirty = true;
+
 	detach_subwindow_from_window(subwindow->window, subwindow);
 	free_temporary_subwindow(subwindow);
 }
@@ -3885,6 +3895,7 @@ static void term_cursor(void *user, int col, int row)
 	struct subwindow *subwindow = user;
 
 	render_cursor(subwindow, col, row);
+	subwindow->window->is_dirty = true;
 }
 
 static void term_big_map_cursor(void *user, int col, int row)
@@ -4080,6 +4091,8 @@ static void term_draw(void *user,
 
 		rect.x += subwindow->cell_width;
 	}
+
+	subwindow->window->is_dirty = true;
 }
 
 static SDL_Texture *load_image(const struct window *window, const char *path)
@@ -4957,7 +4970,7 @@ static bool do_button_open_subwindow(struct window *window,
 		bring_to_top(window, subwindow);
 	}
 
-	redraw_all_windows();
+	redraw_all_windows(false);
 
 	return true;
 }
