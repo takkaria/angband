@@ -598,10 +598,10 @@ static void prt_speed(struct loc coords)
 
 	/* 110 is normal speed, and requires no display */
 	if (speed > 110) {
-		attr = COLOUR_L_GREEN;
+		attr = speed_attr(speed - 110);
 		type = "Fast";
 	} else if (speed < 110) {
-		attr = COLOUR_L_UMBER;
+		attr = speed_attr(speed - 110);
 		type = "Slow";
 	}
 

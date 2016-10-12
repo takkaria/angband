@@ -121,26 +121,6 @@ static void panel_space(struct panel *p)
 	p->next++;
 }
 
-static uint32_t stealth_attr(int stealth)
-{
-	switch (stealth) {
-		case 0: case 1: case 2:
-			return COLOUR_RED;
-		case 3: case 4: case 5:
-			return COLOUR_L_RED;
-		case 6: case 7: case 8:
-			return COLOUR_ORANGE;
-		case 9: case 10: case 11:
-			return COLOUR_YELLOW;
-		case 12: case 13: case 14:
-			return COLOUR_GREEN;	
-		case 15: case 16: case 17:
-			return COLOUR_L_GREEN;
-		default:
-			return COLOUR_L_BLUE;
-	}
-}
-
 /**
  * Equippy chars
  */
@@ -606,22 +586,98 @@ static uint32_t max_color(int val, int max)
 	return val < max ? COLOUR_YELLOW : COLOUR_L_BLUE;
 }
 
+static unsigned skill_abs_diff(int a, int b)
+{
+	if (a > 0 && b > 0) {
+		return ABS(a - b);
+	} else if (a < 0 && b < 0) {
+		return ABS(ABS(a) - ABS(b));
+	} else {
+		return ABS(a) + ABS(b);
+	}
+}
+
 /**
- * Colours for table items
+ * Attributes for displaying skills
  */
-static const uint32_t skill_colour_table[] = {
-	COLOUR_RED,
-	COLOUR_RED,
-	COLOUR_RED,
-	COLOUR_L_RED,
-	COLOUR_ORANGE,
-	COLOUR_YELLOW,
-	COLOUR_YELLOW,
-	COLOUR_GREEN,
-	COLOUR_GREEN,
-	COLOUR_L_GREEN,
-	COLOUR_L_BLUE
-};
+static uint32_t skill_attr(int skill, int min, int max) {
+	const uint32_t skill_attr_table[] = {
+		/*  0% -  9% */ COLOUR_RED,
+		/* 10% - 19% */ COLOUR_L_RED,
+		/* 20% - 29% */ COLOUR_ORANGE,
+		/* 30% - 39% */ COLOUR_YELLOW,
+		/* 40% - 49% */ COLOUR_YELLOW,
+		/* 50% - 59% */ COLOUR_GREEN,
+		/* 60% - 69% */ COLOUR_GREEN,
+		/* 70% - 79% */ COLOUR_GREEN,
+		/* 80% - 89% */ COLOUR_L_GREEN,
+		/* 90% - 99% */ COLOUR_L_GREEN,
+	};
+
+	assert(max >= min);
+
+	if (skill <= min) {
+		return COLOUR_RED;
+	} else if (skill >= max) {
+		return COLOUR_L_BLUE;
+	} else {
+		unsigned range = skill_abs_diff(max, min);
+		unsigned value = skill_abs_diff(skill, min);
+
+		unsigned a = value * N_ELEMENTS(skill_attr_table) / range;
+		assert(a < N_ELEMENTS(skill_attr_table));
+
+		return skill_attr_table[a];
+	}
+}
+
+static uint32_t stealth_attr(int stealth)
+{
+	switch (stealth) {
+		case 0: case 1: case 2:
+			return COLOUR_RED;
+		case 3: case 4: case 5:
+			return COLOUR_L_RED;
+		case 6: case 7: case 8:
+			return COLOUR_ORANGE;
+		case 9: case 10: case 11:
+			return COLOUR_YELLOW;
+		case 12: case 13: case 14:
+			return COLOUR_GREEN;
+		case 30;
+			return COLOUR_L_BLUE;
+		default:
+			return COLOUR_L_GREEN;
+	}
+}
+
+uint32_t speed_attr(int relative_speed)
+{
+	const struct {int speed; uint32_t attr;} speed_attr_table[] = {
+		{ 0, COLOUR_RED},
+		{10, COLOUR_GREEN},
+		{40, COLOUR_L_GREEN},
+	};
+
+	for (size_t a = 0; a < N_ELEMENTS(speed_attr_table); a++) {
+		if (relative_speed < speed_attr_table[a].speed) {
+			return speed_attr_table[a].attr;
+		}
+	}
+
+	return COLOUR_L_BLUE;
+}
+
+uint32_t infra_attr(int infra)
+{
+	if (infra > 0) {
+		return COLOUR_L_GREEN;
+	} else if (infra == 0) {
+		return COLOUR_L_DARK;
+	} else {
+		return COLOUR_RED;
+	}
+}
 
 static struct panel *get_panel_player(void)
 {
@@ -704,29 +760,28 @@ static struct panel *get_panel_skills(void)
 	struct panel *p = panel_allocate(7);
 
 	int depth = cave ? cave->depth : 0;
-	uint32_t attr;
 
 #define BOUND(x, min, max) \
 	MIN((max), MAX((min), (x)))
 
 	/* Saving throw */
 	int skill = BOUND(player->state.skills[SKILL_SAVE], 0, 100);
-	panel_line(p, skill_colour_table[skill / 10], "Saving Throw", "%d%%", skill);
+	panel_line(p, skill_attr(skill, 0, 100), "Saving Throw", "%d%%", skill);
 
 	/* Physical disarming: assume we're disarming a dungeon trap */
 	skill = BOUND(player->state.skills[SKILL_DISARM_PHYS] - depth / 5, 2, 100);
-	panel_line(p, skill_colour_table[skill / 10], "Disarm - physical", "%d%%", skill);
+	panel_line(p, skill_attr(skill, 0, 100), "Disarm - physical", "%d%%", skill);
 
 	/* Magical disarming */
 	skill = BOUND(player->state.skills[SKILL_DISARM_MAGIC] - depth / 5, 2, 100);
-	panel_line(p, skill_colour_table[skill / 10], "Disarm - magical", "%d%%", skill);
+	panel_line(p, skill_attr(skill, 0, 100), "Disarm - magical", "%d%%", skill);
 
 	/* Magic devices */
 	skill = player->state.skills[SKILL_DEVICE];
-	panel_line(p, skill_colour_table[skill / 13], "Magic Devices", "%d", skill);
+	panel_line(p, skill_attr(skill, 0, 130), "Magic Devices", "%d", skill);
 
 	/* Infravision */
-	panel_line(p, COLOUR_L_GREEN,
+	panel_line(p, infra_attr(player->state.see_infra * 10),
 			"Infravision", "%d ft", player->state.see_infra * 10);
 
 	/* Stealth */
@@ -736,13 +791,12 @@ static struct panel *get_panel_skills(void)
 	/* Speed */
 	skill = player->state.speed;
 	if (player->timed[TMD_FAST]) {
-		skill -= 10;
-	}
-	if (player->timed[TMD_SLOW]) {
 		skill += 10;
 	}
-	attr = skill < 110 ? COLOUR_L_UMBER : COLOUR_L_GREEN;
-	panel_line(p, attr, "Speed", "%d", skill - 110);
+	if (player->timed[TMD_SLOW]) {
+		skill -= 10;
+	}
+	panel_line(p, speed_attr(skill - 110), "Speed", "%+d", skill - 110);
 
 #undef BOUND
 

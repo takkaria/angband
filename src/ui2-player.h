@@ -19,6 +19,7 @@ enum player_display_mode {
 	PLAYER_DISPLAY_MODE_MAX
 };
 
+uint32_t speed_attr(int relative_speed);
 void display_player(enum player_display_mode mode);
 bool dump_save(const char *path);
 void do_cmd_view_char(void);
