@@ -338,11 +338,11 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 
 			/* Set the symbols and print them */
 			if (imm) {
-				label_attr = COLOUR_GREEN;
+				label_attr = COLOUR_L_BLUE;
 			} else if (!rune) {
 				label_attr = COLOUR_SLATE;
-			} else if (res && label_attr != COLOUR_GREEN) {
-				label_attr = COLOUR_L_BLUE;
+			} else if (res && label_attr != COLOUR_L_BLUE) {
+				label_attr = COLOUR_L_GREEN;
 			}
 
 			if (vuln) {
@@ -353,7 +353,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 				sym = L'+';
 			} else if (timed) {
 				sym = L'!';
-				attr = COLOUR_L_GREEN;
+				attr = COLOUR_GREEN;
 			} else if (j < player->body.count && obj && !known && !rune) {
 				sym = L'?';
 			}
