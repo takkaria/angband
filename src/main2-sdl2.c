@@ -105,6 +105,14 @@
 #define MAX_VECTOR_FONT_SIZE 32
 #define MIN_VECTOR_FONT_SIZE 4
 
+#define MIN_TILE_SCALE 50
+#define MAX_TILE_SCALE 250
+#define DEFAULT_TILE_SCALE 100
+#define DEFAULT_TILE_SCALE_STEP 10
+
+#define TILE_SCALE(pixels, scale) \
+	((pixels) * (scale) / DEFAULT_TILE_SCALE)
+
 #define DEFAULT_BUTTON_BORDER 8
 #define DEFAULT_LINE_HEIGHT(h)      ((h) * 150 / 100)
 #define DEFAULT_MENU_LINE_HEIGHT(h) ((h) * 200 / 100)
@@ -518,6 +526,8 @@ struct graphics {
 
 	int overdraw_row;
 	int overdraw_max;
+
+	int scale; /* tile scale in percents */
 };
 
 /* thats for dragging terms */
@@ -690,7 +700,8 @@ static void sort_to_top(struct window *window);
 static void bring_to_top(struct window *window, struct subwindow *subwindow);
 static void render_borders(struct subwindow *subwindow);
 static SDL_Texture *load_image(const struct window *window, const char *path);
-static void reload_graphics(struct window *window, graphics_mode *mode);
+static void reload_graphics(struct window *window,
+		graphics_mode *mode, bool only_scale);
 static void free_graphics(struct graphics *graphics);
 static void load_terms(void);
 static void load_term(struct subwindow *subwindow);
@@ -1348,6 +1359,35 @@ static void render_button_menu_top(const struct window *window, struct button *b
 	render_button_menu_toggle(window, button, subwindow->always_top);
 }
 
+static void render_button_menu_tile_size(const struct window *window,
+		struct button *button)
+{
+	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
+
+	struct subwindow *subwindow = button->info.data.subval;
+
+	SDL_Color fg;
+	if (subwindow->window->graphics.id == GRAPHICS_NONE) {
+		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
+	} else {
+		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
+	}
+
+	SDL_Color *bg;
+	if (button->highlighted) {
+		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
+	} else {
+		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
+	}
+
+	SDL_Rect rect = get_button_caption_rect(button);
+
+	render_fill_rect(window,
+			NULL, &button->full_rect, bg);
+	render_utf8_string(window, window->status_bar.font, NULL, 
+			fg, rect, format(button->caption, subwindow->window->graphics.scale));
+}
+
 static void render_button_menu_tile_set(const struct window *window, struct button *button)
 {
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_IVAL);
@@ -1999,6 +2039,44 @@ static void handle_menu_quit(struct window *window,
 	handle_quit();
 }
 
+static void handle_menu_tile_size(struct window *window,
+		struct button *button, const SDL_Event *event,
+		struct menu_panel *menu_panel)
+{
+	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
+
+	if (!click_menu_button(button, menu_panel, event)) {
+		return;
+	}
+
+	struct subwindow *subwindow = button->info.data.subval;
+
+	if (subwindow->window->graphics.id != GRAPHICS_NONE) {
+		const struct SDL_Rect *rect = &button->full_rect;
+		const struct graphics *graphics = &subwindow->window->graphics;
+
+		const int increment = (event->button.x - rect->x < rect->w / 2) ?
+			-DEFAULT_TILE_SCALE_STEP : DEFAULT_TILE_SCALE_STEP;
+
+		int scale = graphics->scale + increment;
+		if (scale < MIN_TILE_SCALE) {
+			scale = MAX_TILE_SCALE;
+		} else if (scale > MAX_TILE_SCALE) {
+			scale = MIN_TILE_SCALE;
+		}
+
+		if (TILE_SCALE(graphics->tile_pixel_w, scale) > 0
+				&& TILE_SCALE(graphics->tile_pixel_h, scale) > 0)
+		{
+
+			subwindow->window->graphics.scale = scale;
+
+			reload_graphics(subwindow->window, NULL, true);
+			refresh_display_terms();
+		}
+	}
+}
+
 static void handle_menu_tile_set(struct window *window,
 		struct button *button, const SDL_Event *event,
 		struct menu_panel *menu_panel)
@@ -2013,9 +2091,32 @@ static void handle_menu_tile_set(struct window *window,
 	assert(mode != NULL);
 
 	if (window->graphics.id != mode->grafID) {
-		reload_graphics(window, mode);
+		reload_graphics(window, mode, false);
 		refresh_display_terms();
 	}
+}
+
+static void handle_menu_tile_sizes(struct window *window,
+		struct button *button, const SDL_Event *event,
+		struct menu_panel *menu_panel)
+{
+	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_SUBVAL);
+
+	if (!select_menu_button(button, menu_panel, event)) {
+		return;
+	}
+
+	struct button_info info = {
+		BUTTON_DATA_SUBVAL,
+		{.subval = button->info.data.subval},
+		BUTTON_GROUP_MENU
+	};
+
+	struct menu_elem elems[] = {
+		{"< %3d%% >", info, render_button_menu_tile_size, handle_menu_tile_size}
+	};
+
+	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
 }
 
 static void handle_menu_tile_sets(struct window *window,
@@ -2069,7 +2170,7 @@ static void handle_menu_tiles(struct window *window,
 
 	struct menu_elem elems[] = {
 		{"Set", info, render_button_menu_simple, handle_menu_tile_sets},
-		/* TODO size */
+		{"Size", info, render_button_menu_simple, handle_menu_tile_sizes},
 	};
 
 	load_next_menu_panel(window, menu_panel, button, N_ELEMENTS(elems), elems);
@@ -4079,22 +4180,27 @@ static void load_graphics(struct window *window, graphics_mode *mode)
 	window->graphics.id = mode->grafID;
 }
 
-static void reload_graphics(struct window *window, graphics_mode *mode)
+static void reload_graphics(struct window *window,
+		graphics_mode *mode, bool only_scale)
 {
-	assert(mode != NULL);
-
-	free_graphics(&window->graphics);
-
 	struct subwindow *subwindow =
 		get_subwindow_by_index(window, DISPLAY_CAVE, false);
 	assert(subwindow != NULL);
 
-	load_graphics(window, mode);
-
-	if (mode->grafID != GRAPHICS_NONE) {
-		subwindow->use_graphics = true;
+	if (only_scale) {
+		assert(window->graphics.id != GRAPHICS_NONE);
+		assert(subwindow->use_graphics);
 	} else {
-		subwindow->use_graphics = false;
+		assert(mode != NULL);
+
+		free_graphics(&window->graphics);
+		load_graphics(window, mode);
+
+		if (mode->grafID != GRAPHICS_NONE) {
+			subwindow->use_graphics = true;
+		} else {
+			subwindow->use_graphics = false;
+		}
 	}
 
 	if (!adjust_subwindow_geometry(window, subwindow)) {
@@ -4457,8 +4563,16 @@ static void adjust_subwindow_cell_size(const struct window *window,
 			subwindow->cell_width = REASONABLE_MAP_TILE_WIDTH;
 			subwindow->cell_height = REASONABLE_MAP_TILE_HEIGHT;
 		} else {
-			subwindow->cell_width = window->graphics.tile_pixel_w;
-			subwindow->cell_height = window->graphics.tile_pixel_h;
+			assert(window->graphics.scale >= MIN_TILE_SCALE);
+			assert(window->graphics.scale <= MAX_TILE_SCALE);
+
+			subwindow->cell_width =
+				TILE_SCALE(window->graphics.tile_pixel_w, window->graphics.scale);
+			subwindow->cell_height =
+				TILE_SCALE(window->graphics.tile_pixel_h, window->graphics.scale);
+
+			assert(subwindow->cell_width > 0);
+			assert(subwindow->cell_height > 0);
 		}
 	} else {
 		subwindow->cell_width = subwindow->font->ttf.glyph.w;
@@ -5236,6 +5350,7 @@ static void wipe_window(struct window *window, int display)
 
 	window->graphics.texture = NULL;
 	window->graphics.id = GRAPHICS_NONE;
+	window->graphics.scale = DEFAULT_TILE_SCALE;
 
 	window->config = NULL;
 	window->inited = true;
@@ -5304,7 +5419,7 @@ static void dump_window(const struct window *window, ang_file *config_file)
 	DUMP_WINDOW("game-font", "%d:%s",
 			window->game_font->size, window->game_font->name);
 
-	DUMP_WINDOW("graphics-id", "%d", window->graphics.id);
+	DUMP_WINDOW("graphics", "%d:%d", window->graphics.id, window->graphics.scale);
 
 #undef DUMP_WINDOW
 
@@ -5656,6 +5771,7 @@ static void free_graphics(struct graphics *graphics)
 	memset(graphics, 0, sizeof(*graphics));
 
 	graphics->id = GRAPHICS_NONE;
+	graphics->scale = DEFAULT_TILE_SCALE;
 	graphics->texture = NULL;
 }
 
@@ -6312,12 +6428,17 @@ static enum parser_error config_window_graphics(struct parser *parser)
 	WINDOW_INIT_OK;
 
 	int id = parser_getint(parser, "id");
+	int scale = parser_getint(parser, "scale");
 
 	if (get_graphics_mode(id) == NULL) {
 		return PARSE_ERROR_INVALID_VALUE;
 	}
+	if (scale < MIN_TILE_SCALE || scale > MAX_TILE_SCALE) {
+		return PARSE_ERROR_INVALID_VALUE;
+	}
 
 	window->graphics.id = id;
+	window->graphics.scale = scale;
 
 	return PARSE_ERROR_NONE;
 }
@@ -6485,7 +6606,7 @@ static struct parser *init_parse_config(void)
 			config_window_system_font);
 	parser_reg(parser, "window-game-font uint index int size str name",
 			config_window_game_font);
-	parser_reg(parser, "window-graphics-id uint index int id",
+	parser_reg(parser, "window-graphics uint index int id int scale",
 			config_window_graphics);
 
 	parser_reg(parser, "subwindow-window uint index uint windex",
