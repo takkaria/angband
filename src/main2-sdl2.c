@@ -46,6 +46,8 @@
 #define DEFAULT_DISPLAY 0
 #define DEFAULT_REFRESH_RATE 60
 
+#define DEFAULT_KEY_REPEAT_RATE 20
+
 #define INIT_SDL_FLAGS \
 	(SDL_INIT_VIDEO)
 #define INIT_IMG_FLAGS \
@@ -583,6 +585,9 @@ struct window {
 
 	/* as reported by SDL_GetWindowFlags() */
 	Uint32 flags;
+
+	/* key repeat limiter */
+	Uint32 next_tick;
 
 	/* position and size of window as it is on display */
 	SDL_Rect full_rect;
@@ -3512,7 +3517,19 @@ static bool handle_mousebuttondown(const SDL_MouseButtonEvent *mouse)
 	return true;
 }
 
-static bool handle_keydown(const SDL_KeyboardEvent *key)
+static bool is_key_repeat_allowed(struct window *window)
+{
+	Uint32 tick = SDL_GetTicks();
+
+	if (tick > window->next_tick) {
+		window->next_tick = tick + 1000 / DEFAULT_KEY_REPEAT_RATE;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+static bool handle_keydown(struct window *window, const SDL_KeyboardEvent *key)
 {
 	byte mods = translate_key_mods(key->keysym.mod);
 	keycode_t ch = 0;
@@ -3620,7 +3637,7 @@ static bool handle_keydown(const SDL_KeyboardEvent *key)
 		}
 	}
 
-	if (ch != 0) {
+	if (ch != 0 && (!key->repeat || is_key_repeat_allowed(window))) {
 		if (mods & KC_MOD_CONTROL && !(mods & KC_MOD_KEYPAD)) {
 			ch = KTRL(ch);
 			if (!MODS_INCLUDE_CONTROL(ch)) {
@@ -3631,6 +3648,7 @@ static bool handle_keydown(const SDL_KeyboardEvent *key)
 		Term_keypress(ch, mods);
 		return true;
 	} else {
+		SDL_FlushEvent(SDL_KEYDOWN);
 		return false;
 	}
 }
@@ -3675,7 +3693,7 @@ static keycode_t utf8_to_codepoint(const char *utf8_string)
 	return key;
 }
 
-static bool handle_text_input(const SDL_TextInputEvent *input)
+static bool handle_text_input(struct window *window, const SDL_TextInputEvent *input)
 {
 	keycode_t ch = utf8_to_codepoint(input->text);
 	if (ch == 0) {
@@ -3706,9 +3724,13 @@ static bool handle_text_input(const SDL_TextInputEvent *input)
 		mods &= ~KC_MOD_SHIFT;
 	}
 
-	Term_keypress(ch, mods);
-
-	return true;
+	if (is_key_repeat_allowed(window)) {
+		Term_keypress(ch, mods);
+		return true;
+	} else {
+		SDL_FlushEvent(SDL_TEXTINPUT);
+		return true;
+	}
 }
 
 static void wait_anykey(void)
@@ -3747,7 +3769,7 @@ static void handle_quit(void)
 	quit(NULL);
 }
 
-static bool get_event(void)
+static bool get_event(struct window *window)
 {
 	SDL_Event event;
 	if (!SDL_PollEvent(&event)) {
@@ -3756,9 +3778,9 @@ static bool get_event(void)
 
 	switch (event.type) {
 		case SDL_KEYDOWN:
-			return handle_keydown(&event.key);
+			return handle_keydown(window, &event.key);
 		case SDL_TEXTINPUT:
-			return handle_text_input(&event.text);
+			return handle_text_input(window, &event.text);
 		case SDL_MOUSEMOTION:
 			return handle_mousemotion(&event.motion);
 		case SDL_MOUSEBUTTONDOWN:
@@ -3784,10 +3806,10 @@ static void term_event(void *user, bool wait)
 {
 	struct subwindow *subwindow = user;
 
-	if (!get_event() && wait) {
+	if (!get_event(subwindow->window) && wait) {
 		while (true) {
 			for (int i = 0; i < DEFAULT_IDLE_UPDATE_PERIOD; i++) {
-				if (get_event()) {
+				if (get_event(subwindow->window)) {
 					return;
 				}
 				SDL_Delay(subwindow->window->delay);
