@@ -839,12 +839,16 @@ static struct panel *get_panel_skills(void)
 
 	/* Speed */
 	skill = player->state.speed;
+
+	/* We want to display base speed here,
+	 * so we "undo" TMD_FAST and TMD_SLOW */
 	if (player->timed[TMD_FAST]) {
-		skill += 10;
-	}
-	if (player->timed[TMD_SLOW]) {
 		skill -= 10;
 	}
+	if (player->timed[TMD_SLOW]) {
+		skill += 10;
+	}
+
 	panel_line(p, speed_attr(skill - 110), "Speed", "%+d", skill - 110);
 
 #undef BOUND
