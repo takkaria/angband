@@ -583,7 +583,7 @@ static const char *show_depth(void)
 
 static uint32_t max_color(int val, int max)
 {
-	return val < max ? COLOUR_YELLOW : COLOUR_L_BLUE;
+	return val < max ? COLOUR_YELLOW : COLOUR_L_GREEN;
 }
 
 static unsigned skill_abs_diff(int a, int b)
@@ -644,7 +644,7 @@ static uint32_t stealth_attr(int stealth)
 			return COLOUR_YELLOW;
 		case 12: case 13: case 14:
 			return COLOUR_GREEN;
-		case 30;
+		case 30:
 			return COLOUR_L_BLUE;
 		default:
 			return COLOUR_L_GREEN;
@@ -698,15 +698,15 @@ static struct panel *get_panel_misc(void)
 {
 	struct panel *p = panel_allocate(7);
 	int diff = weight_remaining(player);
-	uint32_t attr = diff < 0 ? COLOUR_L_RED : COLOUR_L_BLUE;
+	uint32_t attr = diff < 0 ? COLOUR_L_RED : COLOUR_L_GREEN;
 
 	panel_line(p, max_color(player->lev, player->max_lev),
 			"Level", "%d", player->lev);
 	panel_line(p, max_color(player->exp, player->max_exp),
 			"Cur Exp", "%d", player->exp);
-	panel_line(p, COLOUR_L_BLUE, "Max Exp", "%d", player->max_exp);
-	panel_line(p, COLOUR_L_BLUE, "Adv Exp", "%s", show_adv_exp());
-	panel_line(p, COLOUR_L_BLUE, "Gold", "%d", player->au);
+	panel_line(p, COLOUR_L_GREEN, "Max Exp", "%d", player->max_exp);
+	panel_line(p, COLOUR_L_GREEN, "Adv Exp", "%s", show_adv_exp());
+	panel_line(p, COLOUR_L_GREEN, "Gold", "%d", player->au);
 	panel_line(p, attr,
 			"Burden", "%.1f lb", player->upkeep->total_weight / 10.0F);
 	panel_line(p, attr, "Overweight", "%d.%d lb", -diff / 10, abs(diff) % 10);
@@ -721,7 +721,7 @@ static struct panel *get_panel_combat(void)
 	int melee_sides = 1;
 
 	/* AC */
-	panel_line(p, COLOUR_L_BLUE, "Armor", "[%d,%+d]",
+	panel_line(p, COLOUR_L_GREEN, "Armor", "[%d,%+d]",
 			player->known_state.ac, player->known_state.to_a);
 
 	/* Melee */
@@ -735,11 +735,11 @@ static struct panel *get_panel_combat(void)
 		melee_sides = obj->ds;
 	}
 
-	panel_line(p, COLOUR_L_BLUE,
+	panel_line(p, COLOUR_L_GREEN,
 			"Melee damage", "%dd%d,%+d", melee_dice, melee_sides, dam);
-	panel_line(p, COLOUR_L_BLUE,
+	panel_line(p, COLOUR_L_GREEN,
 			"Melee to-hit", "%d,%+d", bth / 10, hit);
-	panel_line(p, COLOUR_L_BLUE, "Blows", "%d.%d/turn",
+	panel_line(p, COLOUR_L_GREEN, "Blows", "%d.%d/turn",
 			player->state.num_blows / 100, (player->state.num_blows / 10 % 10));
 
 	/* Ranged */
@@ -748,9 +748,9 @@ static struct panel *get_panel_combat(void)
 	hit = player->known_state.to_h + (obj ? obj->known->to_h : 0);
 	dam = obj ? obj->known->to_d : 0;
 
-	panel_line(p, COLOUR_L_BLUE, "Shoot to-damage", "%+d", dam);
-	panel_line(p, COLOUR_L_BLUE, "Shoot to-hit", "%d,%+d", bth / 10, hit);
-	panel_line(p, COLOUR_L_BLUE, "Shots", "%d/turn", player->state.num_shots);
+	panel_line(p, COLOUR_L_GREEN, "Shoot to-damage", "%+d", dam);
+	panel_line(p, COLOUR_L_GREEN, "Shoot to-hit", "%d,%+d", bth / 10, hit);
+	panel_line(p, COLOUR_L_GREEN, "Shots", "%d/turn", player->state.num_shots);
 
 	return p;
 }
