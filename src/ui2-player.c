@@ -584,12 +584,12 @@ static uint32_t get_title_attr(const struct player *p)
 	return attr;
 }
 
-static const char *get_adv_exp(void)
+static const char *get_adv_exp(const struct player *p)
 {
 	static char buffer[30];
 
-	if (player->lev < PY_MAX_LEVEL) {
-		int advance = player_exp[player->lev - 1] * player->expfact / 100L;
+	if (p->lev < PY_MAX_LEVEL) {
+		int advance = player_exp[p->lev - 1] * p->expfact / 100L;
 		strnfmt(buffer, sizeof(buffer), "%d", advance);
 		return buffer;
 	}
@@ -754,7 +754,7 @@ static struct panel *get_panel_misc(void)
 	panel_line(p, exp_attr(player, player->max_exp, player->max_exp), "Max Exp",
 			"%d", player->max_exp);
 	panel_line(p, exp_attr(player, player->exp, player->max_exp), "Adv Exp",
-			"%s", get_adv_exp());
+			"%s", get_adv_exp(player));
 
 	panel_line(p, COLOUR_L_WHITE, "Gold", "%d", player->au);
 
