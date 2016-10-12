@@ -884,6 +884,17 @@ static void display_player_basic_info(void)
 	Term_flush_output();
 }
 
+static uint32_t stat_bonus_attr(int bonus)
+{
+	if (bonus == 0) {
+		return COLOUR_L_DARK;
+	} else if (bonus > 0) {
+		return COLOUR_GREEN;
+	} else {
+		return COLOUR_RED;
+	}
+}
+
 static void display_player_stat_info(void)
 {
 	const int col = PLAYER_DISPLAY_BASIC_COL_3;
@@ -951,17 +962,17 @@ static void display_player_stat_info(void)
 		/* Race Bonus */
 		loc.x = rb_x - 1;
 		strnfmt(buf, sizeof(buf), "%3d", player->race->r_adj[i]);
-		c_put_str(COLOUR_L_BLUE, buf, loc);
+		c_put_str(stat_bonus_attr(player->race->r_adj[i]), buf, loc);
 
 		/* Class Bonus */
 		loc.x = cb_x - 1;
 		strnfmt(buf, sizeof(buf), "%3d", player->class->c_adj[i]);
-		c_put_str(COLOUR_L_BLUE, buf, loc);
+		c_put_str(stat_bonus_attr(player->class->c_adj[i]), buf, loc);
 
 		/* Equipment Bonus */
 		loc.x = eb_x - 1;
 		strnfmt(buf, sizeof(buf), "%3d", player->state.stat_add[i]);
-		c_put_str(COLOUR_L_BLUE, buf, loc);
+		c_put_str(stat_bonus_attr(player->state.stat_add[i]), buf, loc);
 
 		/* Resulting maximum value */
 		loc.x = best_x;
