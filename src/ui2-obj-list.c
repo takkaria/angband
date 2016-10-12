@@ -167,7 +167,7 @@ static void object_list_process_entry(const object_list_entry_t *entry,
 static void object_list_format_section(const object_list_t *list,
 		textblock *tb,
 		object_list_section_t section,
-		int lines_to_display, int max_width,
+		size_t lines_to_display, size_t max_width,
 		const char *prefix, bool show_others,
 		size_t *max_width_result)
 {
@@ -203,8 +203,8 @@ static void object_list_format_section(const object_list_t *list,
 		textblock_append(tb, "%s", buf);
 	}
 
-	int entry_count;
-	int line_count;
+	unsigned entry_count;
+	unsigned line_count;
 
 	for (entry_count = 0, line_count = 0;
 			entry_count < list->distinct_entries && line_count < lines_to_display;
@@ -232,10 +232,10 @@ static void object_list_format_section(const object_list_t *list,
 	{
 		/* If we have some lines to display and haven't displayed them all, count
 		 * the remaining objects, starting where we left off in the above loop. */
-		int remaining_object_total =
+		unsigned remaining_object_total =
 			list->distinct_entries - entry_count;
 
-		textblock_append(tb, "  ...and %d others.\n",
+		textblock_append(tb, "  ...and %u others.\n",
 				remaining_object_total);
 	}
 }
@@ -257,37 +257,41 @@ static void object_list_format_section(const object_list_t *list,
  * without truncation.
  */
 static void object_list_format_textblock(const object_list_t *list,
-		textblock *tb, int max_height, int max_width,
+		textblock *tb,
+		size_t max_height, size_t max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
 	assert(list != NULL);
 	assert(list->entries != NULL);
 
-	const int los_entries = list->total_entries[OBJECT_LIST_SECTION_LOS];
-	const int no_los_entries = list->total_entries[OBJECT_LIST_SECTION_NO_LOS];
+	const unsigned los_entries =
+		list->total_entries[OBJECT_LIST_SECTION_LOS];
+	const unsigned no_los_entries =
+		list->total_entries[OBJECT_LIST_SECTION_NO_LOS];
 
-	int header_lines = 1 + (no_los_entries > 0 ? 2 : 0);
+	unsigned header_lines = 1 + (no_los_entries > 0 ? 2 : 0);
 
  	if (max_height_result != NULL) {
 		*max_height_result = header_lines + los_entries + no_los_entries;
 	}
 
-	int los_lines_to_display;
-	int no_los_lines_to_display;
+	unsigned los_lines_to_display;
+	unsigned no_los_lines_to_display;
 
 	if (header_lines < max_height) {
-		int lines_remaining = max_height - header_lines;
+		size_t lines_remaining = max_height - header_lines;
 
 		if (los_entries + no_los_entries <= lines_remaining) {
 			los_lines_to_display = los_entries;
 			no_los_lines_to_display = no_los_entries;
-		} else if (los_entries <= lines_remaining) {
+		} else if (los_entries < lines_remaining) {
 			/* Remove some NO_LOS lines, leaving room for "...others" */
 			los_lines_to_display = los_entries;
-			no_los_lines_to_display = MAX(lines_remaining - los_entries - 1, 0);
+			no_los_lines_to_display = lines_remaining - los_entries - 1;
 		} else {
 			/* Remove some LOS lines, leaving room for "...others" */
-			los_lines_to_display = MAX(lines_remaining - 1, 0);
+			los_lines_to_display = los_entries == lines_remaining ?
+				lines_remaining : lines_remaining - 1;
 			no_los_lines_to_display = 0;
 		}
 	} else {

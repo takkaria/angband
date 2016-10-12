@@ -242,7 +242,7 @@ static bool monster_list_need_coords(const monster_list_t *list,
 static void monster_list_format_section(const monster_list_t *list,
 		textblock *tb,
 		monster_list_section_t section,
-		int lines_to_display, int max_width,
+		size_t lines_to_display, size_t max_width,
 		const char *prefix, bool show_others,
 		size_t *max_width_result)
 {
@@ -283,8 +283,8 @@ static void monster_list_format_section(const monster_list_t *list,
 	bool need_coords = tb == NULL ?
 		monster_list_need_coords(list, section, lines_to_display) : false;
 
-	int entry_count;
-	int line_count;
+	unsigned entry_count;
+	unsigned line_count;
 
 	for (entry_count = 0, line_count = 0;
 			entry_count < list->distinct_entries && line_count < lines_to_display;
@@ -312,14 +312,14 @@ static void monster_list_format_section(const monster_list_t *list,
 	{
 		/* If we have some lines to display and haven't displayed them all, sum
 		 * the remaining monsters; start where we left off in the above loop */
-		int remaining_monster_total = 0;
+		unsigned remaining_monster_total = 0;
 
 		while (entry_count < list->distinct_entries) {
 			remaining_monster_total += list->entries[entry_count].count[section];
 			entry_count++;
 		}
 
-		textblock_append(tb, "  ...and %d others.\n",
+		textblock_append(tb, "  ...and %u others.\n",
 				remaining_monster_total);
 	}
 }
@@ -389,7 +389,7 @@ static bool monster_list_format_special(const monster_list_t *list,
  */
 static void monster_list_format_textblock(const monster_list_t *list,
 		textblock *tb,
-		int max_height, int max_width,
+		size_t max_height, size_t max_width,
 		size_t *max_height_result, size_t *max_width_result)
 {
 	assert(list != NULL);
@@ -401,31 +401,34 @@ static void monster_list_format_textblock(const monster_list_t *list,
 		return;
 	}
 
-	const int los_entries = list->total_entries[MONSTER_LIST_SECTION_LOS];
-	const int esp_entries = list->total_entries[MONSTER_LIST_SECTION_ESP];
+	const unsigned los_entries =
+		list->total_entries[MONSTER_LIST_SECTION_LOS];
+	const unsigned esp_entries =
+		list->total_entries[MONSTER_LIST_SECTION_ESP];
 
-	int header_lines = 1 + (esp_entries > 0 ? 2 : 0);
+	unsigned header_lines = 1 + (esp_entries > 0 ? 2 : 0);
 
 	if (max_height_result != NULL) {
 		*max_height_result = header_lines + los_entries + esp_entries;
 	}
 
-	int los_lines_to_display;
-	int esp_lines_to_display;
+	unsigned los_lines_to_display;
+	unsigned esp_lines_to_display;
 
 	if (header_lines < max_height) {
-		int lines_remaining = max_height - header_lines;
+		size_t lines_remaining = max_height - header_lines;
 
 		if (los_entries + esp_entries <= lines_remaining) {
 			los_lines_to_display = los_entries;
 			esp_lines_to_display = esp_entries;
-		} else if (los_entries <= lines_remaining) {
+		} else if (los_entries < lines_remaining) {
 			/* Remove some ESP lines, leaving room for "...others" */
 			los_lines_to_display = los_entries;
-			esp_lines_to_display = MAX(lines_remaining - los_entries - 1, 0);
+			esp_lines_to_display = lines_remaining - los_entries - 1;
 		} else {
 			/* Remove some LOS lines, leaving room for "...others" */
-			los_lines_to_display = MAX(lines_remaining - 1, 0);
+			los_lines_to_display = los_entries == lines_remaining ?
+				lines_remaining : lines_remaining - 1;
 			esp_lines_to_display = 0;
 		}
 	} else {
