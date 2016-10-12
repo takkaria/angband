@@ -2145,7 +2145,7 @@ void do_cmd_messages(void)
 				len -= offset;
 				/* Dump the messages, bottom to top */
 				Term_adds(0, last_msg_pos - m, term_width, attr, msg);
-				if (count > 1) {
+				if (count > 1 && len + 1 < term_width) {
 					Term_adds(len + 1, last_msg_pos - m, term_width,
 							COLOUR_YELLOW, format("<%dx>", count));
 				}
