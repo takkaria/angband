@@ -121,27 +121,23 @@ static void panel_space(struct panel *p)
 	p->next++;
 }
 
-static uint32_t stealth_attr(void)
+static uint32_t stealth_attr(int stealth)
 {
-	switch (player->state.skills[SKILL_STEALTH]) {
-		case 0: case 1:
+	switch (stealth) {
+		case 0: case 1: case 2:
 			return COLOUR_RED;
-		case 2:
-			return COLOUR_RED;
-		case 3: case 4:
+		case 3: case 4: case 5:
+			return COLOUR_L_RED;
+		case 6: case 7: case 8:
+			return COLOUR_ORANGE;
+		case 9: case 10: case 11:
 			return COLOUR_YELLOW;
-		case 5:
-			return COLOUR_YELLOW;
-		case 6:
-			return COLOUR_YELLOW;
-		case 7: case 8:
-			return COLOUR_L_GREEN;
-		case 9: case 10: case 11: case 12: case 13:
-			return COLOUR_L_GREEN;
-		case 14: case 15: case 16: case 17:
+		case 12: case 13: case 14:
+			return COLOUR_GREEN;	
+		case 15: case 16: case 17:
 			return COLOUR_L_GREEN;
 		default:
-			return COLOUR_L_GREEN;
+			return COLOUR_L_BLUE;
 	}
 }
 
@@ -734,7 +730,7 @@ static struct panel *get_panel_skills(void)
 			"Infravision", "%d ft", player->state.see_infra * 10);
 
 	/* Stealth */
-	panel_line(p, stealth_attr(),
+	panel_line(p, stealth_attr(player->state.skills[SKILL_STEALTH]),
 			"Stealth", "%d", player->state.skills[SKILL_STEALTH]);
 
 	/* Speed */
