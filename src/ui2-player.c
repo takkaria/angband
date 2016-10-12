@@ -1080,7 +1080,7 @@ static void dump_term_line(ang_file *file,
 		struct term_point point;
 		Term_get_point(x, y, &point);
 
-		if (point.fg_char == 0 || point.fg_char >= 0x80) {
+		if (point.fg_char == 0 || point.fg_attr >= 0x80) {
 			point.fg_char = L' ';
 		}
 
