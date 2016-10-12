@@ -727,12 +727,18 @@ static struct panel *get_panel_player(void)
 			"%s", player->class->name);
 	panel_line(p, get_title_attr(player), "Title",
 			"%s", get_title_str(player));
-	panel_line(p, COLOUR_L_DARK, "Age",
-			"%d", player->age);
-	panel_line(p, COLOUR_L_DARK, "Height",
-			"%d'%d\"", player->ht / 12, player->ht % 12);
-	panel_line(p, COLOUR_L_DARK, "Weight",
-			"%dst %dlb", player->wt / 14, player->wt % 14);
+
+	panel_space(p);
+
+	uint32_t attr = player->chp < player->mhp ? COLOUR_YELLOW : COLOUR_L_GREEN;
+	panel_line(p, attr, "HP", "%d/%d", player->chp, player->mhp);
+
+	if (player->msp > 0) {
+		attr = player->csp < player->msp ? COLOUR_YELLOW : COLOUR_L_GREEN;
+	} else {
+		attr = COLOUR_L_DARK;
+	}
+	panel_line(p, attr, "SP", "%d/%d", player->csp, player->msp);
 
 	return p;
 }
@@ -860,20 +866,12 @@ static struct panel *get_panel_flavor(void)
 {
 	struct panel *p = panel_allocate(7);
 
-	uint32_t attr;
-
-	attr = player->chp < player->mhp ? COLOUR_YELLOW : COLOUR_L_GREEN;
-	panel_line(p, attr, "HP", "%d/%d", player->chp, player->mhp);
-
-	if (player->msp > 0) {
-		attr = player->csp < player->msp ? COLOUR_RED : COLOUR_L_GREEN;
-	} else {
-		attr = COLOUR_L_DARK;
-	}
-
-	panel_line(p, attr, "SP", "%d/%d", player->csp, player->msp);
-
-	panel_space(p);
+	panel_line(p, COLOUR_L_WHITE, "Age",
+			"%d", player->age);
+	panel_line(p, COLOUR_L_WHITE, "Height",
+			"%d'%d\"", player->ht / 12, player->ht % 12);
+	panel_line(p, COLOUR_L_WHITE, "Weight",
+			"%dst %dlb", player->wt / 14, player->wt % 14);
 
 	panel_line(p, COLOUR_L_WHITE, "Actions", "%d", player->total_energy / 100);
 	panel_line(p, COLOUR_L_WHITE, "Resting", "%d", player->resting_turn);
