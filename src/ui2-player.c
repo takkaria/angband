@@ -543,18 +543,48 @@ static void display_panel(const struct panel *p, bool left_adj, region reg)
 	}
 }
 
-static const char *show_title(void)
+static void get_title(const struct player *p,
+		uint32_t *attr, const char **title)
 {
-	if (player->wizard) {
-		return "[=-WIZARD-=]";
-	} else if (player->total_winner || player->lev > PY_MAX_LEVEL) {
-		return "***WINNER***";
+	const char *t;
+	uint32_t a;
+
+	if (p->wizard) {
+		t = "[=-WIZARD-=]";
+		a = COLOUR_RED;
+	} else if (p->total_winner || p->lev > PY_MAX_LEVEL) {
+		t = "***WINNER***";
+		a = COLOUR_L_BLUE;
 	} else {
-		return player->class->title[(player->lev - 1) / 5];
+		t = p->class->title[(p->lev - 1) / 5];
+		a = COLOUR_L_BLUE;
+	}
+
+	if (attr) {
+		*attr = a;
+	}
+	if (title) {
+		*title = t;
 	}
 }
 
-static const char *show_adv_exp(void)
+static const char *get_title_str(const struct player *p)
+{
+	const char *title;
+	get_title(p, NULL, &title);
+
+	return title;
+}
+
+static uint32_t get_title_attr(const struct player *p)
+{
+	uint32_t attr;
+	get_title(p, &attr, NULL);
+
+	return attr;
+}
+
+static const char *get_adv_exp(void)
 {
 	static char buffer[30];
 
@@ -581,9 +611,15 @@ static const char *show_depth(void)
 	}
 }
 
-static uint32_t max_color(int val, int max)
+static uint32_t exp_attr(const struct player *p, int val, int max)
 {
-	return val < max ? COLOUR_YELLOW : COLOUR_L_GREEN;
+	if (val < max) {
+		return COLOUR_YELLOW;
+	} else if (p->lev < PY_MAX_LEVEL) {
+		return COLOUR_L_WHITE;
+	} else {
+		return COLOUR_L_BLUE;
+	}
 }
 
 static unsigned skill_abs_diff(int a, int b)
@@ -683,13 +719,20 @@ static struct panel *get_panel_player(void)
 {
 	struct panel *p = panel_allocate(7);
 
-	panel_line(p, COLOUR_L_GREEN, "Name",  "%s", player->full_name);
-	panel_line(p, COLOUR_L_GREEN, "Race",  "%s", player->race->name);
-	panel_line(p, COLOUR_L_GREEN, "Class", "%s", player->class->name);
-	panel_line(p, COLOUR_L_GREEN, "Title", "%s", show_title());
-	panel_space(p);
-	panel_line(p, COLOUR_L_GREEN, "HP", "%d/%d", player->chp, player->mhp);
-	panel_line(p, COLOUR_L_GREEN, "SP", "%d/%d", player->csp, player->msp);
+	panel_line(p, get_title_attr(player), "Name",
+			"%s", player->full_name);
+	panel_line(p, get_title_attr(player), "Race",
+			"%s", player->race->name);
+	panel_line(p, get_title_attr(player), "Class",
+			"%s", player->class->name);
+	panel_line(p, get_title_attr(player), "Title",
+			"%s", get_title_str(player));
+	panel_line(p, COLOUR_L_DARK, "Age",
+			"%d", player->age);
+	panel_line(p, COLOUR_L_DARK, "Height",
+			"%d'%d\"", player->ht / 12, player->ht % 12);
+	panel_line(p, COLOUR_L_DARK, "Weight",
+			"%dst %dlb", player->wt / 14, player->wt % 14);
 
 	return p;
 }
@@ -697,19 +740,25 @@ static struct panel *get_panel_player(void)
 static struct panel *get_panel_misc(void)
 {
 	struct panel *p = panel_allocate(7);
-	int diff = weight_remaining(player);
-	uint32_t attr = diff < 0 ? COLOUR_L_RED : COLOUR_L_GREEN;
 
-	panel_line(p, max_color(player->lev, player->max_lev),
-			"Level", "%d", player->lev);
-	panel_line(p, max_color(player->exp, player->max_exp),
-			"Cur Exp", "%d", player->exp);
-	panel_line(p, COLOUR_L_GREEN, "Max Exp", "%d", player->max_exp);
-	panel_line(p, COLOUR_L_GREEN, "Adv Exp", "%s", show_adv_exp());
-	panel_line(p, COLOUR_L_GREEN, "Gold", "%d", player->au);
-	panel_line(p, attr,
-			"Burden", "%.1f lb", player->upkeep->total_weight / 10.0F);
-	panel_line(p, attr, "Overweight", "%d.%d lb", -diff / 10, abs(diff) % 10);
+	panel_line(p, exp_attr(player, player->lev, player->max_lev), "Level",
+			"%d", player->lev);
+	panel_line(p, exp_attr(player, player->exp, player->max_exp), "Cur Exp",
+			"%d", player->exp);
+	panel_line(p, exp_attr(player, player->max_exp, player->max_exp), "Max Exp",
+			"%d", player->max_exp);
+	panel_line(p, exp_attr(player, player->exp, player->max_exp), "Adv Exp",
+			"%s", get_adv_exp());
+
+	panel_line(p, COLOUR_L_WHITE, "Gold", "%d", player->au);
+
+	int diff = weight_remaining(player);
+	uint32_t attr = diff < 0 ? COLOUR_L_RED : COLOUR_L_WHITE;
+
+	panel_line(p, attr, "Burden",
+			"%.1f lb", player->upkeep->total_weight / 10.0F);
+	panel_line(p, attr, "Overweight",
+			"%d.%d lb", -diff / 10, abs(diff) % 10);
 
 	return p;
 }
@@ -721,7 +770,7 @@ static struct panel *get_panel_combat(void)
 	int melee_sides = 1;
 
 	/* AC */
-	panel_line(p, COLOUR_L_GREEN, "Armor", "[%d,%+d]",
+	panel_line(p, COLOUR_L_WHITE, "Armor", "[%d,%+d]",
 			player->known_state.ac, player->known_state.to_a);
 
 	/* Melee */
@@ -735,11 +784,11 @@ static struct panel *get_panel_combat(void)
 		melee_sides = obj->ds;
 	}
 
-	panel_line(p, COLOUR_L_GREEN,
+	panel_line(p, COLOUR_L_WHITE,
 			"Melee damage", "%dd%d,%+d", melee_dice, melee_sides, dam);
-	panel_line(p, COLOUR_L_GREEN,
+	panel_line(p, COLOUR_L_WHITE,
 			"Melee to-hit", "%d,%+d", bth / 10, hit);
-	panel_line(p, COLOUR_L_GREEN, "Blows", "%d.%d/turn",
+	panel_line(p, COLOUR_L_WHITE, "Blows", "%d.%d/turn",
 			player->state.num_blows / 100, (player->state.num_blows / 10 % 10));
 
 	/* Ranged */
@@ -748,9 +797,9 @@ static struct panel *get_panel_combat(void)
 	hit = player->known_state.to_h + (obj ? obj->known->to_h : 0);
 	dam = obj ? obj->known->to_d : 0;
 
-	panel_line(p, COLOUR_L_GREEN, "Shoot to-damage", "%+d", dam);
-	panel_line(p, COLOUR_L_GREEN, "Shoot to-hit", "%d,%+d", bth / 10, hit);
-	panel_line(p, COLOUR_L_GREEN, "Shots", "%d/turn", player->state.num_shots);
+	panel_line(p, COLOUR_L_WHITE, "Shoot to-damage", "%+d", dam);
+	panel_line(p, COLOUR_L_WHITE, "Shoot to-hit", "%d,%+d", bth / 10, hit);
+	panel_line(p, COLOUR_L_WHITE, "Shots", "%d/turn", player->state.num_shots);
 
 	return p;
 }
@@ -806,15 +855,26 @@ static struct panel *get_panel_skills(void)
 static struct panel *get_panel_flavor(void)
 {
 	struct panel *p = panel_allocate(7);
-	uint32_t attr = COLOUR_L_GREEN;
 
-	panel_line(p, attr, "Age", "%d", player->age);
-	panel_line(p, attr, "Height", "%d'%d\"", player->ht / 12, player->ht % 12);
-	panel_line(p, attr, "Weight", "%dst %dlb", player->wt / 14, player->wt % 14);
-	panel_line(p, attr, "Actions", "%d", player->total_energy / 100);
-	panel_line(p, attr, "Resting", "%d", player->resting_turn);
-	panel_line(p, attr, "Turns", "%d", turn);
-	panel_line(p, attr, "Max Depth", "%s", show_depth());
+	uint32_t attr;
+
+	attr = player->chp < player->mhp ? COLOUR_YELLOW : COLOUR_L_GREEN;
+	panel_line(p, attr, "HP", "%d/%d", player->chp, player->mhp);
+
+	if (player->msp > 0) {
+		attr = player->csp < player->msp ? COLOUR_RED : COLOUR_L_GREEN;
+	} else {
+		attr = COLOUR_L_DARK;
+	}
+
+	panel_line(p, attr, "SP", "%d/%d", player->csp, player->msp);
+
+	panel_space(p);
+
+	panel_line(p, COLOUR_L_WHITE, "Actions", "%d", player->total_energy / 100);
+	panel_line(p, COLOUR_L_WHITE, "Resting", "%d", player->resting_turn);
+	panel_line(p, COLOUR_L_WHITE, "Turns", "%d", turn);
+	panel_line(p, COLOUR_L_WHITE, "Max Depth", "%s", show_depth());
 
 	return p;
 }
@@ -879,7 +939,7 @@ static void display_player_basic_info(void)
 
 	/* History */
 	Term_cursor_to_xy(info.indent, PLAYER_DISPLAY_HISTORY_ROW);
-	text_out_c(info, COLOUR_WHITE, player->history);
+	text_out_c(info, COLOUR_L_WHITE, player->history);
 
 	Term_flush_output();
 }
