@@ -430,7 +430,6 @@ struct fontval {
 
 	/* index of font in g_font_info array */
 	unsigned index;
-	bool size_ok;
 };
 
 /* only one of subwindow or window in fontval must be present;
@@ -665,9 +664,9 @@ static void init_colors(void);
 static void start_windows(void);
 static void start_window(struct window *window);
 static void load_font(struct font *font);
-static bool reload_game_font(struct window *window,
+static void reload_game_font(struct window *window,
 		const struct font_info *info);
-static bool reload_subwindow_font(struct subwindow *subwindow,
+static void reload_subwindow_font(struct subwindow *subwindow,
 		const struct font_info *info);
 static struct font *make_font(const struct window *window,
 		const char *name, int size);
@@ -716,6 +715,7 @@ static void load_terms(void);
 static void load_term(struct subwindow *subwindow);
 static bool adjust_subwindow_geometry(const struct window *window,
 		struct subwindow *subwindow);
+static void adjust_subwindow_size(struct subwindow *subwindow);
 static void position_temporary_subwindow(struct subwindow *subwindow,
 		const struct term_hints *hints);
 static int get_min_cols(const struct subwindow *subwindow);
@@ -1428,9 +1428,7 @@ static void render_button_menu_font_size(const struct window *window,
 		fontval.window->game_font->size : fontval.subwindow->font->size;
 
 	SDL_Color fg;
-	if (!button->info.data.fontval.size_ok) {
-		fg = g_colors[DEFAULT_ERROR_COLOR];
-	} else if (g_font_info[fontval.index].type == FONT_TYPE_VECTOR) {
+	if (g_font_info[fontval.index].type == FONT_TYPE_VECTOR) {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	} else {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
@@ -1463,9 +1461,7 @@ static void render_button_menu_font_name(const struct window *window, struct but
 	size_t index = button->info.data.fontval.index;
 
 	SDL_Color fg;
-	if (!button->info.data.fontval.size_ok) {
-		fg = g_colors[DEFAULT_ERROR_COLOR];
-	} else if (subval != NULL && subval->font->index == index) {
+	if (subval != NULL && subval->font->index == index) {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	} else if (winval != NULL && winval->game_font->index == index) {
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
@@ -2219,17 +2215,10 @@ static void handle_menu_font_name(struct window *window,
 	assert(font_info->loaded);
 
 	if (subval != NULL && subval->font->index != index) {
-		if (reload_subwindow_font(subval, font_info)) {
-			button->info.data.fontval.size_ok = true;
-		} else {
-			button->info.data.fontval.size_ok = false;
-		}
+		reload_subwindow_font(subval, font_info);
+		refresh_display_terms();
 	} else if (winval != NULL && winval->game_font->index != index) {
-		if (reload_game_font(winval, font_info)) {
-			button->info.data.fontval.size_ok = true;
-		} else {
-			button->info.data.fontval.size_ok = false;
-		}
+		reload_game_font(winval, font_info);
 	}
 }
 
@@ -2242,9 +2231,6 @@ static void handle_menu_font_size(struct window *window,
 	CHECK_BUTTON_GROUP_TYPE(button, BUTTON_GROUP_MENU, BUTTON_DATA_FONTVAL);
 
 	if (!click_menu_button(button, menu_panel, event)) {
-		return;
-	}
-	if (!button->info.data.fontval.size_ok) {
 		return;
 	}
 
@@ -2260,29 +2246,26 @@ static void handle_menu_font_size(struct window *window,
 	struct window *winval = button->info.data.fontval.window;
 	struct subwindow *subval = button->info.data.fontval.subwindow;
 
+	const SDL_Rect *rect = &button->full_rect;
+	const int increment = (event->button.x - rect->x < rect->w / 2) ? -1 : +1;
+
 	int size = winval != NULL ?
 		winval->game_font->size : subval->font->size;
 
-	int increment =
-		(event->button.x - button->full_rect.x < button->full_rect.w / 2) ? -1 : +1;
-
-	for (size_t i = 0; i < MAX_VECTOR_FONT_SIZE - MIN_VECTOR_FONT_SIZE; i++) {
-		size += increment;
-		if (size > MAX_VECTOR_FONT_SIZE) {
-			size = MIN_VECTOR_FONT_SIZE;
-		} else if (size < MIN_VECTOR_FONT_SIZE) {
-			size = MAX_VECTOR_FONT_SIZE;
-		}
-		info->size = size;
-
-		if (subval != NULL && reload_subwindow_font(subval, info)) {
-			return;
-		} else if (winval != NULL && reload_game_font(winval, info)) {
-			return;
-		}
+	size += increment;
+	if (size > MAX_VECTOR_FONT_SIZE) {
+		size = MIN_VECTOR_FONT_SIZE;
+	} else if (size < MIN_VECTOR_FONT_SIZE) {
+		size = MAX_VECTOR_FONT_SIZE;
 	}
+	info->size = size;
 
-	button->info.data.fontval.size_ok = false;
+	if (subval != NULL) {
+		reload_subwindow_font(subval, info);
+		refresh_display_terms();
+	} else if (winval != NULL) {
+		reload_game_font(winval, info);
+	}
 }
 
 static void load_next_menu_panel_font_sizes(const struct window *window,
@@ -2295,7 +2278,6 @@ static void load_next_menu_panel_font_sizes(const struct window *window,
 			.fontval = {
 				.subwindow = subval,
 				.index = index,
-				.size_ok = true,
 				.window = winval
 			}
 		},
@@ -2358,7 +2340,6 @@ static void load_next_menu_panel_font_names(const struct window *window,
 			elems[num_elems].info.type = BUTTON_DATA_FONTVAL;
 
 			elems[num_elems].info.data.fontval.subwindow = subval;
-			elems[num_elems].info.data.fontval.size_ok = true;
 			elems[num_elems].info.data.fontval.index = i;
 			elems[num_elems].info.data.fontval.window = winval;
 
@@ -4246,20 +4227,7 @@ static void reload_graphics(struct window *window,
 		}
 	}
 
-	if (!adjust_subwindow_geometry(window, subwindow)) {
-		subwindow->sizing_rect.x = subwindow->full_rect.x;
-		subwindow->sizing_rect.y = subwindow->full_rect.y;
-		subwindow->sizing_rect.w = subwindow_width(subwindow,
-					get_min_cols(subwindow), subwindow->cell_width);
-		subwindow->sizing_rect.h = subwindow_height(subwindow,
-					get_min_rows(subwindow), subwindow->cell_height);
-
-		resize_subwindow(subwindow);
-	} else {
-		Term_push(subwindow->term);
-		Term_resize(subwindow->cols, subwindow->rows);
-		Term_pop();
-	}
+	adjust_subwindow_size(subwindow);
 }
 
 static const struct font_info *find_font_info(const char *name)
@@ -4337,56 +4305,28 @@ static struct font *make_font(const struct window *window,
 	return font;
 }
 
-static bool reload_game_font(struct window *window,
+static void reload_game_font(struct window *window,
 		const struct font_info *info)
 {
-	if (window->temporary.number > 0) {
-		return false;
-	}
+	assert(window->temporary.number == 0);
 
 	free_font(window->game_font);
 	window->game_font = make_font(window, info->name, info->size);
-
-	return true;
 }
 
-static bool reload_subwindow_font(struct subwindow *subwindow,
+static void reload_subwindow_font(struct subwindow *subwindow,
 		const struct font_info *info)
 {
-	struct font *new_font = make_font(subwindow->window, info->name, info->size);
-	if (new_font == NULL) {
-		return false;
-	}
-
-	subwindow->sizing_rect = subwindow->full_rect;
-	if (!is_ok_col_row(subwindow,
-				&subwindow->sizing_rect,
-				new_font->ttf.glyph.w, new_font->ttf.glyph.h))
-	{
-		subwindow->sizing_rect.w = subwindow_width(subwindow,
-					get_min_cols(subwindow), new_font->ttf.glyph.w);
-		subwindow->sizing_rect.h = subwindow_height(subwindow,
-					get_min_rows(subwindow), new_font->ttf.glyph.h);
-	}
-
-	if (subwindow->sizing_rect.w > subwindow->window->inner_rect.w
-			|| subwindow->sizing_rect.h > subwindow->window->inner_rect.h)
-	{
-		free_font(new_font);
-		memset(&subwindow->sizing_rect, 0, sizeof(subwindow->sizing_rect));
-
-		return false;
-	}
-
-	fit_rect_in_rect_position(&subwindow->sizing_rect,
-			&subwindow->window->inner_rect);
+	struct font *new_font =
+		make_font(subwindow->window, info->name, info->size);
+	assert(new_font != NULL);
 
 	free_font(subwindow->font);
+
+	subwindow->sizing_rect = subwindow->full_rect;
 	subwindow->font = new_font;
 
-	resize_subwindow(subwindow);
-
-	return true;
+	adjust_subwindow_size(subwindow);
 }
 
 static void load_font(struct font *font)
@@ -4689,6 +4629,27 @@ static bool adjust_subwindow_geometry(const struct window *window,
 	}
 
 	return true;
+}
+
+static void adjust_subwindow_size(struct subwindow *subwindow)
+{
+	if (!adjust_subwindow_geometry(subwindow->window, subwindow)) {
+		subwindow->sizing_rect.x = subwindow->full_rect.x;
+		subwindow->sizing_rect.y = subwindow->full_rect.y;
+		subwindow->sizing_rect.w = subwindow_width(subwindow,
+					get_min_cols(subwindow), subwindow->cell_width);
+		subwindow->sizing_rect.h = subwindow_height(subwindow,
+					get_min_rows(subwindow), subwindow->cell_height);
+
+		fit_rect_in_rect_position(&subwindow->sizing_rect,
+				&subwindow->window->inner_rect);
+
+		resize_subwindow(subwindow);
+	} else {
+		Term_push(subwindow->term);
+		Term_resize(subwindow->cols, subwindow->rows);
+		Term_pop();
+	}
 }
 
 static void position_subwindow_exact(struct subwindow *subwindow,
