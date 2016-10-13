@@ -4633,22 +4633,31 @@ static bool adjust_subwindow_geometry(const struct window *window,
 
 static void adjust_subwindow_size(struct subwindow *subwindow)
 {
-	if (!adjust_subwindow_geometry(subwindow->window, subwindow)) {
+	adjust_subwindow_cell_size(subwindow->window, subwindow);
+
+	if (is_ok_col_row(subwindow, &subwindow->full_rect,
+				subwindow->cell_width, subwindow->cell_height))
+	{
+		adjust_subwindow_geometry(subwindow->window, subwindow);
+
+		Term_push(subwindow->term);
+		Term_resize(subwindow->cols, subwindow->rows);
+		Term_pop();
+	} else {
+		assert(subwindow->cols >= get_min_cols(subwindow));
+		assert(subwindow->rows >= get_min_rows(subwindow));
+
 		subwindow->sizing_rect.x = subwindow->full_rect.x;
 		subwindow->sizing_rect.y = subwindow->full_rect.y;
 		subwindow->sizing_rect.w = subwindow_width(subwindow,
-					get_min_cols(subwindow), subwindow->cell_width);
+					subwindow->cols, subwindow->cell_width);
 		subwindow->sizing_rect.h = subwindow_height(subwindow,
-					get_min_rows(subwindow), subwindow->cell_height);
+					subwindow->rows, subwindow->cell_height);
 
 		fit_rect_in_rect_position(&subwindow->sizing_rect,
 				&subwindow->window->inner_rect);
 
 		resize_subwindow(subwindow);
-	} else {
-		Term_push(subwindow->term);
-		Term_resize(subwindow->cols, subwindow->rows);
-		Term_pop();
 	}
 }
 
