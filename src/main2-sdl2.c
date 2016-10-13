@@ -4247,17 +4247,19 @@ static void reload_graphics(struct window *window,
 	}
 
 	if (!adjust_subwindow_geometry(window, subwindow)) {
-		subwindow->full_rect.w = subwindow_width(subwindow,
+		subwindow->sizing_rect.x = subwindow->full_rect.x;
+		subwindow->sizing_rect.y = subwindow->full_rect.y;
+		subwindow->sizing_rect.w = subwindow_width(subwindow,
 					get_min_cols(subwindow), subwindow->cell_width);
-		subwindow->full_rect.h = subwindow_height(subwindow,
+		subwindow->sizing_rect.h = subwindow_height(subwindow,
 					get_min_rows(subwindow), subwindow->cell_height);
 
-		adjust_subwindow_geometry(window, subwindow);
+		resize_subwindow(subwindow);
+	} else {
+		Term_push(subwindow->term);
+		Term_resize(subwindow->cols, subwindow->rows);
+		Term_pop();
 	}
-
-	Term_push(subwindow->term);
-	Term_resize(subwindow->cols, subwindow->rows);
-	Term_pop();
 }
 
 static const struct font_info *find_font_info(const char *name)
@@ -4657,8 +4659,9 @@ static bool adjust_subwindow_geometry(const struct window *window,
 	subwindow->cols = subwindow->inner_rect.w / subwindow->cell_width;
 	subwindow->rows = subwindow->inner_rect.h / subwindow->cell_height;
 
-	assert(subwindow->cols > 0);
-	assert(subwindow->rows > 0);
+	if (subwindow->cols == 0 || subwindow->rows == 0) {
+		return false;
+	}
 
 	subwindow->inner_rect.w = subwindow->cols * subwindow->cell_width;
 	subwindow->inner_rect.h = subwindow->rows * subwindow->cell_height;
