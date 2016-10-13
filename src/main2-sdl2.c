@@ -1022,12 +1022,22 @@ static void redraw_window(struct window *window)
 	SDL_RenderPresent(window->renderer);
 }
 
-static void redraw_all_windows(bool only_dirty)
+static void redraw_all_windows(void)
 {
 	for (unsigned i = 0; i < MAX_WINDOWS; i++) {
 		struct window *window = get_loaded_window(i);
-		if (window != NULL && (!only_dirty || window->is_dirty)) {
+		if (window != NULL) {
 			render_status_bar(window);
+			redraw_window(window);
+		}
+	}
+}
+
+static void redraw_dirty_windows(void)
+{
+	for (unsigned i = 0; i < MAX_WINDOWS; i++) {
+		struct window *window = get_loaded_window(i);
+		if (window != NULL && window->is_dirty) {
 			redraw_window(window);
 			window->is_dirty = false;
 		}
@@ -3130,7 +3140,7 @@ static void handle_windowevent(const SDL_WindowEvent *event)
 		handle_last_resize_event(num_events, events);
 	}
 
-	redraw_all_windows(false);
+	redraw_all_windows();
 }
 
 static void resize_subwindow(struct subwindow *subwindow)
@@ -3802,7 +3812,7 @@ static bool get_event(struct window *window)
 static void refresh_display_terms(void)
 {
 	display_terms_redraw();
-	redraw_all_windows(true);
+	redraw_dirty_windows();
 }
 
 static void term_event(void *user, bool wait)
@@ -3847,7 +3857,7 @@ static void term_redraw(void *user)
 {
 	(void) user;
 
-	redraw_all_windows(true);
+	redraw_dirty_windows();
 }
 
 static void term_big_map_redraw(void *user)
@@ -4970,7 +4980,7 @@ static bool do_button_open_subwindow(struct window *window,
 		bring_to_top(window, subwindow);
 	}
 
-	redraw_all_windows(false);
+	redraw_all_windows();
 
 	return true;
 }
