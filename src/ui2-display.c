@@ -255,7 +255,7 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
 	Term_push(dt->term);
 
 	if (dt->messages.offset > 0) {
-		message_more(dt->coords.x);
+		message_more(dt->messages.offset);
 		dt->messages.offset = 0;
 	}
 
