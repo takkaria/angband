@@ -62,6 +62,11 @@ struct display_term {
 
 	term term;
 
+	struct {
+		int offset;
+		bool clear;
+	} messages;
+
 	struct loc coords;
 	const char *name;
 	bool required;
@@ -183,14 +188,15 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 	wchar_t buf[1024];
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
 
-	if (dt->coords.x < 0) {
+	if (dt->messages.clear) {
 		Term_erase_all();
-		dt->coords.x = 0;
+		dt->messages.clear = false;
+		dt->messages.offset = 0;
 	}
 
-	if (dt->coords.x > 0 && dt->coords.x + len > wrap) {
-		message_more(dt->coords.x);
-		dt->coords.x = 0;
+	if (dt->messages.offset > 0 && dt->messages.offset + len > wrap) {
+		message_more(dt->messages.offset);
+		dt->messages.offset = 0;
 	}
 
 	uint32_t color = message_type_color(data->message.type);
@@ -216,10 +222,10 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 		len -= split;
 	}
 
-	Term_addws(dt->coords.x, 0, len, color, ws);
+	Term_addws(dt->messages.offset, 0, len, color, ws);
 	Term_flush_output();
 
-	dt->coords.x += len + 1;
+	dt->messages.offset += len + 1;
 
 	Term_pop();
 }
@@ -248,9 +254,9 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
 
 	Term_push(dt->term);
 
-	if (dt->coords.x > 0) {
+	if (dt->messages.offset > 0) {
 		message_more(dt->coords.x);
-		dt->coords.x = 0;
+		dt->messages.offset = 0;
 	}
 
 	Term_erase_all();
@@ -266,10 +272,9 @@ void message_skip_more(void)
 	struct display_term *display_message_line =
 		display_term_get(DISPLAY_MESSAGE_LINE);
 
-	if (display_message_line->coords.x > 0) {
-		/* x coordinate less that zero means
-		 * that the term should be cleared */
-		display_message_line->coords.x = -1;
+	if (display_message_line->messages.offset > 0) {
+		display_message_line->messages.offset = 0;
+		display_message_line->messages.clear = true;
 	}
 }
 
@@ -2424,6 +2429,7 @@ static struct display_term display_terms[] = {
 		{ \
 			.index = DISPLAY_ ##i, \
 			.term = NULL, \
+			.messages = {0, false}, \
 			.coords = {0}, \
 			.name = (desc), \
 			.required = (req) \
