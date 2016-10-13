@@ -4944,6 +4944,7 @@ static bool do_button_open_subwindow(struct window *window,
 		bring_to_top(window, subwindow);
 	}
 
+	refresh_display_terms();
 	redraw_all_windows();
 
 	return true;
