@@ -4599,9 +4599,8 @@ static bool adjust_subwindow_geometry(const struct window *window,
 	subwindow->cols = subwindow->inner_rect.w / subwindow->cell_width;
 	subwindow->rows = subwindow->inner_rect.h / subwindow->cell_height;
 
-	if (subwindow->cols == 0 || subwindow->rows == 0) {
-		return false;
-	}
+	assert(subwindow->cols > 0);
+	assert(subwindow->rows > 0);
 
 	subwindow->inner_rect.w = subwindow->cols * subwindow->cell_width;
 	subwindow->inner_rect.h = subwindow->rows * subwindow->cell_height;
