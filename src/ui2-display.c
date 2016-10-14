@@ -1990,7 +1990,7 @@ static void handle_player_move(game_event_type type,
 
 	if (OPT(highlight_player)) {
 		struct loc loc = {player->px, player->py};
-		move_cursor_relative(DISPLAY_CAVE, loc, false);
+		move_cursor_relative(DISPLAY_CAVE, loc, true);
 	}
 
 	if (player->opts.delay_factor > 0
