@@ -1019,7 +1019,7 @@ static size_t prt_level_feeling(struct loc coords)
 
 	/**
 	 * Convert monster feeling to a symbol easier to parse for a human.
-	 * 0 -> ? . Monster feeling should never be 0, but we check it just in case.
+	 * 0 -> ?. Monster feeling should never be 0, but we check it just in case.
 	 * 1 to 9 are feelings from omens of death to quiet, paceful.
 	 * We also reverse this so that what we show is a danger feeling.
 	 */
