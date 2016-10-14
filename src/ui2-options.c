@@ -662,7 +662,7 @@ static void do_cmd_lazymove_delay(const char *name, int index)
 
 	char tmp[4] = {0};
 	strnfmt(tmp, sizeof(tmp), "%d", player->opts.lazymove_delay);
-	show_prompt("New movement delay: ", false);
+	show_prompt("New input delay: ", false);
 
 	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
 		player->opts.lazymove_delay = strtoul(tmp, NULL, 0);
@@ -1512,7 +1512,7 @@ static menu_action option_actions[] = {
 	{0,  0,   NULL,                                 NULL},
 	{0, 'd', "Set animation delay"  ,               do_cmd_delay},
 	{0, 'h', "Set hitpoint warning",                do_cmd_hp_warn},
-	{0, 'm', "Set movement delay",                  do_cmd_lazymove_delay},
+	{0, 'm', "Set input delay",                     do_cmd_lazymove_delay},
 	{0,  0,   NULL,                                 NULL},
 	{0, 's', "Auto-inscriptions setup",             do_cmd_knowledge_objects},
 	{0, 't', "Save auto-inscriptions to pref file", do_dump_autoinscrip},
