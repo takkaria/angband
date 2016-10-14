@@ -4041,7 +4041,10 @@ static void term_draw_tile(const struct subwindow *subwindow,
 		int col, int row, SDL_Rect rect,
 		const struct term_point *point)
 {
-	assert(subwindow->window->graphics.texture != NULL);
+	if (subwindow->window->graphics.texture == NULL) {
+		assert(subwindow->window->index != WINDOW_MAIN);
+		return;
+	}
 
 	int bg_col = point->bg_char & 0x7F;
 	int bg_row = point->bg_attr & 0x7F;
