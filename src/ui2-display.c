@@ -1988,13 +1988,14 @@ static void handle_player_move(game_event_type type,
 
 	verify_panel(DISPLAY_TERM(user)->index);
 
+	if (OPT(highlight_player)) {
+		struct loc loc = {player->px, player->py};
+		move_cursor_relative(DISPLAY_CAVE, loc, false);
+	}
+
 	if (player->opts.delay_factor > 0
 			&& player->upkeep->running)
 	{
-		if (OPT(highlight_player)) {
-			move_cursor_relative(DISPLAY_CAVE,
-					loc(player->px, player->py), true);
-		}
 		handle_stuff(player);
 		Term_redraw_screen(player->opts.delay_factor);
 	}
