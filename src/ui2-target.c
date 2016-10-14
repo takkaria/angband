@@ -701,8 +701,7 @@ void textui_target_closest(void)
 
 		move_cursor_relative(DISPLAY_CAVE, loc(x, y), true);
 
-		Term_redraw_screen();
-		Term_delay(TARGET_CLOSEST_DELAY);
+		Term_redraw_screen(TARGET_CLOSEST_DELAY);
 
 		Term_cursor_visible(visible);
 		Term_flush_output();

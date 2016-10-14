@@ -744,7 +744,7 @@ static const struct term_info *get_term_info(enum display_term_index index);
 static void term_flush_events(void *user);
 static void term_make_visible(void *user, bool visible);
 static void term_cursor(void *user, int col, int row);
-static void term_redraw(void *user);
+static void term_redraw(void *user, int delay);
 static void term_event(void *user, bool wait);
 static void term_draw(void *user,
 		int col, int row, int n_points, struct term_point *points);
@@ -3835,15 +3835,21 @@ static void term_make_visible(void *user, bool visible)
 	subwindow->window->is_dirty = true;
 }
 
-static void term_redraw(void *user)
+static void term_redraw(void *user, int delay)
 {
-	(void) user;
+	struct subwindow *subwindow = user;
 
 	redraw_dirty_windows();
+
+	if (delay > subwindow->window->delay) {
+		SDL_Delay(delay - subwindow->window->delay);
+	}
 }
 
-static void term_big_map_redraw(void *user)
+static void term_big_map_redraw(void *user, int delay)
 {
+	(void) delay;
+
 	struct subwindow *subwindow = user;
 
 	render_big_map(subwindow->window);

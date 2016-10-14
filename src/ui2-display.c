@@ -1142,11 +1142,12 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 	/* Update the display on repeating commands (to animate resting, tunneling counters),
 	 * but, if the player is resting, not too frequently, to make it go over quicker */
-	if (cmd_get_nrepeats() > 0
-			|| (player_is_resting(player)
-				&& player_resting_count(player) % 100 == 0))
+	if (player->opts.delay_factor > 0
+			&& (cmd_get_nrepeats() > 0
+				|| (player_is_resting(player)
+					&& player_resting_count(player) % 100 == 0)))
 	{
-		Term_redraw_screen();
+		Term_redraw_screen(player->opts.delay_factor);
 	}
 
 	Term_pop();
@@ -1308,11 +1309,12 @@ void idle_update(void)
 {
 	if (character_dungeon
 			&& OPT(animate_flicker)
-			&& use_graphics == GRAPHICS_NONE)
+			&& use_graphics == GRAPHICS_NONE
+			&& player->opts.delay_factor > 0)
 	{
 		do_animation();
 		redraw_stuff(player);
-		Term_redraw_screen();
+		Term_redraw_screen(player->opts.delay_factor);
 	}
 }
 
@@ -1396,8 +1398,7 @@ static void display_explosion(game_event_type type,
 				Term_flush_output();
 
 				if (player->opts.delay_factor > 0) {
-					Term_redraw_screen();
-					Term_delay(player->opts.delay_factor);
+					Term_redraw_screen(player->opts.delay_factor);
 				}
 			}
 		}
@@ -1415,7 +1416,7 @@ static void display_explosion(game_event_type type,
 
 		Term_flush_output();
 		if (player->opts.delay_factor > 0) {
-			Term_redraw_screen();
+			Term_redraw_screen(player->opts.delay_factor);
 		}
 	}
 
@@ -1451,8 +1452,7 @@ static void display_bolt(game_event_type type,
 
 		Term_flush_output();
 		if (player->opts.delay_factor > 0) {
-			Term_redraw_screen();
-			Term_delay(player->opts.delay_factor);
+			Term_redraw_screen(player->opts.delay_factor);
 		}
 
 		event_signal_point(EVENT_MAP, new.x, new.y);
@@ -1499,8 +1499,7 @@ static void display_missile(game_event_type type,
 
 		Term_flush_output();
 		if (player->opts.delay_factor > 0) {
-			Term_redraw_screen();
-			Term_delay(player->opts.delay_factor);
+			Term_redraw_screen(player->opts.delay_factor);
 		}
 
 		event_signal_point(EVENT_MAP, coords.x, coords.y);
@@ -1859,7 +1858,7 @@ static void splashscreen_note(game_event_type type,
 			width, COLOUR_WHITE, str);
 
 	Term_flush_output();
-	Term_redraw_screen();
+	Term_redraw_screen(0);
 }
 
 static void show_splashscreen(game_event_type type,
@@ -1903,7 +1902,7 @@ static void show_splashscreen(game_event_type type,
 	}
 
 	Term_flush_output();
-	Term_redraw_screen();
+	Term_redraw_screen(0);
 }
 
 static void repeated_command_display(game_event_type type,
@@ -1989,15 +1988,15 @@ static void handle_player_move(game_event_type type,
 
 	verify_panel(DISPLAY_TERM(user)->index);
 
-	if (player->upkeep->running) {
-		handle_stuff(player);
-
+	if (player->opts.delay_factor > 0
+			&& player->upkeep->running)
+	{
 		if (OPT(highlight_player)) {
 			move_cursor_relative(DISPLAY_CAVE,
 					loc(player->px, player->py), true);
 		}
-
-		Term_redraw_screen();
+		handle_stuff(player);
+		Term_redraw_screen(player->opts.delay_factor);
 	}
 }
 
@@ -2148,7 +2147,7 @@ static void ui_leave_init(game_event_type type,
 
 	/* Flush the message */
 	Term_flush_output();
-	Term_redraw_screen();
+	Term_redraw_screen(0);
 	Term_pop();
 }
 

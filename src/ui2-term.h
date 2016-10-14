@@ -126,9 +126,10 @@ typedef void (*draw_hook)(void *user,
 typedef void (*erase_hook)(void *user);
 /* cursor_hook should draw a cursor at position x, y */
 typedef void (*cursor_hook)(void *user, int x, int y);
-/* redraw_hook should make sure that all that was
- * drawn previously actually appears on the screen */
-typedef void (*redraw_hook)(void *user);
+/* redraw_hook should make sure that all that was drawn previously
+ * actually appears on the screen; the parameter delay is the time
+ * (in milliseconds) of pause that should be taken after redraw */
+typedef void (*redraw_hook)(void *user, int delay);
 /* event_hook should call Term_keypress() or Term_mousepress()
  * if there are corresponding events; if wait is true, the frontend
  * should wait for events (as long as necessary to get at least one) */
@@ -255,8 +256,9 @@ void Term_flush_output(void);
 
 /* redraw the display; note that most monitors (at the time of writing this)
  * can only be redrawn 60 times a second; trying to redraw more can cause
- * flickering, tearing of frames, slowdowns and other undesirable things */
-void Term_redraw_screen(void);
+ * flickering, tearing of frames, slowdowns and other undesirable things.
+ * the parameter delay is time (in milliseconds) of pause after redraw */
+void Term_redraw_screen(int delay);
 
 /* append a keypress to ui_event queue */
 void Term_keypress(keycode_t key, byte mods);

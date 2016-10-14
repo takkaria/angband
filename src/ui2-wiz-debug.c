@@ -972,7 +972,7 @@ static void wiz_statistics(struct object *obj, int level)
 							roll, matches, better, worse, other),
 						loc);
 				Term_flush_output();
-				Term_redraw_screen();
+				Term_redraw_screen(0);
 			}
 
 			struct object *test_obj =

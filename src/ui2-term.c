@@ -978,11 +978,11 @@ void Term_flush_output(void)
 	TOP->cursor.old = TOP->cursor.new;
 }
 
-void Term_redraw_screen(void)
+void Term_redraw_screen(int delay)
 {
 	STACK_OK();
 
-	TOP->callbacks.redraw(TOP->user);
+	TOP->callbacks.redraw(TOP->user, delay);
 }
 
 void Term_keypress(keycode_t key, byte mods)
