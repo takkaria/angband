@@ -255,7 +255,8 @@ static bool term_points_equal(struct term_point original,
 		&& term_points_flags_equal(original, compare);
 }
 
-static bool term_fg_equal(struct term_point original, uint32_t fga, wchar_t fgc)
+static bool term_fg_equal(struct term_point original,
+		uint32_t fga, wchar_t fgc)
 {
 	return original.fg_attr == fga
 		&& original.fg_char == fgc;
