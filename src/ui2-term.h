@@ -65,6 +65,8 @@ struct term_point {
 	/* terrain attribute */
 	uint32_t terrain_attr;
 
+	/* point has at least one flag */
+	bool has_flags;
 	bitflag flags[TPF_SIZE];
 };
 

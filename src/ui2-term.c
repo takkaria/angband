@@ -234,14 +234,25 @@ static void term_draw(int x, int y, int index, int len)
 	TOP->callbacks.draw(TOP->user, x, y, len, &TOP->points[index]);
 }
 
-static bool term_points_equal(struct term_point original, struct term_point compare)
+static bool term_points_flags_equal(struct term_point original,
+		struct term_point compare)
+{
+	if (original.has_flags && compare.has_flags) {
+		return tpf_is_equal(original.flags, compare.flags);
+	} else {
+		return original.has_flags == compare.has_flags;
+	}
+}
+
+static bool term_points_equal(struct term_point original,
+		struct term_point compare)
 {
 	return original.fg_attr == compare.fg_attr
 		&& original.fg_char == compare.fg_char
 		&& original.bg_attr == compare.bg_attr
 		&& original.bg_char == compare.bg_char
 		&& original.terrain_attr == compare.terrain_attr
-		&& tpf_is_equal(original.flags, compare.flags);
+		&& term_points_flags_equal(original, compare);
 }
 
 static bool term_fg_equal(struct term_point original, uint32_t fga, wchar_t fgc)

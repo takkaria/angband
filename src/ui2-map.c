@@ -324,8 +324,7 @@ void grid_data_as_point(struct grid_data *g, struct term_point *point)
 
 	grid_get_terrain(g, point);
 
-	/* TODO UI2 set some flags */
-	tpf_wipe(point->flags);
+	point->has_flags = false;
 }
 
 void move_cursor_relative(enum display_term_index index,
@@ -488,7 +487,8 @@ static void view_map_aux(void)
 		.fg_char = monster_x_char[r_info[0].ridx],
 		.bg_attr = point.bg_attr,
 		.bg_char = point.bg_char,
-		.terrain_attr = BG_BLACK
+		.terrain_attr = BG_BLACK,
+		.has_flags = false
 	};
 
 	/* Draw the player */

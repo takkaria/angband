@@ -795,7 +795,8 @@ static const struct term_point default_blank_point = {
 	.fg_attr = BLANK_ATTR,
 	.bg_char = BLANK_CHAR,
 	.bg_attr = BLANK_ATTR,
-	.terrain_attr = BLANK_TERRAIN
+	.terrain_attr = BLANK_TERRAIN,
+	.has_flags = false
 };
 
 /* Functions */
