@@ -153,6 +153,8 @@ void cnv_stat(const char *fmt, int val, char *out_val, size_t out_len)
 static void message_more(int x)
 {
 	if (!auto_more()) {
+		verify_cursor(); /* -more- can come in the middle of the turn */
+
 		Term_addws(x, 0, MSG_MORE_LEN, COLOUR_L_BLUE, L"-more-");
 		Term_flush_output();
 		inkey_any();
@@ -1988,15 +1990,16 @@ static void handle_player_move(game_event_type type,
 
 	verify_panel(DISPLAY_TERM(user)->index);
 
-	if (OPT(highlight_player)) {
-		struct loc loc = {player->px, player->py};
-		move_cursor_relative(DISPLAY_CAVE, loc, true);
-	}
-
-	if (player->opts.delay_factor > 0
-			&& player->upkeep->running)
+	if (player->upkeep->running
+			&& player->opts.delay_factor > 0)
 	{
 		handle_stuff(player);
+
+		if (OPT(highlight_player)) {
+			struct loc loc = {player->px, player->py};
+			move_cursor_relative(DISPLAY_CAVE, loc, true);
+		}
+
 		Term_redraw_screen(player->opts.delay_factor);
 	}
 }
