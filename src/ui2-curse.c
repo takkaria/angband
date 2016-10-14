@@ -107,7 +107,8 @@ static void curse_menu_term_push(const struct curses_list *list)
 	maxlen += 15; /* to append, for example " (power 99)" */
 
 	struct term_hints hints = {
-		.width = MAX(maxlen + 1, strlen(tab) + 1),
+		/* add 3 to account for menu's tags */
+		.width = MAX(maxlen, strlen(tab) + 1) + 3,
 		.height = list->count,
 		.tabs = true,
 		.position = TERM_POSITION_TOP_LEFT,

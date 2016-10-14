@@ -47,10 +47,10 @@ SYS_sdl2 := -DUSE_SDL2 \
 CC := gcc
 WARNINGS := -Wall -Wextra -Wno-unused-parameter -pedantic
 CFLAGS := -std=c99 -g \
-	-O0 \
+	-O2 \
 	$(WARNINGS) \
 	-DHAVE_CONFIG_H \
-	-fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined
+	#-fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined
 
 # Add additional search directives here
 # Example: -I/usr/X11R6/include -I/usr/include/ncurses
