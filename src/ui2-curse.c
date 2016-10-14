@@ -45,7 +45,7 @@ void get_curse_display(struct menu *menu,
 	int power_len = strnfmt(power, sizeof(power),
 			"(power %d)", list->curses[index]->power);
 
-	loc.x = width - power_len;
+	loc.x += width - power_len;
 	Term_adds(loc.x, loc.y, power_len, COLOUR_WHITE, power);
 }
 
