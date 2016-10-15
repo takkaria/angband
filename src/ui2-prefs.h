@@ -23,7 +23,7 @@
 
 #include "cave.h"
 #include "parser.h"
-#include "player.h"
+#include "option.h"
 #include "ui2-display.h"
 #include "ui2-keymap.h"
 #include "ui2-term.h"

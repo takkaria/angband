@@ -398,7 +398,7 @@ static void spoil_artifact(const char *fname)
 					art->weight / 10,
 					art->weight % 10);
 
-			if (OPT(birth_randarts)) {
+			if (OPT(player, birth_randarts)) {
 				file_putf(fh, "%s.\n", art->text);
 			}
 

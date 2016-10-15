@@ -789,12 +789,12 @@ bool change_panel(enum display_term_index index, int dir)
  * panel, the map scrolls one panel in that direction so that the player
  * is no longer so close to the edge.
  *
- * The "OPT(center_player)" option allows the current panel to always be
- * centered around the player
+ * The "OPT(player, center_player)" option allows the current panel
+ * to always be centered around the player
  */
 void verify_panel(enum display_term_index index)
 {
-	verify_panel_int(index, OPT(center_player));
+	verify_panel_int(index, OPT(player, center_player));
 }
 
 void center_panel(enum display_term_index index)

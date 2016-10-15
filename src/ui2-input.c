@@ -121,7 +121,7 @@ static void inkey_state_auto_more_off(void)
 
 bool auto_more(void)
 {
-	return OPT(auto_more) || inkey_state.auto_more;
+	return OPT(player, auto_more) || inkey_state.auto_more;
 }
 
 static void inkey_state_check_flush(void)
@@ -750,7 +750,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
  */
 bool textui_get_aim_dir(int *dir)
 {
-	*dir = OPT(use_old_target) && target_okay() ? 5 : 0;
+	*dir = OPT(player, use_old_target) && target_okay() ? 5 : 0;
 
 	while (*dir == 0) {
 		struct loc loc;

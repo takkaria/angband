@@ -726,7 +726,7 @@ static void hp_colour_change(game_event_type type,
 	(void) data;
 	(void) user;
 
-	if (OPT(hp_changes_color) && use_graphics == GRAPHICS_NONE) {
+	if (OPT(player, hp_changes_color) && use_graphics == GRAPHICS_NONE) {
 		event_signal_point(EVENT_MAP, player->px, player->py);
 	}
 }
@@ -976,7 +976,7 @@ static size_t prt_level_feeling(struct loc coords)
 {
 	/* Don't show feelings for cold-hearted characters
 	 * no useful feelings in town */
-	if (!OPT(birth_feelings) || player->depth == 0) {
+	if (!OPT(player, birth_feelings) || player->depth == 0) {
 		return 0;
 	}
 
@@ -1319,7 +1319,7 @@ static void animate(game_event_type type, game_event_data *data, void *user)
 void idle_update(void)
 {
 	if (character_dungeon
-			&& OPT(animate_flicker)
+			&& OPT(player, animate_flicker)
 			&& use_graphics == GRAPHICS_NONE
 			&& player->opts.delay_factor > 0)
 	{
@@ -2004,7 +2004,7 @@ static void handle_player_move(game_event_type type,
 	{
 		handle_stuff(player);
 
-		if (OPT(highlight_player)) {
+		if (OPT(player, highlight_player)) {
 			struct loc loc = {player->px, player->py};
 			move_cursor_relative(DISPLAY_CAVE, loc, false);
 		}

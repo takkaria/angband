@@ -90,9 +90,9 @@ static void grid_get_terrain(const struct grid_data *g, struct term_point *point
 	if (use_graphics == GRAPHICS_NONE) {
 		/* Hybrid or block walls */
 		if (feat_is_wall(g->f_idx)) {
-			if (OPT(hybrid_walls)) {
+			if (OPT(player, hybrid_walls)) {
 				point->terrain_attr = COLOUR_SHADE;
-			} else if (OPT(solid_walls)) {
+			} else if (OPT(player, solid_walls)) {
 				point->terrain_attr = point->fg_attr;
 			} else {
 				point->terrain_attr = COLOUR_DARK;
@@ -187,7 +187,7 @@ static void grid_get_monster(const struct grid_data *g,
 			point->fg_attr = da;
 			point->fg_char = dc;
 		} else {
-			if (OPT(purple_uniques)
+			if (OPT(player, purple_uniques)
 				&& rf_has(mon->race->flags, RF_UNIQUE))
 			{
 				/* Turn uniques purple if desired (violet, actually) */
@@ -233,7 +233,7 @@ static void grid_get_player(const struct grid_data *g,
 	point->fg_attr = monster_x_attr[race->ridx];
 	point->fg_char = monster_x_char[race->ridx];
 
-	if (OPT(hp_changes_color) && !(point->fg_attr & 0x80)) {
+	if (OPT(player, hp_changes_color) && !(point->fg_attr & 0x80)) {
 		switch (player->chp * 10 / player->mhp) {
 			case 10: case 9:
 				point->fg_attr = COLOUR_WHITE;
@@ -576,11 +576,11 @@ void verify_cursor(void)
 {
 	static bool cursor_visible = false;
 
-	if (OPT(show_target) && target_sighted()) {
+	if (OPT(player, show_target) && target_sighted()) {
 		struct loc loc;
 		target_get(&loc.x, &loc.y);
 		try_move_cursor_safe(DISPLAY_CAVE, loc, &cursor_visible);
-	} else if (OPT(highlight_player)) {
+	} else if (OPT(player, highlight_player)) {
 		struct loc loc = {player->px, player->py};
 		try_move_cursor_safe(DISPLAY_CAVE, loc, &cursor_visible);
 	} else if (cursor_visible) {

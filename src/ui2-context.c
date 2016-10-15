@@ -289,7 +289,7 @@ static void context_menu_player_entries(struct menu *m)
 
 	menu_dynamic_add(m, "Character", MENU_VALUE_CHARACTER);
 
-	if (!OPT(center_player)) {
+	if (!OPT(player, center_player)) {
 		menu_dynamic_add(m, "Center Map", MENU_VALUE_CENTER_MAP);
 	}
 
@@ -1093,7 +1093,7 @@ void textui_process_click(ui_event event)
 {
 	assert(event.type == EVT_MOUSE);
 
-	if (OPT(mouse_movement)) {
+	if (OPT(player, mouse_movement)) {
 		struct mouseclick mouse = event.mouse;
 		struct loc coords = {
 			.x = map_grid_x(mouse.x),

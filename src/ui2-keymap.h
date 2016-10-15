@@ -27,7 +27,7 @@
 #define KEYMAP_ACTION_MAX 20
 
 #define KEYMAP_MODE_OPT \
-	(OPT(rogue_like_commands) ? KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG)
+	(OPT(player, rogue_like_commands) ? KEYMAP_MODE_ROGUE : KEYMAP_MODE_ORIG)
 
 /**
  * Keymap modes.

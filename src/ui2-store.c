@@ -340,7 +340,7 @@ static void store_display_help(struct store_context *context)
 {
 	const bool home = (context->store->sidx == STORE_HOME) ? true : false;
 
-	int height = (context->inspect_only || home || !OPT(birth_no_selling)) ?
+	int height = (context->inspect_only || home || !OPT(player, birth_no_selling)) ?
 		5 : 6;
 
 	struct term_hints hints = {
@@ -358,7 +358,7 @@ static void store_display_help(struct store_context *context)
 
 	struct text_out_info info = {.indent = 0, .pad = 0, .wrap = hints.width};
 
-	if (OPT(rogue_like_commands)) {
+	if (OPT(player, rogue_like_commands)) {
 		text_out_c(info, COLOUR_L_GREEN, "x");
 	} else {
 		text_out_c(info, COLOUR_L_GREEN, "l");
@@ -373,7 +373,7 @@ static void store_display_help(struct store_context *context)
 	text_out(info, " an item.\n");
 
 	if (!context->inspect_only) {
-		if (OPT(birth_no_selling) && !home) {
+		if (OPT(player, birth_no_selling) && !home) {
 			text_out_c(info, COLOUR_L_GREEN, "d");
 			text_out(info,
 					" gives an item to the store in return " /* concat */
@@ -430,7 +430,7 @@ static void store_sell(struct store_context *context)
 	assert(store != NULL);
 
 	const char *reject = "You have nothing that I want. ";
-	const char *prompt = OPT(birth_no_selling) ?
+	const char *prompt = OPT(player, birth_no_selling) ?
 		"Give which item? " : "Sell which item? ";
 
 	item_tester tester = NULL;
@@ -490,9 +490,9 @@ static void store_sell(struct store_context *context)
 		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 		strnfmt(buf, sizeof(buf),
 				"%s %s%s? [ESC, any other key to accept]",
-				OPT(birth_no_selling) ? "Give" : "Sell",
+				OPT(player, birth_no_selling) ? "Give" : "Sell",
 				o_name,
-				OPT(birth_no_selling) ? "" : format(" for %d", price));
+				OPT(player, birth_no_selling) ? "" : format(" for %d", price));
 
 		if (store_get_check(buf)) {
 			cmdq_push(CMD_SELL);
@@ -648,7 +648,7 @@ static void store_menu_set_selections(struct menu *menu, bool knowledge_menu)
 {
 	/* Note that command_keys and selection can't intersect! */
 	if (knowledge_menu) {
-		if (OPT(rogue_like_commands)) {
+		if (OPT(player, rogue_like_commands)) {
 			menu->command_keys = "?|Ieilx";
 			menu->selections = "abcdfghjkmnopqrstuvwyz134567";
 		} else {
@@ -656,7 +656,7 @@ static void store_menu_set_selections(struct menu *menu, bool knowledge_menu)
 			menu->selections = "abcdfghjkmnopqrstuvwxyz13456";
 		}
 	} else {
-		if (OPT(rogue_like_commands)) {
+		if (OPT(player, rogue_like_commands)) {
 			/* \x04 = ^D, \x05 = ^E, \x10 = ^p */
 			menu->command_keys = "\x04\x05\x10?={|}~CEIPTdegilpswx";
 			menu->selections = "abcfmnoqrtuvyz13456790ABDFGH";

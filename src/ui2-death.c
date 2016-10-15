@@ -436,7 +436,7 @@ static void death_randarts(const char *title, int index)
 	(void) title;
 	(void) index;
 
-	if (OPT(birth_randarts)) {
+	if (OPT(player, birth_randarts)) {
 		option_set(option_name(OPT_birth_keep_randarts),
 				get_check("Keep randarts for next game? "));
 	} else {

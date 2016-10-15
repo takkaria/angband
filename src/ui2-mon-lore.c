@@ -43,7 +43,7 @@ static void lore_title(textblock *tb, const struct monster_race *race)
 
 	const bool unique = rf_has(race->flags, RF_UNIQUE);
 
-	if (unique && OPT(purple_uniques)) {
+	if (unique && OPT(player, purple_uniques)) {
 		standard_attr = COLOUR_VIOLET;
 	}
 	if (!unique) {
@@ -99,7 +99,7 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	bitflag known_flags[RF_SIZE];
 	monster_flags_known(race, lore, known_flags);
 
-	if (OPT(cheat_know) || spoilers) {
+	if (OPT(player, cheat_know) || spoilers) {
 		cheat_monster_lore(race, lore);
 	}
 
