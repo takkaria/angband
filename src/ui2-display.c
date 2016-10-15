@@ -1207,20 +1207,6 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		}
 	}
 
-	Term_pop();
-}
-
-static void flush_maps(game_event_type type, game_event_data *data, void *user)
-{
-	(void) type;
-	(void) data;
-
-	if (OPT(player, highlight_player)) {
-		struct loc loc = {player->px, player->py};
-		move_cursor_relative(DISPLAY_CAVE, loc, false);
-	}
-
-	Term_push(DISPLAY_TERM(user)->term);
 	Term_flush_output();
 	Term_pop();
 }
@@ -2010,11 +1996,9 @@ static void handle_player_move(game_event_type type,
 		handle_stuff(player);
 
 		if (OPT(player, highlight_player)) {
-			struct loc loc = {player->px, player->py};
-			move_cursor_relative(DISPLAY_CAVE, loc, false);
+			verify_cursor();
 		}
 
-		Term_flush_output();
 		Term_redraw_screen(player->opts.delay_factor);
 	}
 }
@@ -2181,7 +2165,6 @@ static void ui_enter_world(game_event_type type,
 
 	player->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_MONSTER | PR_MESSAGE);
 	redraw_stuff(player);
-	event_signal(EVENT_REFRESH);
 
 	/* Player HP can optionally change the colour of the '@' now. */
 	event_add_handler(EVENT_HP, hp_colour_change, NULL);
@@ -2191,9 +2174,6 @@ static void ui_enter_world(game_event_type type,
 #ifdef MAP_DEBUG
 	event_add_handler(EVENT_MAP, trace_map_updates, display_cave);
 #endif
-
-	/* Draw the contents of the map */
-	event_add_handler(EVENT_REFRESH, flush_maps, display_cave);
 
 	/* Check if the panel should shift when the player's
 	 * moved and redraw the display, to animate it */
@@ -2239,8 +2219,6 @@ static void ui_leave_world(game_event_type type,
 
 	struct display_term *display_cave = display_term_get(DISPLAY_CAVE);
 
-	event_signal(EVENT_REFRESH);
-
 	/* Player HP can optionally change the colour of the '@' now. */
 	event_remove_handler(EVENT_HP, hp_colour_change, NULL);
 
@@ -2249,9 +2227,6 @@ static void ui_leave_world(game_event_type type,
 #ifdef MAP_DEBUG
 	event_remove_handler(EVENT_MAP, trace_map_updates, display_cave);
 #endif
-
-	/* Draw the contents of the map */
-	event_remove_handler(EVENT_REFRESH, flush_maps, display_cave);
 
 	/* Check if the panel should shift when the player's moved */
 	event_remove_handler(EVENT_PLAYERMOVED, handle_player_move, display_cave);
@@ -2515,6 +2490,6 @@ void display_terms_redraw(void)
 		 | PR_ITEMLIST);
 
 	verify_panel(DISPLAY_CAVE);
+	verify_cursor();
 	handle_stuff(player);
-	event_signal(EVENT_REFRESH);
 }

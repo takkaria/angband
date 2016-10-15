@@ -2367,7 +2367,6 @@ void do_cmd_locate(void)
 				change_panel(DISPLAY_CAVE, dir);
 				verify_cursor();
 				handle_stuff(player);
-				event_signal(EVENT_REFRESH);
 			} else {
 				bell("Illegal direction for locate!");
 			}
