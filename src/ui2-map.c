@@ -362,6 +362,17 @@ void print_rel(enum display_term_index index,
 	display_term_pop();
 }
 
+/* Special case for when player is in the darkness */
+static void verify_player(const struct player *p)
+{
+	struct grid_data g;
+	map_info(p->py, p->px, &g);
+
+	if ((int) g.f_idx == FEAT_NONE) {
+		event_signal_point(EVENT_MAP, p->px, p->py);
+	}
+}
+
 void print_map(enum display_term_index index)
 {
 	int width;
@@ -393,6 +404,7 @@ void print_map(enum display_term_index index)
 	}
 
 	display_term_pop();
+	verify_player(player);
 }
 
 static byte **make_priority_grid(void)
