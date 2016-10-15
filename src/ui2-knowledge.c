@@ -2333,7 +2333,8 @@ void do_cmd_locate(void)
 	struct loc start;
 	display_term_get_coords(DISPLAY_CAVE, &start);
 
-	while (true) {
+	bool done = false;
+	while (!done) {
 		struct loc cur;
 		display_term_get_coords(DISPLAY_CAVE, &cur);
 		
@@ -2358,11 +2359,13 @@ void do_cmd_locate(void)
 					"Map sector [%d, %d], which is%s your sector. Direction? ",
 					cur.x / PANEL_SIZE, cur.y / PANEL_SIZE, sector);
 		}
+		show_prompt(prompt, false);
 
-		char code;
-		if (get_com(prompt, &code)) {
-			struct keypress command = {EVT_KBRD, code, 0};
-			int dir = target_dir(command);
+		struct keypress key = inkey_only_key();
+		if (key.code == ESCAPE) {
+			done = true;
+		} else {
+			int dir = target_dir(key);
 			if (dir != 0) {
 				change_panel(DISPLAY_CAVE, dir);
 				verify_cursor();
@@ -2370,9 +2373,9 @@ void do_cmd_locate(void)
 			} else {
 				bell("Illegal direction for locate!");
 			}
-		} else {
-			break;
 		}
+
+		clear_prompt();
 	};
 
 	verify_panel(DISPLAY_CAVE);
