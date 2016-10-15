@@ -2014,6 +2014,7 @@ static void handle_player_move(game_event_type type,
 			move_cursor_relative(DISPLAY_CAVE, loc, false);
 		}
 
+		Term_flush_output();
 		Term_redraw_screen(player->opts.delay_factor);
 	}
 }
