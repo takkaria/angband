@@ -1216,7 +1216,8 @@ static void flush_maps(game_event_type type, game_event_data *data, void *user)
 	(void) data;
 
 	if (OPT(player, highlight_player)) {
-		verify_cursor();
+		struct loc loc = {player->px, player->py};
+		move_cursor_relative(DISPLAY_CAVE, loc, false);
 	}
 
 	Term_push(DISPLAY_TERM(user)->term);
@@ -2513,8 +2514,6 @@ void display_terms_redraw(void)
 		 | PR_ITEMLIST);
 
 	verify_panel(DISPLAY_CAVE);
-	verify_cursor();
-
 	handle_stuff(player);
 	event_signal(EVENT_REFRESH);
 }
