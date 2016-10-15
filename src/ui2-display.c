@@ -2516,4 +2516,8 @@ void display_terms_redraw(void)
 	verify_cursor();
 
 	handle_stuff(player);
+
+	display_term_push(DISPLAY_CAVE);
+	Term_flush_output();
+	display_term_pop();
 }
