@@ -2357,13 +2357,6 @@ void display_term_destroy(enum display_term_index index)
 	memset(&dt->coords, 0, sizeof(dt->coords));
 }
 
-const char *display_term_get_name(enum display_term_index index)
-{
-	struct display_term *dt = display_term_get(index);
-
-	return dt->name;
-}
-
 void display_term_get_coords(enum display_term_index index, struct loc *coords)
 {
 	struct display_term *dt = display_term_get(index);
