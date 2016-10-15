@@ -363,7 +363,7 @@ void print_rel(enum display_term_index index,
 }
 
 /* Special case for when player is in the darkness */
-static void verify_player(const struct player *p)
+static void verify_player_grid(const struct player *p)
 {
 	struct grid_data g;
 	map_info(p->py, p->px, &g);
@@ -404,7 +404,7 @@ void print_map(enum display_term_index index)
 	}
 
 	display_term_pop();
-	verify_player(player);
+	verify_player_grid(player);
 }
 
 static byte **make_priority_grid(void)
