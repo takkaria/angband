@@ -2349,13 +2349,13 @@ void do_cmd_locate(void)
 		char prompt[ANGBAND_TERM_STANDARD_WIDTH];
 		if (OPT(center_player)) {
 			strnfmt(prompt, sizeof(prompt),
-		        	"Map sector [%d(%02d), %d(%02d)], which is%s your sector.  Direction?",
+		        	"Map sector [%d(%02d), %d(%02d)], which is%s your sector. Direction? ",
 					cur.x / PANEL_SIZE, cur.x % PANEL_SIZE,
 					cur.y / PANEL_SIZE, cur.y % PANEL_SIZE,
 					sector);
 		} else {
 			strnfmt(prompt, sizeof(prompt),
-					"Map sector [%d,%d], which is%s your sector.  Direction?",
+					"Map sector [%d,%d], which is%s your sector. Direction? ",
 					cur.x / PANEL_SIZE, cur.y / PANEL_SIZE, sector);
 		}
 
