@@ -2365,8 +2365,8 @@ void do_cmd_locate(void)
 			int dir = target_dir(command);
 			if (dir != 0) {
 				change_panel(DISPLAY_CAVE, dir);
-				verify_cursor();
 				handle_stuff(player);
+				verify_cursor();
 			} else {
 				bell("Illegal direction for locate!");
 			}

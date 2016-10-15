@@ -1207,6 +1207,15 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 		}
 	}
 
+	Term_pop();
+}
+
+static void flush_maps(game_event_type type, game_event_data *data, void *user)
+{
+	(void) type;
+	(void) data;
+
+	Term_push(DISPLAY_TERM(user)->term);
 	Term_flush_output();
 	Term_pop();
 }
@@ -1997,7 +2006,7 @@ static void handle_player_move(game_event_type type,
 
 		if (OPT(highlight_player)) {
 			struct loc loc = {player->px, player->py};
-			move_cursor_relative(DISPLAY_CAVE, loc, true);
+			move_cursor_relative(DISPLAY_CAVE, loc, false);
 		}
 
 		Term_redraw_screen(player->opts.delay_factor);
@@ -2176,6 +2185,9 @@ static void ui_enter_world(game_event_type type,
 	event_add_handler(EVENT_MAP, trace_map_updates, display_cave);
 #endif
 
+	/* Draw the contents of the map */
+	event_add_handler(EVENT_REFRESH, flush_maps, display_cave);
+
 	/* Check if the panel should shift when the player's
 	 * moved and redraw the display, to animate it */
 	event_add_handler(EVENT_PLAYERMOVED, handle_player_move, display_cave);
@@ -2228,6 +2240,9 @@ static void ui_leave_world(game_event_type type,
 #ifdef MAP_DEBUG
 	event_remove_handler(EVENT_MAP, trace_map_updates, display_cave);
 #endif
+
+	/* Draw the contents of the map */
+	event_remove_handler(EVENT_REFRESH, flush_maps, display_cave);
 
 	/* Check if the panel should shift when the player's moved */
 	event_remove_handler(EVENT_PLAYERMOVED, handle_player_move, display_cave);
