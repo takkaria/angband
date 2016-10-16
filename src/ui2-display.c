@@ -2394,7 +2394,7 @@ void init_terms(void)
 {
 	display_terms_check();
 
-	/*
+	/**
 	 * This term is always on the stack;
 	 * this is necessary because the rest of textui depends
 	 * on the fact that term callbacks can always be invoked
