@@ -1815,6 +1815,7 @@ static void display_term_handler(struct display_term *dt, bool enable)
 
 		default:
 			quit_fmt("Unrecognized display index %u!\n", (unsigned) dt->index);
+			break;
 	}
 
 	if (enable) {
