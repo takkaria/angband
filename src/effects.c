@@ -196,7 +196,9 @@ bool effect_handler_DAMAGE(effect_handler_context_t *context)
 		monster_desc(killer, sizeof(killer), mon, MDESC_DIED_FROM);
 	} else if (trap) {
 		/* A trap */
-		my_strcpy(killer, format("a %s", trap->kind->desc), sizeof(killer));
+		char *article = is_a_vowel(trap->kind->desc[0]) ? "an " : "a ";
+		my_strcpy(killer, format("%s %s", article, trap->kind->desc),
+				  sizeof(killer));
 	} else {
 		/* Must be a cursed weapon */
 		char o_name[80];
@@ -326,6 +328,7 @@ bool effect_handler_NOURISH(effect_handler_context_t *context)
 {
 	int amount = effect_calculate_value(context, false);
 	player_set_food(player, player->food + amount);
+	context->ident = true;
 	return true;
 }
 
@@ -676,6 +679,8 @@ bool effect_handler_DRAIN_MANA(effect_handler_context_t *context)
 	struct monster *mon = cave_monster(cave, cave->mon_current);
 
 	if (!mon) return true;
+
+	context->ident = true;
 
 	/* Get the monster name (or "it") */
 	monster_desc(m_name, sizeof(m_name), mon, MDESC_STANDARD);
@@ -2287,9 +2292,8 @@ bool effect_handler_SUMMON(effect_handler_context_t *context)
 		}
 	}
 
-	/* Identify if some monsters arrive */
-	if (count)
-		context->ident = true;
+	/* Identify */
+	context->ident = true;
 
 	/* Message for the blind */
 	if (count && player->timed[TMD_BLIND])
