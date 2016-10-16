@@ -68,6 +68,7 @@ struct display_term {
 	} messages;
 
 	struct loc coords;
+
 	const char *name;
 	bool required;
 };
