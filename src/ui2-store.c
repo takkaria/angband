@@ -39,6 +39,7 @@
 #include "target.h"
 #include "ui2-display.h"
 #include "ui2-input.h"
+#include "ui2-map.h"
 #include "ui2-menu.h"
 #include "ui2-object.h"
 #include "ui2-options.h"
@@ -1099,6 +1100,7 @@ void enter_store(game_event_type type, game_event_data *data, void *user)
 	(void) user;
 
 	if (square_isshop(cave, player->py, player->px)) {
+		verify_cursor();
 		event_signal(EVENT_LEAVE_WORLD);
 	} else {
 		msg("You see no store here.");
