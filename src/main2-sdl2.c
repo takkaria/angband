@@ -6059,6 +6059,10 @@ static void init_systems(void)
 		quit_fmt("TTF_Init: %s", TTF_GetError());
 	}
 
+	SDL_EventState(SDL_FINGERMOTION, SDL_DISABLE);
+	SDL_EventState(SDL_FINGERDOWN, SDL_DISABLE);
+	SDL_EventState(SDL_FINGERUP, SDL_DISABLE);
+
 	SDL_StartTextInput();
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 }
