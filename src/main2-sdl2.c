@@ -66,9 +66,14 @@
 	ALPHA_PERCENT(40)
 #define DEFAULT_ALPHA_LOW \
 	ALPHA_PERCENT(20)
+
 /* for "Alpha" button; in percents */
 #define DEFAULT_ALPHA_STEP  10
 #define DEFAULT_ALPHA_LOWEST 0
+
+#define DEFAULT_BRIGHTNESS_FULL 0xFF
+#define DEFAULT_BRIGHTNESS_DARK \
+	(DEFAULT_BRIGHTNESS_FULL / 4)
 
 #define DEFAULT_WALLPAPER "att-128.png"
 #define DEFAULT_WALLPAPER_DIR \
@@ -355,6 +360,10 @@ struct subwindow {
 
 	/* subwindow can use graphics */
 	bool use_graphics;
+
+	/* subwindow should be darker when it's
+	 * a background for another subwindow */
+	bool can_be_background;
 
 	struct subwindow_config *config;
 
@@ -848,7 +857,7 @@ static void render_wallpaper_centered(const struct window *window)
 	SDL_RenderCopy(window->renderer, window->wallpaper.texture, NULL, &rect);
 }
 
-static void render_background(const struct window *window)
+static void render_window_background(const struct window *window)
 {
 	render_clear(window, NULL, &window->color);
 
@@ -882,7 +891,7 @@ static void render_subwindows(const struct window *window,
 					subwindow->texture, NULL, &subwindow->full_rect);
 
 			for (size_t t = 0; t < subwindow->tab_bank.number; t++) {
-				const struct tab *tab = &subwindow->tab_bank.tabs[t];
+				struct tab *tab = &subwindow->tab_bank.tabs[t];
 
 				SDL_RenderCopy(window->renderer, tab->texture, NULL, &tab->rect);
 			}
@@ -892,7 +901,7 @@ static void render_subwindows(const struct window *window,
 
 static void render_all(const struct window *window)
 {
-	render_background(window);
+	render_window_background(window);
 
 	SDL_RenderCopy(window->renderer,
 			window->status_bar.texture, NULL, &window->status_bar.full_rect);
@@ -906,7 +915,7 @@ static void render_big_map(const struct window *window)
 	assert(window->temporary.number > 0);
 	assert(window->temporary.subwindows[window->temporary.number - 1]->big_map);
 
-	render_background(window);
+	render_window_background(window);
 
 	SDL_RenderCopy(window->renderer,
 			window->status_bar.texture, NULL, &window->status_bar.full_rect);
@@ -963,7 +972,7 @@ static void render_fill_rect(const struct window *window,
 
 static void render_all_in_menu(const struct window *window)
 {
-	render_background(window);
+	render_window_background(window);
 
 	SDL_SetRenderTarget(window->renderer, NULL);
 
@@ -994,6 +1003,39 @@ static void render_all_in_menu(const struct window *window)
 	SDL_SetRenderTarget(window->renderer, NULL);
 	SDL_RenderCopy(window->renderer,
 			window->status_bar.texture, NULL, &window->status_bar.full_rect);
+}
+
+static void set_subwindow_brightness(struct subwindow *subwindow, int brightness)
+{
+	SDL_SetTextureColorMod(subwindow->texture,
+			brightness, brightness, brightness);
+
+	for (size_t t = 0; t < subwindow->tab_bank.number; t++) {
+		const struct tab *tab = &subwindow->tab_bank.tabs[t];
+
+		SDL_SetTextureColorMod(tab->texture,
+				brightness, brightness, brightness);
+	}
+}
+
+static void set_subwindows_brightness(const struct window *window, int brightness)
+{
+	if (window->temporary.number > 0) {
+		struct subwindow *subwindow =
+			window->temporary.subwindows[window->temporary.number - 1];
+
+		if (subwindow->can_be_background) {
+			set_subwindow_brightness(subwindow, brightness);
+		}
+	} else {
+		for (size_t i = 0; i < window->permanent.number; i++) {
+			struct subwindow *subwindow = window->permanent.subwindows[i];
+
+			if (subwindow->can_be_background) {
+				set_subwindow_brightness(subwindow, brightness);
+			}
+		}
+	}
 }
 
 static void set_subwindow_alpha(struct subwindow *subwindow, int alpha)
@@ -3877,15 +3919,18 @@ static void term_delay(void *user, int msecs)
 static void term_pop_new(void *user)
 {
 	struct subwindow *subwindow = user;
+	struct window *window = subwindow->window;
 
 	if (subwindow->big_map) {
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	}
 
-	subwindow->window->is_dirty = true;
-
 	detach_subwindow_from_window(subwindow->window, subwindow);
 	free_temporary_subwindow(subwindow);
+
+	window->is_dirty = true;
+
+	set_subwindows_brightness(window, DEFAULT_BRIGHTNESS_FULL);
 }
 
 static void term_cursor(void *user, int col, int row)
@@ -3979,6 +4024,8 @@ static void term_push_new(const struct term_hints *hints,
 
 	assert(window->game_font != NULL);
 	subwindow->font = window->game_font;
+
+	set_subwindows_brightness(window, DEFAULT_BRIGHTNESS_DARK);
 
 	attach_subwindow_to_window(window, subwindow);
 	load_subwindow(window, subwindow);
@@ -5652,6 +5699,10 @@ static void wipe_subwindow(struct subwindow *subwindow)
 	subwindow->term          = NULL;
 	subwindow->config        = NULL;
 	subwindow->tab_bank.tabs = NULL;
+
+	if (subwindow->index != DISPLAY_MESSAGE_LINE) {
+		subwindow->can_be_background = true;
+	}
 
 	subwindow->inited = true;
 	subwindow->visible = true;
