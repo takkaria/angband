@@ -3806,12 +3806,49 @@ static void handle_quit(void)
 	quit(NULL);
 }
 
+static void dump_event(const SDL_Event event)
+{
+	switch (event.type) {
+		case SDL_FINGERMOTION:
+		case SDL_FINGERDOWN:
+		case SDL_FINGERUP:
+			fprintf(stderr, "FINGER event %s:\n",
+					event.type == SDL_FINGERMOTION ? "MOTION" :
+					event.type == SDL_FINGERDOWN   ? "DOWN"   :
+					event.type == SDL_FINGERUP     ? "UP"     : "ERROR");
+			fprintf(stderr, "x %f y %f dx %f dy %f pressure %f\n",
+					event.tfinger.x,
+					event.tfinger.y,
+					event.tfinger.dx,
+					event.tfinger.dy,
+					event.tfinger.pressure);
+			break;
+
+		case SDL_MULTIGESTURE:
+			fprintf(stderr, "MULTIGESTURE event:\n");
+			fprintf(stderr, "theta %f dist %f x %f y %f fingers %u\n",
+					event.mgesture.dTheta,
+					event.mgesture.dDist,
+					event.mgesture.x,
+					event.mgesture.y,
+					(unsigned) event.mgesture.numFingers);
+			break;
+
+		default:
+			fprintf(stderr, "OTHER event: %u\n",
+					(unsigned) event.type);
+			break;
+	}
+}
+
 static bool get_event(struct window *window)
 {
 	SDL_Event event;
 	if (!SDL_PollEvent(&event)) {
 		return false;
 	}
+
+	dump_event(event);
 
 	switch (event.type) {
 		case SDL_KEYDOWN:
