@@ -597,7 +597,7 @@ static void term_move_points(int dst_x, int dst_y, int src_x, int src_y,
 				src_x += info.inc.x, dst_x += info.inc.x,
 				src_i += info.inc.x, dst_i += info.inc.x)
 		{
-			if (!term_points_equal(TOP->points[src_i], TOP->points[dst_i])) {
+			if (!term_points_equal(TOP->points[dst_i], TOP->points[src_i])) {
 				TOP->points[dst_i] = TOP->points[src_i];
 				term_mark_point_dirty(dst_x, dst_y, dst_i);
 			}
