@@ -82,6 +82,13 @@ struct term {
 	} *double_points;
 };
 
+struct term_move_info {
+	struct {int x; int y;} src;
+	struct {int x; int y;} dst;
+	struct {int x; int y;} lim;
+	struct {int x; int y;} inc;
+};
+
 static void term_mark_point_dirty(int x, int y, int index);
 
 #define COORDS_OK(x, y) do { \
@@ -509,6 +516,88 @@ static void term_move_cursor(int x, int y, int index)
 	TOP->cursor.new.i = index;
 
 	CURSOR_OK();
+}
+
+static struct term_move_info term_calc_move(int dst_x, int dst_y,
+		int src_x, int src_y,
+		int width, int height)
+{
+	STACK_OK();
+	COORDS_OK(dst_x, dst_y);
+	COORDS_OK(src_x, src_y);
+
+	assert(dst_x + width  <= TOP->width);
+	assert(src_x + width  <= TOP->width);
+	assert(dst_y + height <= TOP->height);
+	assert(src_y + height <= TOP->height);
+
+	struct term_move_info info;
+
+	if (src_x < dst_x) {
+		info.src.x = src_x + width - 1;
+		info.dst.x = dst_x + width - 1;
+		info.lim.x = src_x - 1;
+		info.inc.x = -1;
+	} else {
+		info.src.x = src_x;
+		info.dst.x = dst_x;
+		info.lim.x = src_x + width;
+		info.inc.x = 1;
+	}
+
+	if (src_y < dst_y) {
+		info.src.y = src_y + height - 1;
+		info.dst.y = dst_y + height - 1;
+		info.lim.y = src_y - 1;
+		info.inc.y = -1;
+	} else {
+		info.src.y = src_y;
+		info.dst.y = dst_y;
+		info.lim.y = src_y + height;
+		info.inc.y = 1;
+	}
+
+	COORDS_OK(info.src.x, info.src.y);
+	COORDS_OK(info.dst.x, info.dst.y);
+
+	return info;
+}
+
+static void term_move_points(int dst_x, int dst_y, int src_x, int src_y,
+		int width, int height)
+{
+	STACK_OK();
+
+	for (int y = TOP->dirty.top; y <= TOP->dirty.bottom; y++) {
+		term_mark_row_flushed(y);
+	}
+	term_mark_all_flushed();
+
+	for (int i = 0; i < TOP->size; i++) {
+		TOP->dirty.points[i] = false;
+	}
+
+	struct term_move_info info =
+		term_calc_move(dst_x, dst_y, src_x, src_y, width, height);
+
+	for (src_y = info.src.y, dst_y = info.dst.y;
+			src_y != info.lim.y;
+			src_y += info.inc.y, dst_y += info.inc.y)
+	{
+		int src_i = INDEX(info.src.x, src_y);
+		int dst_i = INDEX(info.dst.x, dst_y);
+
+		for (src_x = info.src.x, dst_x = info.dst.x;
+				src_x != info.lim.x;
+				src_x += info.inc.x, dst_x += info.inc.x,
+				src_i += info.inc.x, dst_i += info.inc.x)
+		{
+			if (!term_points_equal(TOP->points[src_i], TOP->points[dst_i])) {
+				TOP->points[dst_i] = TOP->points[src_i];
+				term_mark_point_dirty(dst_x, dst_y, dst_i);
+			}
+		}
+	}
 }
 
 static bool term_check_event(ui_event *event)
@@ -965,6 +1054,13 @@ void Term_resize(int w, int h)
 	mem_free(old.dirty.rows);
 	mem_free(old.dirty.points);
 	mem_free(old.double_points);
+}
+
+void Term_move_points(int dst_x, int dst_y, int src_x, int src_y, int width, int height)
+{
+	STACK_OK();
+
+	term_move_points(dst_x, dst_y, src_x, src_y, width, height);
 }
 
 void Term_flush_output(void)

@@ -249,6 +249,13 @@ int Term_height(void);
 /* make the top term bigger or smaller */
 void Term_resize(int w, int h);
 
+/* this function is essentially memmove() for terms;
+ * it operates on rectangular regions of points, described by
+ * their top left corners; both regions have the same width and height;
+ * regions can overlap; both regions must contain only valid coordinates */
+void Term_move_points(int dst_x, int dst_y, int src_x, int src_y,
+		int width, int height);
+
 /* flush the output (it won't necessarily appear on the screen;
  * that depends on how th frontend does it; what will happen is
  * that draw_hook will be called) */

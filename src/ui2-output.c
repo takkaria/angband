@@ -20,6 +20,7 @@
 #include "player-calcs.h"
 #include "z-textblock.h"
 #include "ui2-input.h"
+#include "ui2-map.h"
 #include "ui2-output.h"
 
 /**
@@ -713,7 +714,19 @@ static bool modify_panel_int(enum display_term_index index,
 
 	if (panel.x != new_coords.x || panel.y != new_coords.y) {
 		display_term_set_coords(index, new_coords);
-		player->upkeep->redraw |= PR_MAP;
+
+		struct loc diff = {
+			.x = panel.x - new_coords.x,
+			.y = panel.y - new_coords.y
+		};
+		region new_panel = {
+			.x = new_coords.x,
+			.y = new_coords.y,
+			.w = panel.w,
+			.h = panel.h
+		};
+		move_map(index, diff, new_panel);
+
 		return true;
 	} else {
 		return false;

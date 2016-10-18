@@ -373,20 +373,19 @@ static void verify_player_grid(const struct player *p)
 	}
 }
 
-void print_map(enum display_term_index index)
+/* region is relative to term; offset is absolute
+ * coordinates of the top left corner of the term */
+static void print_map_region(region reg, struct loc offset,
+		struct term_point blank)
 {
-	int width;
-	int height;
-	struct loc offset;
-
-	display_term_get_area(index, &offset, &width, &height);
-	display_term_push(index);
-
-	struct term_point blank = Term_get_blank();
-
-	/* Dump the map */
-	for (int rely = 0, absy = offset.y; rely < height; rely++, absy++) {
-		for (int relx = 0, absx = offset.x; relx < width; relx++, absx++) {
+	for (int rely = reg.y, endy = reg.y + reg.h, absy = offset.y + reg.y;
+			rely < endy;
+			rely++, absy++)
+	{
+		for (int relx = reg.x, endx = reg.x + reg.w, absx = offset.x + reg.x;
+				relx < endx;
+				relx++, absx++)
+		{
 			if (square_in_bounds(cave, absy, absx)) {
 				struct grid_data g;
 				map_info(absy, absx, &g);
@@ -402,9 +401,69 @@ void print_map(enum display_term_index index)
 			}
 		}
 	}
+}
+
+void print_map(enum display_term_index index)
+{
+	region reg = {0};
+	struct loc offset;
+
+	display_term_push(index);
+	display_term_get_area(index, &offset, &reg.w, &reg.h);
+
+	struct term_point blank = Term_get_blank();
+
+	print_map_region(reg, offset, blank);
 
 	display_term_pop();
 	verify_player_grid(player);
+}
+
+void move_map(enum display_term_index index, struct loc diff, region panel)
+{
+	assert(diff.x != 0 || diff.y != 0);
+
+	const struct loc abs = {ABS(diff.x), ABS(diff.y)};
+
+	if (abs.x < panel.w && abs.y < panel.h) {
+		display_term_push(index);
+
+		struct loc dst = {
+			.x = diff.x < 0 ? 0 : abs.x,
+			.y = diff.y < 0 ? 0 : abs.y
+		};
+		struct loc src = {
+			.x = diff.x < 0 ? abs.x : 0,
+			.y = diff.y < 0 ? abs.y : 0
+		};
+		Term_move_points(dst.x, dst.y, src.x, src.y,
+				panel.w - abs.x, panel.h - abs.y);
+
+		region horizontal = {
+			.x = 0,
+			.y = diff.y < 0 ? panel.h - abs.y : 0,
+			.w = panel.w,
+			.h = abs.y
+		};
+		region vertical = {
+			.x = diff.x < 0 ? panel.w - abs.x : 0, 
+			.y = 0,
+			.w = abs.x,
+			.h = panel.h
+		};
+		vertical.h -= horizontal.h;
+
+		struct loc offset = {panel.x, panel.y};
+		struct term_point blank = Term_get_blank();
+
+		print_map_region(horizontal, offset, blank);
+		print_map_region(vertical, offset, blank);
+
+		Term_flush_output();
+		display_term_pop();
+	} else {
+		print_map(index);
+	}
 }
 
 static byte **make_priority_grid(void)

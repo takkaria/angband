@@ -1937,10 +1937,10 @@ static void new_level_display_update(game_event_type type,
 		player->upkeep->autosave = false;
 	}
 
-	verify_panel(DISPLAY_TERM(user)->index);
-
 	Term_push(DISPLAY_TERM(user)->term);
 	Term_erase_all();
+
+	verify_panel(DISPLAY_TERM(user)->index);
 
 	player->upkeep->only_partial = true;
 
@@ -1995,8 +1995,6 @@ static void handle_player_move(game_event_type type,
 	if (player->upkeep->running
 			&& player->opts.delay_factor > 0)
 	{
-		handle_stuff(player);
-
 		if (OPT(player, highlight_player)) {
 			verify_cursor();
 		}
