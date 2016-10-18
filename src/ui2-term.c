@@ -1056,7 +1056,8 @@ void Term_resize(int w, int h)
 	mem_free(old.double_points);
 }
 
-void Term_move_points(int dst_x, int dst_y, int src_x, int src_y, int width, int height)
+void Term_move_points(int dst_x, int dst_y, int src_x, int src_y,
+		int width, int height)
 {
 	STACK_OK();
 
