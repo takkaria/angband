@@ -195,6 +195,7 @@ static term term_new(const struct term_create_info *info)
 	assert(t->callbacks.event        != NULL);
 	assert(t->callbacks.delay        != NULL);
 	assert(t->callbacks.draw         != NULL);
+	assert(t->callbacks.move         != NULL);
 
 	for (int i = 0; i < t->size; i++) {
 		t->points[i] = t->blank;
@@ -518,91 +519,6 @@ static void term_move_cursor(int x, int y, int index)
 	CURSOR_OK();
 }
 
-static struct term_move_info term_calc_move(int dst_x, int dst_y,
-		int src_x, int src_y,
-		int width, int height)
-{
-	STACK_OK();
-	COORDS_OK(src_x, src_y);
-	COORDS_OK(dst_x, dst_y);
-
-	assert(width > 0);
-	assert(height > 0);
-
-	COORDS_OK(src_x + width - 1, src_y + height - 1);
-	COORDS_OK(dst_x + width - 1, dst_y + height - 1);
-
-	struct term_move_info info;
-
-	if (src_x < dst_x) {
-		info.src.x = src_x + width - 1;
-		info.dst.x = dst_x + width - 1;
-		info.lim.x = src_x - 1;
-		info.inc.x = -1;
-	} else {
-		info.src.x = src_x;
-		info.dst.x = dst_x;
-		info.lim.x = src_x + width;
-		info.inc.x = 1;
-	}
-
-	if (src_y < dst_y) {
-		info.src.y = src_y + height - 1;
-		info.dst.y = dst_y + height - 1;
-		info.lim.y = src_y - 1;
-		info.inc.y = -1;
-	} else {
-		info.src.y = src_y;
-		info.dst.y = dst_y;
-		info.lim.y = src_y + height;
-		info.inc.y = 1;
-	}
-
-	COORDS_OK(info.src.x, info.src.y);
-	COORDS_OK(info.dst.x, info.dst.y);
-	
-	assert(INDEX(info.src.x, info.src.y) != INDEX(info.dst.x, info.dst.y));
-
-	return info;
-}
-
-static void term_move_points(int dst_x, int dst_y, int src_x, int src_y,
-		int width, int height)
-{
-	STACK_OK();
-
-	for (int y = TOP->dirty.top; y <= TOP->dirty.bottom; y++) {
-		term_mark_row_flushed(y);
-	}
-	term_mark_all_flushed();
-
-	for (int i = 0; i < TOP->size; i++) {
-		TOP->dirty.points[i] = false;
-	}
-
-	struct term_move_info info =
-		term_calc_move(dst_x, dst_y, src_x, src_y, width, height);
-
-	for (src_y = info.src.y, dst_y = info.dst.y;
-			src_y != info.lim.y;
-			src_y += info.inc.y, dst_y += info.inc.y)
-	{
-		int src_i = INDEX(info.src.x, src_y);
-		int dst_i = INDEX(info.dst.x, dst_y);
-
-		for (src_x = info.src.x, dst_x = info.dst.x;
-				src_x != info.lim.x;
-				src_x += info.inc.x, dst_x += info.inc.x,
-				src_i += info.inc.x, dst_i += info.inc.x)
-		{
-			if (!term_points_equal(TOP->points[dst_i], TOP->points[src_i])) {
-				TOP->points[dst_i] = TOP->points[src_i];
-				term_mark_point_dirty(dst_x, dst_y, dst_i);
-			}
-		}
-	}
-}
-
 static bool term_check_event(ui_event *event)
 {
 	if (event_queue.number == 0) {
@@ -752,6 +668,96 @@ static void term_flush_out(void)
 	}
 
 	term_mark_all_flushed();
+}
+
+static struct term_move_info term_calc_move(int dst_x, int dst_y,
+		int src_x, int src_y,
+		int width, int height)
+{
+	STACK_OK();
+	COORDS_OK(src_x, src_y);
+	COORDS_OK(dst_x, dst_y);
+
+	assert(width > 0);
+	assert(height > 0);
+
+	COORDS_OK(src_x + width - 1, src_y + height - 1);
+	COORDS_OK(dst_x + width - 1, dst_y + height - 1);
+
+	struct term_move_info info;
+
+	if (src_x < dst_x) {
+		info.src.x = src_x + width - 1;
+		info.dst.x = dst_x + width - 1;
+		info.lim.x = src_x - 1;
+		info.inc.x = -1;
+	} else {
+		info.src.x = src_x;
+		info.dst.x = dst_x;
+		info.lim.x = src_x + width;
+		info.inc.x = 1;
+	}
+
+	if (src_y < dst_y) {
+		info.src.y = src_y + height - 1;
+		info.dst.y = dst_y + height - 1;
+		info.lim.y = src_y - 1;
+		info.inc.y = -1;
+	} else {
+		info.src.y = src_y;
+		info.dst.y = dst_y;
+		info.lim.y = src_y + height;
+		info.inc.y = 1;
+	}
+
+	COORDS_OK(info.src.x, info.src.y);
+	COORDS_OK(info.dst.x, info.dst.y);
+	
+	assert(INDEX(info.src.x, info.src.y) != INDEX(info.dst.x, info.dst.y));
+
+	return info;
+}
+
+static void term_move_points(int dst_x, int dst_y, int src_x, int src_y,
+		int width, int height)
+{
+	STACK_OK();
+
+	assert(TOP->dirty.top > TOP->dirty.bottom);
+
+	struct term_move_info info =
+		term_calc_move(dst_x, dst_y, src_x, src_y, width, height);
+
+	if (TOP->cursor.old.visible) {
+		TOP->callbacks.draw(TOP->user,
+				TOP->cursor.old.x, TOP->cursor.old.y,
+				1, &TOP->points[TOP->cursor.old.i]);
+	}
+
+	bool moved = TOP->double_points != NULL ? false :
+		TOP->callbacks.move(TOP->user, dst_x, dst_y, src_x, src_y, width, height);
+
+	for (src_y = info.src.y, dst_y = info.dst.y;
+			src_y != info.lim.y;
+			src_y += info.inc.y, dst_y += info.inc.y)
+	{
+		int src_i = INDEX(info.src.x, src_y);
+		int dst_i = INDEX(info.dst.x, dst_y);
+
+		for (src_x = info.src.x, dst_x = info.dst.x;
+				src_x != info.lim.x;
+				src_x += info.inc.x, dst_x += info.inc.x,
+				src_i += info.inc.x, dst_i += info.inc.x)
+		{
+			if (!term_points_equal(TOP->points[dst_i], TOP->points[src_i])) {
+				TOP->points[dst_i] = TOP->points[src_i];
+
+				if (!moved) {
+					term_mark_point_dirty(dst_x, dst_y, dst_i);
+				}
+			}
+		}
+	}
 }
 
 static void term_pop_stack(void)
@@ -1073,8 +1079,8 @@ void Term_flush_output(void)
 
 	term_erase_cursor(TOP->cursor.old);
 	term_flush_out();
-	term_draw_cursor(TOP->cursor.new);
 
+	term_draw_cursor(TOP->cursor.new);
 	TOP->cursor.old = TOP->cursor.new;
 }
 

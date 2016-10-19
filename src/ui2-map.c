@@ -497,6 +497,8 @@ void move_map(enum display_term_index index, struct loc diff, region panel)
 		struct loc offset = {panel.x, panel.y};
 		struct term_point blank = Term_get_blank();
 
+		Term_flush_output();
+
 		map_move_points(diff, abs, panel.w, panel.h);
 
 		print_map_region(horizontal, offset, blank);

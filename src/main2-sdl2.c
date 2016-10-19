@@ -396,6 +396,8 @@ struct subwindow {
 	SDL_Texture *aux_texture;
 	/* main texture of subwindow */
 	SDL_Texture *texture;
+	/* swap texture (for term_move()) */
+	SDL_Texture *swap_texture;
 
 	struct subwindow_border borders;
 	struct font *font;
@@ -764,6 +766,8 @@ static void term_push_new(const struct term_hints *hints,
 static void term_pop_new(void *user);
 static void term_add_tab(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
+static bool term_move(void *user,
+		int dst_x, int dst_y, int src_x, int src_y, int width, int height);
 
 /* Defaults for term creations */
 
@@ -774,6 +778,7 @@ static const struct term_callbacks default_callbacks = {
 	.redraw       = term_redraw,
 	.event        = term_event,
 	.draw         = term_draw,
+	.move         = term_move,
 	.delay        = term_delay,
 	.erase        = term_erase,
 	.push_new     = term_push_new,
@@ -1265,6 +1270,14 @@ static void render_borders(struct subwindow *subwindow)
 	SDL_Rect rect = {0};
 	SDL_QueryTexture(subwindow->texture, NULL, NULL, &rect.w, &rect.h);
 
+	if (subwindow->swap_texture != NULL) {
+		int w;
+		int h;
+		SDL_QueryTexture(subwindow->swap_texture, NULL, NULL, &w, &h);
+		assert(w == rect.w);
+		assert(h == rect.h);
+	}
+
 	SDL_Color *color;
 	if (subwindow->borders.error) {
 		color = &g_colors[DEFAULT_ERROR_COLOR];
@@ -1277,6 +1290,12 @@ static void render_borders(struct subwindow *subwindow)
 	render_outline_rect_width(subwindow->window,
 			subwindow->texture, &rect, color,
 			subwindow->borders.width);
+
+	if (subwindow->swap_texture != NULL) {
+		render_outline_rect_width(subwindow->window,
+				subwindow->swap_texture, &rect, color,
+				subwindow->borders.width);
+	}
 }
 
 static SDL_Texture *make_subwindow_texture(const struct window *window, int w, int h)
@@ -3169,7 +3188,14 @@ static void handle_windowevent(const SDL_WindowEvent *event)
 
 static void resize_subwindow(struct subwindow *subwindow)
 {
+	assert(subwindow->texture != NULL);
+
 	SDL_DestroyTexture(subwindow->texture);
+
+	if (subwindow->swap_texture != NULL) {
+		SDL_DestroyTexture(subwindow->swap_texture);
+		subwindow->swap_texture = NULL;
+	}
 
 	subwindow->full_rect = subwindow->sizing_rect;
 	if (!adjust_subwindow_geometry(subwindow->window, subwindow)) {
@@ -4114,6 +4140,49 @@ static void term_draw_tile(const struct subwindow *subwindow,
 	if (!IS_BLANK_POINT_TERRAIN(point)) {
 		term_draw_target(subwindow, rect, point);
 	}
+}
+
+static bool term_move(void *user,
+		int dst_x, int dst_y, int src_x, int src_y, int width, int height)
+{
+	struct subwindow *subwindow = user;
+
+	if (subwindow->swap_texture == NULL) {
+		subwindow->swap_texture =
+			make_subwindow_texture(subwindow->window,
+					subwindow->full_rect.w, subwindow->full_rect.h);
+
+		render_clear(subwindow->window,
+				subwindow->swap_texture, &subwindow->color);
+		render_borders(subwindow);
+	}
+
+	SDL_Rect src = {
+		.x = subwindow->inner_rect.x + subwindow->cell_width * src_x,
+		.y = subwindow->inner_rect.y + subwindow->cell_height * src_y,
+		.w = subwindow->cell_width * width,
+		.h = subwindow->cell_height * height
+	};
+	SDL_Rect dst = {
+		.x = subwindow->inner_rect.x + subwindow->cell_width * dst_x,
+		.y = subwindow->inner_rect.y + subwindow->cell_height * dst_y,
+		.w = subwindow->cell_width * width,
+		.h = subwindow->cell_height * height
+	};
+
+	SDL_SetRenderTarget(subwindow->window->renderer,
+			subwindow->swap_texture);
+
+	SDL_RenderCopy(subwindow->window->renderer,
+			subwindow->texture, NULL, NULL);
+	SDL_RenderCopy(subwindow->window->renderer,
+			subwindow->texture, &src, &dst);
+
+	SDL_Texture *swap = subwindow->texture;
+	subwindow->texture = subwindow->swap_texture;
+	subwindow->swap_texture = swap;
+
+	return true;
 }
 
 static void term_draw(void *user,
@@ -5590,6 +5659,11 @@ static struct subwindow *transfer_subwindow(struct window *window, unsigned inde
 	SDL_DestroyTexture(subwindow->aux_texture);
 	subwindow->aux_texture = make_subwindow_texture(window, 1, 1);
 
+	if (subwindow->swap_texture != NULL) {
+		SDL_DestroyTexture(subwindow->swap_texture);
+		subwindow->swap_texture = NULL;
+	}
+
 	struct font *new_font = make_font(subwindow->window,
 			subwindow->font->name, subwindow->font->size);
 	free_font(subwindow->font);
@@ -5694,6 +5768,7 @@ static void wipe_subwindow(struct subwindow *subwindow)
 
 	subwindow->texture       = NULL;
 	subwindow->aux_texture   = NULL;
+	subwindow->swap_texture  = NULL;
 	subwindow->window        = NULL;
 	subwindow->font          = NULL;
 	subwindow->term          = NULL;
@@ -5889,6 +5964,10 @@ static void free_subwindow(struct subwindow *subwindow)
 	if (subwindow->aux_texture != NULL) {
 		SDL_DestroyTexture(subwindow->aux_texture);
 		subwindow->aux_texture = NULL;
+	}
+	if (subwindow->swap_texture != NULL) {
+		SDL_DestroyTexture(subwindow->swap_texture);
+		subwindow->swap_texture = NULL;
 	}
 	if (subwindow->tab_bank.tabs != NULL) {
 		free_tab_bank(&subwindow->tab_bank);

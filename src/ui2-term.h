@@ -146,6 +146,12 @@ typedef void (*make_visible_hook)(void *user, bool visible);
  * pressed a key (on keyboard) with the corresponding keycode_t "code" */
 typedef void (*add_tab_hook)(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
+/* move hook asks the frontend to move rectangular of the term over another part
+ * (see Term_move_points()); if the hook returns true, the moved points wont be
+ * updated (flush) as they're assumed to be moved; if the hook returns false,
+ * the moved points will be flushed on the next call to Term_flush_output() */
+typedef bool (*move_hook)(void *user,
+		int dst_x, int dst_y, int src_x, int src_y, int width, int height);
 
 struct term_callbacks {
 	make_visible_hook make_visible;
@@ -159,6 +165,7 @@ struct term_callbacks {
 	event_hook        event;
 	delay_hook        delay;
 	draw_hook         draw;
+	move_hook         move;
 };
 
 struct term_create_info {
@@ -252,7 +259,8 @@ void Term_resize(int w, int h);
 /* this function is essentially memmove() for terms;
  * it operates on rectangular regions of points, described by
  * their top left corners; both regions have the same width and height;
- * regions can overlap; both regions must contain only valid coordinates */
+ * regions can overlap; both regions must contain only valid coordinates;
+ * note that term must be flushed before attempting to move any points! */
 void Term_move_points(int dst_x, int dst_y, int src_x, int src_y,
 		int width, int height);
 
