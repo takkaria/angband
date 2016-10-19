@@ -1143,16 +1143,6 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 	Term_flush_output();
 
-	/* Update the display on repeating commands (to animate resting, tunneling counters),
-	 * but, if the player is resting, not too frequently, to make it go over quicker */
-	if (player->opts.delay_factor > 0
-			&& (cmd_get_nrepeats() > 0
-				|| (player_is_resting(player)
-					&& player_resting_count(player) % 100 == 0)))
-	{
-		Term_redraw_screen(player->opts.delay_factor);
-	}
-
 	Term_pop();
 }
 
@@ -1264,9 +1254,9 @@ static byte get_flicker(byte a)
 }
 
 /**
- * This animates monsters and/or items as necessary.
+ * This animates monsters as necessary.
  */
-static void do_animation(void)
+static void flicker_monsters(void)
 {
 	for (int i = 1; i < cave_monster_max(cave); i++) {
 		struct monster *mon = cave_monster(cave, i);
@@ -1301,7 +1291,25 @@ static void animate(game_event_type type, game_event_data *data, void *user)
 	(void) data;
 	(void) user;
 
-	do_animation();
+	flicker_monsters();
+
+	if (player->opts.delay_factor > 0) {
+		if (player->upkeep->running) {
+			if (OPT(player, highlight_player)) {
+				verify_cursor();
+			}
+
+			Term_redraw_screen(player->opts.delay_factor);
+		} else if (cmd_get_nrepeats() > 0
+				|| (player_is_resting(player) && player_resting_count(player) % 100 == 0))
+		{
+			/* Update the display on repeating commands
+			 * (to animate resting, tunneling counters),
+			 * but, if the player is resting, not too
+			 * frequently, to make it go over quicker */
+			Term_redraw_screen(player->opts.delay_factor);
+		}
+	}
 }
 
 /**
@@ -1315,7 +1323,7 @@ void idle_update(void)
 			&& use_graphics == GRAPHICS_NONE
 			&& player->opts.delay_factor > 0)
 	{
-		do_animation();
+		flicker_monsters();
 		redraw_stuff(player);
 		Term_redraw_screen(player->opts.delay_factor);
 	}
@@ -1984,23 +1992,13 @@ static void cheat_death(game_event_type type, game_event_data *data, void *user)
 	wiz_cheat_death();
 }
 
-static void handle_player_move(game_event_type type,
+static void check_viewport(game_event_type type,
 		game_event_data *data, void *user)
 {
 	(void) type;
 	(void) data;
 
 	verify_panel(DISPLAY_TERM(user)->index);
-
-	if (player->upkeep->running
-			&& player->opts.delay_factor > 0)
-	{
-		if (OPT(player, highlight_player)) {
-			verify_cursor();
-		}
-
-		Term_redraw_screen(player->opts.delay_factor);
-	}
 }
 
 static void see_floor_items(game_event_type type,
@@ -2175,9 +2173,8 @@ static void ui_enter_world(game_event_type type,
 	event_add_handler(EVENT_MAP, trace_map_updates, display_cave);
 #endif
 
-	/* Check if the panel should shift when the player's
-	 * moved and redraw the display, to animate it */
-	event_add_handler(EVENT_PLAYERMOVED, handle_player_move, display_cave);
+	/* Check if the panel should shift when the player's moved */
+	event_add_handler(EVENT_PLAYERMOVED, check_viewport, display_cave);
 
 	/* Take note of what's on the floor */
 	event_add_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
@@ -2229,7 +2226,7 @@ static void ui_leave_world(game_event_type type,
 #endif
 
 	/* Check if the panel should shift when the player's moved */
-	event_remove_handler(EVENT_PLAYERMOVED, handle_player_move, display_cave);
+	event_remove_handler(EVENT_PLAYERMOVED, check_viewport, display_cave);
 
 	/* Take note of what's on the floor */
 	event_remove_handler(EVENT_SEEFLOOR, see_floor_items, NULL);
