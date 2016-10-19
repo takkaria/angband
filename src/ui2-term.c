@@ -78,8 +78,11 @@ struct term {
 	struct term_point blank;
 
 	struct {
-		int linked[TERM_MAX_POINT_LINKS];
-	} *double_points;
+		struct {
+			int links[TERM_MAX_POINT_LINKS];
+		} *points;
+		int number;
+	} linked;
 };
 
 struct term_move_info {
@@ -124,7 +127,7 @@ static void term_mark_point_dirty(int x, int y, int index);
 	((x) + (y) * TOP->width)
 
 #define MAX_LINKED \
-	N_ELEMENTS(TOP->double_points[0].linked)
+	N_ELEMENTS(TOP->linked.points[0].links)
 
 /* Local variables */
 
@@ -162,7 +165,7 @@ static term term_alloc(int w, int h)
 	t->dirty.rows = mem_zalloc(t->height * sizeof(t->dirty.rows[0]));
 	t->dirty.points = mem_zalloc(t->size * sizeof(t->dirty.points[0]));
 
-	t->double_points = NULL;
+	t->linked.points = NULL;
 
 	return t;
 }
@@ -172,7 +175,7 @@ static void term_free(term t)
 	mem_free(t->points);
 	mem_free(t->dirty.rows);
 	mem_free(t->dirty.points);
-	mem_free(t->double_points);
+	mem_free(t->linked.points);
 	mem_free(t);
 }
 
@@ -208,25 +211,28 @@ static term term_new(const struct term_create_info *info)
 	t->dirty.top = t->height;
 	t->dirty.bottom = 0;
 
+	t->linked.number = 0;
 	t->temporary = false;
 	
 	return t;
 }
 
-static void term_double_points_alloc(void)
+static void term_linked_points_alloc(void)
 {
 	STACK_OK();
 	
-	assert(TOP->double_points == NULL);
+	assert(TOP->linked.points == NULL);
 
-	TOP->double_points =
-		mem_alloc(TOP->size * sizeof(TOP->double_points[0]));
+	TOP->linked.points =
+		mem_alloc(TOP->size * sizeof(TOP->linked.points[0]));
 
 	for (int index = 0; index < TOP->size; index++) {
 		for (unsigned i = 0; i < MAX_LINKED; i++) {
-			TOP->double_points[index].linked[i] = NOINDEX;
+			TOP->linked.points[index].links[i] = NOINDEX;
 		}
 	}
+
+	TOP->linked.number = 0;
 }
 
 static void term_draw(int x, int y, int index, int len)
@@ -276,9 +282,12 @@ static void term_link_point(int index, int other_index)
 	INDEX_OK(index);
 	INDEX_OK(other_index);
 
+	assert(TOP->linked.points != NULL);
+
 	for (unsigned i = 0; i < MAX_LINKED; i++) {
-		if (TOP->double_points[index].linked[i] == NOINDEX) {
-			TOP->double_points[index].linked[i] = other_index;
+		if (TOP->linked.points[index].links[i] == NOINDEX) {
+			TOP->linked.points[index].links[i] = other_index;
+			TOP->linked.number++;
 			return;
 		}
 	}
@@ -290,47 +299,51 @@ static void term_unlink_point(int index, int other_index)
 	INDEX_OK(index);
 	INDEX_OK(other_index);
 
+	assert(TOP->linked.points != NULL);
+
 	for (unsigned i = 0; i < MAX_LINKED; i++) {
-		if (TOP->double_points[index].linked[i] == other_index) {
-			TOP->double_points[index].linked[i] = NOINDEX;
+		if (TOP->linked.points[index].links[i] == other_index) {
+			TOP->linked.points[index].links[i] = NOINDEX;
+			TOP->linked.number--;
 			return;
 		}
 	}
 }
 
-static void term_mark_point_double(int index_a, int index_b)
+static void term_make_point_linked(int index_a, int index_b)
 {
 	STACK_OK();
 	INDEX_OK(index_a);
 	INDEX_OK(index_b);
 
-	if (TOP->double_points == NULL) {
-		term_double_points_alloc();
+	if (TOP->linked.points == NULL) {
+		term_linked_points_alloc();
 	}
 
 	term_link_point(index_a, index_b);
 	term_link_point(index_b, index_a);
 }
 
-static void term_check_double_point(int index)
+static void term_check_point_links(int index)
 {
 	STACK_OK();
 	INDEX_OK(index);
 
-	if (TOP->double_points != NULL) {
-		for (unsigned i = 0; i < MAX_LINKED; i++) {
-			const int other_index = TOP->double_points[index].linked[i];
+	assert(TOP->linked.points != NULL);
 
-			if (other_index != NOINDEX) {
-				TOP->double_points[index].linked[i] = NOINDEX;
+	for (unsigned i = 0; i < MAX_LINKED; i++) {
+		const int other_index = TOP->linked.points[index].links[i];
 
-				term_unlink_point(other_index, index);
+		if (other_index != NOINDEX) {
+			term_unlink_point(index, other_index);
+			term_unlink_point(other_index, index);
 
-				const int other_x = other_index % TOP->width;
-				const int other_y = other_index / TOP->width;
+			assert(TOP->linked.number >= 0);
 
-				term_mark_point_dirty(other_x, other_y, other_index);
-			}
+			const int other_x = other_index % TOP->width;
+			const int other_y = other_index / TOP->width;
+
+			term_mark_point_dirty(other_x, other_y, other_index);
 		}
 	}
 }
@@ -360,7 +373,9 @@ static void term_mark_point_dirty(int x, int y, int index)
 		TOP->erased = false;
 		TOP->dirty.points[index] = true;
 
-		term_check_double_point(index);
+		if (TOP->linked.number > 0) {
+			term_check_point_links(index);
+		}
 	}
 }
 
@@ -736,7 +751,7 @@ static void term_move_points(int dst_x, int dst_y, int src_x, int src_y,
 		TOP->cursor.old.visible = false;
 	}
 
-	bool moved = TOP->double_points != NULL ? false :
+	bool fast_move = TOP->linked.number > 0 ? false :
 		TOP->callbacks.move(TOP->user, dst_x, dst_y, src_x, src_y, width, height);
 
 	for (src_y = info.src.y, dst_y = info.dst.y;
@@ -754,7 +769,7 @@ static void term_move_points(int dst_x, int dst_y, int src_x, int src_y,
 			if (!term_points_equal(TOP->points[dst_i], TOP->points[src_i])) {
 				TOP->points[dst_i] = TOP->points[src_i];
 
-				if (!moved) {
+				if (!fast_move) {
 					term_mark_point_dirty(dst_x, dst_y, dst_i);
 				}
 			}
@@ -936,7 +951,7 @@ void Term_double_point(int ax, int ay, int bx, int by)
 	COORDS_OK(ax, ay);
 	COORDS_OK(bx, by);
 
-	term_mark_point_double(INDEX(ax, ay), INDEX(bx, by));
+	term_make_point_linked(INDEX(ax, ay), INDEX(bx, by));
 }
 
 void Term_get_cursor(int *x, int *y, bool *visible)
@@ -1057,14 +1072,15 @@ void Term_resize(int w, int h)
 	TOP->cursor.old.y = 0;
 	TOP->cursor.old.i = 0;
 
-	TOP->double_points = NULL;
+	TOP->linked.points = NULL;
+	TOP->linked.number = 0;
 
 	term_wipe_all();
 
 	mem_free(old.points);
 	mem_free(old.dirty.rows);
 	mem_free(old.dirty.points);
-	mem_free(old.double_points);
+	mem_free(old.linked.points);
 }
 
 void Term_move_points(int dst_x, int dst_y, int src_x, int src_y,
