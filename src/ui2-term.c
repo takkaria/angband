@@ -728,10 +728,12 @@ static void term_move_points(int dst_x, int dst_y, int src_x, int src_y,
 	struct term_move_info info =
 		term_calc_move(dst_x, dst_y, src_x, src_y, width, height);
 
-	if (TOP->cursor.old.visible) {
+	if (TOP->cursor.old.visible && TOP->cursor.old.x < TOP->width) {
 		TOP->callbacks.draw(TOP->user,
-				TOP->cursor.old.x, TOP->cursor.old.y,
-				1, &TOP->points[TOP->cursor.old.i]);
+				TOP->cursor.old.x, TOP->cursor.old.y, 1,
+				&TOP->points[TOP->cursor.old.i]);
+
+		TOP->cursor.old.visible = false;
 	}
 
 	bool moved = TOP->double_points != NULL ? false :
