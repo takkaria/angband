@@ -767,7 +767,7 @@ static void term_pop_new(void *user);
 static void term_add_tab(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 static bool term_move(void *user,
-		int dst_x, int dst_y, int src_x, int src_y, int width, int height);
+		int dst_x, int dst_y, int src_x, int src_y, int cols, int rows);
 
 /* Defaults for term creations */
 
@@ -1269,14 +1269,6 @@ static void render_borders(struct subwindow *subwindow)
 {
 	SDL_Rect rect = {0};
 	SDL_QueryTexture(subwindow->texture, NULL, NULL, &rect.w, &rect.h);
-
-	if (subwindow->swap_texture != NULL) {
-		int w;
-		int h;
-		SDL_QueryTexture(subwindow->swap_texture, NULL, NULL, &w, &h);
-		assert(w == rect.w);
-		assert(h == rect.h);
-	}
 
 	SDL_Color *color;
 	if (subwindow->borders.error) {
@@ -2938,6 +2930,32 @@ static bool is_rect_in_rect(const SDL_Rect *small, const SDL_Rect *big)
 		&& small->y + small->h <= big->y + big->h;
 }
 
+static void get_diff_rects(const SDL_Rect *small, const SDL_Rect *big,
+		SDL_Rect *left, SDL_Rect *top, SDL_Rect *right, SDL_Rect *bottom)
+{
+	assert(is_rect_in_rect(small, big));
+
+	left->x = big->x;
+	left->y = small->y;
+	left->w = small->x - big->x;
+	left->h = small->h;
+
+	top->x = big->x;
+	top->y = big->y;
+	top->w = big->w;
+	top->h = small->y - big->y;
+
+	right->x = small->x + small->w;
+	right->y = small->y;
+	right->w = big->x + big->w - (small->x + small->w);
+	right->h = small->h;
+
+	bottom->x = big->x;
+	bottom->y = small->y + small->h;
+	bottom->w = big->w;
+	bottom->h = big->y + big->h - (small->y + small->h);
+}
+
 static void fit_rect_in_rect_size(SDL_Rect *small, const SDL_Rect *big)
 {
 	if (small->x < big->x) {
@@ -4143,38 +4161,53 @@ static void term_draw_tile(const struct subwindow *subwindow,
 }
 
 static bool term_move(void *user,
-		int dst_x, int dst_y, int src_x, int src_y, int width, int height)
+		int dst_x, int dst_y, int src_x, int src_y, int cols, int rows)
 {
 	struct subwindow *subwindow = user;
 
 	if (subwindow->swap_texture == NULL) {
-		subwindow->swap_texture =
-			make_subwindow_texture(subwindow->window,
-					subwindow->full_rect.w, subwindow->full_rect.h);
+		subwindow->swap_texture = make_subwindow_texture(subwindow->window,
+				subwindow->full_rect.w, subwindow->full_rect.h);
 
 		render_clear(subwindow->window,
 				subwindow->swap_texture, &subwindow->color);
 		render_borders(subwindow);
 	}
 
+	const int width = cols * subwindow->cell_width;
+	const int height = rows * subwindow->cell_height;
+
 	SDL_Rect src = {
 		.x = subwindow->inner_rect.x + subwindow->cell_width * src_x,
 		.y = subwindow->inner_rect.y + subwindow->cell_height * src_y,
-		.w = subwindow->cell_width * width,
-		.h = subwindow->cell_height * height
+		.w = width,
+		.h = height
 	};
 	SDL_Rect dst = {
 		.x = subwindow->inner_rect.x + subwindow->cell_width * dst_x,
 		.y = subwindow->inner_rect.y + subwindow->cell_height * dst_y,
-		.w = subwindow->cell_width * width,
-		.h = subwindow->cell_height * height
+		.w = width,
+		.h = height,
 	};
+
+	/* the term doesn't update points that are identical
+	 * to the ones it already has; so our swap texture
+	 * must also be the same as the one we copy from */
+
+	SDL_Rect diffs[4] = {{0}};
+	get_diff_rects(&dst, &subwindow->inner_rect,
+			&diffs[0], &diffs[1], &diffs[2], &diffs[3]);
 
 	SDL_SetRenderTarget(subwindow->window->renderer,
 			subwindow->swap_texture);
 
-	SDL_RenderCopy(subwindow->window->renderer,
-			subwindow->texture, NULL, NULL);
+	for (size_t i = 0; i < N_ELEMENTS(diffs); i++) {
+		if (diffs[i].w > 0 && diffs[i].h > 0) {
+			SDL_RenderCopy(subwindow->window->renderer,
+					subwindow->texture, &diffs[i], &diffs[i]);
+		}
+	}
+
 	SDL_RenderCopy(subwindow->window->renderer,
 			subwindow->texture, &src, &dst);
 
