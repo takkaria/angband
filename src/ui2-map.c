@@ -419,6 +419,66 @@ void print_map(enum display_term_index index)
 	verify_player_grid(player);
 }
 
+static void map_move_points(struct loc diff, struct loc abs,
+		int term_width, int term_height)
+{
+	assert(abs.x < term_width);
+	assert(abs.y < term_height);
+
+	int dst_x = diff.x < 0 ? 0 : abs.x;
+	int dst_y = diff.y < 0 ? 0 : abs.y;
+
+	int src_x = diff.x < 0 ? abs.x : 0;
+	int src_y = diff.y < 0 ? abs.y : 0;
+
+	Term_move_points(dst_x, dst_y, src_x, src_y,
+			term_width - abs.x, term_height - abs.y);
+}
+
+/* Calculates two rectanges (horizontal and vertical) that should be
+ * updated after moving (see Term_move_points()) some portion of the map */
+static void map_calc_update_regions(struct loc diff, struct loc abs,
+		int term_width, int term_height,
+		region *horizontal, region *vertical)
+{
+	assert(abs.x < term_width);
+	assert(abs.y < term_height);
+
+	/* if diff.y < 0, we move points up (to the north)
+	 * and should update the bottom part of the map */
+	horizontal->x = 0;
+	horizontal->y = diff.y < 0 ? term_height - abs.y : 0;
+	horizontal->w = term_width;
+	horizontal->h = abs.y;
+
+	/* if diff.x < 0, we move points left (to the west)
+	 * and should update the right part of the map */
+	vertical->x = diff.x < 0 ? term_width - abs.x : 0;
+	vertical->y = 0;
+	vertical->w = abs.x;
+	vertical->h = term_height;
+
+	/* note that horizontal and vertical regions
+	 * dont overlap, and horizontal take precedence
+	 * (the area of vertical is reduced accordingly) */
+	vertical->y += horizontal->y == 0 ? horizontal->h : 0;
+	vertical->h -= horizontal->h;
+
+#define MAP_UPDATE_REGION_CHECK(reg_ptr) do { \
+	assert((reg_ptr)->x >= 0); \
+	assert((reg_ptr)->y >= 0); \
+	assert((reg_ptr)->w >= 0); \
+	assert((reg_ptr)->h >= 0); \
+	assert((reg_ptr)->x + (reg_ptr)->w <= term_width); \
+	assert((reg_ptr)->y + (reg_ptr)->h <= term_height); \
+} while (0)
+
+	MAP_UPDATE_REGION_CHECK(horizontal);
+	MAP_UPDATE_REGION_CHECK(vertical);
+
+#undef MAP_UPDATE_REGION_CHECK
+}
+
 void move_map(enum display_term_index index, struct loc diff, region panel)
 {
 	assert(diff.x != 0 || diff.y != 0);
@@ -428,33 +488,16 @@ void move_map(enum display_term_index index, struct loc diff, region panel)
 	if (abs.x < panel.w && abs.y < panel.h) {
 		display_term_push(index);
 
-		struct loc dst = {
-			.x = diff.x < 0 ? 0 : abs.x,
-			.y = diff.y < 0 ? 0 : abs.y
-		};
-		struct loc src = {
-			.x = diff.x < 0 ? abs.x : 0,
-			.y = diff.y < 0 ? abs.y : 0
-		};
-		Term_move_points(dst.x, dst.y, src.x, src.y,
-				panel.w - abs.x, panel.h - abs.y);
+		region horizontal;
+		region vertical;
 
-		region horizontal = {
-			.x = 0,
-			.y = diff.y < 0 ? panel.h - abs.y : 0,
-			.w = panel.w,
-			.h = abs.y
-		};
-		region vertical = {
-			.x = diff.x < 0 ? panel.w - abs.x : 0, 
-			.y = 0,
-			.w = abs.x,
-			.h = panel.h
-		};
-		vertical.h -= horizontal.h;
+		map_calc_update_regions(diff, abs, panel.w, panel.h,
+				&horizontal, &vertical);
 
 		struct loc offset = {panel.x, panel.y};
 		struct term_point blank = Term_get_blank();
+
+		map_move_points(diff, abs, panel.w, panel.h);
 
 		print_map_region(horizontal, offset, blank);
 		print_map_region(vertical, offset, blank);
