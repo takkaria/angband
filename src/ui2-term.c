@@ -523,16 +523,14 @@ static struct term_move_info term_calc_move(int dst_x, int dst_y,
 		int width, int height)
 {
 	STACK_OK();
-	COORDS_OK(dst_x, dst_y);
 	COORDS_OK(src_x, src_y);
+	COORDS_OK(dst_x, dst_y);
 
 	assert(width > 0);
 	assert(height > 0);
 
-	assert(src_x + width <= TOP->width);
-	assert(dst_x + width <= TOP->width);
-	assert(src_y + height <= TOP->height);
-	assert(dst_y + height <= TOP->height);
+	COORDS_OK(src_x + width - 1, src_y + height - 1);
+	COORDS_OK(dst_x + width - 1, dst_y + height - 1);
 
 	struct term_move_info info;
 
