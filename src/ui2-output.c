@@ -702,10 +702,11 @@ bool panel_should_modify(enum display_term_index index, struct loc new_coords)
 }
 
 /*
- * This is the function that actually modifies x and y offsets of a term.
+ * This is the function that actually modifies
+ * x and y offsets of a term and updates the map.
  * Parameter "panel" must be valid;
  * x and y must be coords of a display_term,
- * w and h must be term's width and height
+ * w and h must be term's width and height.
  */
 static bool modify_panel_int(enum display_term_index index,
 		struct loc new_coords, region panel)
