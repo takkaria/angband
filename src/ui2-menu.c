@@ -27,7 +27,6 @@
  * Some useful constants
  */
 const char lower_case[]  = "abcdefghijklmnopqrstuvwxyz";
-const char upper_case[]  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const char all_letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const char all_digits[]  = "0123456789";
 
@@ -56,8 +55,6 @@ static char menu_get_tag(const struct menu *menu, int index)
 			len = N_ELEMENTS(all_letters);
 		} else if (menu->selections == all_digits) {
 			len = N_ELEMENTS(all_digits);
-		} else if (menu->selections == upper_case) {
-			len = N_ELEMENTS(upper_case);
 		} else {
 			len = strlen(menu->selections);
 		}
