@@ -41,6 +41,36 @@ static bool is_valid_row(struct menu *menu, int cursor);
 static bool has_valid_row(struct menu *menu);
 
 /**
+ * Get a menu selection char (tag) from index (menu row).
+ */
+static char menu_get_tag(const struct menu *menu, int index)
+{
+	int tag = 0;
+
+	if (menu->selections != NULL) {
+		int len;
+
+		if (menu->selections == lower_case) {
+			len = N_ELEMENTS(lower_case);
+		} else if (menu->selections == all_letters) {
+			len = N_ELEMENTS(all_letters);
+		} else if (menu->selections == all_digits) {
+			len = N_ELEMENTS(all_digits);
+		} else if (menu->selections == upper_case) {
+			len = N_ELEMENTS(upper_case);
+		} else {
+			len = strlen(menu->selections);
+		}
+
+		if (index >= 0 && index < len) {
+			tag = menu->selections[index];
+		}
+	}
+
+	return tag;
+}
+
+/**
  * Select the color of menu's row,
  * based on whether it's a valid row
  * and whether it's currently under the cursor.
@@ -519,9 +549,12 @@ static int get_cursor_key(struct menu *menu, struct keypress key)
 
 	if (code != 0 && menu_has_tags(menu)) {
 		if (menu->selections) {
-			for (int i = 0; menu->selections[i]; i++) {
-				if (tag_eq_code(menu->selections[i], code, caseless)) {
+			for (int i = 0, count = menu_count(menu); i < count; i++) {
+				char tag = menu_get_tag(menu, i);
+				if (tag_eq_code(tag, code, caseless)) {
 					return i;
+				} else if (tag == 0) {
+					return -1;
 				}
 			}
 		} else if (menu->iter->get_tag) {
@@ -541,22 +574,22 @@ static int get_cursor_key(struct menu *menu, struct keypress key)
  * Modal display of menu
  */
 static void display_menu_row(struct menu *menu,
-		int index, bool cursor, struct loc loc, int width)
+		int i, bool cursor, struct loc loc, int width)
 {
-	int id = menu_index(menu, index);
+	int index = menu_index(menu, i);
 
 	if (menu_displays_tags(menu)) {
-		char sel = 0;
+		char tag = 0;
 
 		if (menu->selections) {
-			sel = menu->selections[index];
+			tag = menu_get_tag(menu, i);
 		} else if (menu->iter->get_tag) {
-			sel = menu->iter->get_tag(menu, id);
+			tag = menu->iter->get_tag(menu, index);
 		}
 
-		if (sel != 0) {
+		if (tag != 0) {
 			char buf[4];
-			strnfmt(buf, sizeof(buf), "%c) ", sel);
+			strnfmt(buf, sizeof(buf), "%c) ", tag == 0 ? '?' : tag);
 
 			Term_adds(loc.x, loc.y, 3, menu_row_style(true, cursor), buf);
 		}
@@ -565,7 +598,7 @@ static void display_menu_row(struct menu *menu,
 		loc.x += 3;
 	}
 
-	menu->iter->display_row(menu, id, cursor, loc, width);
+	menu->iter->display_row(menu, index, cursor, loc, width);
 }
 
 static void display_menu_more(struct menu *menu, region reg, int row)
