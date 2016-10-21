@@ -256,7 +256,6 @@ struct flag_record_info {
 	bool imm;
 	bool vuln;
 	bool flag;
-	bool rune;
 	bool timed;
 	bool known;
 };
@@ -319,11 +318,9 @@ static struct flag_record_info get_obj_record_info(struct object *obj,
 			if (obj != NULL) {
 				info.mod = obj->modifiers[rec->mod] != 0;
 			}
-			info.rune = p->obj_k->modifiers[rec->mod] == 1;
 		} else if (rec->flag != -1) {
 			/* Flags (fear, telepathy, slow digestion...) */
 			info.flag = of_has(flags, rec->flag);
-			info.rune = of_has(p->obj_k->flags, rec->flag);
 		} else if (rec->element != -1) {
 			/* Resistances (fire, cold, nexus...) */
 			if (obj != NULL) {
@@ -334,7 +331,6 @@ static struct flag_record_info get_obj_record_info(struct object *obj,
 				info.vuln = info.known
 					&& obj->el_info[rec->element].res_level == -1;
 			}
-			info.rune = p->obj_k->el_info[rec->element].res_level == 1;
 		}
 	}
 
@@ -386,7 +382,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 			} else if (info.timed) {
 				sym = L'!';
 				attr = COLOUR_WHITE;
-			} else if (obj != NULL && !info.known && !info.rune) {
+			} else if (obj != NULL && !info.known) {
 				sym = L'?';
 				attr = COLOUR_SLATE;
 			} else {
