@@ -405,96 +405,149 @@ static void display_player_flag_info(void)
  * Negative mods (from a curse) will be red.
  * No mod, no sustain, will be a slate '.'
  */
+
+#define SUST_INFO_PLUS_ATTR \
+	COLOUR_L_GREEN
+#define SUST_INFO_PLUS_CHAR \
+	L'+'
+
+#define SUST_INFO_MINUS_ATTR \
+	COLOUR_L_RED
+#define SUST_INFO_MINUS_CHAR \
+	L'-'
+
+#define SUST_INFO_SUST_ATTR \
+	COLOUR_GREEN
+#define SUST_INFO_SUST_CHAR \
+	L's'
+
+#define SUST_INFO_NONE_ATTR \
+	COLOUR_SLATE
+#define SUST_INFO_NONE_CHAR \
+	L'.'
+
+static void print_obj_sust_info(const struct object *obj,
+		uint32_t *stat_attrs, int n_attrs, struct loc loc)
+{
+	bitflag flags[OF_SIZE];
+	object_flags_known(obj, flags);
+
+	for (int stat = 0; stat < STAT_MAX && stat < n_attrs; stat++, loc.y++) {
+		uint32_t attr = SUST_INFO_NONE_ATTR;
+		wchar_t ch = SUST_INFO_NONE_CHAR;
+
+		int stat_mod = stat + OBJ_MOD_MIN_STAT;
+
+		if (obj->modifiers[stat_mod] > 0) {
+			attr = SUST_INFO_PLUS_ATTR;
+			ch = SUST_INFO_PLUS_CHAR;
+		} else if (obj->modifiers[stat_mod] < 0) {
+			attr = SUST_INFO_MINUS_ATTR;
+			ch = SUST_INFO_MINUS_CHAR;
+		}
+
+		int sust_flag = sustain_flag(stat);
+
+		if (of_has(flags, sust_flag)) {
+			attr = SUST_INFO_SUST_ATTR;
+			if (ch == SUST_INFO_NONE_CHAR) {
+				ch = SUST_INFO_SUST_CHAR;
+			}
+		}
+
+		if (ch == L'.' && !object_flag_is_known(obj, sust_flag)) {
+			ch = L'?';
+		}
+
+		const int sa = stat_attrs[stat];
+
+		if ((sa == SUST_INFO_NONE_ATTR && attr != SUST_INFO_NONE_ATTR)
+				|| (sa != SUST_INFO_SUST_ATTR && attr == SUST_INFO_SUST_ATTR))
+		{
+			stat_attrs[stat] = attr;
+		} else if ((sa == SUST_INFO_PLUS_ATTR && attr == SUST_INFO_MINUS_ATTR)
+				|| (sa == SUST_INFO_MINUS_ATTR && attr == SUST_INFO_PLUS_ATTR))
+		{
+			stat_attrs[stat] = SUST_INFO_NONE_ATTR;
+		}
+
+		Term_addwc(loc.x, loc.y, attr, ch);
+	}
+}
+
+static void print_player_sust_info(struct player *p,
+		uint32_t *stat_attrs, int n_attrs, struct loc loc)
+{
+	bitflag flags[OF_SIZE];
+	player_flags(p, flags);
+
+	for (int stat = 0; stat < STAT_MAX && stat < n_attrs; stat++, loc.y++) {
+		uint32_t attr = SUST_INFO_NONE_ATTR;
+		wchar_t ch = SUST_INFO_NONE_CHAR;
+
+		if (of_has(flags, sustain_flag(stat))) {
+			attr = SUST_INFO_SUST_ATTR;
+			ch = SUST_INFO_SUST_CHAR;
+
+			stat_attrs[stat] = attr;
+		}
+
+		Term_addwc(loc.x, loc.y, attr, ch);
+	}
+}
+
 static void display_player_sust_info(void)
 {
 	const int col = PLAYER_FLAG_RES_COL_4 + 1;
-	const int row = PLAYER_FLAG_RES_ROW_2;
-
-	struct loc loc = {col, row + 1};
+	const int row = PLAYER_FLAG_RES_ROW_2 + 1;
 
 	int label_max_len = 0;
+	uint32_t stat_attrs[STAT_MAX];
 
-	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
-		c_put_str(COLOUR_WHITE, stat_names[i], loc);
-
-		int len = strlen(stat_names[i]);
+	for (int stat = 0; stat < STAT_MAX; stat++) {
+		int len = strlen(stat_names[stat]);
 		if (label_max_len < len) {
 			label_max_len = len;
 		}
+
+		stat_attrs[stat] = SUST_INFO_NONE_ATTR;
 	}
 
-	loc.x = col + label_max_len;
-	loc.y = row;
+	struct loc loc = {
+		.x = col + label_max_len,
+		.y = row - 1
+	};
 
 	Term_adds(loc.x, loc.y, player->body.count, COLOUR_WHITE, lower_case);
 	Term_putwc(COLOUR_WHITE, L'@');
 
-	bitflag f[OF_SIZE];
+	loc.y = row;
 
 	/* Process equipment */
 	for (int i = 0; i < player->body.count; i++, loc.x++) {
 		struct object *obj = slot_object(player, i);
 
-		if (!obj) {
-			continue;
-		}
-
-		object_flags_known(obj, f);
-
-		loc.y = row + 1;
-		for (int stat = OBJ_MOD_MIN_STAT;
-				stat < OBJ_MOD_MIN_STAT + STAT_MAX;
-				stat++, loc.y++)
-		{
-			uint32_t attr = COLOUR_SLATE;
-			wchar_t ch = L'.';
-
-			if (obj->modifiers[stat] > 0) {
-				attr = COLOUR_L_GREEN;
-				ch = L'+';
-			} else if (obj->modifiers[stat] < 0) {
-				attr = COLOUR_RED;
-				ch = L'-';
-			}
-
-			if (of_has(f, sustain_flag(stat))) {
-				attr = COLOUR_GREEN;
-				if (ch == L'.') {
-					ch = L's';
-				}
-			}
-
-			if (ch == L'.' && obj &&
-					!object_flag_is_known(obj, sustain_flag(stat)))
-			{
-				ch = L'?';
-			}
-
-			Term_addwc(loc.x, loc.y, attr, ch);
+		if (obj != NULL) {
+			print_obj_sust_info(obj, stat_attrs, N_ELEMENTS(stat_attrs), loc);
 		}
 	}
 
-	player_flags(player, f);
-
-	loc.y = row + 1;
-	for (int stat = 0; stat < STAT_MAX; stat++, loc.y++) {
-		uint32_t attr = COLOUR_SLATE;
-		wchar_t ch = L'.';
-
-		if (of_has(f, sustain_flag(stat))) {
-			attr = COLOUR_GREEN;
-			ch = L's';
-		}
-
-		Term_addwc(loc.x, loc.y, attr, ch);
-	}
+	/* Process player */
+	print_player_sust_info(player, stat_attrs, N_ELEMENTS(stat_attrs), loc);
 
 	loc.x = col + label_max_len;
+	loc.y = row + STAT_MAX;
 	Term_adds(loc.x, loc.y, player->body.count, COLOUR_WHITE, lower_case);
 	Term_putwc(COLOUR_WHITE, L'@');
 
-	loc.y++;
+	loc.y = row + STAT_MAX + 1;
 	display_player_equippy(loc);
+
+	loc.x = col;
+	loc.y = row;
+	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
+		c_put_str(stat_attrs[i], stat_names[i], loc);
+	}
 }
 
 /**
