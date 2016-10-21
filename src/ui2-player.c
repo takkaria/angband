@@ -270,7 +270,6 @@ static struct flag_record_info get_player_record_info(struct player *p,
 	bitflag flags[OF_SIZE] = {0};
 
 	player_flags(p, flags);
-	info.known = true;
 
 	if (rec->tmd_flag != -1) {
 		/* Timed flags; only in the player column */
@@ -286,13 +285,11 @@ static struct flag_record_info get_player_record_info(struct player *p,
 		} else if (rec->mod == OBJ_MOD_TUNNEL) {
 			info.mod = p->race->r_skills[SKILL_DIGGING] > 0;
 		}
-		info.rune = p->obj_k->modifiers[rec->mod] == 1;
 	} else if (rec->element != -1) {
 		/* Resistances (fire, cold, nexus...) */
 		info.imm = p->race->el_info[rec->element].res_level == 3;
 		info.res = p->race->el_info[rec->element].res_level == 1;
 		info.vuln = p->race->el_info[rec->element].res_level == -1;
-		info.rune = p->obj_k->el_info[rec->element].res_level == 1;
 	}
 
 	return info;
@@ -358,20 +355,20 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 
 		/* Repeated extraction of flags is inefficient but more natural */
 		for (int j = 0; j <= player->body.count; j++) {
-			struct object *obj = j < player->body.count ?
-				slot_object(player, j) : NULL;
+			bool use_player = j == player->body.count;
 
-			struct flag_record_info info = j < player->body.count ?
-				get_obj_record_info(obj, player, &rec[i]) :
-				get_player_record_info(player, &rec[i]);
+			struct object *obj = use_player ? NULL : slot_object(player, j);
 
-			if (info.imm) {
-				label_attr = COLOUR_L_BLUE;
-			} else if (info.rune
-					&& (info.mod || info.flag || info.res)
-					&& label_attr != COLOUR_L_BLUE)
-			{
-				label_attr = COLOUR_WHITE;
+			struct flag_record_info info = use_player ?
+				get_player_record_info(player, &rec[i]) :
+				get_obj_record_info(obj, player, &rec[i]);
+
+			if (label_attr != COLOUR_L_BLUE) {
+				if (info.imm) {
+					label_attr = COLOUR_L_BLUE;
+				} else if (info.mod || info.flag || info.res) {
+					label_attr = COLOUR_WHITE;
+				}
 			}
 
 			uint32_t attr;
