@@ -554,7 +554,6 @@ static void store_purchase(struct store_context *context, int item, bool single)
 		int carry_num = inven_carry_num(obj, false);
 		amt = MIN(amt, carry_num);
 
-		/* XXX ? */
 		bool aware = object_flavor_is_aware(obj);
 
 		/* Fail if there is no room */
