@@ -416,9 +416,7 @@ void print_map(enum display_term_index index)
 	display_term_push(index);
 	display_term_get_area(index, &offset, &reg.w, &reg.h);
 
-	struct term_point blank = Term_get_blank();
-
-	print_map_region(reg, offset, blank);
+	print_map_region(reg, offset, Term_get_blank());
 
 	display_term_pop();
 }
