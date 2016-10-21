@@ -434,6 +434,7 @@ static void map_move_points(struct loc diff, struct loc abs,
 	int src_x = diff.x < 0 ? abs.x : 0;
 	int src_y = diff.y < 0 ? abs.y : 0;
 
+	Term_flush_output();
 	Term_move_points(dst_x, dst_y, src_x, src_y,
 			term_width - abs.x, term_height - abs.y);
 }
@@ -500,7 +501,6 @@ void move_map(enum display_term_index index, struct loc diff, region panel)
 		struct loc offset = {panel.x, panel.y};
 		struct term_point blank = Term_get_blank();
 
-		Term_flush_output();
 		map_move_points(diff, abs, panel.w, panel.h);
 
 		print_map_region(horizontal, offset, blank);
