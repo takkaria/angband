@@ -123,7 +123,7 @@ static void grid_get_light(const struct grid_data *g, struct term_point *point)
 			&& (tf_has(feat->flags, TF_FLOOR) || feat_is_wall(g->f_idx)))
 	{
 		if (tf_has(feat->flags, TF_TORCH) && g->lighting == LIGHTING_TORCH) {
-			/* If it's a floor tile list by a torch then we'll make it yellow */
+			/* If it's a floor tile lit by a torch then we'll make it yellow */
 			point->fg_attr = COLOUR_YELLOW;
 		} else if (g->lighting == LIGHTING_DARK || g->lighting == LIGHTING_LIT) {
 			/* If it's another kind of tile, only tint when unlit. */
