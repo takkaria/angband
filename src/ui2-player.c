@@ -968,7 +968,7 @@ static void display_player_stat_info(void)
 	const char *rb_label   = "RB";
 	const char *cb_label   = "CB";
 	const char *eb_label   = "EB";
-	const char *best_label = "Best";
+	const char *best_label = "Cur";
 
 	int self_x = col + 5; /* "Str: " */
 	int rb_x   = self_x + strlen(self_label) + 2;
@@ -999,7 +999,10 @@ static void display_player_stat_info(void)
 	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
 		loc.x = col;
 
-		if (player->stat_cur[i] < player->stat_max[i]) {
+		bool reduced =
+			player->stat_cur[i] < player->stat_max[i];
+
+		if (reduced) {
 			/* Reduced stat; use lowercase stat name */
 			c_put_str(COLOUR_YELLOW, stat_names_reduced[i], loc);
 		} else {
@@ -1036,10 +1039,10 @@ static void display_player_stat_info(void)
 		strnfmt(buf, sizeof(buf), "%3d", player->state.stat_add[i]);
 		c_put_str(stat_bonus_attr(player->state.stat_add[i]), buf, loc);
 
-		/* Resulting maximum value */
+		/* Current value */
 		loc.x = best_x;
-		cnv_stat("%4d", player->state.stat_top[i], buf, sizeof(buf));
-		c_put_str(COLOUR_L_GREEN, buf, loc);
+		cnv_stat("%3d", player->state.stat_use[i], buf, sizeof(buf));
+		c_put_str(reduced ? COLOUR_YELLOW : COLOUR_L_GREEN, buf, loc);
 	}
 
 	Term_flush_output();
