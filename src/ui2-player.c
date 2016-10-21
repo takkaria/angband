@@ -144,10 +144,11 @@ static void display_player_equippy(struct loc loc)
 
 struct player_flag_record {
 	const char *label;  /* Name of resistance/ability */
+
 	int mod;            /* Modifier */
 	int flag;           /* Flag bit */
 	int element;        /* Element */
-	int tmd_flag;       /* corresponding timed flag */
+	int tmd_flag;       /* Corresponding timed flag */
 };
 
 struct player_flag_table {
@@ -170,22 +171,22 @@ static const struct player_flag_table player_flag_tables_misc[] = {
 	{
 		.loc = {PLAYER_FLAG_RES_COL_1, PLAYER_FLAG_RES_ROW_2},
 		.records = {
-			{"Speed:",  OBJ_MOD_SPEED,   -1, -1,  TMD_FAST},
-			{"Blows:",  OBJ_MOD_BLOWS,   -1, -1, -1},
-			{"Shots:",  OBJ_MOD_SHOTS,   -1, -1, -1},
-			{"Might:",  OBJ_MOD_MIGHT,   -1, -1, -1},
-			{"Light:",  OBJ_MOD_LIGHT,   -1, -1, -1},
+			{"Speed:", OBJ_MOD_SPEED, -1, -1,  TMD_FAST},
+			{"Blows:", OBJ_MOD_BLOWS, -1, -1, -1},
+			{"Shots:", OBJ_MOD_SHOTS, -1, -1, -1},
+			{"Might:", OBJ_MOD_MIGHT, -1, -1, -1},
+			{"Light:", OBJ_MOD_LIGHT, -1, -1, -1},
 		},
 		.label_max_len = 6,
 	},
 	{
 		.loc = {PLAYER_FLAG_RES_COL_2, PLAYER_FLAG_RES_ROW_2},
 		.records = {
-			{"Regen:", -1,               OF_REGEN,       -1, -1},
-			{"  ESP:", -1,               OF_TELEPATHY,   -1,  TMD_TELEPATHY},
-			{"Invis:", -1,               OF_SEE_INVIS,   -1,  TMD_SINVIS},
-			{"Stea.:", OBJ_MOD_STEALTH, -1,              -1, -1},
-			{"Infra:", OBJ_MOD_INFRA,   -1,              -1,  TMD_SINFRA},
+			{"Regen:", -1,                OF_REGEN,     -1, -1},
+			{"  ESP:", -1,                OF_TELEPATHY, -1,  TMD_TELEPATHY},
+			{"Invis:", -1,                OF_SEE_INVIS, -1,  TMD_SINVIS},
+			{"Stea.:",  OBJ_MOD_STEALTH, -1,            -1, -1},
+			{"Infra:",  OBJ_MOD_INFRA,   -1,            -1,  TMD_SINFRA},
 		},
 		.label_max_len = 6,
 	},
@@ -196,7 +197,7 @@ static const struct player_flag_table player_flag_tables_misc[] = {
 			{"Aggrv:", -1,               OF_AGGRAVATE,   -1, -1},
 			{"ImpHP:", -1,               OF_IMPAIR_HP,   -1, -1},
 			{"S.Dig:", -1,               OF_SLOW_DIGEST, -1, -1},
-			{"Tunn.:", OBJ_MOD_TUNNEL,  -1,              -1, -1},
+			{"Tunn.:",  OBJ_MOD_TUNNEL, -1,              -1, -1},
 		},
 		.label_max_len = 6,
 	},
@@ -206,11 +207,11 @@ static const struct player_flag_table player_flag_tables_resist[] = {
 	{
 		.loc = {PLAYER_FLAG_RES_COL_1, PLAYER_FLAG_RES_ROW_1},
 		.records = {
-			{"rAcid:", -1, -1, ELEM_ACID,   TMD_OPP_ACID},
-			{"rElec:", -1, -1, ELEM_ELEC,   TMD_OPP_ELEC},
-			{"rFire:", -1, -1, ELEM_FIRE,   TMD_OPP_FIRE},
-			{"rCold:", -1, -1, ELEM_COLD,   TMD_OPP_COLD},
-			{"rPois:", -1, -1, ELEM_POIS,   TMD_OPP_POIS},
+			{"rAcid:", -1, -1, ELEM_ACID, TMD_OPP_ACID},
+			{"rElec:", -1, -1, ELEM_ELEC, TMD_OPP_ELEC},
+			{"rFire:", -1, -1, ELEM_FIRE, TMD_OPP_FIRE},
+			{"rCold:", -1, -1, ELEM_COLD, TMD_OPP_COLD},
+			{"rPois:", -1, -1, ELEM_POIS, TMD_OPP_POIS},
 		},
 		.label_max_len = 6,
 	},
@@ -221,7 +222,7 @@ static const struct player_flag_table player_flag_tables_resist[] = {
 			{"rDark:", -1, -1, ELEM_DARK,  -1},
 			{"Sound:", -1, -1, ELEM_SOUND, -1},
 			{"Shard:", -1, -1, ELEM_SHARD, -1},
-			{"Nexus:", -1, -1,              ELEM_NEXUS,  -1},
+			{"Nexus:", -1, -1, ELEM_NEXUS, -1},
 		},
 		.label_max_len = 6,
 	},
@@ -239,11 +240,11 @@ static const struct player_flag_table player_flag_tables_resist[] = {
 	{
 		.loc = {PLAYER_FLAG_RES_COL_4, PLAYER_FLAG_RES_ROW_1},
 		.records = {
-			{"pConf:", -1, OF_PROT_CONF,  -1,  TMD_OPP_CONF},
-			{"pStun:", -1, OF_PROT_STUN,  -1, -1},
-			{"HLife:", -1, OF_HOLD_LIFE,  -1, -1},
-			{"FrAct:", -1, OF_FREE_ACT,   -1, -1},
-			{"Feath:", -1, OF_FEATHER,    -1, -1},
+			{"pConf:", -1, OF_PROT_CONF, -1,  TMD_OPP_CONF},
+			{"pStun:", -1, OF_PROT_STUN, -1, -1},
+			{"HLife:", -1, OF_HOLD_LIFE, -1, -1},
+			{"FrAct:", -1, OF_FREE_ACT,  -1, -1},
+			{"Feath:", -1, OF_FEATHER,   -1, -1},
 		},
 		.label_max_len = 6,
 	},
@@ -263,7 +264,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 
 		/* Repeated extraction of flags is inefficient but more natural */
 		for (int j = 0; j <= player->body.count; j++) {
-			bitflag f[OF_SIZE] = {0};
+			bitflag flags[OF_SIZE] = {0};
 
 			uint32_t attr =
 				j % 2 == 0 ? COLOUR_WHITE : COLOUR_L_WHITE; /* alternating colors */
@@ -280,7 +281,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 			struct object *obj = j < player->body.count ? slot_object(player, j) : NULL;
 			if (j < player->body.count && obj != NULL) {
 				/* Get known properties */
-				object_flags_known(obj, f);
+				object_flags_known(obj, flags);
 				if (rec[i].element != -1) {
 					known = object_element_is_known(obj, rec[i].element);
 				} else if (rec[i].flag != -1) {
@@ -289,7 +290,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 					known = true;
 				}
 			} else if (j == player->body.count) {
-				player_flags(player, f);
+				player_flags(player, flags);
 				known = true;
 
 				/* Timed flags only in the player column */
@@ -318,7 +319,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 				}
 				rune = player->obj_k->modifiers[rec[i].mod] == 1;
 			} else if (rec[i].flag != -1) {
-				res = of_has(f, rec[i].flag);
+				res = of_has(flags, rec[i].flag);
 				rune = of_has(player->obj_k->flags, rec[i].flag);
 			} else if (rec[i].element != -1) {
 				if (j < player->body.count) {
@@ -342,7 +343,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 			} else if (!rune) {
 				label_attr = COLOUR_SLATE;
 			} else if (res && label_attr != COLOUR_L_BLUE) {
-				label_attr = COLOUR_L_GREEN;
+				label_attr = COLOUR_WHITE;
 			}
 
 			if (vuln) {
@@ -353,7 +354,7 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 				sym = L'+';
 			} else if (timed) {
 				sym = L'!';
-				attr = COLOUR_GREEN;
+				attr = COLOUR_WHITE;
 			} else if (j < player->body.count && obj && !known && !rune) {
 				sym = L'?';
 			}
