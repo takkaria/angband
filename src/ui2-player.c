@@ -250,7 +250,7 @@ static const struct player_flag_table player_flag_tables_resist[] = {
 	},
 };
 
-struct display_resistance_info {
+struct flag_record_info {
 	bool mod;
 	bool res;
 	bool imm;
@@ -261,68 +261,87 @@ struct display_resistance_info {
 	bool known;
 };
 
-static void get_resistance_info(struct display_resistance_info *info,
-		const struct player_flag_record *rec, struct object *obj)
+static struct flag_record_info get_player_record_info(struct player *p,
+		const struct player_flag_record *rec)
 {
+	assert(p != NULL);
+
+	struct flag_record_info info = {false};
+	bitflag flags[OF_SIZE] = {0};
+
+	player_flags(p, flags);
+	info.known = true;
+
+	if (rec->tmd_flag != -1) {
+		/* Timed flags; only in the player column */
+		info.timed = p->timed[rec->tmd_flag] ? true : false;
+		/* There has to be one special case... */
+		if (rec->tmd_flag == TMD_AFRAID && p->timed[TMD_TERROR]) {
+			info.timed = true;
+		}
+	} else if (rec->mod != -1) {
+		/* Messy special cases */
+		if (rec->mod == OBJ_MOD_INFRA) {
+			info.mod = p->race->infra > 0;
+		} else if (rec->mod == OBJ_MOD_TUNNEL) {
+			info.mod = p->race->r_skills[SKILL_DIGGING] > 0;
+		}
+		info.rune = p->obj_k->modifiers[rec->mod] == 1;
+	} else if (rec->element != -1) {
+		/* Resistances (fire, cold, nexus...) */
+		info.imm = p->race->el_info[rec->element].res_level == 3;
+		info.res = p->race->el_info[rec->element].res_level == 1;
+		info.vuln = p->race->el_info[rec->element].res_level == -1;
+		info.rune = p->obj_k->el_info[rec->element].res_level == 1;
+	}
+
+	return info;
+}
+
+static struct flag_record_info get_obj_record_info(struct object *obj,
+		struct player *p, const struct player_flag_record *rec)
+{
+	assert(p != NULL);
+
+	struct flag_record_info info = {false};
 	bitflag flags[OF_SIZE] = {0};
 
 	if (obj != NULL) {
 		object_flags_known(obj, flags);
 
 		if (rec->element != -1) {
-			info->known = object_element_is_known(obj, rec->element);
+			info.known = object_element_is_known(obj, rec->element);
 		} else if (rec->flag != -1) {
-			info->known = object_flag_is_known(obj, rec->flag);
+			info.known = object_flag_is_known(obj, rec->flag);
 		} else {
-			info->known = true;
+			info.known = true;
 		}
-	} else {
-		player_flags(player, flags);
-		info->known = true;
 
-		if (rec->tmd_flag != -1) {
-			/* Timed flags; only in the player column */
-			info->timed = player->timed[rec->tmd_flag] ? true : false;
-			/* There has to be one special case... */
-			if (rec->tmd_flag == TMD_AFRAID && player->timed[TMD_TERROR]) {
-				info->timed = true;
+		if (rec->mod != -1) {
+			/* Modifiers (stats, speed, blows, stealth..) */
+			if (obj != NULL) {
+				info.mod = obj->modifiers[rec->mod] != 0;
 			}
+			info.rune = p->obj_k->modifiers[rec->mod] == 1;
+		} else if (rec->flag != -1) {
+			/* Flags (fear, telepathy, slow digestion...) */
+			info.flag = of_has(flags, rec->flag);
+			info.rune = of_has(p->obj_k->flags, rec->flag);
+		} else if (rec->element != -1) {
+			/* Resistances (fire, cold, nexus...) */
+			if (obj != NULL) {
+				info.imm = info.known
+					&& obj->el_info[rec->element].res_level == 3;
+				info.res = info.known
+					&& obj->el_info[rec->element].res_level == 1;
+				info.vuln = info.known
+					&& obj->el_info[rec->element].res_level == -1;
+			}
+			info.rune = p->obj_k->el_info[rec->element].res_level == 1;
 		}
 	}
 
-	if (rec->mod != -1) {
-		/* Modifiers (stats, speed, blows, stealth..) */
-		if (obj != NULL) {
-			info->mod = obj->modifiers[rec->mod] != 0;
-		} else {
-			/* Messy special cases */
-			if (rec->mod == OBJ_MOD_INFRA) {
-				info->mod = player->race->infra > 0;
-			} else if (rec->mod == OBJ_MOD_TUNNEL) {
-				info->mod = player->race->r_skills[SKILL_DIGGING] > 0;
-			}
-		}
-		info->rune = player->obj_k->modifiers[rec->mod] == 1;
-	} else if (rec->flag != -1) {
-		/* Flags (fear, telepathy, slow digestion...) */
-		info->flag = of_has(flags, rec->flag);
-		info->rune = of_has(player->obj_k->flags, rec->flag);
-	} else if (rec->element != -1) {
-		/* Resistances (fire, cold, nexus...) */
-		if (obj != NULL) {
-			info->imm = info->known
-				&& obj->el_info[rec->element].res_level == 3;
-			info->res = info->known
-				&& obj->el_info[rec->element].res_level == 1;
-			info->vuln = info->known
-				&& obj->el_info[rec->element].res_level == -1;
-		} else {
-			info->imm = player->race->el_info[rec->element].res_level == 3;
-			info->res = player->race->el_info[rec->element].res_level == 1;
-			info->vuln = player->race->el_info[rec->element].res_level == -1;
-		}
-		info->rune = player->obj_k->el_info[rec->element].res_level == 1;
-	}
+	return info;
 }
 
 static void display_resistance_panel(const struct player_flag_record *rec,
@@ -342,11 +361,9 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 			struct object *obj = j < player->body.count ?
 				slot_object(player, j) : NULL;
 
-			struct display_resistance_info info = {false};
-
-			if (obj || j == player->body.count) {
-				get_resistance_info(&info, &rec[i], obj);
-			}
+			struct flag_record_info info = j < player->body.count ?
+				get_obj_record_info(obj, player, &rec[i]) :
+				get_player_record_info(player, &rec[i]);
 
 			if (info.imm) {
 				label_attr = COLOUR_L_BLUE;
