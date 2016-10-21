@@ -26,16 +26,18 @@
 #include "z-type.h"
 
 void grid_data_as_point(struct grid_data *g, struct term_point *point);
+
 void move_cursor_relative(enum display_term_index i, struct loc coords, bool flush);
-void map_move(enum display_term_index i, struct loc diff, region panel);
-void map_redraw_all(enum display_term_index i);
 void print_map_relative(enum display_term_index i,
 		uint32_t attr, wchar_t ch, struct loc coords);
+
+void map_move(enum display_term_index i, struct loc diff, region panel);
+void map_redraw_all(enum display_term_index i);
 
 void do_cmd_view_map(void);
 void verify_cursor(void);
 
-/*
+/**
  * Convert relative coordinates on the map to absolute ones
  */
 int map_grid_x(int x);
