@@ -104,11 +104,11 @@ static void do_cmd_wiz_show_flow(void)
 			break;
 		}
 
-		print_map(DISPLAY_CAVE);
+		map_redraw_all(DISPLAY_CAVE);
 	}
 
 	clear_prompt();
-	print_map(DISPLAY_CAVE);
+	map_redraw_all(DISPLAY_CAVE);
 }
 
 /**
@@ -1556,7 +1556,7 @@ static void do_cmd_wiz_square_flag(void)
 	inkey_any();
 	clear_prompt();
 
-	print_map(DISPLAY_CAVE);
+	map_redraw_all(DISPLAY_CAVE);
 }
 
 /*
@@ -1665,7 +1665,7 @@ static void do_cmd_wiz_features(void)
 	inkey_any();
 	clear_prompt();
 
-	print_map(DISPLAY_CAVE);
+	map_redraw_all(DISPLAY_CAVE);
 }
 
 /*

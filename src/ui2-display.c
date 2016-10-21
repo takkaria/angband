@@ -1175,7 +1175,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 
 	if (data->point.x == -1 && data->point.y == -1) {
 		/* This signals a whole-map redraw. */
-		print_map(DISPLAY_TERM(user)->index);
+		map_redraw_all(DISPLAY_TERM(user)->index);
 	} else {
 		/* Single point to be redrawn */
 

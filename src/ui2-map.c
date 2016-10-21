@@ -408,7 +408,7 @@ static void print_map_region(region reg, struct loc offset,
 	}
 }
 
-void print_map(enum display_term_index index)
+void map_redraw_all(enum display_term_index index)
 {
 	region reg = {0};
 	struct loc offset;
@@ -508,7 +508,7 @@ void move_map(enum display_term_index index, struct loc diff, region panel)
 		Term_flush_output();
 		display_term_pop();
 	} else {
-		print_map(index);
+		map_redraw_all(index);
 	}
 }
 
