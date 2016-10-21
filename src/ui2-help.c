@@ -311,7 +311,9 @@ static void help_find_line(struct help_file *help)
 {
 	show_prompt("Find: ", false);
 
-	if (askfor_aux(help->search, sizeof(help->search), NULL)) {
+	if (askfor_aux(help->search, sizeof(help->search), NULL)
+			&& strlen(help->search) > 0)
+	{
 		clear_prompt();
 
 		string_lower(help->search);
@@ -409,12 +411,15 @@ static void help_display_page(struct help_file *help, region reg)
 			if (help->highlight) {
 				size_t slen = strlen(help->search);
 
-				for (const char *found = strstr(hline->line_lc, help->search);
-						found != NULL;
-						found = strstr(found + slen, help->search))
-				{
-					ptrdiff_t pos = found - hline->line_lc;
-					Term_adds(reg.x + pos, row, slen, COLOUR_YELLOW, hline->line + pos);
+				if (slen > 0) {
+					for (const char *found = strstr(hline->line_lc, help->search);
+							found != NULL;
+							found = strstr(found + slen, help->search))
+					{
+						ptrdiff_t pos = found - hline->line_lc;
+						Term_adds(reg.x + pos, row, slen,
+								COLOUR_YELLOW, hline->line + pos);
+					}
 				}
 			}
 		}
