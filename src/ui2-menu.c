@@ -30,6 +30,8 @@ const char lower_case[]  = "abcdefghijklmnopqrstuvwxyz";
 const char all_letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const char all_digits[]  = "0123456789";
 
+#define MENU_CURSOR_INVALID (-1)
+
 /**
  * Forward declarations
  */
@@ -119,11 +121,6 @@ static bool menu_displays_more(const struct menu *menu)
 	return !mnflag_has(menu->flags, MN_NO_MORE);
 }
 
-static bool menu_should_clear(const struct menu *menu)
-{
-	return !mnflag_has(menu->flags, MN_DONT_CLEAR);
-}
-
 static bool menu_needs_double_tap(const struct menu *menu)
 {
 	return mnflag_has(menu->flags, MN_DBL_TAP);
@@ -132,6 +129,16 @@ static bool menu_needs_double_tap(const struct menu *menu)
 static bool menu_can_act(const struct menu *menu)
 {
 	return !mnflag_has(menu->flags, MN_NO_ACTION);
+}
+
+static bool menu_should_redraw(const struct menu *menu)
+{
+	return menu->old_cursor == MENU_CURSOR_INVALID;
+}
+
+static void menu_force_redraw(struct menu *menu)
+{
+	menu->old_cursor = MENU_CURSOR_INVALID;
 }
 
 /**
@@ -264,56 +271,64 @@ static void generic_skin_display(struct menu *menu, int cursor, region reg)
 {
 	assert(cursor >= 0);
 
+	int top = menu->top;
 	int count = menu_count(menu);
+	bool redraw = menu_should_redraw(menu);
 
 	/* Keep a certain distance from the top when possible */
-	if (cursor <= menu->top) {
-		menu->top = cursor - 1;
+	if (cursor <= top) {
+		top = cursor - 1;
 	}
 
 	/* Keep a certain distance from the bottom when possible */
-	if (cursor >= menu->top + (reg.h - 1)) {
-		menu->top = cursor - (reg.h - 1) + 1;
+	if (cursor >= top + (reg.h - 1)) {
+		top = cursor - (reg.h - 1) + 1;
 	}
 
 	/* Limit the top to legal places */
-	menu->top = MAX(0, MIN(menu->top, count - reg.h));
+	top = MAX(0, MIN(top, count - reg.h));
+
+	if (top != menu->top) {
+		menu->top = top;
+		redraw = true;
+	}
 
 	/* Display "-more-" on the first/last row,
 	 * if the menu has too many entries */
 	int start_row = 0;
-	if (menu->top > 0 && menu_displays_more(menu)) {
+	if (top > 0 && menu_displays_more(menu)) {
 		display_menu_more(menu, reg, start_row);
 		start_row++;
 	}
 	int end_row = reg.h;
-	if (menu->top + reg.h < count && menu_displays_more(menu)) {
+	if (top + reg.h < count && menu_displays_more(menu)) {
 		end_row--;
 		display_menu_more(menu, reg, end_row);
 	}
 
 	/* Position of cursor relative to top */
 	int rel_cursor = cursor - menu->top;
-
-	/* Menu should clear rows before displaying */
-	bool clear = menu_should_clear(menu);
+	/* Previous position of cursor relative to top */
+	int old_cursor = menu->old_cursor == MENU_CURSOR_INVALID ?
+		MENU_CURSOR_INVALID : menu->old_cursor - menu->top;
 
 	for (int row = start_row; row < end_row; row++) {
-		if (clear) {
-			Term_erase(reg.x, reg.y + row, reg.w);
-		}
-		if (row < count) {
-			/* Redraw the line if it's within the number of menu items */
+		if (row < count && (redraw
+					|| row == rel_cursor
+					|| row == old_cursor))
+		{
 			struct loc loc = {reg.x, reg.y + row};
-			bool is_curs = (row == rel_cursor);
-
-			display_menu_row(menu, menu->top + row, is_curs, loc, reg.w);
+			display_menu_row(menu, menu->top + row, row == rel_cursor, loc, reg.w);
+		} else if (redraw) {
+			Term_erase(reg.x, reg.y + row, reg.w);
 		}
 	}
 
 	if (menu->cursor >= 0) {
 		Term_cursor_to_xy(reg.x + menu->cursor_x_offset, reg.y + rel_cursor);
 	}
+
+	menu->old_cursor = cursor;
 }
 
 /*** Scrolling menu skin ***/
@@ -411,6 +426,8 @@ static void column_skin_display(struct menu *menu, int cursor, region reg)
 	int cols = (count + reg.h - 1) / reg.h;
 	int colw = 23;
 
+	bool redraw = menu_should_redraw(menu);
+
 	if (colw * cols > reg.w) {
 		colw = reg.w / cols;
 	}
@@ -421,14 +438,16 @@ static void column_skin_display(struct menu *menu, int cursor, region reg)
 		for (int r = 0; r < reg.h; r++) {
 			int index = c * reg.h + r;
 
-			if (index < count) {
-				bool is_cursor = (index == cursor);
+			if (index < count && (redraw
+						|| index == cursor
+						|| index == menu->old_cursor))
+			{
 				struct loc loc = {
 					.x = reg.x + c * colw,
 					.y = reg.y + r
 				};
 
-				display_menu_row(menu, index, is_cursor, loc, colw);
+				display_menu_row(menu, index, index == cursor, loc, colw);
 			}
 		}
 	}
@@ -439,6 +458,8 @@ static void column_skin_display(struct menu *menu, int cursor, region reg)
 
 		Term_cursor_to_xy(x + menu->cursor_x_offset, y);
 	}
+
+	menu->old_cursor = cursor;
 }
 
 static ui_event column_skin_process_direction(struct menu *menu, int dir)
@@ -595,6 +616,8 @@ static void display_menu_row(struct menu *menu,
 		loc.x += 3;
 	}
 
+	Term_erase(loc.x, loc.y, width);
+
 	menu->iter->display_row(menu, index, cursor, loc, width);
 }
 
@@ -606,7 +629,7 @@ static void display_menu_more(struct menu *menu, region reg, int row)
 	Term_addws(reg.x, y, reg.w, menu_row_style(false, false), L"-more-");
 }
 
-void menu_refresh(struct menu *menu)
+void menu_display(struct menu *menu)
 {
 	if (menu->browse_hook) {
 		menu->browse_hook(menu_index(menu, menu->cursor),
@@ -634,6 +657,12 @@ void menu_refresh(struct menu *menu)
 	menu->skin->display_list(menu, menu->cursor, menu->active);
 
 	Term_flush_output();
+}
+
+void menu_refresh(struct menu *menu)
+{
+	menu_force_redraw(menu);
+	menu_display(menu);
 }
 
 /*** MENU RUNNING AND INPUT HANDLING CODE ***/
@@ -766,6 +795,8 @@ ui_event menu_select(struct menu *menu)
 	assert(menu->active.w != 0);
 	assert(menu->active.h != 0);
 
+	menu_force_redraw(menu);
+
 	const bool action_ok = menu_can_act(menu);
 
 	ui_event in = EVENT_EMPTY;
@@ -773,7 +804,7 @@ ui_event menu_select(struct menu *menu)
 	while (!menu_stop_event(in)) {
 		ui_event out = EVENT_EMPTY;
 
-		menu_refresh(menu);
+		menu_display(menu);
 		in = inkey_simple();
 
 		/* Handle mouse and keyboard commands */

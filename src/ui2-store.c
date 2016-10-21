@@ -300,7 +300,7 @@ static void store_display_entry(struct menu *menu,
 }
 
 /**
- * Display store (after clearing screen)
+ * Display store's "decorations".
  */
 static void store_display_frame(int cursor, void *menu_data, region reg)
 {
@@ -311,7 +311,9 @@ static void store_display_frame(int cursor, void *menu_data, region reg)
 	struct store *store = context->store;
 	struct owner *proprietor = store->owner;
 
-	Term_erase_all();
+	for (int y = 0; y < context->term_loc[LOC_HEADER].y; y++) {
+		Term_erase_line(0, y);
+	}
 
 	if (store->sidx == STORE_HOME) {
 		/* The "Home" is special */

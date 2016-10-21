@@ -1085,7 +1085,6 @@ static void item_menu(struct object_menu_data *data)
 	menu.browse_hook = quiver_browser;
 
 	mnflag_on(menu.flags, MN_INSCRIP_TAGS);
-	mnflag_on(menu.flags, MN_DONT_CLEAR);
 
 	char inscriptions[10] = {0};
 	menu_find_inscriptions(&menu, inscriptions, sizeof(inscriptions));

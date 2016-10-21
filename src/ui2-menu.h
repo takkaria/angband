@@ -141,8 +141,6 @@ enum {
 	MN_INSCRIP_TAGS,
 	/* tag selections can be made regardless of the case of the key pressed.*/
 	MN_CASELESS_TAGS,
-	/* dont erase the contents of menu region before displaying anything */
-	MN_DONT_CLEAR,
 	/* dont display "-more-" in menu */
 	MN_NO_MORE,
 
@@ -194,7 +192,9 @@ struct menu {
 	 * if stop handler returns false, the menu stops (exits) */
 	const char *stop_keys;
 
-	/* Auxiliary function that is called before displaying the rest of the menu */
+	/* Auxiliary function that is called before displaying
+	 * the rest of the menu (note that it should not clear
+	 * the whole term, or else bad things will happen! */
 	void (*browse_hook)(int cursor, void *menu_data, region reg);
 
 	/* Flags specifying the behavior of this menu */
@@ -219,6 +219,7 @@ struct menu {
 	int top;                /* Position in list for partial display */
 	region active;          /* Subregion actually active for selection */
 	int cursor_x_offset;    /* Adjustment to the default position of the cursor on a line. */
+	int old_cursor;         /* Position of cursor on previous redraw (optimization) */
 };
 
 /*** Menu API ***/
@@ -278,7 +279,14 @@ void menu_layout(struct menu *menu, region reg);
 void menu_layout_term(struct menu *menu);
 
 /**
- * Display a menu.
+ * Display a menu. Note that menus, as an optimzation, only redraw
+ * some (not all) rows; if you run a menu manually and it doesn't
+ * do what you want, use menu_refresh() instead.
+ */
+void menu_display(struct menu *menu);
+
+/**
+ * Redraw a menu completely.
  */
 void menu_refresh(struct menu *menu);
 

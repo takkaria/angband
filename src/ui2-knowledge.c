@@ -412,6 +412,9 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	struct menu *active_menu = &group_menu;
 	struct menu *inactive_menu = &object_menu;
 
+	menu_refresh(&group_menu);
+	menu_refresh(&object_menu);
+
 	bool swap = false;
 	bool stop = false;
 
@@ -424,6 +427,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			menu_set_filter(&object_menu, o_list + g_offsets[g_cursor], o_count_cur);
 			group_menu.cursor = g_cursor;
 			object_menu.cursor = o_cursor;
+
+			menu_refresh(&object_menu);
 		}
 
 		int index = o_list[g_offsets[g_cursor] + o_cursor];
@@ -445,8 +450,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 				o_list, o_count_cur, g_offsets[g_cursor], object_menu.active);
 		knowledge_screen_prompt(o_funcs, index);
 
-		menu_refresh(inactive_menu);
-		menu_refresh(active_menu);
+		menu_display(inactive_menu);
+		menu_display(active_menu);
 
 		ui_event event = knowledge_screen_event(active_menu);
 

@@ -502,8 +502,6 @@ static void wiz_create_item_all_items(bool create_artifacts)
 static void wiz_create_item_subdisplay(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
-	(void) width;
-
 	int *choices = menu_priv(menu);
 	int selected = choices[index];
 
@@ -529,7 +527,7 @@ static void wiz_create_item_subdisplay(struct menu *menu,
 		}
 	}
 
-	c_prt(menu_row_style(true, cursor), buf, loc);
+	Term_adds(loc.x, loc.y, width, menu_row_style(true, cursor), buf);
 }
 
 static bool wiz_create_item_subaction(struct menu *menu, const ui_event *event, int index)
@@ -579,7 +577,6 @@ static void wiz_create_item_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
 	(void) menu;
-	(void) width;
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 
@@ -593,7 +590,7 @@ static void wiz_create_item_display(struct menu *menu,
 		object_base_name(buf, sizeof(buf), index, true);
 	}
 
-	c_prt(menu_row_style(true, cursor), buf, loc);
+	Term_adds(loc.x, loc.y, width, menu_row_style(true, cursor), buf);
 }
 
 static bool wiz_create_item_action(struct menu *menu,

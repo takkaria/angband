@@ -651,7 +651,7 @@ static enum birth_stage menu_question(enum birth_stage current_stage,
 				cmdq_push(choice_command);
 				cmd_set_arg_choice(cmdq_peek(), "choice", current_menu->cursor);
 
-				menu_refresh(current_menu);
+				menu_display(current_menu);
 				next_stage = current_stage + 1;
 			} else if (event.key.code == '=') {
 				do_cmd_options_birth();
