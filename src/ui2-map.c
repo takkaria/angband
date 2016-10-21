@@ -367,6 +367,7 @@ static bool map_grid_empty(const struct grid_data *g)
 	if ((int) g->f_idx != FEAT_NONE
 			|| g->m_idx > 0
 			|| g->is_player
+			|| g->first_kind
 			|| g->unseen_object
 			|| g->unseen_money
 			|| g->hallucinate)
