@@ -482,7 +482,7 @@ static void map_calc_update_regions(struct loc diff, struct loc abs,
 #undef MAP_UPDATE_REGION_CHECK
 }
 
-void move_map(enum display_term_index index, struct loc diff, region panel)
+void map_move(enum display_term_index index, struct loc diff, region panel)
 {
 	assert(diff.x != 0 || diff.y != 0);
 

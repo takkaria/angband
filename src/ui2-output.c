@@ -726,7 +726,7 @@ static bool modify_panel_int(enum display_term_index index,
 			.w = panel.w,
 			.h = panel.h
 		};
-		move_map(index, diff, new_panel);
+		map_move(index, diff, new_panel);
 
 		return true;
 	} else {
