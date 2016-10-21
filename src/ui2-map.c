@@ -362,17 +362,6 @@ void print_rel(enum display_term_index index,
 	display_term_pop();
 }
 
-/* Special case for when player is in the darkness */
-static void verify_player_grid(const struct player *p)
-{
-	struct grid_data g;
-	map_info(p->py, p->px, &g);
-
-	if ((int) g.f_idx == FEAT_NONE) {
-		event_signal_point(EVENT_MAP, p->px, p->py);
-	}
-}
-
 static bool map_grid_empty(const struct grid_data *g)
 {
 	if ((int) g->f_idx != FEAT_NONE
@@ -431,7 +420,6 @@ void print_map(enum display_term_index index)
 	print_map_region(reg, offset, blank);
 
 	display_term_pop();
-	verify_player_grid(player);
 }
 
 static void map_move_points(struct loc diff, struct loc abs,
