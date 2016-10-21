@@ -681,6 +681,7 @@ static enum birth_stage roller_command(bool first_call)
 	/* Used to keep track of whether we've rolled a character before or not. */
 	static bool prev_roll = false;
 
+	Term_erase_all();
 	display_player(PLAYER_DISPLAY_MODE_BIRTH);
 
 	if (first_call) {
