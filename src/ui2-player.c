@@ -436,7 +436,7 @@ static void print_obj_sust_info(const struct object *obj,
 		uint32_t attr = SUST_INFO_NONE_ATTR;
 		wchar_t ch = SUST_INFO_NONE_CHAR;
 
-		int stat_mod = stat + OBJ_MOD_MIN_STAT;
+		const int stat_mod = stat + OBJ_MOD_MIN_STAT;
 
 		if (obj->modifiers[stat_mod] > 0) {
 			attr = SUST_INFO_PLUS_ATTR;
@@ -446,7 +446,7 @@ static void print_obj_sust_info(const struct object *obj,
 			ch = SUST_INFO_MINUS_CHAR;
 		}
 
-		int sust_flag = sustain_flag(stat);
+		const int sust_flag = sustain_flag(stat);
 
 		if (of_has(flags, sust_flag)) {
 			attr = SUST_INFO_SUST_ATTR;
