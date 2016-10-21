@@ -875,7 +875,7 @@ static struct panel *get_panel_flavor(void)
 
 	panel_line(p, COLOUR_L_WHITE, "Actions", "%d", player->total_energy / 100);
 	panel_line(p, COLOUR_L_WHITE, "Resting", "%d", player->resting_turn);
-	panel_line(p, COLOUR_L_WHITE, "Turns", "%d", turn);
+	panel_line(p, COLOUR_L_WHITE, "Ticks", "%d", turn);
 	panel_line(p, COLOUR_L_WHITE, "Depth", "%s", get_max_depth(player));
 
 	return p;
