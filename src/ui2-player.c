@@ -250,6 +250,81 @@ static const struct player_flag_table player_flag_tables_resist[] = {
 	},
 };
 
+struct display_resistance_info {
+	bool mod;
+	bool res;
+	bool imm;
+	bool vuln;
+	bool flag;
+	bool rune;
+	bool timed;
+	bool known;
+};
+
+static void get_resistance_info(struct display_resistance_info *info,
+		const struct player_flag_record *rec, struct object *obj)
+{
+	bitflag flags[OF_SIZE] = {0};
+
+	if (obj != NULL) {
+		object_flags_known(obj, flags);
+
+		if (rec->element != -1) {
+			info->known = object_element_is_known(obj, rec->element);
+		} else if (rec->flag != -1) {
+			info->known = object_flag_is_known(obj, rec->flag);
+		} else {
+			info->known = true;
+		}
+	} else {
+		player_flags(player, flags);
+		info->known = true;
+
+		if (rec->tmd_flag != -1) {
+			/* Timed flags; only in the player column */
+			info->timed = player->timed[rec->tmd_flag] ? true : false;
+			/* There has to be one special case... */
+			if (rec->tmd_flag == TMD_AFRAID && player->timed[TMD_TERROR]) {
+				info->timed = true;
+			}
+		}
+	}
+
+	if (rec->mod != -1) {
+		/* Modifiers (stats, speed, blows, stealth..) */
+		if (obj != NULL) {
+			info->mod = obj->modifiers[rec->mod] != 0;
+		} else {
+			/* Messy special cases */
+			if (rec->mod == OBJ_MOD_INFRA) {
+				info->mod = player->race->infra > 0;
+			} else if (rec->mod == OBJ_MOD_TUNNEL) {
+				info->mod = player->race->r_skills[SKILL_DIGGING] > 0;
+			}
+		}
+		info->rune = player->obj_k->modifiers[rec->mod] == 1;
+	} else if (rec->flag != -1) {
+		/* Flags (fear, telepathy, slow digestion...) */
+		info->flag = of_has(flags, rec->flag);
+		info->rune = of_has(player->obj_k->flags, rec->flag);
+	} else if (rec->element != -1) {
+		/* Resistances (fire, cold, nexus...) */
+		if (obj != NULL) {
+			info->imm = info->known
+				&& obj->el_info[rec->element].res_level == 3;
+			info->res = info->known
+				&& obj->el_info[rec->element].res_level == 1;
+			info->vuln = info->known
+				&& obj->el_info[rec->element].res_level == -1;
+		} else {
+			info->imm = player->race->el_info[rec->element].res_level == 3;
+			info->res = player->race->el_info[rec->element].res_level == 1;
+			info->vuln = player->race->el_info[rec->element].res_level == -1;
+		}
+		info->rune = player->obj_k->el_info[rec->element].res_level == 1;
+	}
+}
+
 static void display_resistance_panel(const struct player_flag_record *rec,
 		size_t size, int label_max_len, struct loc loc) 
 {
@@ -259,104 +334,50 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 	loc.y++;
 
 	for (size_t i = 0; i < size; i++) {
-		uint32_t label_attr = COLOUR_WHITE;
+		uint32_t label_attr = COLOUR_SLATE;
 		Term_cursor_to_xy(loc.x + label_max_len, loc.y);
 
 		/* Repeated extraction of flags is inefficient but more natural */
 		for (int j = 0; j <= player->body.count; j++) {
-			bitflag flags[OF_SIZE] = {0};
+			struct object *obj = j < player->body.count ?
+				slot_object(player, j) : NULL;
 
-			uint32_t attr =
-				j % 2 == 0 ? COLOUR_WHITE : COLOUR_L_WHITE; /* alternating colors */
-			char sym = '.';
+			struct display_resistance_info info = {false};
 
-			bool res = false;
-			bool imm = false;
-			bool vuln = false;
-			bool rune = false;
-			bool timed = false;
-			bool known = false;
-
-			/* Get the object or player info */
-			struct object *obj = j < player->body.count ? slot_object(player, j) : NULL;
-			if (j < player->body.count && obj != NULL) {
-				/* Get known properties */
-				object_flags_known(obj, flags);
-				if (rec[i].element != -1) {
-					known = object_element_is_known(obj, rec[i].element);
-				} else if (rec[i].flag != -1) {
-					known = object_flag_is_known(obj, rec[i].flag);
-				} else {
-					known = true;
-				}
-			} else if (j == player->body.count) {
-				player_flags(player, flags);
-				known = true;
-
-				/* Timed flags only in the player column */
-				if (rec[i].tmd_flag != -1) {
-	 				timed = player->timed[rec[i].tmd_flag] ? true : false;
-					/* There has to be one special case... */
-					if (rec[i].tmd_flag == TMD_AFRAID
-							&& player->timed[TMD_TERROR])
-					{
-						timed = true;
-					}
-				}
+			if (obj || j == player->body.count) {
+				get_resistance_info(&info, &rec[i], obj);
 			}
 
-			/* Set which (if any) symbol and color are used */
-			if (rec[i].mod != -1) {
-				if (j < player->body.count) {
-					res = obj && obj->modifiers[rec[i].mod] != 0;
-				} else {
-					/* Messy special cases */
-					if (rec[i].mod == OBJ_MOD_INFRA) {
-						res = player->race->infra > 0;
-					} else if (rec[i].mod == OBJ_MOD_TUNNEL) {
-						res = player->race->r_skills[SKILL_DIGGING] > 0;
-					}
-				}
-				rune = player->obj_k->modifiers[rec[i].mod] == 1;
-			} else if (rec[i].flag != -1) {
-				res = of_has(flags, rec[i].flag);
-				rune = of_has(player->obj_k->flags, rec[i].flag);
-			} else if (rec[i].element != -1) {
-				if (j < player->body.count) {
-					imm = obj && known &&
-						obj->el_info[rec[i].element].res_level == 3;
-					res = obj && known &&
-						obj->el_info[rec[i].element].res_level == 1;
-					vuln = obj && known &&
-						obj->el_info[rec[i].element].res_level == -1;
-				} else {
-					imm = player->race->el_info[rec[i].element].res_level == 3;
-					res = player->race->el_info[rec[i].element].res_level == 1;
-					vuln = player->race->el_info[rec[i].element].res_level == -1;
-				}
-				rune = player->obj_k->el_info[rec[i].element].res_level == 1;
-			}
-
-			/* Set the symbols and print them */
-			if (imm) {
+			if (info.imm) {
 				label_attr = COLOUR_L_BLUE;
-			} else if (!rune) {
-				label_attr = COLOUR_SLATE;
-			} else if (res && label_attr != COLOUR_L_BLUE) {
+			} else if (info.rune
+					&& (info.mod || info.flag || info.res)
+					&& label_attr != COLOUR_L_BLUE)
+			{
 				label_attr = COLOUR_WHITE;
 			}
 
-			if (vuln) {
+			uint32_t attr;
+			char sym;
+
+			if (info.vuln) {
 				sym = L'-';
-			} else if (imm) {
+				attr = COLOUR_L_RED;
+			} else if (info.imm) {
 				sym = L'*';
-			} else if (res) {
+				attr = COLOUR_L_BLUE;
+			} else if (info.mod || info.flag || info.res) {
 				sym = L'+';
-			} else if (timed) {
+				attr = COLOUR_WHITE;
+			} else if (info.timed) {
 				sym = L'!';
 				attr = COLOUR_WHITE;
-			} else if (j < player->body.count && obj && !known && !rune) {
+			} else if (obj != NULL && !info.known && !info.rune) {
 				sym = L'?';
+				attr = COLOUR_SLATE;
+			} else {
+				sym = L'.';
+				attr = COLOUR_SLATE;
 			}
 
 			Term_putwc(attr, sym);
