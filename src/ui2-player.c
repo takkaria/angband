@@ -368,29 +368,29 @@ static void display_resistance_panel(const struct player_flag_record *rec,
 			}
 
 			uint32_t attr;
-			char sym;
+			char ch;
 
 			if (info.vuln) {
-				sym = L'-';
+				ch = L'-';
 				attr = COLOUR_L_RED;
 			} else if (info.imm) {
-				sym = L'*';
+				ch = L'*';
 				attr = COLOUR_L_BLUE;
 			} else if (info.mod || info.flag || info.res) {
-				sym = L'+';
+				ch = L'+';
 				attr = COLOUR_WHITE;
 			} else if (info.timed) {
-				sym = L'!';
+				ch = L'!';
 				attr = COLOUR_WHITE;
 			} else if (obj != NULL && !info.known) {
-				sym = L'?';
+				ch = L'?';
 				attr = COLOUR_SLATE;
 			} else {
-				sym = L'.';
+				ch = L'.';
 				attr = COLOUR_SLATE;
 			}
 
-			Term_putwc(attr, sym);
+			Term_putwc(attr, ch);
 		}
 
 		if (rec[i].label[0] != 0) {
