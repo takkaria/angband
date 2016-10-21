@@ -373,6 +373,21 @@ static void verify_player_grid(const struct player *p)
 	}
 }
 
+static bool map_grid_empty(const struct grid_data *g)
+{
+	if ((int) g->f_idx != FEAT_NONE
+			|| g->m_idx > 0
+			|| g->is_player
+			|| g->unseen_object
+			|| g->unseen_money
+			|| g->hallucinate)
+	{
+		return false;
+	} else {
+		return true;
+	}
+}
+
 /* region is relative to term; offset is absolute
  * coordinates of the top left corner of the term */
 static void print_map_region(region reg, struct loc offset,
@@ -390,13 +405,13 @@ static void print_map_region(region reg, struct loc offset,
 				struct grid_data g;
 				map_info(absy, absx, &g);
 
-				if ((int) g.f_idx != FEAT_NONE) {
+				if (map_grid_empty(&g)) {
+					Term_set_point(relx, rely, blank);
+				} else {
 					struct term_point point;
 					grid_data_as_point(&g, &point);
 
 					Term_set_point(relx, rely, point);
-				} else {
-					Term_set_point(relx, rely, blank);
 				}
 			}
 		}
@@ -562,7 +577,7 @@ static void view_map_aux(void)
 			struct grid_data g;
 			map_info(y, x, &g);
 
-			if ((int) g.f_idx != FEAT_NONE) {
+			if (!map_grid_empty(&g)) {
 				struct term_point point;
 				grid_data_as_point(&g, &point);
 
