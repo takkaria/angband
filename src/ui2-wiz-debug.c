@@ -89,11 +89,11 @@ static void do_cmd_wiz_show_flow(void)
 						COLOUR_YELLOW : COLOUR_RED;
 
 					if (x == player->px && y == player->py) {
-						print_rel(DISPLAY_CAVE, attr, L'@', loc(x, y));
+						print_map_relative(DISPLAY_CAVE, attr, L'@', loc(x, y));
 					} else if (square_ispassable(cave, y, x)) {
-						print_rel(DISPLAY_CAVE, attr, L'*', loc(x, y));
+						print_map_relative(DISPLAY_CAVE, attr, L'*', loc(x, y));
 					} else {
-						print_rel(DISPLAY_CAVE, attr, L'#', loc(x, y));
+						print_map_relative(DISPLAY_CAVE, attr, L'#', loc(x, y));
 					}
 				}
 			}
@@ -1485,11 +1485,11 @@ static void wiz_show_feature(struct loc coords)
 		COLOUR_YELLOW : COLOUR_RED;
 
 	if (coords.x == player->px && coords.y == player->py) {
-		print_rel(DISPLAY_CAVE, attr, L'@', coords);
+		print_map_relative(DISPLAY_CAVE, attr, L'@', coords);
 	} else if (square_ispassable(cave, coords.y, coords.x)) {
-		print_rel(DISPLAY_CAVE, attr, L'*', coords);
+		print_map_relative(DISPLAY_CAVE, attr, L'*', coords);
 	} else {
-		print_rel(DISPLAY_CAVE, attr, L'#', coords);
+		print_map_relative(DISPLAY_CAVE, attr, L'#', coords);
 	}
 }
 

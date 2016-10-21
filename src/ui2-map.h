@@ -27,9 +27,11 @@
 
 void grid_data_as_point(struct grid_data *g, struct term_point *point);
 void move_cursor_relative(enum display_term_index i, struct loc coords, bool flush);
-void print_rel(enum display_term_index i, uint32_t attr, wchar_t ch, struct loc coords);
 void move_map(enum display_term_index i, struct loc diff, region panel);
 void print_map(enum display_term_index i);
+void print_map_relative(enum display_term_index i,
+		uint32_t attr, wchar_t ch, struct loc coords);
+
 void do_cmd_view_map(void);
 void verify_cursor(void);
 

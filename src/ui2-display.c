@@ -1396,7 +1396,7 @@ static void display_explosion(game_event_type type,
 			bolt_pict(blast_grid[i], blast_grid[i], gf_type, &attr, &ch);
 
 			/* Just display the pict, ignoring what was under it */
-			print_rel(DISPLAY_TERM(user)->index, attr, ch, blast_grid[i]);
+			print_map_relative(DISPLAY_TERM(user)->index, attr, ch, blast_grid[i]);
 
 			drawn = true;
 		}
@@ -1459,7 +1459,7 @@ static void display_bolt(game_event_type type,
 		uint32_t attr;
 		bolt_pict(old, new, data->bolt.gf_type, &attr, &ch);
 
-		print_rel(DISPLAY_TERM(user)->index, attr, ch, new);
+		print_map_relative(DISPLAY_TERM(user)->index, attr, ch, new);
 
 		Term_flush_output();
 		if (player->opts.delay_factor > 0) {
@@ -1471,7 +1471,7 @@ static void display_bolt(game_event_type type,
 		/* Display "beam" grids */
 		if (data->bolt.beam) {
 			bolt_pict(new, new, data->bolt.gf_type, &attr, &ch);
-			print_rel(DISPLAY_TERM(user)->index, attr, ch, new);
+			print_map_relative(DISPLAY_TERM(user)->index, attr, ch, new);
 		}
 
 		Term_flush_output();
@@ -1505,7 +1505,7 @@ static void display_missile(game_event_type type,
 
 	/* Only do visuals if the player can "see" the missile */
 	if (data->missile.seen) {
-		print_rel(DISPLAY_TERM(user)->index,
+		print_map_relative(DISPLAY_TERM(user)->index,
 				object_attr(obj), object_char(obj), coords);
 
 		Term_flush_output();

@@ -341,7 +341,7 @@ void move_cursor_relative(enum display_term_index index,
 	display_term_pop();
 }
 
-void print_rel(enum display_term_index index,
+void print_map_relative(enum display_term_index index,
 		uint32_t attr, wchar_t ch, struct loc coords)
 {
 	/* Calculate relative coordinates */
