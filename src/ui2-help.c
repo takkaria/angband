@@ -443,12 +443,18 @@ static void show_file(const char *name)
 	region text_reg;
 	help_set_regions(&term_reg, &text_reg);
 
+	const int end_line = help->next - text_reg.h;
+
+	bool display = true;
 	bool done = false;
 
 	while (!done) {
-		help_display_page(help, text_reg);
-		help_display_rest(help, term_reg, text_reg);
+		if (display) {
+			help_display_page(help, text_reg);
+			help_display_rest(help, term_reg, text_reg);
+		}
 
+		display = false;
 		Term_flush_output();
 
 		struct keypress key = inkey_only_key();
@@ -459,39 +465,59 @@ static void show_file(const char *name)
 				break;
 			case '&':
 				help->highlight = !help->highlight;
+				display = true;
 				break;
 			case '/':
 				help_find_line(help);
+				display = true;
 				break;
 			case '#':
 				help_goto_line(help);
+				display = true;
 				break;
 			case '%':
 				help_goto_file(help);
 				break;
 			case ARROW_UP: case '8': case '=': 
-				help->scroll = -1;
+				if (help->line > 0) {
+					help->scroll = -1;
+					display = true;
+				}
 				break;
 			case ARROW_DOWN: case '2': case KC_ENTER: 
-				help->scroll = 1;
-				break;
-			case '+':
-				help->scroll = text_reg.h / 2;
+				if (help->line < end_line) {
+					help->scroll = 1;
+					display = true;
+				}
 				break;
 			case '_':
-				help->scroll = -text_reg.h / 2;
+				if (help->line > 0) {
+					help->scroll = -text_reg.h / 2;
+					display = true;
+				}
+				break;
+			case '+':
+				if (help->line < end_line) {
+					help->scroll = text_reg.h / 2;
+					display = true;
+				}
 				break;
 			case KC_PGUP: case '-':
-				help->line -= text_reg.h;
+				if (help->line > 0) {
+					help->line -= text_reg.h;
+					display = true;
+				}
 				break;
 			case KC_PGDOWN: case ' ':
-				help->line += text_reg.h;
+				if (help->line < end_line) {
+					help->line += text_reg.h;
+					display = true;
+				}
 				break;
 			default:
 				try_show_help(help, key.code);
 				break;
 		}
-
 	}
 
 	close_help_file(help);
