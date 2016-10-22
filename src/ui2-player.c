@@ -971,7 +971,7 @@ static struct panel *get_panel_flavor(void)
 
 #define PLAYER_DISPLAY_BASIC_COL_1  2
 #define PLAYER_DISPLAY_BASIC_COL_2 25
-#define PLAYER_DISPLAY_BASIC_COL_3 51
+#define PLAYER_DISPLAY_BASIC_COL_3 52
 
 #define PLAYER_DISPLAY_HISTORY_ROW 19
 
@@ -989,7 +989,7 @@ static const struct {
 		.panel = get_panel_player
 	},
 	{
-		.bounds = {PLAYER_DISPLAY_BASIC_COL_2, PLAYER_DISPLAY_BASIC_ROW_1, 23, 7},
+		.bounds = {PLAYER_DISPLAY_BASIC_COL_2, PLAYER_DISPLAY_BASIC_ROW_1, 24, 7},
 		.align_left = false,
 		.panel = get_panel_misc
 	},
@@ -999,12 +999,12 @@ static const struct {
 		.panel = get_panel_flavor
 	},
 	{
-		.bounds = {PLAYER_DISPLAY_BASIC_COL_2, PLAYER_DISPLAY_BASIC_ROW_2, 23, 7},
+		.bounds = {PLAYER_DISPLAY_BASIC_COL_2, PLAYER_DISPLAY_BASIC_ROW_2, 24, 7},
 		.align_left = false,
 		.panel = get_panel_combat
 	},
 	{
-		.bounds = {PLAYER_DISPLAY_BASIC_COL_3, PLAYER_DISPLAY_BASIC_ROW_2, 27, 7},
+		.bounds = {PLAYER_DISPLAY_BASIC_COL_3, PLAYER_DISPLAY_BASIC_ROW_2, 26, 7},
 		.align_left = false,
 		.panel = get_panel_skills
 	},
@@ -1053,13 +1053,13 @@ static void display_player_stat_info(void)
 	const char *rb_label   = "RB";
 	const char *cb_label   = "CB";
 	const char *eb_label   = "EB";
-	const char *best_label = "Cur";
+	const char *cur_label  = "Cur";
 
 	int self_x = col + 5; /* "Str: " */
 	int rb_x   = self_x + strlen(self_label) + 2;
-	int cb_x   = rb_x   + strlen(rb_label) + 2;
-	int eb_x   = cb_x   + strlen(cb_label) + 2;
-	int best_x = eb_x   + strlen(eb_label) + 2;
+	int cb_x   = rb_x   + strlen(rb_label)   + 2;
+	int eb_x   = cb_x   + strlen(cb_label)   + 2;
+	int cur_x  = eb_x   + strlen(eb_label)   + 2;
 
 	/* Print out the labels for the columns */
 	loc.x = self_x;
@@ -1074,8 +1074,8 @@ static void display_player_stat_info(void)
 	loc.x = eb_x;
 	c_put_str(COLOUR_WHITE, eb_label, loc);
 
-	loc.x = best_x;
-	c_put_str(COLOUR_WHITE, best_label, loc);
+	loc.x = cur_x;
+	c_put_str(COLOUR_WHITE, cur_label, loc);
 
 	/* Add 1 since stats are displayed below the header */
 	loc.y = row + 1;
@@ -1107,25 +1107,25 @@ static void display_player_stat_info(void)
 		/* Internal "natural" maximum value */
 		loc.x = self_x;
 		cnv_stat("%4d", player->stat_max[i], buf, sizeof(buf));
-		c_put_str(COLOUR_L_GREEN, buf, loc);
+		c_put_str(COLOUR_GREEN, buf, loc);
 
 		/* Race Bonus */
 		loc.x = rb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->race->r_adj[i]);
+		strnfmt(buf, sizeof(buf), "%+3d", player->race->r_adj[i]);
 		c_put_str(stat_bonus_attr(player->race->r_adj[i]), buf, loc);
 
 		/* Class Bonus */
 		loc.x = cb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->class->c_adj[i]);
+		strnfmt(buf, sizeof(buf), "%+3d", player->class->c_adj[i]);
 		c_put_str(stat_bonus_attr(player->class->c_adj[i]), buf, loc);
 
 		/* Equipment Bonus */
 		loc.x = eb_x - 1;
-		strnfmt(buf, sizeof(buf), "%3d", player->state.stat_add[i]);
+		strnfmt(buf, sizeof(buf), "%+3d", player->state.stat_add[i]);
 		c_put_str(stat_bonus_attr(player->state.stat_add[i]), buf, loc);
 
 		/* Current value */
-		loc.x = best_x;
+		loc.x = cur_x;
 		cnv_stat("%3d", player->state.stat_use[i], buf, sizeof(buf));
 		c_put_str(reduced ? COLOUR_YELLOW : COLOUR_L_GREEN, buf, loc);
 	}
