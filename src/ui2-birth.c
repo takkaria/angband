@@ -731,8 +731,8 @@ static enum birth_stage roller_command(bool first_call)
 
 /* The locations of the "costs" area on the birth screen. */
 #define COSTS_ROW  2
-#define COSTS_COL 78
-#define TOTAL_COL 61
+#define COSTS_COL 61
+#define TOTAL_COL 52
 
 /**
  * This is called whenever a stat changes.  We take the easy road, and just
@@ -774,18 +774,27 @@ static void point_based_points(game_event_type type,
 	(void) type;
 	(void) user;
 
-	int *stats = data->birthstats.stats;
+	const int *stats = data->birthstats.stats;
+	const int remaining = data->birthstats.remaining;
+	const uint32_t attr = remaining > 0 ? COLOUR_L_GREEN : COLOUR_GREEN;
 
 	struct loc loc = {COSTS_COL, COSTS_ROW};
 	
 	int sum = 0;
 	for (int i = 0; i < STAT_MAX; i++, loc.y++) {
-		Term_addwc(loc.x, loc.y, COLOUR_L_GREEN, stats[i] > 0 ? L'+' : L' ');
-		sum += stats[i];
+		if (stats[i] > 0) {
+			Term_addwc(loc.x, loc.y, attr, L'+');
+			sum += stats[i];
+		} else {
+			Term_erase(loc.x, loc.y, 1);
+		}
 	}
 	
 	loc.x = TOTAL_COL;
-	put_str(format("Total Cost: %2d/%2d", sum, data->birthstats.remaining + sum), loc);
+	put_str("Cost:", loc);
+
+	loc.x += 6;
+	c_put_str(attr, format("%2d/%2d", sum, remaining + sum), loc);
 
 	Term_flush_output();
 }
@@ -796,11 +805,8 @@ static void point_based_start(void)
 		"[up/down to move, left/right to modify, 'r' to reset, 'Enter' to accept]";
 
 	Term_erase_all();
-
 	display_player(PLAYER_DISPLAY_MODE_BIRTH);
-
 	show_prompt(prompt, false);
-
 	Term_cursor_visible(true);
 
 	/* Register handlers for various events - cheat a bit because we redraw
