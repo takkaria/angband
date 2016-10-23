@@ -2217,9 +2217,7 @@ static int messages_reader_dump(int cur_message, int n_messages,
 	if (vscroll != 0 || redraw) {
 		int line = reg.y + reg.h - 1;
 		int min_line = reg.y;
-
 		int message = cur_message;
-		int max_message = n_messages - 1;
 
 		if (vscroll != 0) {
 			messages_reader_scroll(vscroll,
@@ -2227,9 +2225,9 @@ static int messages_reader_dump(int cur_message, int n_messages,
 		}
 
 		assert(line >= min_line);
-		assert(message <= max_message);
+		assert(message < n_messages);
 
-		while (line >= min_line && message <= max_message) {
+		while (line >= min_line && message < n_messages) {
 			/* Print the messages, from bottom to top */
 			messages_reader_print(message,
 					line, hscroll, reg, search);
