@@ -2091,7 +2091,7 @@ void textui_browse_knowledge(void)
  * ------------------------------------------------------------------------
  */
 
-static bool messages_find(const char *search,
+static bool messages_reader_find(const char *search,
 		int *cur_message, int n_messages, bool older)
 {
 	if (older) {
@@ -2116,7 +2116,7 @@ static bool messages_find(const char *search,
 	return my_stristr(message_str(*cur_message), search) != NULL;
 }
 
-static void messages_scroll(int vscroll,
+static void messages_reader_scroll(int vscroll,
 		region reg, int *line, int *min_line, int *message)
 {
 	const int abs_scroll = ABS(vscroll);
@@ -2146,7 +2146,7 @@ static void messages_scroll(int vscroll,
 	}
 }
 
-static void messages_scroll_check(int *cur_message, int n_messages,
+static void messages_reader_scroll_check(int *cur_message, int n_messages,
 		int *vscroll, region reg)
 {
 	assert(*cur_message >= 0);
@@ -2171,7 +2171,7 @@ static void messages_scroll_check(int *cur_message, int n_messages,
 	}
 }
 
-static void messages_print(int message, int line,
+static void messages_reader_print(int message, int line,
 		int hscroll, region reg, const char *search)
 {
 	const char *msg = message_str(message);
@@ -2208,10 +2208,11 @@ static void messages_print(int message, int line,
 	}
 }
 
-static int messages_dump(int cur_message, int n_messages,
+static int messages_reader_dump(int cur_message, int n_messages,
 		region reg, int hscroll, int vscroll, bool redraw, const char *search)
 {
-	messages_scroll_check(&cur_message, n_messages, &vscroll, reg);
+	messages_reader_scroll_check(&cur_message,
+			n_messages, &vscroll, reg);
 
 	if (vscroll != 0 || redraw) {
 		int line = reg.y + reg.h - 1;
@@ -2221,7 +2222,8 @@ static int messages_dump(int cur_message, int n_messages,
 		int max_message = n_messages - 1;
 
 		if (vscroll != 0) {
-			messages_scroll(vscroll, reg, &line, &min_line, &message);
+			messages_reader_scroll(vscroll,
+					reg, &line, &min_line, &message);
 		}
 
 		assert(line >= min_line);
@@ -2229,7 +2231,8 @@ static int messages_dump(int cur_message, int n_messages,
 
 		while (line >= min_line && message <= max_message) {
 			/* Print the messages, from bottom to top */
-			messages_print(message, line, hscroll, reg, search);
+			messages_reader_print(message,
+					line, hscroll, reg, search);
 
 			line--;
 			message++;
@@ -2241,7 +2244,7 @@ static int messages_dump(int cur_message, int n_messages,
 	return cur_message - vscroll;
 }
 
-static void messages_help(bool searching, struct loc loc)
+static void messages_reader_help(bool searching, struct loc loc)
 {
 	if (searching) {
 		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
@@ -2317,11 +2320,11 @@ void do_cmd_messages(void)
 	while (!done) {
 		if (redraw) {
 			Term_erase_all();
-			messages_help(searching, help_loc);
+			messages_reader_help(searching, help_loc);
 		}
 
 		cur_message =
-			messages_dump(cur_message, n_messages, msg_reg,
+			messages_reader_dump(cur_message, n_messages, msg_reg,
 				hscroll, vscroll, redraw, searching ? search : NULL);
 
 		vscroll = 0;
@@ -2387,7 +2390,7 @@ void do_cmd_messages(void)
 			if ((event.key.code == '-' || event.key.code == '+')
 					&& searching)
 			{
-				if (!messages_find(search, &cur_message, n_messages,
+				if (!messages_reader_find(search, &cur_message, n_messages,
 							event.key.code == '-'))
 				{
 					search[0] = 0;
