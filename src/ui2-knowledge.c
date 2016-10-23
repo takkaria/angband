@@ -2146,23 +2146,28 @@ static void messages_scroll(int vscroll,
 	}
 }
 
-static void messages_check(int *cur_message, int n_messages,
+static void messages_scroll_check(int *cur_message, int n_messages,
 		int *vscroll, region reg)
 {
+	assert(*cur_message >= 0);
+
 	/* Note that negative vscroll (scroll up) corresponds to
 	 * positive, increasing message numbers (older messages) */
 
-	const int scroll_message = *cur_message - *vscroll;
-	const int end_message = n_messages - reg.h;
+	if (n_messages > reg.h) {
+		const int scroll_message = *cur_message - *vscroll;
+		const int end_message = n_messages - reg.h;
 
-	assert(*cur_message >= 0);
-	assert(*cur_message <= end_message);
+		assert(*cur_message <= end_message);
 
-	if (scroll_message < 0) {
-		*vscroll = *cur_message;
-	}
-	if (scroll_message > end_message) {
-		*vscroll = -(end_message - *cur_message);
+		if (scroll_message > end_message) {
+			*vscroll = -(end_message - *cur_message);
+		}
+		if (scroll_message < 0) {
+			*vscroll = *cur_message;
+		}
+	} else {
+		*vscroll = 0;
 	}
 }
 
@@ -2206,7 +2211,7 @@ static void messages_print(int message, int line,
 static int messages_dump(int cur_message, int n_messages,
 		region reg, int hscroll, int vscroll, bool redraw, const char *search)
 {
-	messages_check(&cur_message, n_messages, &vscroll, reg);
+	messages_scroll_check(&cur_message, n_messages, &vscroll, reg);
 
 	if (vscroll != 0 || redraw) {
 		int line = reg.y + reg.h - 1;
