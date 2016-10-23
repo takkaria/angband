@@ -281,14 +281,15 @@ void menu_layout_term(struct menu *menu);
 /**
  * Display a menu. Note that menus, as an optimzation, only redraw
  * some (not all) rows; if you run a menu manually and it doesn't
- * do what you want, use menu_refresh() instead.
+ * do what you want, call menu_force_redraw() before displaying.
  */
 void menu_display(struct menu *menu);
 
 /**
- * Redraw a menu completely.
+ * Menu will be redrawn completely
+ * the next time it's displayed.
  */
-void menu_refresh(struct menu *menu);
+void menu_force_redraw(struct menu *menu);
 
 /**
  * Cursor colors for different states.

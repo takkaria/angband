@@ -1231,12 +1231,14 @@ int textui_do_birth(void)
 				print_menu_instructions();
 
 				if (current > BIRTH_RACE_CHOICE) {
-					menu_refresh(&race_menu);
+					menu_force_redraw(&race_menu);
+					menu_display(&race_menu);
 					menu = &class_menu;
 					command = CMD_CHOOSE_CLASS;
 				}
 				if (current > BIRTH_CLASS_CHOICE) {
-					menu_refresh(&class_menu);
+					menu_force_redraw(&class_menu);
+					menu_display(&class_menu);
 					menu = &roller_menu;
 				}
 				next = menu_question(current, menu, command);

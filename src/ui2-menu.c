@@ -136,7 +136,7 @@ static bool menu_should_redraw(const struct menu *menu)
 	return menu->old_cursor == MENU_CURSOR_INVALID;
 }
 
-static void menu_force_redraw(struct menu *menu)
+void menu_force_redraw(struct menu *menu)
 {
 	menu->old_cursor = MENU_CURSOR_INVALID;
 }
@@ -657,12 +657,6 @@ void menu_display(struct menu *menu)
 	menu->skin->display_list(menu, menu->cursor, menu->active);
 
 	Term_flush_output();
-}
-
-void menu_refresh(struct menu *menu)
-{
-	menu_force_redraw(menu);
-	menu_display(menu);
 }
 
 /*** MENU RUNNING AND INPUT HANDLING CODE ***/

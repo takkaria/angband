@@ -1090,6 +1090,7 @@ static void refresh_stock(game_event_type type, game_event_data *data, void *use
 	store_stock_list(context->store, context->list, z_info->store_inven_max);
 
 	store_menu_recalc(menu);
+	menu_force_redraw(menu);
 }
 
 /**

@@ -412,8 +412,8 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 	struct menu *active_menu = &group_menu;
 	struct menu *inactive_menu = &object_menu;
 
-	menu_refresh(&group_menu);
-	menu_refresh(&object_menu);
+	menu_force_redraw(&group_menu);
+	menu_force_redraw(&object_menu);
 
 	bool swap = false;
 	bool stop = false;
@@ -428,7 +428,7 @@ static void display_knowledge(const char *title, int *o_list, int o_count,
 			group_menu.cursor = g_cursor;
 			object_menu.cursor = o_cursor;
 
-			menu_refresh(&object_menu);
+			menu_force_redraw(&object_menu);
 		}
 
 		int index = o_list[g_offsets[g_cursor] + o_cursor];
