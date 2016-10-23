@@ -2155,8 +2155,8 @@ static void messages_check(int *cur_message, int n_messages,
 	const int scroll_message = *cur_message - *vscroll;
 	const int end_message = n_messages - reg.h;
 
-	assert(*cur_message <= end_message);
 	assert(*cur_message >= 0);
+	assert(*cur_message <= end_message);
 
 	if (scroll_message < 0) {
 		*vscroll = *cur_message;
