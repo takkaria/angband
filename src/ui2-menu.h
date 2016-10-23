@@ -31,7 +31,7 @@ extern const char lower_case[];  /* abc..z */
 extern const char all_letters[]; /* abc..zABC..Z */
 extern const char all_digits[];  /* 0..9 */
 
-/*
+/**
  * Together, these classes define the constant properties of
  * the various menu classes.  
  *
@@ -43,21 +43,19 @@ extern const char all_digits[];  /* 0..9 */
  */
 struct menu;
 
-/*** Predefined menu "skins" ***/
-
 /**
- * Types of predefined skins available.
+ * Types of predefined iterators available.
  */
 typedef enum {
 	/*
-	 * A simple list of actions with an associated name and id.
-	 * Private data: an array of menu_action
+	 * A list of actions with an associated name and id.
+	 * Private data: an array of structs menu_action.
 	 */
 	MN_ITER_ACTIONS = 1,
 
 	/*
-	 * A list of strings to be selected from - no associated actions.
-	 * Private data: an array of const char *
+	 * A list of strings to be selected from; no associated actions.
+	 * Private data: an array of strings (pointers to const char).
 	 */
 	MN_ITER_STRINGS = 2
 } menu_iter_id;
@@ -122,8 +120,6 @@ typedef struct {
 	ui_event (*process_dir)(struct menu *menu, int dir);
 } menu_skin;
 
-/*** Base menu structure ***/
-
 /**
  * Flags for menu appearance & behaviour
  */
@@ -166,7 +162,7 @@ enum {
 #define mnflag_inter(f1, f2)       flag_inter(f1, f2, MNFLAG_SIZE)
 #define mnflag_diff(f1, f2)        flag_diff(f1, f2, MNFLAG_SIZE)
 
-/* Base menu type */
+/*** Base menu type ***/
 struct menu {
 	/*** Public variables ***/
 
@@ -254,7 +250,7 @@ void menu_setpriv(struct menu *menu, int count, void *data);
  */
 void *menu_priv(struct menu *menu);
 
-/*
+/**
  * Set a filter on what items a menu can display.
  *
  * Use this if your menu private data has 100 items, but you want to choose
@@ -308,8 +304,10 @@ uint32_t menu_row_style(bool valid, bool selected);
  */
 ui_event menu_select(struct menu *menu);
 
-/* Interal menu stuff that knowledge menu needs because it
- * runs its parallel menus "manually" (see ui2-knowledge.c) */
+/**
+ * Interal menu stuff that knowledge menu needs because it
+ * runs its parallel menus "manually" (see ui2-knowledge.c)
+ */
 void menu_handle_mouse(struct menu *menu,
 		struct mouseclick mouse, ui_event *out);
 void menu_handle_keypress(struct menu *menu,
