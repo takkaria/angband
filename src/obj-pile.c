@@ -365,6 +365,9 @@ bool object_stackable(const struct object *obj1, const struct object *obj2,
 		/* Require identical ego-item types */
 		if (obj1->ego != obj2->ego) return false;
 
+		/* Require identical curses */
+		if (!curses_are_equal(obj1->curses, obj2->curses)) return false;
+
 		/* Hack - Never stack recharging wearables ... */
 		if ((obj1->timeout || obj2->timeout) &&
 			!tval_is_light(obj1)) return false;
@@ -532,7 +535,7 @@ void object_copy(struct object *dest, const struct object *src)
 
 	copy_slay(&dest->slays, src->slays);
 	copy_brand(&dest->brands, src->brands);
-	copy_curse(&dest->curses, src->curses, false);
+	copy_curse(&dest->curses, src->curses, false, false);
 
 	/* Detach from any pile */
 	dest->prev = NULL;
@@ -712,6 +715,10 @@ bool floor_carry(struct chunk *c, int y, int x, struct object *drop, bool last)
 {
 	int n = 0;
 	struct object *obj, *ignore = floor_get_oldest_ignored(y, x);
+
+	/* Fail if the square can't hold objects */
+	if (!square_isobjectholding(c, y, x))
+		return false;
 
 	/* Scan objects in that grid for combination */
 	for (obj = square_object(c, y, x); obj; obj = obj->next) {

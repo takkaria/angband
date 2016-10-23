@@ -53,6 +53,14 @@ bool feat_is_quartz(int feat)
 }
 
 /**
+ * True if the square is a granite wall.
+ */
+bool feat_is_granite(int feat)
+{
+	return tf_has(f_info[feat].flags, TF_GRANITE);
+}
+
+/**
  * True if the square is a mineral wall with treasure (magma/quartz).
  */
 bool feat_is_treasure(int feat)
@@ -66,6 +74,30 @@ bool feat_is_treasure(int feat)
 bool feat_is_wall(int feat)
 {
 	return tf_has(f_info[feat].flags, TF_WALL);
+}
+
+/**
+ * True is the feature is a floor.
+ */
+bool feat_is_floor(int feat)
+{
+	return tf_has(f_info[feat].flags, TF_FLOOR);
+}
+
+/**
+ * True is the feature can hold a trap.
+ */
+bool feat_is_trap_holding(int feat)
+{
+	return tf_has(f_info[feat].flags, TF_TRAP);
+}
+
+/**
+ * True is the feature can hold an object.
+ */
+bool feat_is_object_holding(int feat)
+{
+	return tf_has(f_info[feat].flags, TF_OBJECT);
 }
 
 /**
@@ -101,11 +133,35 @@ bool feat_is_projectable(int feat)
 }
 
 /**
+ * True if the feature can be lit by light sources.
+ */
+bool feat_is_torch(int feat)
+{
+	return tf_has(f_info[feat].flags, TF_TORCH);
+}
+
+/**
  * True if the feature is internally lit.
  */
 bool feat_is_bright(int feat)
 {
 	return tf_has(f_info[feat].flags, TF_BRIGHT);
+}
+
+/**
+ * True if the feature doesn't carry monster flow information.
+ */
+bool feat_is_no_flow(int feat)
+{
+	return tf_has(f_info[feat].flags, TF_NO_FLOW);
+}
+
+/**
+ * True if the feature should have smooth boundaries (for dungeon generation).
+ */
+bool feat_is_smooth(int feat)
+{
+	return tf_has(f_info[feat].flags, TF_SMOOTH);
 }
 
 /**
@@ -128,7 +184,23 @@ bool feat_is_bright(int feat)
  */
 bool square_isfloor(struct chunk *c, int y, int x)
 {
-	return tf_has(f_info[c->squares[y][x].feat].flags, TF_FLOOR);
+	return feat_is_floor(c->squares[y][x].feat);
+}
+
+/**
+ * True if the square can hold a trap.
+ */
+bool square_istrappable(struct chunk *c, int y, int x)
+{
+	return feat_is_trap_holding(c->squares[y][x].feat);
+}
+
+/**
+ * True if the square can hold an object.
+ */
+bool square_isobjectholding(struct chunk *c, int y, int x)
+{
+	return feat_is_object_holding(c->squares[y][x].feat);
 }
 
 /**
@@ -163,6 +235,14 @@ bool square_ismagma(struct chunk *c, int y, int x)
 bool square_isquartz(struct chunk *c, int y, int x)
 {
 	return feat_is_quartz(c->squares[y][x].feat);
+}
+
+/**
+ * True if the square is granite.
+ */
+bool square_isgranite(struct chunk *c, int y, int x)
+{
+	return feat_is_granite(c->squares[y][x].feat);
 }
 
 /**
@@ -552,6 +632,14 @@ bool square_isstrongwall(struct chunk *c, int y, int x) {
 bool square_isbright(struct chunk *c, int y, int x) {
 	assert(square_in_bounds(c, y, x));
 	return feat_is_bright(c->squares[y][x].feat);
+}
+
+/**
+ * True if the cave square doesn't allow monster flow information.
+ */
+bool square_isnoflow(struct chunk *c, int y, int x) {
+	assert(square_in_bounds(c, y, x));
+	return feat_is_no_flow(c->squares[y][x].feat);
 }
 
 bool square_iswarded(struct chunk *c, int y, int x)
