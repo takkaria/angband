@@ -811,16 +811,6 @@ void Term_destroy(term t)
 	term_free(t);
 }
 
-void Term_setpriv(term t, void *user)
-{
-	t->user = user;
-}
-
-void *Term_priv(term t)
-{
-	return t->user;
-}
-
 term Term_top(void)
 {
 	if (term_stack.top > NOTOP) {
