@@ -2298,14 +2298,16 @@ void do_cmd_messages(void)
 
 	/* Total messages */
 	const int n_messages = messages_num();
-	/* Start on first message */
+	/* Message that is currently
+	 * at the bottom of the screen */
 	int cur_message = 0;
-	/* Start at leftmost edge */
+	/* Horizontal scroll offset */
 	int hscroll = 0;
-	/* Fast scrolling of text */
+	/* Vertical scroll amount */
 	int vscroll = 0;
 
-	/* Lines to use for page up or down */
+	/* Number of lines to scroll when
+	 * the user presses page up or down */
 	const int page_lines = term_height - 4;
 
 	/* Redraw the whole term */
