@@ -2155,15 +2155,15 @@ static void messages_reader_scroll_check(int *cur_message, int n_messages,
 	 * positive, increasing message numbers (older messages) */
 
 	if (n_messages > reg.h) {
-		const int scroll_message = *cur_message - *vscroll;
+		const int new_message = *cur_message - *vscroll;
 		const int end_message = n_messages - reg.h;
 
 		assert(*cur_message <= end_message);
 
-		if (scroll_message > end_message) {
+		if (new_message > end_message) {
 			*vscroll = -(end_message - *cur_message);
 		}
-		if (scroll_message < 0) {
+		if (new_message < 0) {
 			*vscroll = *cur_message;
 		}
 	} else {
