@@ -2266,6 +2266,7 @@ static void messages_reader_help(bool searching, struct loc loc)
  * displayed using "infinite" length, with a special sub-command to
  * slide the virtual display to the left or right.
  */
+
 void do_cmd_messages(void)
 {
 	const int term_width = ANGBAND_TERM_STANDARD_WIDTH;
