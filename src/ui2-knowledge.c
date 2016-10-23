@@ -2363,13 +2363,17 @@ void do_cmd_messages(void)
 					break;
 
 				case ARROW_LEFT: case '4':
-					hscroll = MAX(0, hscroll - term_width / 4);
-					redraw = true;
+					if (hscroll > 0) {
+						hscroll = MAX(0, hscroll - term_width / 4);
+						redraw = true;
+					}
 					break;
 
 				case ARROW_RIGHT: case '6':
-					hscroll += term_width / 4;
-					redraw = true;
+					if (hscroll < term_width) {
+						hscroll += term_width / 4;
+						redraw = true;
+					}
 					break;
 
 				case ARROW_UP: case '8':
