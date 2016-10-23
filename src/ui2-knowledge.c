@@ -2094,6 +2094,8 @@ void textui_browse_knowledge(void)
 static bool messages_reader_find(const char *search,
 		int *cur_message, int n_messages, bool older)
 {
+	assert(search != NULL);
+
 	if (older) {
 		/* Find a message older that the current one */
 		for (int i = *cur_message + 1; i < n_messages; i++) {
@@ -2242,9 +2244,9 @@ static int messages_reader_dump(int cur_message, int n_messages,
 	return cur_message - vscroll;
 }
 
-static void messages_reader_help(bool searching, struct loc loc)
+static void messages_reader_help(const char *search, struct loc loc)
 {
-	if (searching) {
+	if (search != NULL) {
 		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
 				COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '/' to find]");
 	} else {
@@ -2294,7 +2296,8 @@ void do_cmd_messages(void)
 		.h = term_height - 3
 	};
 
-	char search[ANGBAND_TERM_STANDARD_WIDTH] = {0};
+	char buf[ANGBAND_TERM_STANDARD_WIDTH] = {0};
+	const char *search = NULL;
 
 	/* Total messages */
 	const int n_messages = messages_num();
@@ -2312,8 +2315,6 @@ void do_cmd_messages(void)
 
 	/* Redraw the whole term */
 	bool redraw = true;
-	/* Found a substring */
-	bool searching = false;
 
 	/* Loop control */
 	bool done = false;
@@ -2321,12 +2322,12 @@ void do_cmd_messages(void)
 	while (!done) {
 		if (redraw) {
 			Term_erase_all();
-			messages_reader_help(searching, help_loc);
+			messages_reader_help(search, help_loc);
 		}
 
 		cur_message =
-			messages_reader_dump(cur_message, n_messages, msg_reg,
-				hscroll, vscroll, redraw, searching ? search : NULL);
+			messages_reader_dump(cur_message, n_messages,
+					msg_reg, hscroll, vscroll, redraw, search);
 
 		vscroll = 0;
 		redraw = false;
@@ -2354,9 +2355,9 @@ void do_cmd_messages(void)
 				case '/':
 					/* Get the string to find */
 					show_prompt("Find: ", false);
-					if (askfor_aux(search, sizeof(search), NULL)) {
+					if (askfor_aux(buf, sizeof(buf), NULL)) {
 						event.key.code = '-';
-						searching = true;
+						search = buf;
 					}
 					clear_prompt();
 					break;
@@ -2389,13 +2390,12 @@ void do_cmd_messages(void)
 			}
 
 			if ((event.key.code == '-' || event.key.code == '+')
-					&& searching)
+					&& search != NULL)
 			{
 				if (!messages_reader_find(search, &cur_message, n_messages,
 							event.key.code == '-'))
 				{
-					search[0] = 0;
-					searching = false;
+					search = NULL;
 				}
 
 				redraw = true;
