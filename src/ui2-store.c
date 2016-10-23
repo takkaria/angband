@@ -843,7 +843,8 @@ static void context_menu_store_item(struct store_context *context,
 	struct object *obj = context->list[index];
 
 	char header[ANGBAND_TERM_STANDARD_WIDTH];
-	object_desc(header, sizeof(header), obj, ODESC_PREFIX | ODESC_BASE);
+	object_desc(header, sizeof(header), obj,
+			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
 	char *labels = string_make(lower_case);
 	menu->selections = labels;

@@ -116,13 +116,11 @@ static void grid_get_light(const struct grid_data *g, struct term_point *point)
 		return;
 	}
 
-	struct feature *feat = &f_info[g->f_idx];
-
 	/* Only apply lighting effects when the attr is white  and it's a floor or wall */
 	if (point->fg_attr == COLOUR_WHITE
-			&& (tf_has(feat->flags, TF_FLOOR) || feat_is_wall(g->f_idx)))
+			&& (feat_is_floor(g->f_idx) || feat_is_wall(g->f_idx)))
 	{
-		if (tf_has(feat->flags, TF_TORCH) && g->lighting == LIGHTING_TORCH) {
+		if (feat_is_torch(g->f_idx) && g->lighting == LIGHTING_TORCH) {
 			/* If it's a floor tile lit by a torch then we'll make it yellow */
 			point->fg_attr = COLOUR_YELLOW;
 		} else if (g->lighting == LIGHTING_DARK || g->lighting == LIGHTING_LIT) {
