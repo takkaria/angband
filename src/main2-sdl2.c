@@ -4215,6 +4215,8 @@ static bool term_move(void *user,
 	subwindow->texture = subwindow->swap_texture;
 	subwindow->swap_texture = swap;
 
+	subwindow->window->is_dirty = true;
+
 	return true;
 }
 
