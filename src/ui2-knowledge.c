@@ -2117,7 +2117,7 @@ static bool messages_reader_find(const char *search,
 }
 
 static void messages_reader_scroll(int vscroll,
-		region reg, int *line, int *min_line, int *message)
+		region reg, int *cur_line, int *min_line, int *message)
 {
 	const int abs_scroll = ABS(vscroll);
 
@@ -2141,7 +2141,7 @@ static void messages_reader_scroll(int vscroll,
 		*min_line += height;
 		*message -= abs_scroll;
 	} else {
-		*line -= height;
+		*cur_line -= height;
 		*message += reg.h;
 	}
 }
@@ -2215,25 +2215,25 @@ static int messages_reader_dump(int cur_message, int n_messages,
 			n_messages, &vscroll, reg);
 
 	if (vscroll != 0 || redraw) {
-		int line = reg.y + reg.h - 1;
+		int cur_line = reg.y + reg.h - 1;
 		int min_line = reg.y;
 		int message = cur_message;
 
 		if (vscroll != 0) {
 			messages_reader_scroll(vscroll,
-					reg, &line, &min_line, &message);
+					reg, &cur_line, &min_line, &message);
 		}
 
-		assert(line >= min_line);
+		assert(cur_line >= min_line);
 		assert(message < n_messages);
 
-		while (line >= min_line && message < n_messages) {
+		while (cur_line >= min_line && message < n_messages) {
 			/* Print the messages, from bottom to top */
 			messages_reader_print(message,
-					line, hscroll, reg, search);
+					cur_line, hscroll, reg, search);
 
-			line--;
 			message++;
+			cur_line--;
 		}
 	}
 
