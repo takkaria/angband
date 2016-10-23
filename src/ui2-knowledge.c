@@ -2091,6 +2091,162 @@ void textui_browse_knowledge(void)
  * ------------------------------------------------------------------------
  */
 
+static bool messages_find(const char *search,
+		int *cur_message, int n_messages, bool older)
+{
+	if (older) {
+		/* Find a message older that the current one */
+		for (int i = *cur_message + 1; i < n_messages; i++) {
+			if (my_stristr(message_str(i), search) != NULL) {
+				*cur_message = i;
+				return true;
+			}
+		}
+	} else {
+		/* Find a message newer that the current one */
+		for (int i = *cur_message - 1; i >= 0; i--) {
+			if (my_stristr(message_str(i), search) != NULL) {
+				*cur_message = i;
+				return true;;
+			}
+		}
+	}
+
+	/* Check the current message then */
+	return my_stristr(message_str(*cur_message), search) != NULL;
+}
+
+static void messages_scroll(int vscroll,
+		region reg, int *line, int *min_line, int *message)
+{
+	const int abs_scroll = ABS(vscroll);
+
+	assert(abs_scroll != 0);
+	assert(abs_scroll < reg.h);
+
+	const struct loc src = {
+		.x = reg.x,
+		.y = vscroll > 0 ? reg.y + abs_scroll : reg.y
+	};
+	const struct loc dst = {
+		.x = reg.x,
+		.y = vscroll > 0 ? reg.y : reg.y + abs_scroll
+	};
+
+	const int height = reg.h - abs_scroll;
+
+	Term_move_points(dst.x, dst.y, src.x, src.y, reg.w, height);
+
+	if (vscroll > 0) {
+		*min_line += height;
+		*message -= abs_scroll;
+	} else {
+		*line -= height;
+		*message += reg.h;
+	}
+}
+
+static void messages_check(int *cur_message, int n_messages,
+		int *vscroll, region reg)
+{
+	/* Note that negative vscroll (scroll up) corresponds to
+	 * positive, increasing message numbers (older messages) */
+
+	const int scroll_message = *cur_message - *vscroll;
+	const int end_message = n_messages - reg.h;
+
+	assert(*cur_message <= end_message);
+	assert(*cur_message >= 0);
+
+	if (scroll_message < 0) {
+		*vscroll = *cur_message;
+	}
+	if (scroll_message > end_message) {
+		*vscroll = -(end_message - *cur_message);
+	}
+}
+
+static void messages_print(int message, int line,
+		int hscroll, region reg, const char *search)
+{
+	const char *msg = message_str(message);
+	uint32_t attr = message_color(message);
+	int count = message_count(message);
+	int len = strlen(msg);
+
+	Term_erase_line(reg.x, line);
+
+	/* Apply horizontal scroll */
+	if (len > hscroll) {
+		msg += hscroll;
+		len -= hscroll;
+
+		Term_adds(reg.x, line, len, attr, msg);
+
+		if (count > 1 && reg.x + len + 1 < reg.w) {
+			Term_adds(reg.x + len + 1, line, TERM_MAX_LEN,
+					COLOUR_YELLOW, format("<%dx>", count));
+		}
+
+		if (search != NULL) {
+			size_t len = strlen(search);
+
+			for (const char *s = my_stristr(msg, search);
+					s != NULL;
+					s = my_stristr(s + len, search))
+			{
+				/* Highlight search */
+				Term_adds(reg.x + (s - msg), line, len,
+						COLOUR_YELLOW, s);
+			}
+		}
+	}
+}
+
+static int messages_dump(int cur_message, int n_messages,
+		region reg, int hscroll, int vscroll, bool redraw, const char *search)
+{
+	messages_check(&cur_message, n_messages, &vscroll, reg);
+
+	if (vscroll != 0 || redraw) {
+		int line = reg.y + reg.h - 1;
+		int min_line = reg.y;
+
+		int message = cur_message;
+		int max_message = n_messages - 1;
+
+		if (vscroll != 0) {
+			messages_scroll(vscroll, reg, &line, &min_line, &message);
+		}
+
+		assert(line >= min_line);
+		assert(message <= max_message);
+
+		while (line >= min_line && message <= max_message) {
+			/* Dump the messages, bottom to top */
+			messages_print(message, line, hscroll, reg, search);
+
+			line--;
+			message++;
+		}
+	}
+
+	/* Subtract vscroll, since we're
+	 * printing from bottom to top */
+	return cur_message - vscroll;
+}
+
+static void messages_help(bool searching, struct loc loc)
+{
+	if (searching) {
+		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
+				COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '/' to find]");
+	} else {
+		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
+				COLOUR_WHITE, L"[<dir>, '/' to find, or ESCAPE to exit]");
+	}
+}
+
 /**
  * Show previous messages to the user
  *
@@ -2098,13 +2254,11 @@ void textui_browse_knowledge(void)
  * skips line 1 and 22, and uses line 2 thru 21 for old messages.
  *
  * This command shows you which commands you are viewing, and allows
- * you to "search" for strings in the recall.
+ * you to search for strings in the recall, and highlight the results.
  *
  * Note that messages may be longer than 80 characters, but they are
  * displayed using "infinite" length, with a special sub-command to
- * "slide" the virtual display to the left or right.
- *
- * Attempt to only highlight the matching portions of the string.
+ * slide the virtual display to the left or right.
  */
 void do_cmd_messages(void)
 {
@@ -2121,136 +2275,121 @@ void do_cmd_messages(void)
 	Term_push_new(&hints);
 	Term_add_tab(0, "Messages", COLOUR_WHITE, COLOUR_DARK);
 
-	const int last_msg_pos = term_height - 3;
-	const struct loc help_loc = {0, term_height - 1};
+	const struct loc help_loc = {
+		.x = 0,
+		.y = term_height - 1
+	};
+
+	region msg_reg = {
+		.x = 0,
+		.y = 0,
+		.w = term_width,
+		.h = term_height - 3
+	};
 
 	char search[ANGBAND_TERM_STANDARD_WIDTH] = {0};
 
 	/* Total messages */
-	int n_messages = messages_num();
+	const int n_messages = messages_num();
 	/* Start on first message */
-	int current = 0;
+	int cur_message = 0;
 	/* Start at leftmost edge */
-	int offset = 0;
+	int hscroll = 0;
+	/* Fast scrolling of text */
+	int vscroll = 0;
 
-	bool more = true;
+	/* Lines to use for page up or down */
+	const int page_lines = term_height - 4;
 
-	while (more) {
-		Term_erase_all();
+	/* Redraw the whole term */
+	bool redraw = true;
+	/* Found a substring */
+	bool searching = false;
 
-		for (int m = 0; m <= last_msg_pos && current + m < n_messages; m++) {
-			const char *msg = message_str(current + m);
-			uint32_t attr = message_color(current + m);
-			int count = message_count(current + m);
-			int len = strlen(msg);
+	/* Loop control */
+	bool done = false;
 
-			/* Apply horizontal scroll */
-			if (len > offset) {
-				msg += offset;
-				len -= offset;
-				/* Dump the messages, bottom to top */
-				Term_adds(0, last_msg_pos - m, term_width, attr, msg);
-				if (count > 1 && len + 1 < term_width) {
-					Term_adds(len + 1, last_msg_pos - m, term_width,
-							COLOUR_YELLOW, format("<%dx>", count));
-				}
-
-				if (search[0]) {
-					/* Highlight search */
-					size_t len = strlen(search);
-					for (const char *s = my_stristr(msg, search);
-							s != NULL;
-							s = my_stristr(s + len, search))
-					{
-						Term_adds(s - msg, last_msg_pos - m, len, COLOUR_YELLOW, s);
-					}
-				}
-			}
+	while (!done) {
+		if (redraw) {
+			Term_erase_all();
+			messages_help(searching, help_loc);
 		}
 
-		if (search[0]) {
-			Term_addws(help_loc.x, help_loc.y, term_width,
-					COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '/' to find]");
-		}
-		else {
-			Term_addws(help_loc.x, help_loc.y, term_width,
-					COLOUR_WHITE, L"[<dir>, '/' to find, or ESCAPE to exit]");
-		}
+		cur_message =
+			messages_dump(cur_message, n_messages, msg_reg,
+				hscroll, vscroll, redraw, searching ? search : NULL);
 
+		vscroll = 0;
+		redraw = false;
 		Term_flush_output();
-			
+
 		ui_event event = inkey_simple();
 
 		/* Scroll forwards or backwards using mouse clicks */
 		if (event.type == EVT_MOUSE) {
 			if (event.mouse.button == MOUSE_BUTTON_LEFT) {
 				if (event.mouse.y <= term_height / 2) {
-					/* Go older */
-					current = MIN(current + 20, n_messages - 1);
+					vscroll = -page_lines;
 				} else {
-					/* Go newer */
-					current = MAX(0, current - 20);
+					vscroll = page_lines;
 				}
 			} else if (event.mouse.button == MOUSE_BUTTON_RIGHT) {
-				more = false;
+				done = true;
 			}
 		} else if (event.type == EVT_KBRD) {
 			switch (event.key.code) {
 				case ESCAPE:
-					more = false;
+					done = true;
 					break;
 
 				case '/':
 					/* Get the string to find */
 					show_prompt("Find: ", false);
 					if (askfor_aux(search, sizeof(search), NULL)) {
-						/* Set to find */
 						event.key.code = '-';
+						searching = true;
 					}
 					clear_prompt();
 					break;
 
 				case ARROW_LEFT: case '4':
-					offset = MAX(0, offset - term_width / 4);
+					hscroll = MAX(0, hscroll - term_width / 4);
+					redraw = true;
 					break;
 
 				case ARROW_RIGHT: case '6':
-					offset += term_width / 4;
+					hscroll += term_width / 4;
+					redraw = true;
 					break;
 
 				case ARROW_UP: case '8':
-					current = MIN(current + 1, n_messages - 1);
+					vscroll = -1;
 					break;
 
 				case ARROW_DOWN: case '2': case KC_ENTER:
-					current = MAX(0, current - 1);
+					vscroll = 1;
 					break;
 
 				case KC_PGUP: case 'p':
-					current = MIN(current + 20, n_messages - 1);
+					vscroll = -page_lines;
 					break;
 
 				case KC_PGDOWN: case 'n': case ' ':
-					current = MAX(0, current - 20);
+					vscroll = page_lines;
 					break;
 			}
-		}
 
-		if (event.key.code == '-' && search[0]) {
-			/* Find a message older that the current one */
-			for (int i = current + 1; i < n_messages; i++) {
-				if (my_stristr(message_str(i), search)) {
-					current = i;
-					break;
+			if ((event.key.code == '-' || event.key.code == '+')
+					&& searching)
+			{
+				if (!messages_find(search, &cur_message, n_messages,
+							event.key.code == '-'))
+				{
+					search[0] = 0;
+					searching = false;
 				}
-			}
-		} else if (event.key.code == '+' && search[0]) {
-			/* Find a message newer that the current one */
-			for (int i = current - 1; i >= 0; i--) {
-				if (my_stristr(message_str(i), search)) {
-					current = i;
-					break;
-				}
+
+				redraw = true;
 			}
 		}
 	}
