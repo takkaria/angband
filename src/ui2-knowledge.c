@@ -2228,7 +2228,7 @@ static int messages_dump(int cur_message, int n_messages,
 		assert(message <= max_message);
 
 		while (line >= min_line && message <= max_message) {
-			/* Dump the messages, bottom to top */
+			/* Print the messages, from bottom to top */
 			messages_print(message, line, hscroll, reg, search);
 
 			line--;
