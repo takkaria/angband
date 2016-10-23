@@ -431,25 +431,28 @@ static void display_player_flag_info(void)
 
 /**
  * How to print out the modifications and sustains.
- * Positive mods with no sustain will be light green.
- * Positive mods with a sustain will be dark green.
- * Sustains (with no modification) will be a dark green 's'.
+ * Positive mods with no sustain will be dark green.
+ * Positive mods with a sustain will be light green.
+ * Sustains (with no modification) will be a green 's'.
  * Negative mods (from a curse) will be red.
  * No mod, no sustain, will be a slate '.'
  */
 
 #define SUST_INFO_PLUS_ATTR \
-	COLOUR_L_GREEN
+	COLOUR_GREEN
 #define SUST_INFO_PLUS_CHAR \
 	L'+'
 
 #define SUST_INFO_MINUS_ATTR \
-	COLOUR_L_RED
+	COLOUR_RED
 #define SUST_INFO_MINUS_CHAR \
 	L'-'
 
+#define SUST_INFO_STAT_ATTR \
+	COLOUR_WHITE
+
 #define SUST_INFO_SUST_ATTR \
-	COLOUR_GREEN
+	COLOUR_L_GREEN
 #define SUST_INFO_SUST_CHAR \
 	L's'
 
@@ -457,6 +460,9 @@ static void display_player_flag_info(void)
 	COLOUR_SLATE
 #define SUST_INFO_NONE_CHAR \
 	L'.'
+
+#define SUST_INFO_UNKNOWN_CHAR \
+	L'?'
 
 static void print_obj_sust_info(const struct object *obj,
 		uint32_t *stat_attrs, int n_attrs, struct loc loc)
@@ -487,20 +493,20 @@ static void print_obj_sust_info(const struct object *obj,
 			}
 		}
 
-		if (ch == L'.' && !object_flag_is_known(obj, sust_flag)) {
-			ch = L'?';
+		if (ch == SUST_INFO_NONE_CHAR
+				&& !object_flag_is_known(obj, sust_flag))
+		{
+			ch = SUST_INFO_UNKNOWN_CHAR;
 		}
 
-		const int sa = stat_attrs[stat];
-
-		if ((sa == SUST_INFO_NONE_ATTR && attr != SUST_INFO_NONE_ATTR)
-				|| (sa != SUST_INFO_SUST_ATTR && attr == SUST_INFO_SUST_ATTR))
+		if (stat_attrs[stat] != SUST_INFO_SUST_ATTR
+				&& attr == SUST_INFO_SUST_ATTR)
 		{
-			stat_attrs[stat] = attr;
-		} else if ((sa == SUST_INFO_PLUS_ATTR && attr == SUST_INFO_MINUS_ATTR)
-				|| (sa == SUST_INFO_MINUS_ATTR && attr == SUST_INFO_PLUS_ATTR))
+			stat_attrs[stat] = SUST_INFO_SUST_ATTR;
+		} else if (attr == SUST_INFO_PLUS_ATTR
+				|| attr == SUST_INFO_MINUS_ATTR)
 		{
-			stat_attrs[stat] = SUST_INFO_NONE_ATTR;
+			stat_attrs[stat] = SUST_INFO_STAT_ATTR;
 		}
 
 		Term_addwc(loc.x, loc.y, attr, ch);
