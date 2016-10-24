@@ -253,8 +253,11 @@ static const menu_iter menu_iter_strings = {
 /**
  * Find the position of a cursor given a subwindow address
  */
-static int generic_skin_get_cursor(struct loc loc, int count, int top, region reg)
+static int generic_skin_get_cursor(struct menu *menu,
+		struct loc loc, int count, int top, region reg)
 {
+	(void) menu;
+
 	int rely = loc.y - reg.y;
 
 	if (rely < 0 || rely >= count) {
@@ -394,7 +397,10 @@ static const menu_skin menu_skin_object = {
 
 /*** Multi-column menus ***/
 
-static int column_skin_get_cursor(struct loc loc, int count, int top, region reg)
+#define MENU_DEFAULT_COLUMN_WIDTH 23
+
+static int column_skin_get_cursor(struct menu *menu,
+		struct loc loc, int count, int top, region reg)
 {
 	(void) top;
 
@@ -403,7 +409,8 @@ static int column_skin_get_cursor(struct loc loc, int count, int top, region reg
 	}
 
 	int cols = (count + reg.h - 1) / reg.h;
-	int colw = 23;
+	int colw = menu->column_width > 0 ?
+		menu->column_width : MENU_DEFAULT_COLUMN_WIDTH;
 
 	if (colw * cols > reg.w) {
 		colw = reg.w / cols;
@@ -424,7 +431,8 @@ static void column_skin_display(struct menu *menu, int cursor, region reg)
 {
 	int count = menu_count(menu);
 	int cols = (count + reg.h - 1) / reg.h;
-	int colw = 23;
+	int colw = menu->column_width > 0 ?
+		menu->column_width : MENU_DEFAULT_COLUMN_WIDTH;
 
 	bool redraw = menu_should_redraw(menu);
 
@@ -673,7 +681,7 @@ void menu_handle_mouse(struct menu *menu,
 	if (mouse.button == MOUSE_BUTTON_RIGHT) {
 		out->type = EVT_ESCAPE;
 	} else if (mouse_in_region(mouse, menu->active)) {
-		int new_cursor = menu->skin->get_cursor(loc(mouse.x, mouse.y),
+		int new_cursor = menu->skin->get_cursor(menu, loc(mouse.x, mouse.y),
 				menu_count(menu), menu->top, menu->active);
 	
 		if (is_valid_row(menu, new_cursor)) {

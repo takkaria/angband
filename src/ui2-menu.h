@@ -111,7 +111,8 @@ typedef enum {
  */
 typedef struct {
 	/* Determines the cursor index given a (mouse) location */
-	int (*get_cursor)(struct loc loc, int count, int top, region reg);
+	int (*get_cursor)(struct menu *menu,
+			struct loc loc, int count, int top, region reg);
 
 	/* Displays the current list of visible menu items */
 	void (*display_list)(struct menu *menu, int cursor, region reg);
@@ -195,6 +196,9 @@ struct menu {
 
 	/* Flags specifying the behavior of this menu */
 	bitflag flags[MNFLAG_SIZE];
+
+	/* Width of menu columns (only applicable to MN_SKIN_COLUMNS) */
+	int column_width;
 
 	/*** Private variables ***/
 
