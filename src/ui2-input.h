@@ -23,6 +23,7 @@
 #include "game-event.h"
 #include "ui2-keymap.h"
 #include "ui2-event.h"
+#include "ui2-output.h"
 #include "ui2-term.h"
 
 /* milliseconds to wait between checking for events;
@@ -90,7 +91,10 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime);
 
-bool askfor_aux(char *buf, size_t len, askfor_aux_handler handler);
+bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler);
+bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,
+		int term_width, enum term_position term_pos,
+		textblock *tb, askfor_aux_handler handler);
 
 extern bool (*get_file)(const char *suggested_name, char *path, size_t pathlen);
 

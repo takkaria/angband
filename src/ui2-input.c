@@ -38,7 +38,6 @@
 #include "ui2-knowledge.h"
 #include "ui2-map.h"
 #include "ui2-object.h"
-#include "ui2-output.h"
 #include "ui2-player.h"
 #include "ui2-prefs.h"
 #include "ui2-signals.h"
@@ -385,7 +384,7 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 }
 
 /**
- * Helper function called from askfor_aux()
+ * Helper function called from askfor_aux_internal()
  */
 static bool askfor_aux_handle(struct loc loc, struct keypress *key,
 		char *buf, size_t buflen, size_t *curs, size_t *len,
@@ -425,13 +424,11 @@ static bool askfor_aux_handle(struct loc loc, struct keypress *key,
  *
  * 'handler' is a pointer to a function to handle keypresses, altering
  * the input buffer, cursor position and suchlike as required.
- * See askfor_aux_keypress() (the default handler if you supply NULL for
- * 'handler') for an example.
  */
-bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
+static struct keypress askfor_aux_internal(char *buf, size_t buflen,
+		askfor_aux_handler handler)
 {
-	display_term_push(DISPLAY_MESSAGE_LINE);
-	Term_cursor_visible(true);
+	assert(handler != NULL);
 
 	size_t len = strlen(buf);
 	size_t curs = 0;
@@ -441,16 +438,78 @@ bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
 	struct loc loc;
 	Term_get_cursor(&loc.x, &loc.y, NULL);
 
-	bool done = askfor_aux_handle(loc, &key, buf, buflen, &curs, &len, true,
-			handler ? handler : askfor_aux_keypress);
+	bool done = askfor_aux_handle(loc, &key,
+			buf, buflen, &curs, &len, true, handler);
 
 	while (!done) {
-		done = askfor_aux_handle(loc, &key, buf, buflen, &curs, &len, false,
-				handler ? handler : askfor_aux_keypress);
+		done = askfor_aux_handle(loc, &key,
+				buf, buflen, &curs, &len, false, handler);
 	}
+
+	return key;
+}
+
+/**
+ * Get a string from player, using DISPLAY_MESSAGE_LINE term.
+ */
+bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
+{
+	display_term_push(DISPLAY_MESSAGE_LINE);
+	Term_cursor_visible(true);
+
+	struct keypress key =
+		askfor_aux_internal(buf, buflen,
+				handler != NULL ? handler : askfor_aux_keypress);
 
 	Term_cursor_visible(false);
 	display_term_pop();
+
+	/* ESCAPE means "cancel" and we return false then */
+	return key.code == ESCAPE ? false : true;
+}
+
+/**
+ * Get a string from player, using a popup term;
+ * if argument tb is not NULL, display the
+ * textblock under the prompt.
+ */
+bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,
+		int term_width, enum term_position term_pos,
+		textblock *tb, askfor_aux_handler handler)
+{
+	size_t *line_starts = NULL;
+	size_t *line_lengths = NULL;
+
+	int n_lines = tb == NULL ?
+		0 : textblock_calculate_lines(tb,
+				&line_starts, &line_lengths, term_width);
+
+	/* If there is a helper text, add two lines; one for the prompt,
+	 * and an empty line between the prompt line and the textblock */
+	struct term_hints hints = {
+		.width = term_width,
+		.height = n_lines > 0 ? n_lines + 2 : 1,
+		.position = term_pos,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+
+	Term_push_new(&hints);
+	Term_cursor_visible(true);
+
+	if (n_lines > 0) {
+		region area = {0, 2, 0, 0};
+		textui_textblock_place(tb, area, NULL);
+	}
+
+	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
+
+	struct keypress key =
+		askfor_aux_internal(buf, buflen,
+				handler != NULL ? handler : askfor_aux_keypress);
+
+	mem_free(line_starts);
+	mem_free(line_lengths);
+	Term_pop();
 
 	/* ESCAPE means "cancel" and we return false then */
 	return key.code == ESCAPE ? false : true;

@@ -616,17 +616,20 @@ static void do_cmd_delay(const char *name, int index)
 	(void) name;
 	(void) index;
 
-	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%d", player->opts.delay_factor);
-	show_prompt("New animation delay (0-255 milliseconds): ", false);
+	const char *prompt =
+		"New animation delay (0-255 milliseconds): ";
+
+	char buf[4] = {0};
+	strnfmt(buf, sizeof(buf), "%d", player->opts.delay_factor);
 
 	/* Ask for a numeric value */
-	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
-		u16b val = strtoul(tmp, NULL, 0);
+	if (askfor_aux_popup(prompt, buf, sizeof(buf),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, askfor_aux_numbers))
+	{
+		u16b val = strtoul(buf, NULL, 0);
 		player->opts.delay_factor = MIN(val, 255);
 	}
-
-	clear_prompt();
 }
 
 /**
@@ -637,19 +640,22 @@ static void do_cmd_hp_warn(const char *name, int index)
 	(void) name;
 	(void) index;
 
-	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%d", player->opts.hitpoint_warn);
-	show_prompt("New hitpoint warning (0-9): ", false);
+	const char *prompt = 
+		"New hitpoint warning (0-9): ";
 
-	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
-		byte warn = strtoul(tmp, NULL, 0);
+	char buf[4] = {0};
+	strnfmt(buf, sizeof(buf), "%d", player->opts.hitpoint_warn);
+
+	if (askfor_aux_popup(prompt, buf, sizeof(buf),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, askfor_aux_numbers))
+	{
+		byte warn = strtoul(buf, NULL, 0);
 		if (warn > 9) {
 			warn = 0;
 		}
 		player->opts.hitpoint_warn = warn;
 	}
-
-	clear_prompt();
 }
 
 /**
@@ -660,15 +666,17 @@ static void do_cmd_lazymove_delay(const char *name, int index)
 	(void) name;
 	(void) index;
 
-	char tmp[4] = {0};
-	strnfmt(tmp, sizeof(tmp), "%d", player->opts.lazymove_delay);
-	show_prompt("New input delay: ", false);
+	const char *prompt = "New input delay: ";
 
-	if (askfor_aux(tmp, sizeof(tmp), askfor_aux_numbers)) {
-		player->opts.lazymove_delay = strtoul(tmp, NULL, 0);
+	char buf[4] = {0};
+	strnfmt(buf, sizeof(buf), "%d", player->opts.lazymove_delay);
+
+	if (askfor_aux_popup(prompt, buf, sizeof(buf),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, askfor_aux_numbers))
+	{
+		player->opts.lazymove_delay = strtoul(buf, NULL, 0);
 	}
-
-	clear_prompt();
 }
 
 /**
