@@ -300,8 +300,6 @@ static void help_display_rest(const struct help_file *help,
 	loc.y = term_reg.y + term_reg.h - 1;
 	if (help->menu) {
 		prt("[Press a letter to view other files, or ESC to exit.]", loc);
-	} else if (help->next < text_reg.h) {
-		prt("[Press ESC to exit.]", loc);
 	} else {
 		prt("[Press ESC to exit.]", loc);
 	}
