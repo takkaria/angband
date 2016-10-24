@@ -23,8 +23,8 @@
 #include "game-event.h"
 #include "ui2-keymap.h"
 #include "ui2-event.h"
-#include "ui2-output.h"
 #include "ui2-term.h"
+#include "z-textblock.h"
 
 /* milliseconds to wait between checking for events;
  * inkey_wait() takes the number of this periods as an argument */
