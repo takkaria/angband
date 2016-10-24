@@ -649,6 +649,7 @@ static bool wiz_create_item_action(struct menu *menu,
 	menu_setpriv(new_menu, count, choice);
 	new_menu->title = title;
 	new_menu->selections = all_letters;
+	new_menu->column_width = 40;
 
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
@@ -710,6 +711,7 @@ static void wiz_create_item(bool art)
 
 	menu->selections = all_letters;
 	menu->title = art ? "What kind of artifact?" : "What kind of object?";
+	menu->column_width = 40;
 
 	struct term_hints hints = {
 		.width = ANGBAND_TERM_STANDARD_WIDTH,
