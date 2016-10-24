@@ -731,10 +731,11 @@ void menu_handle_keypress(struct menu *menu,
 		if (menu->active.h < count) {
 			/* Go to start of next page */
 			menu->cursor += menu->active.h;
+			menu->top = menu->cursor;
+
 			if (menu->cursor >= count - 1) {
 				menu->cursor = 0;
 			}
-			menu->top = menu->cursor;
 
 			out->type = EVT_MOVE;
 		}
