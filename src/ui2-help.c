@@ -337,18 +337,20 @@ static void help_find_line(struct help_file *help)
 
 static void help_display_check(struct help_file *help, region reg)
 {
-	const int scroll_line = help->line + help->scroll;
-	const int end_line = help->next - reg.h;
+	if (help->next > reg.h) {
+		const int scroll_line = help->line + help->scroll;
+		const int end_line = help->next - reg.h;
 
-	if (scroll_line < 0 || scroll_line > end_line) {
+		assert(help->line <= end_line);
+
+		if (scroll_line > end_line) {
+			help->scroll = end_line - help->line;
+		}
+		if (scroll_line < 0) {
+			help->scroll = -help->line;
+		}
+	} else {
 		help->scroll = 0;
-	}
-
-	if (help->line > end_line) {
-		help->line = end_line;
-	}
-	if (help->line < 0) {
-		help->line = 0;
 	}
 }
 
@@ -502,13 +504,13 @@ static void show_file(const char *name)
 				break;
 			case KC_PGUP: case '-':
 				if (help->line > 0) {
-					help->line -= text_reg.h;
+					help->scroll = -(text_reg.h - 2);
 					display = true;
 				}
 				break;
 			case KC_PGDOWN: case ' ':
 				if (help->line < end_line) {
-					help->line += text_reg.h;
+					help->scroll = text_reg.h - 2;
 					display = true;
 				}
 				break;
