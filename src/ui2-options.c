@@ -42,16 +42,17 @@
  */
 static bool get_pref_path(char *buf, size_t bufsize, const char *title)
 {
-	show_prompt(format("%s to a pref file: ", title), false);
+	char prompt[ANGBAND_TERM_TEXTBLOCK_WIDTH];
+	strnfmt(prompt, sizeof(prompt), "%s to a pref file: ", title);
 
-	char filename[ANGBAND_TERM_STANDARD_WIDTH];
+	char filename[ANGBAND_TERM_TEXTBLOCK_WIDTH];
 	/* Get the filesystem-safe name and append .prf */
 	player_safe_name(filename, sizeof(filename), player->full_name, true);
 	my_strcat(filename, ".prf", sizeof(filename));
 
-	bool use_filename = askfor_aux(filename, sizeof(filename), NULL);
-
-	clear_prompt();
+	bool use_filename =
+		askfor_aux_popup(prompt, filename, sizeof(filename),
+			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL);
 
 	if (use_filename) {
 		path_build(buf, bufsize, ANGBAND_DIR_USER, filename);
@@ -684,10 +685,8 @@ static void do_cmd_lazymove_delay(const char *name, int index)
  */
 static void do_cmd_pref_file(const char *prompt)
 {
-	if (prompt != NULL) {
-		show_prompt(prompt, false);
-	} else {
-		show_prompt("File: ", false);
+	if (prompt == NULL) {
+		prompt = "File: ";
 	}
 
 	/* Default filename */
@@ -697,14 +696,15 @@ static void do_cmd_pref_file(const char *prompt)
 	my_strcat(filename, ".prf", sizeof(filename));
 
 	/* Ask for a file (or cancel) */
-	if (askfor_aux(filename, sizeof(filename), NULL)) {
+	if (askfor_aux_popup(prompt, filename, sizeof(filename),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
 		if (!process_pref_file(filename, false, true)) {
 			msg("Failed to load '%s'!", filename);
 		} else {
 			msg("Loaded '%s'.", filename);
 		}
-	} else {
-		clear_prompt();
 	}
 }
  
