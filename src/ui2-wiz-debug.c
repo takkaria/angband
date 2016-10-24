@@ -644,7 +644,8 @@ static bool wiz_create_item_action(struct menu *menu,
 		strnfmt(title, sizeof(title), "What kind of %s?", buf);
 	}
 
-	struct menu *new_menu = menu_new(MN_SKIN_COLUMNS, &wiz_create_item_submenu);
+	struct menu *new_menu =
+		menu_new(MN_SKIN_COLUMNS, &wiz_create_item_submenu);
 
 	menu_setpriv(new_menu, count, choice);
 	new_menu->title = title;
@@ -704,7 +705,8 @@ static void wiz_create_item(bool art)
 
 	tvals[count] = WIZ_CREATE_ALL_MENU_ITEM;
 
-	struct menu *menu = menu_new(MN_SKIN_COLUMNS, &wiz_create_item_menu);
+	struct menu *menu =
+		menu_new(MN_SKIN_COLUMNS, &wiz_create_item_menu);
 
 	menu_setpriv(menu, TV_MAX, kb_info);
 	menu_set_filter(menu, tvals, count);
