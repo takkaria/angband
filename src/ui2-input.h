@@ -90,6 +90,12 @@ typedef bool (*askfor_aux_handler)(char *buf, size_t buflen,
 bool askfor_aux_keypress(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime);
+/**
+ * Handler for askfor_aux() that accepts only numbers
+ */
+bool askfor_aux_numbers(char *buf, size_t buflen,
+		size_t *curs, size_t *len,
+		struct keypress keypress, bool firsttime);
 
 bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler);
 bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,

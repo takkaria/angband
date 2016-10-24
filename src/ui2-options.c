@@ -582,33 +582,6 @@ static void do_cmd_keymaps(const char *title, int index)
  * ------------------------------------------------------------------------
  */
 
-static bool askfor_aux_numbers(char *buf, size_t buflen,
-		size_t *curs, size_t *len, struct keypress key, bool firsttime)
-{
-	switch (key.code) {
-		case ESCAPE:
-		case KC_ENTER:
-		case ARROW_LEFT:
-		case ARROW_RIGHT:
-		case KC_DELETE:
-		case KC_BACKSPACE:
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			return askfor_aux_keypress(buf, buflen, curs, len, key, firsttime);
-
-		default:
-			return false;
-	}
-}
-
 /**
  * Set base delay factor
  */
