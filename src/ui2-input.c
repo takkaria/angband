@@ -468,6 +468,11 @@ static struct keypress askfor_aux_internal(char *buf, size_t buflen,
 	struct loc loc;
 	Term_get_cursor(&loc.x, &loc.y, NULL);
 
+	int width = Term_width() - loc.x;
+	assert(width > 0);
+
+	buflen = MIN(buflen, (size_t) width + 1);
+
 	bool done = askfor_aux_handle(loc, &key,
 			buf, buflen, &curs, &len, true, handler);
 
