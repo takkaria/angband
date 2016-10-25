@@ -945,8 +945,6 @@ static int context_menu_store(struct store_context *context,
 				home ? "Stash" : "Sell", 'd', ACT_SELL, labels);
 	}
 
-	store_prompt(context, "(Enter to select, ESC) Command:");
-
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
 		.x = mloc.x,
@@ -961,7 +959,6 @@ static int context_menu_store(struct store_context *context,
 
 	int selected = menu_dynamic_select(menu);
 
-	store_clear_prompt(context);
 	menu_dynamic_free(menu);
 	string_free(labels);
 	Term_pop();
@@ -988,10 +985,6 @@ static void context_menu_store_item(struct store_context *context,
 	struct menu *menu = menu_dynamic_new();
 	struct object *obj = context->list[index];
 
-	char header[ANGBAND_TERM_STANDARD_WIDTH];
-	object_desc(header, sizeof(header), obj,
-			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
-
 	char *labels = string_make(lower_case);
 	menu->selections = labels;
 
@@ -1002,8 +995,6 @@ static void context_menu_store_item(struct store_context *context,
 		menu_dynamic_add_label(menu,
 				home ? "Take one" : "Buy one", 'o', ACT_BUY_ONE, labels);
 	}
-
-	store_prompt(context, format("(Enter to select, ESC) Command for %s:", header));
 
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
@@ -1019,7 +1010,6 @@ static void context_menu_store_item(struct store_context *context,
 
 	int selected = menu_dynamic_select(menu);
 
-	store_clear_prompt(context);
 	menu_dynamic_free(menu);
 	string_free(labels);
 	Term_pop();
