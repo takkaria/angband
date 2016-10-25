@@ -285,7 +285,7 @@ void inkey_any(void)
 }
 
 /**
- * The default keypress handling function for askfor_aux, this takes the
+ * The default keypress handling function for askfor_aux(), this takes the
  * given keypress, input buffer, length, etc, and does the appropriate action
  * for each keypress, such as moving the cursor left or inserting a character.
  *
@@ -414,7 +414,7 @@ bool askfor_numbers(char *buf, size_t buflen,
 }
 
 /**
- * Helper function called from askfor_aux_internal()
+ * Helper function called from askfor_aux()
  */
 static bool askfor_aux_handle(struct loc loc, struct keypress *key,
 		char *buf, size_t buflen, size_t *curs, size_t *len,
