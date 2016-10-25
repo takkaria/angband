@@ -490,7 +490,7 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 	assert(max_quantity > 1);
 
 	char prompt[ANGBAND_TERM_TEXTBLOCK_WIDTH / 2];
-	char buf[sizeof("123456")] = "1";
+	char buf[sizeof("123")] = "1";
 
 	const int name_len = strlen(name_str);
 	const int add_len = strlen(add_str);
