@@ -406,13 +406,40 @@ static void store_display_help(struct store_context *context)
 	Term_pop();
 }
 
-static bool store_get_check(const char *prompt)
+static bool store_get_check(const char *verb,
+		const char *name, uint32_t attr, int price)
 {
-	show_prompt(prompt, false);
+	char cost[32];
+
+	int verb_len = strlen(verb);
+	int name_len = strlen(name);
+	int cost_len = strnfmt(cost, sizeof(cost), "for %d? [y/n] ", price);
+
+	int prompt_len = verb_len + 1 + name_len + 1 + cost_len;
+
+	struct term_hints hints = {
+		.width = prompt_len + 1,
+		.height = 1,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+	Term_cursor_visible(true);
+
+	int x = 0;
+	Term_adds(x, 0, verb_len, COLOUR_WHITE, verb);
+
+	x += verb_len + 1;
+	Term_adds(x, 0, name_len, attr, name);
+
+	x += name_len + 1;
+	Term_adds(x, 0, cost_len, COLOUR_WHITE, cost);
+
+	Term_flush_output();
 
 	struct keypress key = inkey_only_key();
 
-	clear_prompt();
+	Term_pop();
 
 	switch (key.code) {
 		case ESCAPE: case 'N' : case 'n':
@@ -490,14 +517,8 @@ static void store_sell(struct store_context *context)
 		int price = price_item(store, temp_obj, true, amt);
 
 		/* Confirm sale */
-		char buf[ANGBAND_TERM_STANDARD_WIDTH];
-		strnfmt(buf, sizeof(buf),
-				"%s %s%s? [ESC, any other key to accept]",
-				OPT(player, birth_no_selling) ? "Give" : "Sell",
-				o_name,
-				OPT(player, birth_no_selling) ? "" : format(" for %d", price));
-
-		if (store_get_check(buf)) {
+		const char *verb = OPT(player, birth_no_selling) ? "Give" : "Sell";
+		if (store_get_check(verb, o_name, temp_obj->kind->base->attr, price)) {
 			cmdq_push(CMD_SELL);
 			cmd_set_arg_item(cmdq_peek(), "item", obj);
 			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
@@ -600,9 +621,7 @@ static void store_purchase(struct store_context *context, int item, bool single)
 		int price = price_item(store, &dummy, false, dummy.number);
 
 		/* Confirm purchase */
-		if (store_get_check(format("Buy %s for %d? [ESC, any other key to accept]",
-						o_name, price)))
-		{
+		if (store_get_check("Buy", o_name, dummy.kind->base->attr, price)) {
 			cmdq_push(CMD_BUY);
 			cmd_set_arg_item(cmdq_peek(), "item", obj);
 			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
