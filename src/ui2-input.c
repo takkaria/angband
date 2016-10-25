@@ -591,7 +591,7 @@ bool get_character_name(char *buf, size_t buflen)
  * See askfor_aux() for some notes about buf and buflen,
  * and about the return value of this function.
  */
-static bool textui_get_string(const char *prompt, char *buf, size_t buflen)
+static bool textui_get_string_prompt(const char *prompt, char *buf, size_t buflen)
 {
 	event_signal(EVENT_MESSAGE_FLUSH);
 
@@ -628,7 +628,7 @@ static int textui_get_quantity_internal(const char *prompt, int max, bool popup)
 
 		bool got_quantity = popup ?
 			textui_get_string_popup(prompt, buf, maxlen) :
-			textui_get_string(prompt, buf, maxlen);
+			textui_get_string_prompt(prompt, buf, maxlen);
 
 		if (got_quantity) {
 			if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
@@ -652,7 +652,7 @@ int textui_get_quantity_popup(const char *prompt, int max)
 /**
  * Request a quantity from the user.
  */
-int textui_get_quantity(const char *prompt, int max)
+int textui_get_quantity_prompt(const char *prompt, int max)
 {
 	return textui_get_quantity_internal(prompt, max, false);
 }
@@ -935,8 +935,8 @@ bool textui_get_aim_dir(int *dir)
  */
 void textui_input_init(void)
 {
-	get_string_hook          = textui_get_string;
-	get_quantity_hook        = textui_get_quantity;
+	get_string_hook          = textui_get_string_prompt;
+	get_quantity_hook        = textui_get_quantity_prompt;
 	get_check_hook           = textui_get_check;
 	get_com_hook             = textui_get_com;
 	get_rep_dir_hook         = textui_get_rep_dir;
