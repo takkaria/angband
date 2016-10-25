@@ -285,9 +285,9 @@ void inkey_any(void)
 }
 
 /**
- * The default keypress handling function for askfor_aux(), this takes the
- * given keypress, input buffer, length, etc, and does the appropriate action
- * for each keypress, such as moving the cursor left or inserting a character.
+ * The default keypress handling function for askfor(), this takes the given
+ * keypress, input buffer, length, etc, and does the appropriate action for
+ * each keypress, such as moving the cursor left or inserting a character.
  *
  * It should return true when editing of the buffer is "complete" (e.g. on
  * the press of RETURN).
@@ -384,7 +384,7 @@ bool askfor_keypress(char *buf, size_t buflen,
 }
 
 /**
- * A handler for askfor_aux() that accepts only numbers.
+ * A handler for askfor() that accepts only numbers.
  */
 bool askfor_numbers(char *buf, size_t buflen,
 		size_t *curs, size_t *len, struct keypress key, bool firsttime)
@@ -414,7 +414,7 @@ bool askfor_numbers(char *buf, size_t buflen,
 }
 
 /**
- * Helper function called from askfor_aux()
+ * Helper function called from askfor()
  */
 static bool askfor_aux_handle(struct loc loc, struct keypress *key,
 		char *buf, size_t buflen, size_t *curs, size_t *len,
@@ -557,7 +557,7 @@ bool askfor_popup(const char *prompt, char *buf, size_t buflen,
 }
 
 /**
- * A keypress handling function for askfor_aux, that handles the special
+ * A keypress handling function for askfor(), that handles the special
  * case of '*' for a new random name and passes any other keypress
  * through to the default editing handler.
  */
