@@ -1165,6 +1165,7 @@ static void store_menu_init(struct store_context *context,
 	context->store = store;
 	context->inspect_only = inspect_only;
 	context->list = mem_zalloc(sizeof(*context->list) * z_info->store_inven_max);
+	context->prompt = NULL;
 
 	store_stock_list(context->store, context->list, z_info->store_inven_max);
 
