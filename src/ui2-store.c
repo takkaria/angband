@@ -97,6 +97,8 @@ struct store_context {
 	struct object **list; /* List of objects */
 	bool inspect_only;    /* Only allow looking */
 
+	const char *prompt;
+
 	/* Places for the various things displayed onscreen */
 	struct loc term_loc[LOC_MAX];
 };
@@ -299,17 +301,10 @@ static void store_display_entry(struct menu *menu,
 	}
 }
 
-/**
- * Display store's "decorations".
- */
-static void store_display_frame(int cursor, void *menu_data, region reg)
+static void store_draw_frame(const struct store_context *context)
 {
-	(void) cursor;
-	(void) reg;
-
-	struct store_context *context = menu_data;
-	struct store *store = context->store;
-	struct owner *proprietor = store->owner;
+	const struct store *store = context->store;
+	const struct owner *proprietor = store->owner;
 
 	for (int y = 0; y < context->term_loc[LOC_HEADER].y; y++) {
 		Term_erase_line(0, y);
@@ -331,9 +326,21 @@ static void store_display_frame(int cursor, void *menu_data, region reg)
 		put_str("    Price", context->term_loc[LOC_PRICE]);
 	}
 
-	prt("Press '?' for help.", context->term_loc[LOC_HELP_PROMPT]);
+	prt(context->prompt != NULL ? context->prompt : "Press '?' for help.",
+			context->term_loc[LOC_HELP_PROMPT]);
 
 	store_prt_gold(context, LOC_PLAYER_GOLD, player->au);
+}
+
+/**
+ * Display store's "decorations".
+ */
+static void store_display_frame(int cursor, void *menu_data, region reg)
+{
+	(void) cursor;
+	(void) reg;
+
+	store_draw_frame(menu_data);
 }
 
 /**
@@ -422,6 +429,16 @@ static void store_warn(const char *warning)
 	inkey_any();
 
 	Term_pop();
+}
+
+static void store_prompt(struct store_context *context, const char *prompt)
+{
+	context->prompt = prompt;
+}
+
+static void store_clear_prompt(struct store_context *context)
+{
+	context->prompt = NULL;
 }
 
 static bool store_get_check(const char *name, uint32_t attr,
@@ -928,7 +945,7 @@ static int context_menu_store(struct store_context *context,
 				home ? "Stash" : "Sell", 'd', ACT_SELL, labels);
 	}
 
-	show_prompt("(Enter to select, ESC) Command:", false);
+	store_prompt(context, "(Enter to select, ESC) Command:");
 
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
@@ -944,9 +961,9 @@ static int context_menu_store(struct store_context *context,
 
 	int selected = menu_dynamic_select(menu);
 
+	store_clear_prompt(context);
 	menu_dynamic_free(menu);
 	string_free(labels);
-	clear_prompt();
 	Term_pop();
 
 	switch (selected) {
@@ -986,7 +1003,7 @@ static void context_menu_store_item(struct store_context *context,
 				home ? "Take one" : "Buy one", 'o', ACT_BUY_ONE, labels);
 	}
 
-	show_prompt(format("(Enter to select, ESC) Command for %s:", header), false);
+	store_prompt(context, format("(Enter to select, ESC) Command for %s:", header));
 
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
@@ -1002,9 +1019,9 @@ static void context_menu_store_item(struct store_context *context,
 
 	int selected = menu_dynamic_select(menu);
 
+	store_clear_prompt(context);
 	menu_dynamic_free(menu);
 	string_free(labels);
-	clear_prompt();
 	Term_pop();
 
 	switch (selected) {
@@ -1084,14 +1101,14 @@ static bool store_menu_handle(struct menu *menu,
 			case 'p': case 'g':
 				/* Use the old way of purchasing items */
 				if (store->sidx != STORE_HOME) {
-					show_prompt("Purchase which item? (ESC to cancel, Enter to select)", false);
+					store_prompt(context, "Purchase which item? (ESC to cancel)");
 				} else {
-					show_prompt("Get which item? (Esc to cancel, Enter to select)", false);
+					store_prompt(context, "Get which item? (Esc to cancel)");
 				}
 
 				index = store_get_stock(menu, index);
 
-				clear_prompt();
+				store_clear_prompt(context);
 
 				if (index >= 0) {
 					store_purchase(context, index, false);
@@ -1100,11 +1117,11 @@ static bool store_menu_handle(struct menu *menu,
 
 			case 'l': case 'x':
 				/* Use the old way of examining items */
-				show_prompt("Examine which item? (ESC to cancel, Enter to select)", false);
+				store_prompt(context, "Examine which item? (ESC to cancel)");
 
 				index = store_get_stock(menu, index);
 
-				clear_prompt();
+				store_clear_prompt(context);
 
 				if (index >= 0) {
 					store_examine(context, index);
