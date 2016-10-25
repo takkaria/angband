@@ -458,7 +458,7 @@ static void store_sell(struct store_context *context)
 		return;
 	}
 
-	int amt = get_quantity(NULL, obj->number);
+	int amt = textui_get_quantity_popup(NULL, obj->number);
 	if (amt <= 0) {
 		return;
 	}
@@ -574,7 +574,7 @@ static void store_purchase(struct store_context *context, int item, bool single)
 				num > 0 ? format(" (you have %d)", num) : "",
 				amt);
 
-		amt = get_quantity(buf, amt);
+		amt = textui_get_quantity_popup(buf, amt);
 		if (amt <= 0) {
 			return;
 		}

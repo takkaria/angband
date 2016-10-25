@@ -605,10 +605,7 @@ bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 	return res;
 }
 
-/**
- * Request a quantity from the user.
- */
-int textui_get_quantity(const char *prompt, int max)
+static int textui_get_quantity_internal(const char *prompt, int max, bool popup)
 {
 	int amt = 1;
 
@@ -624,7 +621,14 @@ int textui_get_quantity(const char *prompt, int max)
 		}
 
 		/* Up to six digits (999999 maximum) */
-		if (get_string(prompt, buf, sizeof("123456"))) {
+		const size_t maxlen = sizeof("123456");
+
+		bool got_quantity = popup ?
+			askfor_aux_popup(prompt, buf, maxlen,
+					ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL) :
+			get_string(prompt, buf, maxlen);
+
+		if (got_quantity) {
 			if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
 				amt = max; /* A star or letter means "all" */
 			} else {
@@ -636,6 +640,19 @@ int textui_get_quantity(const char *prompt, int max)
 	}
 
 	return MAX(0, MIN(amt, max));
+}
+
+int textui_get_quantity_popup(const char *prompt, int max)
+{
+	return textui_get_quantity_internal(prompt, max, true);
+}
+
+/**
+ * Request a quantity from the user.
+ */
+int textui_get_quantity(const char *prompt, int max)
+{
+	return textui_get_quantity_internal(prompt, max, false);
 }
 
 /**
