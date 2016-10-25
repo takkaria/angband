@@ -485,22 +485,22 @@ static bool store_get_check(const char *name, uint32_t name_attr,
 }
 
 static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
-		const char *verb, const char *add_str, int max_quantity)
+		const char *verb_str, const char *add_str, int max_quantity)
 {
 	assert(max_quantity > 1);
 
-	char prompt[ANGBAND_TERM_TEXTBLOCK_WIDTH / 2];
+	const char *prompt = "How many? ('a' for max) ";
 	char buf[sizeof("123")] = "1";
 
+	const int verb_len = strlen(verb_str);
 	const int name_len = strlen(name_str);
 	const int add_len = strlen(add_str);
 
-	const int prompt_len =
-		strnfmt(prompt, sizeof(prompt), "%s how many? ('a' for max) ", verb);
+	const int prompt_len = strlen(prompt);
 	const int buf_len = sizeof(buf) - 1; /* subtract one to account for null byte */
 
 	struct term_hints hints = {
-		.width = MAX(name_len + add_len, prompt_len + buf_len),
+		.width = MAX(verb_len + name_len + add_len, prompt_len + buf_len),
 		.height = 3,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
@@ -509,7 +509,11 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 
 	struct loc loc = {0, 2};
 
+	Term_adds(loc.x, loc.y, verb_len, COLOUR_WHITE, verb_str);
+	loc.x += verb_len;
+
 	Term_adds(loc.x, loc.y, name_len, name_attr, name_str);
+
 	if (add_len > 0) {
 		loc.x += name_len;
 		Term_adds(loc.x, loc.y, add_len, COLOUR_WHITE, add_str);
@@ -545,10 +549,10 @@ static int store_get_quantity(const struct store *store, const struct object *ob
 	} else {
 		const char *verb;
 		if (selling) {
-			verb = store->sidx == STORE_HOME  ? "Drop" :
-				OPT(player, birth_no_selling) ? "Give" : "Sell";
+			verb = store->sidx == STORE_HOME  ? "Dropping " :
+				OPT(player, birth_no_selling) ? "Giving " : "Selling ";
 		} else {
-			verb = store->sidx == STORE_HOME  ? "Take" : "Buy";
+			verb = store->sidx == STORE_HOME  ? "Taking " : "Buying ";
 		}
 
 		char has_str[ANGBAND_TERM_STANDARD_WIDTH / 2];
@@ -567,9 +571,15 @@ static int store_get_quantity(const struct store *store, const struct object *ob
 
 		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 		object_desc(o_name, sizeof(o_name), obj,
-				ODESC_PREFIX | ODESC_BASE | ODESC_STORE);
+				ODESC_PREFIX | ODESC_TERSE | ODESC_STORE);
 
-		return store_get_quantity_aux(o_name, obj->kind->base->attr,
+		const char *name_str = o_name;
+		/* Hack - skip initial digits in description */
+		while (isdigit(*name_str) || isspace(*name_str)) {
+			name_str++;
+		}
+
+		return store_get_quantity_aux(name_str, obj->kind->base->attr,
 				verb, add_str, max_quantity);
 	}
 }
