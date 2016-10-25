@@ -441,7 +441,7 @@ static void store_clear_prompt(struct store_context *context)
 	context->prompt = NULL;
 }
 
-static bool store_get_check(const char *name, uint32_t attr,
+static bool store_get_check(const char *name, uint32_t name_attr,
 		const char *verb, int price)
 {
 	char cost[32];
@@ -465,7 +465,7 @@ static bool store_get_check(const char *name, uint32_t attr,
 	Term_adds(x, 0, verb_len, COLOUR_WHITE, verb);
 
 	x += verb_len + 1;
-	Term_adds(x, 0, name_len, attr, name);
+	Term_adds(x, 0, name_len, name_attr, name);
 
 	x += name_len + 1;
 	Term_adds(x, 0, cost_len, COLOUR_WHITE, cost);
