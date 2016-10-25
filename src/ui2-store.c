@@ -491,7 +491,7 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 	assert(max_quantity > 1);
 
 	const char *prompt = "How many? ('a' for max) ";
-	char buf[sizeof("123")] = "1";
+	char buf[sizeof("123")] = "1"; /* 3 digits (999) maximum, 1 default */
 
 	const int verb_len = strlen(verb_str);
 	const int name_len = strlen(name_str);
