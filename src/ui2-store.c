@@ -571,8 +571,7 @@ static int store_get_quantity(const struct store *store, const struct object *ob
 				" (%s%s)", has_str, max_str);
 
 		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
-		object_desc(o_name, sizeof(o_name), obj,
-				ODESC_PREFIX | ODESC_TERSE | ODESC_STORE);
+		object_desc(o_name, sizeof(o_name), obj, ODESC_TERSE | ODESC_STORE);
 
 		const char *name_str = o_name;
 		/* Hack - skip initial digits in description */
