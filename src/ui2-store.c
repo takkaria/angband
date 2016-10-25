@@ -480,7 +480,7 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 
 	const int prompt_len =
 		strnfmt(prompt, sizeof(prompt), "%s how many? ('a' for max) ", verb);
-	const int buf_len = sizeof(buf);
+	const int buf_len = sizeof(buf) - 1; /* subtract one to account for null byte */
 
 	struct term_hints hints = {
 		.width = MAX(name_len + add_len, prompt_len + buf_len),
