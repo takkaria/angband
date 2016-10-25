@@ -507,40 +507,36 @@ static int store_get_quantity(const struct store *store, const struct object *ob
 {
 	if (max_quantity <= 1) {
 		return max_quantity;
-	}
-
-	const char *verb;
-	if (selling) {
-		verb = store->sidx == STORE_HOME  ? "Drop" :
-			OPT(player, birth_no_selling) ? "Give" : "Sell";
 	} else {
-		verb = store->sidx == STORE_HOME  ? "Take" : "Buy";
-	}
+		const char *verb;
+		if (selling) {
+			verb = store->sidx == STORE_HOME  ? "Drop" :
+				OPT(player, birth_no_selling) ? "Give" : "Sell";
+		} else {
+			verb = store->sidx == STORE_HOME  ? "Take" : "Buy";
+		}
 
-	char has_str[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
-	if (player_has_quantity > 0) {
-		strnfmt(has_str, sizeof(has_str), "you have %d", player_has_quantity);
-	}
+		char has_str[ANGBAND_TERM_STANDARD_WIDTH / 2];
+		if (player_has_quantity > 0) {
+			strnfmt(has_str, sizeof(has_str), "you have %d, ", player_has_quantity);
+		} else {
+			has_str[0] = 0;
+		}
 
-	char max_str[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
-	if (max_quantity > 0) {
+		char max_str[ANGBAND_TERM_STANDARD_WIDTH / 2];
 		strnfmt(max_str, sizeof(max_str), "maximum %d", max_quantity);
-	}
 
-	char add_str[ANGBAND_TERM_STANDARD_WIDTH] = "";
-	if (player_has_quantity > 0 || max_quantity > 0) {
-		const char *comma = has_str[0] != 0 ? ", " : "";
-
+		char add_str[ANGBAND_TERM_STANDARD_WIDTH];
 		strnfmt(add_str, sizeof(add_str),
-				" (%s%s%s)", has_str, comma, max_str);
+				" (%s%s)", has_str, max_str);
+
+		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
+		object_desc(o_name, sizeof(o_name), obj,
+				ODESC_PREFIX | ODESC_TERSE | ODESC_STORE);
+
+		return store_get_quantity_aux(o_name, obj->kind->base->attr,
+				verb, add_str, max_quantity);
 	}
-
-	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
-	object_desc(o_name, sizeof(o_name), obj,
-			ODESC_PREFIX | ODESC_TERSE | ODESC_STORE);
-
-	return store_get_quantity_aux(o_name, obj->kind->base->attr,
-			verb, add_str, max_quantity);
 }
 
 /*
