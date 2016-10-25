@@ -402,6 +402,9 @@ static void build_obj_list(struct object_menu_list *olist,
 		} else if (window || SHOW_OBJECT_IF_EMPTY(obj)) {
 			/* Unacceptable items are still sometimes shown
 			 * (pretty much only in equip subwindow/menu) */
+
+			assert(*keys != 0);
+			keys++; /* skip this key */
 			key = 0;
 
 			if (!menu) {
@@ -409,6 +412,8 @@ static void build_obj_list(struct object_menu_list *olist,
 					my_strcpy(item->label.str, "   ", item->label.size);
 			}
 		} else {
+			assert(*keys != 0);
+			keys++; /* skip this key */
 			continue;
 		}
 
