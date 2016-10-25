@@ -414,7 +414,7 @@ bool askfor_numbers(char *buf, size_t buflen,
 }
 
 /**
- * Helper function called from askfor()
+ * Helper function called from askfor_aux()
  */
 static bool askfor_aux_handle(struct loc loc, struct keypress *key,
 		char *buf, size_t buflen, size_t *curs, size_t *len,
