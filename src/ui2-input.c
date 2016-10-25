@@ -484,6 +484,9 @@ static bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
 	return key.code == ESCAPE ? false : true;
 }
 
+/**
+ * Get a string from player, using already existing term.
+ */
 bool askfor_aux_place(char *buf, size_t buflen,
 		askfor_aux_handler handler)
 {
