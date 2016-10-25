@@ -461,7 +461,7 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 	const int add_len = strlen(add_str);
 
 	const int prompt_len =
-		strnfmt(prompt, sizeof(prompt), "%s how many? ", verb);
+		strnfmt(prompt, sizeof(prompt), "%s how many? ('a' for all)", verb);
 	const int buf_len = sizeof(buf);
 
 	struct term_hints hints = {
