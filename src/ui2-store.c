@@ -406,6 +406,24 @@ static void store_display_help(struct store_context *context)
 	Term_pop();
 }
 
+static void store_warn(const char *warning)
+{
+	struct term_hints hints = {
+		.width = strlen(warning),
+		.height = 1,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+
+	Term_push_new(&hints);
+	Term_adds(0, 0, hints.width, COLOUR_RED, warning);
+	Term_flush_output();
+
+	inkey_any();
+
+	Term_pop();
+}
+
 static bool store_get_check(const char *name, uint32_t attr,
 		const char *verb, int price)
 {
@@ -571,7 +589,7 @@ static void store_sell(struct store_context *context)
 
 	/* Cannot remove cursed objects */
 	if (object_is_equipped(player->body, obj) && !obj_can_takeoff(obj)) {
-		msg("Hmmm, it seems to be stuck.");
+		store_warn("Hmmm, it seems to be stuck.");
 		return;
 	}
 
@@ -588,9 +606,9 @@ static void store_sell(struct store_context *context)
 
 	if (!store_check_num(store, temp_obj)) {
 		if (store->sidx == STORE_HOME) {
-			msg("Your home is full.");
+			store_warn("Your home is full.");
 		} else {
-			msg("I have not the room in my store to keep it.");
+			store_warn("I have not the room in my store to keep it.");
 		}
 
 		return;
@@ -632,7 +650,7 @@ static int store_purchase_amt(struct store *store,
 		if (store->sidx != STORE_HOME
 				&& p->au < price_item(store, obj, false, 1))
 		{
-			msg("You do not have enough gold for this item.");
+			store_warn("You do not have enough gold for this item.");
 			return 0;
 		}
 	} else {
@@ -645,7 +663,7 @@ static int store_purchase_amt(struct store *store,
 
 			/* Check if the player can afford any at all */
 			if (p->au < price_one) {
-				msg("You do not have enough gold for this item.");
+				store_warn("You do not have enough gold for this item.");
 				return 0;
 			}
 
@@ -669,7 +687,7 @@ static int store_purchase_amt(struct store *store,
 
 		/* Fail if there is no room */
 		if (max <= 0 || (!aware && pack_is_full())) {
-			msg("You cannot carry that many items.");
+			store_warn("You cannot carry that many items.");
 			return 0;
 		}
 
@@ -698,7 +716,7 @@ static void store_purchase(struct store_context *context, int item, bool single)
 
 	/* Ensure we have room */
 	if (!inven_carry_okay(&dummy)) {
-		msg("You cannot carry that many items.");
+		store_warn("You cannot carry that many items.");
 		return;
 	}
 
