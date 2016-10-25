@@ -411,11 +411,11 @@ static bool store_get_check(const char *name, uint32_t attr,
 {
 	char cost[32];
 
-	int verb_len = strlen(verb);
-	int name_len = strlen(name);
-	int cost_len = strnfmt(cost, sizeof(cost), "for %d? [y/n] ", price);
+	const int verb_len = strlen(verb);
+	const int name_len = strlen(name);
+	const int cost_len = strnfmt(cost, sizeof(cost), "for %d? [y/n] ", price);
 
-	int prompt_len = verb_len + 1 + name_len + 1 + cost_len;
+	const int prompt_len = verb_len + 1 + name_len + 1 + cost_len;
 
 	struct term_hints hints = {
 		.width = prompt_len + 1,
