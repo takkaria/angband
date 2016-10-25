@@ -97,7 +97,7 @@ bool askfor_aux_numbers(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime);
 
-bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler);
+bool askfor_aux_place(char *buf, size_t buflen, askfor_aux_handler handler);
 bool askfor_aux_prompt(char *buf, size_t buflen, askfor_aux_handler handler);
 bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,
 		int term_width, enum term_position term_pos,

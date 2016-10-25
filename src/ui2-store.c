@@ -406,8 +406,8 @@ static void store_display_help(struct store_context *context)
 	Term_pop();
 }
 
-static bool store_get_check(const char *verb,
-		const char *name, uint32_t attr, int price)
+static bool store_get_check(const char *name, uint32_t attr,
+		const char *verb, int price)
 {
 	char cost[32];
 
@@ -449,11 +449,64 @@ static bool store_get_check(const char *verb,
 	}
 }
 
-static int store_get_quantity(const struct store *store,
-		bool selling, int inven, int max)
+static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
+		const char *verb, const char *add_str, int max_quantity)
 {
-	if (max <= 1) {
-		return max;
+	assert(max_quantity > 1);
+
+	char prompt[ANGBAND_TERM_TEXTBLOCK_WIDTH / 2];
+	char buf[sizeof("123456")] = "1";
+
+	const int name_len = strlen(name_str);
+	const int add_len = strlen(add_str);
+
+	const int prompt_len =
+		strnfmt(prompt, sizeof(prompt), "%s how many? ", verb);
+	const int buf_len = sizeof(buf);
+
+	struct term_hints hints = {
+		.width = MAX(name_len + add_len, prompt_len + buf_len),
+		.height = 3,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+
+	struct loc loc = {0, 2};
+
+	Term_adds(loc.x, loc.y, name_len, name_attr, name_str);
+	if (add_len > 0) {
+		loc.x += name_len;
+		Term_adds(loc.x, loc.y, add_len, COLOUR_WHITE, add_str);
+	}
+
+	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
+
+	Term_cursor_visible(true);
+	Term_flush_output();
+
+	int amt;
+	if(askfor_aux_place(buf, sizeof(buf), askfor_aux_keypress)) {
+		if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
+			amt = max_quantity; /* A star or letter means "all" */
+		} else {
+			amt = atoi(buf);
+			amt = MAX(0, MIN(amt, max_quantity));
+		}
+	} else {
+		amt = 0;
+	}
+
+	Term_pop();
+
+	return amt;
+}
+
+static int store_get_quantity(const struct store *store, const struct object *obj,
+		bool selling, int player_has_quantity, int max_quantity)
+{
+	if (max_quantity <= 1) {
+		return max_quantity;
 	}
 
 	const char *verb;
@@ -464,20 +517,30 @@ static int store_get_quantity(const struct store *store,
 		verb = store->sidx == STORE_HOME  ? "Take" : "Buy";
 	}
 
-	char inventory[ANGBAND_TERM_TEXTBLOCK_WIDTH / 2] = "";
-	if (inven > 0) {
-		strnfmt(inventory, sizeof(inventory), " (you have %d)", inven);
+	char has_str[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
+	if (player_has_quantity > 0) {
+		strnfmt(has_str, sizeof(has_str), "you have %d", player_has_quantity);
 	}
 
-	char maximum[ANGBAND_TERM_TEXTBLOCK_WIDTH / 2] = "";
-	if (max > 0) {
-		strnfmt(maximum, sizeof(maximum), " (maximum %d)", max);
+	char max_str[ANGBAND_TERM_STANDARD_WIDTH / 2] = "";
+	if (max_quantity > 0) {
+		strnfmt(max_str, sizeof(max_str), "maximum %d", max_quantity);
 	}
 
-	char buf[ANGBAND_TERM_TEXTBLOCK_WIDTH];
-	strnfmt(buf, sizeof(buf), "%s how many%s?%s ", verb, inventory, maximum);
+	char add_str[ANGBAND_TERM_STANDARD_WIDTH] = "";
+	if (player_has_quantity > 0 || max_quantity > 0) {
+		const char *comma = has_str[0] != 0 ? ", " : "";
 
-	return textui_get_quantity_popup(buf, max);
+		strnfmt(add_str, sizeof(add_str),
+				" (%s%s%s)", has_str, comma, max_str);
+	}
+
+	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
+	object_desc(o_name, sizeof(o_name), obj,
+			ODESC_PREFIX | ODESC_TERSE | ODESC_STORE);
+
+	return store_get_quantity_aux(o_name, obj->kind->base->attr,
+			verb, add_str, max_quantity);
 }
 
 /*
@@ -516,7 +579,7 @@ static void store_sell(struct store_context *context)
 		return;
 	}
 
-	int amt = store_get_quantity(store, true, 0, obj->number);
+	int amt = store_get_quantity(store, obj, true, 0, obj->number);
 	if (amt <= 0) {
 		return;
 	}
@@ -549,7 +612,7 @@ static void store_sell(struct store_context *context)
 
 		/* Confirm sale */
 		const char *verb = OPT(player, birth_no_selling) ? "Give" : "Sell";
-		if (store_get_check(verb, o_name, temp_obj->kind->base->attr, price)) {
+		if (store_get_check(o_name, temp_obj->kind->base->attr, verb, price)) {
 			cmdq_push(CMD_SELL);
 			cmd_set_arg_item(cmdq_peek(), "item", obj);
 			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
@@ -562,23 +625,19 @@ static void store_sell(struct store_context *context)
 	}
 }
 
-/**
- * Buy an object from a store
- */
-static void store_purchase(struct store_context *context, int item, bool single)
+static int store_purchase_amt(struct store *store,
+		struct object *obj, struct player *p, bool single)
 {
-	struct store *store = context->store;
-	struct object *obj = context->list[item];
+	int amt;
 
-	int amt = 0;
 	if (single) {
 		amt = 1;
 		/* Check if the player can afford any at all */
 		if (store->sidx != STORE_HOME
-				&& player->au < price_item(store, obj, false, 1))
+				&& p->au < price_item(store, obj, false, 1))
 		{
 			msg("You do not have enough gold for this item.");
-			return;
+			return 0;
 		}
 	} else {
 		int max;
@@ -589,18 +648,18 @@ static void store_purchase(struct store_context *context, int item, bool single)
 			int price_one = price_item(store, obj, false, 1);
 
 			/* Check if the player can afford any at all */
-			if (player->au < price_one) {
+			if (p->au < price_one) {
 				msg("You do not have enough gold for this item.");
-				return;
+				return 0;
 			}
 
 			/* Work out how many the player can afford */
-			max = price_one > 0 ? player->au / price_one : obj->number;
+			max = price_one > 0 ? p->au / price_one : obj->number;
 			max = MIN(max, obj->number);
 
 			/* Double check for wands/staves */
 			if (max < obj->number
-					&& player->au >= price_item(store, obj, false, max + 1))
+					&& p->au >= price_item(store, obj, false, max + 1))
 			{
 				max++;
 			}
@@ -615,14 +674,27 @@ static void store_purchase(struct store_context *context, int item, bool single)
 		/* Fail if there is no room */
 		if (max <= 0 || (!aware && pack_is_full())) {
 			msg("You cannot carry that many items.");
-			return;
+			return 0;
 		}
 
-		amt = store_get_quantity(store,
+		amt = store_get_quantity(store, obj,
 				false, aware ? find_inven(obj) : 0, max);
-		if (amt <= 0) {
-			return;
-		}
+	}
+
+	return amt;
+}
+
+/**
+ * Buy an object from a store
+ */
+static void store_purchase(struct store_context *context, int item, bool single)
+{
+	struct store *store = context->store;
+	struct object *obj = context->list[item];
+
+	int amt = store_purchase_amt(store, obj, player, single);
+	if (amt <= 0) {
+		return;
 	}
 
 	struct object dummy;
@@ -634,18 +706,18 @@ static void store_purchase(struct store_context *context, int item, bool single)
 		return;
 	}
 
-	/* Describe the object (fully) */
-	char o_name[ANGBAND_TERM_STANDARD_WIDTH];
-	object_desc(o_name, sizeof(o_name), &dummy,
-			ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
-
 	/* Attempt to buy it */
 	if (store->sidx != STORE_HOME) {
+		/* Describe the object (fully) */
+		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
+		object_desc(o_name, sizeof(o_name), &dummy,
+				ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
+
 		/* Extract the price for the entire stack */
 		int price = price_item(store, &dummy, false, dummy.number);
 
 		/* Confirm purchase */
-		if (store_get_check("Buy", o_name, dummy.kind->base->attr, price)) {
+		if (store_get_check(o_name, dummy.kind->base->attr, "Buy", price)) {
 			cmdq_push(CMD_BUY);
 			cmd_set_arg_item(cmdq_peek(), "item", obj);
 			cmd_set_arg_number(cmdq_peek(), "quantity", amt);
