@@ -532,7 +532,7 @@ static int store_get_quantity(const struct store *store, const struct object *ob
 
 		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 		object_desc(o_name, sizeof(o_name), obj,
-				ODESC_PREFIX | ODESC_TERSE | ODESC_STORE);
+				ODESC_PREFIX | ODESC_BASE | ODESC_STORE);
 
 		return store_get_quantity_aux(o_name, obj->kind->base->attr,
 				verb, add_str, max_quantity);
