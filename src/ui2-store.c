@@ -637,7 +637,6 @@ static void store_sell(struct store_context *context)
 		} else {
 			store_warn("I have not the room in my store to keep it.");
 		}
-
 		return;
 	}
 
