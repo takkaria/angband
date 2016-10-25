@@ -441,14 +441,15 @@ static void store_clear_prompt(struct store_context *context)
 	context->prompt = NULL;
 }
 
-static bool store_get_check(const char *name, uint32_t name_attr,
-		const char *verb, int price)
+static bool store_get_check(const char *name_str, uint32_t name_attr,
+		const char *verb_str, int price)
 {
-	char cost[32];
+	char cost_str[32];
 
-	const int verb_len = strlen(verb);
-	const int name_len = strlen(name);
-	const int cost_len = strnfmt(cost, sizeof(cost), "for %d? [y/n] ", price);
+	const int verb_len = strlen(verb_str);
+	const int name_len = strlen(name_str);
+	const int cost_len =
+		strnfmt(cost_str, sizeof(cost_str), "for %d? [y/n] ", price);
 
 	const int prompt_len = verb_len + 1 + name_len + 1 + cost_len;
 
@@ -462,13 +463,13 @@ static bool store_get_check(const char *name, uint32_t name_attr,
 	Term_cursor_visible(true);
 
 	int x = 0;
-	Term_adds(x, 0, verb_len, COLOUR_WHITE, verb);
+	Term_adds(x, 0, verb_len, COLOUR_WHITE, verb_str);
 
 	x += verb_len + 1;
-	Term_adds(x, 0, name_len, name_attr, name);
+	Term_adds(x, 0, name_len, name_attr, name_str);
 
 	x += name_len + 1;
-	Term_adds(x, 0, cost_len, COLOUR_WHITE, cost);
+	Term_adds(x, 0, cost_len, COLOUR_WHITE, cost_str);
 
 	Term_flush_output();
 
