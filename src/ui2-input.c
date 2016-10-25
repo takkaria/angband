@@ -455,7 +455,7 @@ static bool askfor_aux_handle(struct loc loc, struct keypress *key,
  * 'handler' is a pointer to a function to handle keypresses, altering
  * the input buffer, cursor position and suchlike as required.
  */
-static struct keypress askfor_aux_internal(char *buf, size_t buflen,
+bool askfor_aux_place(char *buf, size_t buflen,
 		askfor_aux_handler handler)
 {
 	assert(handler != NULL);
@@ -481,26 +481,25 @@ static struct keypress askfor_aux_internal(char *buf, size_t buflen,
 				buf, buflen, &curs, &len, false, handler);
 	}
 
-	return key;
+	/* ESCAPE means "cancel" and we return false then */
+	return key.code == ESCAPE ? false : true;
 }
 
 /**
  * Get a string from player, using DISPLAY_MESSAGE_LINE term.
  */
-bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
+bool askfor_aux_prompt(char *buf, size_t buflen, askfor_aux_handler handler)
 {
 	display_term_push(DISPLAY_MESSAGE_LINE);
 	Term_cursor_visible(true);
 
-	struct keypress key =
-		askfor_aux_internal(buf, buflen,
-				handler != NULL ? handler : askfor_aux_keypress);
+	bool ok = askfor_aux_place(buf, buflen,
+			handler != NULL ? handler : askfor_aux_keypress);
 
 	Term_cursor_visible(false);
 	display_term_pop();
 
-	/* ESCAPE means "cancel" and we return false then */
-	return key.code == ESCAPE ? false : true;
+	return ok;
 }
 
 /**
@@ -538,16 +537,14 @@ bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,
 
 	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
 
-	struct keypress key =
-		askfor_aux_internal(buf, buflen,
-				handler != NULL ? handler : askfor_aux_keypress);
+	bool ok = askfor_aux_place(buf, buflen,
+			handler != NULL ? handler : askfor_aux_keypress);
 
 	mem_free(line_starts);
 	mem_free(line_lengths);
 	Term_pop();
 
-	/* ESCAPE means "cancel" and we return false then */
-	return key.code == ESCAPE ? false : true;
+	return ok;
 }
 
 /**
@@ -582,7 +579,7 @@ bool get_character_name(char *buf, size_t buflen)
 	my_strcpy(buf, player->full_name, buflen);
 
 	show_prompt("Enter a name for your character (* for a random name): ", false);
-	bool res = askfor_aux(buf, buflen, get_name_keypress);
+	bool res = askfor_aux_prompt(buf, buflen, get_name_keypress);
 	clear_prompt();
 
 	return res;
@@ -599,7 +596,7 @@ static bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 	event_signal(EVENT_MESSAGE_FLUSH);
 
 	show_prompt(prompt, false);
-	bool res = askfor_aux(buf, buflen, NULL);
+	bool res = askfor_aux_prompt(buf, buflen, NULL);
 	clear_prompt();
 
 	return res;
