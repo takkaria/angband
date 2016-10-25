@@ -292,7 +292,7 @@ void inkey_any(void)
  * It should return true when editing of the buffer is "complete" (e.g. on
  * the press of RETURN).
  */
-bool askfor_aux_keypress(char *buf, size_t buflen,
+bool askfor_keypress(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime)
 {
@@ -386,7 +386,7 @@ bool askfor_aux_keypress(char *buf, size_t buflen,
 /**
  * A handler for askfor_aux() that accepts only numbers.
  */
-bool askfor_aux_numbers(char *buf, size_t buflen,
+bool askfor_numbers(char *buf, size_t buflen,
 		size_t *curs, size_t *len, struct keypress key, bool firsttime)
 {
 	switch (key.code) {
@@ -406,7 +406,7 @@ bool askfor_aux_numbers(char *buf, size_t buflen,
 		case '7':
 		case '8':
 		case '9':
-			return askfor_aux_keypress(buf, buflen, curs, len, key, firsttime);
+			return askfor_keypress(buf, buflen, curs, len, key, firsttime);
 
 		default:
 			return false;
@@ -487,23 +487,23 @@ static bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
 /**
  * Get a string from player, using already existing term.
  */
-bool askfor_aux_place(char *buf, size_t buflen,
+bool askfor_simple(char *buf, size_t buflen,
 		askfor_aux_handler handler)
 {
 	return askfor_aux(buf, buflen,
-			handler != NULL ? handler : askfor_aux_keypress);
+			handler != NULL ? handler : askfor_keypress);
 }
 
 /**
  * Get a string from player, using DISPLAY_MESSAGE_LINE term.
  */
-bool askfor_aux_prompt(char *buf, size_t buflen, askfor_aux_handler handler)
+bool askfor_prompt(char *buf, size_t buflen, askfor_aux_handler handler)
 {
 	display_term_push(DISPLAY_MESSAGE_LINE);
 	Term_cursor_visible(true);
 
-	bool ok = askfor_aux_place(buf, buflen,
-			handler != NULL ? handler : askfor_aux_keypress);
+	bool ok = askfor_aux(buf, buflen,
+			handler != NULL ? handler : askfor_keypress);
 
 	Term_cursor_visible(false);
 	display_term_pop();
@@ -516,7 +516,7 @@ bool askfor_aux_prompt(char *buf, size_t buflen, askfor_aux_handler handler)
  * if argument tb is not NULL, display the
  * textblock under the prompt.
  */
-bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,
+bool askfor_popup(const char *prompt, char *buf, size_t buflen,
 		int term_width, enum term_position term_pos,
 		textblock *tb, askfor_aux_handler handler)
 {
@@ -546,8 +546,8 @@ bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,
 
 	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
 
-	bool ok = askfor_aux_place(buf, buflen,
-			handler != NULL ? handler : askfor_aux_keypress);
+	bool ok = askfor_aux(buf, buflen,
+			handler != NULL ? handler : askfor_keypress);
 
 	mem_free(line_starts);
 	mem_free(line_lengths);
@@ -574,7 +574,7 @@ static bool get_name_keypress(char *buf, size_t buflen,
 			return false;
 
 		default:
-			return askfor_aux_keypress(buf, buflen,
+			return askfor_keypress(buf, buflen,
 					curs, len, keypress, firsttime);
 	}
 }
@@ -588,7 +588,7 @@ bool get_character_name(char *buf, size_t buflen)
 	my_strcpy(buf, player->full_name, buflen);
 
 	show_prompt("Enter a name for your character (* for a random name): ", false);
-	bool res = askfor_aux_prompt(buf, buflen, get_name_keypress);
+	bool res = askfor_prompt(buf, buflen, get_name_keypress);
 	clear_prompt();
 
 	return res;
@@ -605,7 +605,7 @@ static bool textui_get_string_prompt(const char *prompt, char *buf, size_t bufle
 	event_signal(EVENT_MESSAGE_FLUSH);
 
 	show_prompt(prompt, false);
-	bool res = askfor_aux_prompt(buf, buflen, NULL);
+	bool res = askfor_prompt(buf, buflen, NULL);
 	clear_prompt();
 
 	return res;

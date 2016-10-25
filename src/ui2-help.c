@@ -225,7 +225,7 @@ static void help_goto_file(const struct help_file *help)
 
 	show_prompt("File: ", false);
 
-	if (askfor_aux_prompt(name, sizeof(name), NULL)) {
+	if (askfor_prompt(name, sizeof(name), NULL)) {
 		clear_prompt();
 
 		Term_visible(false);
@@ -258,7 +258,7 @@ static void help_goto_line(struct help_file *help)
 
 	show_prompt("Line: ", false);
 
-	if (askfor_aux_prompt(line, sizeof(line), NULL)) {
+	if (askfor_prompt(line, sizeof(line), NULL)) {
 		char *end = NULL;
 		long l = strtol(line, &end, 10);
 		if (line != end) {
@@ -309,7 +309,7 @@ static void help_find_line(struct help_file *help)
 {
 	show_prompt("Find: ", false);
 
-	if (askfor_aux_prompt(help->search, sizeof(help->search), NULL)
+	if (askfor_prompt(help->search, sizeof(help->search), NULL)
 			&& strlen(help->search) > 0)
 	{
 		clear_prompt();

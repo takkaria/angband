@@ -85,21 +85,21 @@ typedef bool (*askfor_aux_handler)(char *buf, size_t buflen,
 		struct keypress key, bool firsttime);
 
 /**
- * Default handler for askfor_aux()
+ * Default handler for askfor()
  */
-bool askfor_aux_keypress(char *buf, size_t buflen,
+bool askfor_keypress(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime);
 /**
- * Handler for askfor_aux() that accepts only numbers
+ * Handler for askfor() that accepts only numbers
  */
-bool askfor_aux_numbers(char *buf, size_t buflen,
+bool askfor_numbers(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime);
 
-bool askfor_aux_place(char *buf, size_t buflen, askfor_aux_handler handler);
-bool askfor_aux_prompt(char *buf, size_t buflen, askfor_aux_handler handler);
-bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,
+bool askfor_simple(char *buf, size_t buflen, askfor_aux_handler handler);
+bool askfor_prompt(char *buf, size_t buflen, askfor_aux_handler handler);
+bool askfor_popup(const char *prompt, char *buf, size_t buflen,
 		int term_width, enum term_position term_pos,
 		textblock *tb, askfor_aux_handler handler);
 

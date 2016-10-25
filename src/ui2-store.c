@@ -521,7 +521,7 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 	Term_flush_output();
 
 	int amt;
-	if(askfor_aux_place(buf, sizeof(buf), askfor_aux_keypress)) {
+	if(askfor_simple(buf, sizeof(buf), askfor_keypress)) {
 		if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
 			amt = max_quantity; /* A star or letter means "all" */
 		} else {

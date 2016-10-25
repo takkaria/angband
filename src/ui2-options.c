@@ -51,7 +51,7 @@ static bool get_pref_path(char *buf, size_t bufsize, const char *title)
 	my_strcat(filename, ".prf", sizeof(filename));
 
 	bool use_filename =
-		askfor_aux_popup(prompt, filename, sizeof(filename),
+		askfor_popup(prompt, filename, sizeof(filename),
 			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL);
 
 	if (use_filename) {
@@ -597,9 +597,9 @@ static void do_cmd_delay(const char *name, int index)
 	strnfmt(buf, sizeof(buf), "%d", player->opts.delay_factor);
 
 	/* Ask for a numeric value */
-	if (askfor_aux_popup(prompt, buf, sizeof(buf),
+	if (askfor_popup(prompt, buf, sizeof(buf),
 				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
-				NULL, askfor_aux_numbers))
+				NULL, askfor_numbers))
 	{
 		u16b val = strtoul(buf, NULL, 0);
 		player->opts.delay_factor = MIN(val, 255);
@@ -620,9 +620,9 @@ static void do_cmd_hp_warn(const char *name, int index)
 	char buf[4] = {0};
 	strnfmt(buf, sizeof(buf), "%d", player->opts.hitpoint_warn);
 
-	if (askfor_aux_popup(prompt, buf, sizeof(buf),
+	if (askfor_popup(prompt, buf, sizeof(buf),
 				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
-				NULL, askfor_aux_numbers))
+				NULL, askfor_numbers))
 	{
 		byte warn = strtoul(buf, NULL, 0);
 		if (warn > 9) {
@@ -645,9 +645,9 @@ static void do_cmd_lazymove_delay(const char *name, int index)
 	char buf[4] = {0};
 	strnfmt(buf, sizeof(buf), "%d", player->opts.lazymove_delay);
 
-	if (askfor_aux_popup(prompt, buf, sizeof(buf),
+	if (askfor_popup(prompt, buf, sizeof(buf),
 				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
-				NULL, askfor_aux_numbers))
+				NULL, askfor_numbers))
 	{
 		player->opts.lazymove_delay = strtoul(buf, NULL, 0);
 	}
@@ -669,7 +669,7 @@ static void do_cmd_pref_file(const char *prompt)
 	my_strcat(filename, ".prf", sizeof(filename));
 
 	/* Ask for a file (or cancel) */
-	if (askfor_aux_popup(prompt, filename, sizeof(filename),
+	if (askfor_popup(prompt, filename, sizeof(filename),
 				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
 				NULL, NULL))
 	{

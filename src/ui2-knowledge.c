@@ -1431,7 +1431,7 @@ static void o_xtra_act(struct keypress key, int index)
 		}
 
 		/* Get an inscription */
-		if (askfor_aux_prompt(buf, sizeof(buf), NULL)) {
+		if (askfor_prompt(buf, sizeof(buf), NULL)) {
 			/* Remove old inscription if existent */
 			if (kind->note_aware || kind->note_unaware) {
 				remove_autoinscription(index);
@@ -1591,7 +1591,7 @@ static void rune_xtra_act(struct keypress key, int index)
 		}
 
 		/* Get an inscription */
-		if (askfor_aux_prompt(note_text, sizeof(note_text), NULL)) {
+		if (askfor_prompt(note_text, sizeof(note_text), NULL)) {
 			/* Remove old inscription if existent */
 			if (rune_note(index)) {
 				rune_set_note(index, NULL);
@@ -2355,7 +2355,7 @@ void do_cmd_messages(void)
 				case '/':
 					/* Get the string to find */
 					show_prompt("Find: ", false);
-					if (askfor_aux_prompt(buf, sizeof(buf), NULL)) {
+					if (askfor_prompt(buf, sizeof(buf), NULL)) {
 						event.key.code = '-';
 						search = buf;
 					}

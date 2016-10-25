@@ -1422,7 +1422,7 @@ static void do_cmd_wiz_summon_monster(void)
 
 	show_prompt("Summon which monster? ", false);
 
-	if (askfor_aux_prompt(name, sizeof(name), NULL)) {
+	if (askfor_prompt(name, sizeof(name), NULL)) {
 		int r_idx = get_idx_from_name(name);
 		if (r_idx != 0) {
 			race = &r_info[r_idx];
@@ -1693,7 +1693,7 @@ static void do_cmd_wiz_wipe_recall(void)
 
 		show_prompt("Which monster? ", false);
 
-		if (askfor_aux_prompt(name, sizeof(name), NULL)) {
+		if (askfor_prompt(name, sizeof(name), NULL)) {
 			int r_idx = get_idx_from_name(name);
 			if (r_idx != 0) {
 				race = &r_info[r_idx];
@@ -1737,7 +1737,7 @@ static void do_cmd_wiz_monster_recall(void)
 			
 		show_prompt("Which monster? ", false);
 
-		if (askfor_aux_prompt(name, sizeof(name), NULL)) {
+		if (askfor_prompt(name, sizeof(name), NULL)) {
 			int r_idx = get_idx_from_name(name);
 			if (r_idx != 0) {
 				race = &r_info[r_idx];
@@ -1892,7 +1892,7 @@ void do_cmd_wiz_effect(void)
 
 	int index = -1;
 	show_prompt("Do which effect? ", false);
-	if (askfor_aux_prompt(name, sizeof(name), NULL)) {
+	if (askfor_prompt(name, sizeof(name), NULL)) {
 		/* See if an effect index was entered */
 		index = get_idx_from_name(name);
 
@@ -1904,14 +1904,14 @@ void do_cmd_wiz_effect(void)
 	clear_prompt();
 
 	show_prompt("Enter damage dice (eg 1+2d6M2): ", false);
-	if (!askfor_aux_prompt(dice, sizeof(dice), NULL)) {
+	if (!askfor_prompt(dice, sizeof(dice), NULL)) {
 		my_strcpy(dice, "0", sizeof(dice));
 	}
 	clear_prompt();
 
 	int p1 = 0;
 	show_prompt("Enter name or number for first parameter: ", false);
-	if (askfor_aux_prompt(param, sizeof(param), NULL)) {
+	if (askfor_prompt(param, sizeof(param), NULL)) {
 		/* See if an effect parameter was entered */
 		p1 = effect_param(index, param);
 		if (p1 < 0) {
