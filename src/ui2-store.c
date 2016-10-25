@@ -581,8 +581,10 @@ static void store_purchase(struct store_context *context, int item, bool single)
 			return;
 		}
 	} else {
+		int max;
+
 		if (store->sidx == STORE_HOME) {
-			amt = obj->number;
+			max = obj->number;
 		} else {
 			int price_one = price_item(store, obj, false, 1);
 
@@ -593,33 +595,31 @@ static void store_purchase(struct store_context *context, int item, bool single)
 			}
 
 			/* Work out how many the player can afford */
-			amt = price_one > 0 ? player->au / price_one : obj->number;
-			amt = MIN(amt, obj->number);
+			max = price_one > 0 ? player->au / price_one : obj->number;
+			max = MIN(max, obj->number);
 
 			/* Double check for wands/staves */
-			if (amt < obj->number
-					&& player->au >= price_item(store, obj, false, amt + 1))
+			if (max < obj->number
+					&& player->au >= price_item(store, obj, false, max + 1))
 			{
-				amt++;
+				max++;
 			}
 		}
 
 		/* Limit to the number that can be carried */
 		int carry_num = inven_carry_num(obj, false);
-		amt = MIN(amt, carry_num);
+		max = MIN(max, carry_num);
 
 		bool aware = object_flavor_is_aware(obj);
 
 		/* Fail if there is no room */
-		if (amt <= 0 || (!aware && pack_is_full())) {
+		if (max <= 0 || (!aware && pack_is_full())) {
 			msg("You cannot carry that many items.");
 			return;
 		}
 
-		/* Find the number of this item in the inventory */
-		int num = aware ? find_inven(obj) : 0;
-
-		amt = store_get_quantity(store, false, num, amt);
+		amt = store_get_quantity(store,
+				false, aware ? find_inven(obj) : 0, max);
 		if (amt <= 0) {
 			return;
 		}
