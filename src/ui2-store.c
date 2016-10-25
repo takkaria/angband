@@ -645,7 +645,7 @@ static void store_sell(struct store_context *context)
 		/* Get a full description */
 		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 		object_desc(o_name, sizeof(o_name), temp_obj,
-				ODESC_PREFIX | ODESC_FULL);
+				ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
 		/* Extract the value of the items */
 		int price = price_item(store, temp_obj, true, amt);
