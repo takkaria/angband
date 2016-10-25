@@ -70,7 +70,7 @@ void inkey_any(void);
 bool auto_more(void);
 
 /**
- * Type of handler function for askfor_aux()
+ * Type of handler function for askfor()
  * (such as used in editing char name, etc)
  *
  * \param buf is the buffer to edit
@@ -80,7 +80,7 @@ bool auto_more(void);
  * \param key is the key input by the user
  * \param firsttime indicates whether it's the first key
  */
-typedef bool (*askfor_aux_handler)(char *buf, size_t buflen,
+typedef bool (*askfor_handler)(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress key, bool firsttime);
 
@@ -97,11 +97,11 @@ bool askfor_numbers(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime);
 
-bool askfor_simple(char *buf, size_t buflen, askfor_aux_handler handler);
-bool askfor_prompt(char *buf, size_t buflen, askfor_aux_handler handler);
+bool askfor_simple(char *buf, size_t buflen, askfor_handler handler);
+bool askfor_prompt(char *buf, size_t buflen, askfor_handler handler);
 bool askfor_popup(const char *prompt, char *buf, size_t buflen,
 		int term_width, enum term_position term_pos,
-		textblock *tb, askfor_aux_handler handler);
+		textblock *tb, askfor_handler handler);
 
 extern bool (*get_file)(const char *suggested_name, char *path, size_t pathlen);
 

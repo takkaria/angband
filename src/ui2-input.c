@@ -418,7 +418,7 @@ bool askfor_numbers(char *buf, size_t buflen,
  */
 static bool askfor_aux_handle(struct loc loc, struct keypress *key,
 		char *buf, size_t buflen, size_t *curs, size_t *len,
-		bool firsttime, askfor_aux_handler handler)
+		bool firsttime, askfor_handler handler)
 {
 	Term_erase(loc.x, loc.y, buflen);
 
@@ -455,7 +455,7 @@ static bool askfor_aux_handle(struct loc loc, struct keypress *key,
  * 'handler' is a pointer to a function to handle keypresses, altering
  * the input buffer, cursor position and suchlike as required.
  */
-static bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
+static bool askfor_aux(char *buf, size_t buflen, askfor_handler handler)
 {
 	assert(handler != NULL);
 
@@ -488,7 +488,7 @@ static bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
  * Get a string from player, using already existing term.
  */
 bool askfor_simple(char *buf, size_t buflen,
-		askfor_aux_handler handler)
+		askfor_handler handler)
 {
 	return askfor_aux(buf, buflen,
 			handler != NULL ? handler : askfor_keypress);
@@ -497,7 +497,7 @@ bool askfor_simple(char *buf, size_t buflen,
 /**
  * Get a string from player, using DISPLAY_MESSAGE_LINE term.
  */
-bool askfor_prompt(char *buf, size_t buflen, askfor_aux_handler handler)
+bool askfor_prompt(char *buf, size_t buflen, askfor_handler handler)
 {
 	display_term_push(DISPLAY_MESSAGE_LINE);
 	Term_cursor_visible(true);
@@ -518,7 +518,7 @@ bool askfor_prompt(char *buf, size_t buflen, askfor_aux_handler handler)
  */
 bool askfor_popup(const char *prompt, char *buf, size_t buflen,
 		int term_width, enum term_position term_pos,
-		textblock *tb, askfor_aux_handler handler)
+		textblock *tb, askfor_handler handler)
 {
 	size_t *line_starts = NULL;
 	size_t *line_lengths = NULL;
