@@ -415,7 +415,7 @@ void map_redraw_all(enum display_term_index index)
 	display_term_get_area(index, &offset, &reg.w, &reg.h);
 
 	print_map_region(reg, offset, Term_get_blank());
-
+	Term_flush_output();
 	display_term_pop();
 }
 
