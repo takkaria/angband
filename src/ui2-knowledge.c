@@ -2118,6 +2118,12 @@ static bool messages_reader_find(const char *search,
 	return my_stristr(message_str(*cur_message), search) != NULL;
 }
 
+static bool messages_reader_get_search(char *search, size_t search_len)
+{
+	return askfor_popup("Find: ", search, search_len,
+			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL);
+}
+
 static void messages_reader_scroll(int vscroll,
 		region reg, int *cur_line, int *min_line, int *message)
 {
@@ -2354,12 +2360,10 @@ void do_cmd_messages(void)
 
 				case '/':
 					/* Get the string to find */
-					show_prompt("Find: ", false);
-					if (askfor_prompt(buf, sizeof(buf), NULL)) {
+					if (messages_reader_get_search(buf, sizeof(buf))) {
 						event.key.code = '-';
 						search = buf;
 					}
-					clear_prompt();
 					break;
 
 				case ARROW_LEFT: case '4':
