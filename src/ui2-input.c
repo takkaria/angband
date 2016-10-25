@@ -608,7 +608,7 @@ static bool textui_get_string_popup(const char *prompt, char *buf, size_t buflen
 			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL);
 }
 
-static int textui_get_quantity_internal(const char *prompt, int max, bool popup)
+static int textui_get_quantity(const char *prompt, int max, bool popup)
 {
 	int amt = 1;
 
@@ -646,7 +646,7 @@ static int textui_get_quantity_internal(const char *prompt, int max, bool popup)
 
 int textui_get_quantity_popup(const char *prompt, int max)
 {
-	return textui_get_quantity_internal(prompt, max, true);
+	return textui_get_quantity(prompt, max, true);
 }
 
 /**
@@ -654,7 +654,7 @@ int textui_get_quantity_popup(const char *prompt, int max)
  */
 int textui_get_quantity_prompt(const char *prompt, int max)
 {
-	return textui_get_quantity_internal(prompt, max, false);
+	return textui_get_quantity(prompt, max, false);
 }
 
 /**
