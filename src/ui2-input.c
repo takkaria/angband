@@ -594,7 +594,7 @@ bool get_character_name(char *buf, size_t buflen)
  * See askfor_aux() for some notes about buf and buflen,
  * and about the return value of this function.
  */
-bool textui_get_string(const char *prompt, char *buf, size_t buflen)
+static bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 {
 	event_signal(EVENT_MESSAGE_FLUSH);
 
@@ -603,6 +603,12 @@ bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 	clear_prompt();
 
 	return res;
+}
+
+static bool textui_get_string_popup(const char *prompt, char *buf, size_t buflen)
+{
+	return askfor_aux_popup(prompt, buf, buflen,
+			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL);
 }
 
 static int textui_get_quantity_internal(const char *prompt, int max, bool popup)
@@ -624,9 +630,8 @@ static int textui_get_quantity_internal(const char *prompt, int max, bool popup)
 		const size_t maxlen = sizeof("123456");
 
 		bool got_quantity = popup ?
-			askfor_aux_popup(prompt, buf, maxlen,
-					ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL) :
-			get_string(prompt, buf, maxlen);
+			textui_get_string_popup(prompt, buf, maxlen) :
+			textui_get_string(prompt, buf, maxlen);
 
 		if (got_quantity) {
 			if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
