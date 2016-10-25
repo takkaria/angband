@@ -1090,14 +1090,11 @@ static bool store_menu_handle(struct menu *menu,
 
 			case 'p': case 'g':
 				/* Use the old way of purchasing items */
-				if (store->sidx != STORE_HOME) {
-					store_prompt(context, "Purchase which item? (ESC to cancel)");
-				} else {
-					store_prompt(context, "Get which item? (Esc to cancel)");
-				}
-
+				store_prompt(context,
+						store->sidx == STORE_HOME ?
+						"Take which item? (ESC to cancel)" :
+						"Purchase which item? (ESC to cancel)");
 				index = store_get_stock(menu, index);
-
 				store_clear_prompt(context);
 
 				if (index >= 0) {
@@ -1108,9 +1105,7 @@ static bool store_menu_handle(struct menu *menu,
 			case 'l': case 'x':
 				/* Use the old way of examining items */
 				store_prompt(context, "Examine which item? (ESC to cancel)");
-
 				index = store_get_stock(menu, index);
-
 				store_clear_prompt(context);
 
 				if (index >= 0) {
