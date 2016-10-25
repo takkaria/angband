@@ -103,12 +103,6 @@ bool askfor_aux_popup(const char *prompt, char *buf, size_t buflen,
 		int term_width, enum term_position term_pos,
 		textblock *tb, askfor_aux_handler handler);
 
-/**
- * Request a quantity from the user.
- */
-int textui_get_quantity_popup(const char *prompt, int max);
-int textui_get_quantity_prompt(const char *prompt, int max);
-
 extern bool (*get_file)(const char *suggested_name, char *path, size_t pathlen);
 
 bool get_character_name(char *buf, size_t buflen);

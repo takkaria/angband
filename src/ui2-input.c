@@ -455,8 +455,7 @@ static bool askfor_aux_handle(struct loc loc, struct keypress *key,
  * 'handler' is a pointer to a function to handle keypresses, altering
  * the input buffer, cursor position and suchlike as required.
  */
-bool askfor_aux_place(char *buf, size_t buflen,
-		askfor_aux_handler handler)
+static bool askfor_aux(char *buf, size_t buflen, askfor_aux_handler handler)
 {
 	assert(handler != NULL);
 
@@ -483,6 +482,13 @@ bool askfor_aux_place(char *buf, size_t buflen,
 
 	/* ESCAPE means "cancel" and we return false then */
 	return key.code == ESCAPE ? false : true;
+}
+
+bool askfor_aux_place(char *buf, size_t buflen,
+		askfor_aux_handler handler)
+{
+	return askfor_aux(buf, buflen,
+			handler != NULL ? handler : askfor_aux_keypress);
 }
 
 /**
@@ -602,13 +608,10 @@ static bool textui_get_string_prompt(const char *prompt, char *buf, size_t bufle
 	return res;
 }
 
-static bool textui_get_string_popup(const char *prompt, char *buf, size_t buflen)
-{
-	return askfor_aux_popup(prompt, buf, buflen,
-			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL);
-}
-
-static int textui_get_quantity(const char *prompt, int max, bool popup)
+/**
+ * Request a quantity from the user.
+ */
+static int textui_get_quantity_prompt(const char *prompt, int max)
 {
 	int amt = 1;
 
@@ -624,13 +627,9 @@ static int textui_get_quantity(const char *prompt, int max, bool popup)
 		}
 
 		/* Up to six digits (999999 maximum) */
-		const size_t maxlen = sizeof("123456");
+		const size_t buflen = sizeof("123456");
 
-		bool got_quantity = popup ?
-			textui_get_string_popup(prompt, buf, maxlen) :
-			textui_get_string_prompt(prompt, buf, maxlen);
-
-		if (got_quantity) {
+		if (textui_get_string_prompt(prompt, buf, buflen)) {
 			if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
 				amt = max; /* A star or letter means "all" */
 			} else {
@@ -642,19 +641,6 @@ static int textui_get_quantity(const char *prompt, int max, bool popup)
 	}
 
 	return MAX(0, MIN(amt, max));
-}
-
-int textui_get_quantity_popup(const char *prompt, int max)
-{
-	return textui_get_quantity(prompt, max, true);
-}
-
-/**
- * Request a quantity from the user.
- */
-int textui_get_quantity_prompt(const char *prompt, int max)
-{
-	return textui_get_quantity(prompt, max, false);
 }
 
 /**
