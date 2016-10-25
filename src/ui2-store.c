@@ -449,6 +449,37 @@ static bool store_get_check(const char *verb,
 	}
 }
 
+static int store_get_quantity(const struct store *store,
+		bool selling, int inven, int max)
+{
+	if (max <= 1) {
+		return max;
+	}
+
+	const char *verb;
+	if (selling) {
+		verb = store->sidx == STORE_HOME  ? "Drop" :
+			OPT(player, birth_no_selling) ? "Give" : "Sell";
+	} else {
+		verb = store->sidx == STORE_HOME  ? "Take" : "Buy";
+	}
+
+	char inventory[ANGBAND_TERM_TEXTBLOCK_WIDTH / 2] = "";
+	if (inven > 0) {
+		strnfmt(inventory, sizeof(inventory), " (you have %d)", inven);
+	}
+
+	char maximum[ANGBAND_TERM_TEXTBLOCK_WIDTH / 2] = "";
+	if (max > 0) {
+		strnfmt(maximum, sizeof(maximum), " (maximum %d)", max);
+	}
+
+	char buf[ANGBAND_TERM_TEXTBLOCK_WIDTH];
+	strnfmt(buf, sizeof(buf), "%s how many%s?%s ", verb, inventory, maximum);
+
+	return textui_get_quantity_popup(buf, max);
+}
+
 /*
  * Sell an object, or drop if it we're in the home.
  */
@@ -485,7 +516,7 @@ static void store_sell(struct store_context *context)
 		return;
 	}
 
-	int amt = textui_get_quantity_popup(NULL, obj->number);
+	int amt = store_get_quantity(store, true, 0, obj->number);
 	if (amt <= 0) {
 		return;
 	}
@@ -588,14 +619,7 @@ static void store_purchase(struct store_context *context, int item, bool single)
 		/* Find the number of this item in the inventory */
 		int num = aware ? find_inven(obj) : 0;
 
-		char buf[ANGBAND_TERM_STANDARD_WIDTH];
-		strnfmt(buf, sizeof(buf),
-				"%s how many%s? (max %d) ",
-				store->sidx == STORE_HOME ? "Take" : "Buy",
-				num > 0 ? format(" (you have %d)", num) : "",
-				amt);
-
-		amt = textui_get_quantity_popup(buf, amt);
+		amt = store_get_quantity(store, false, num, amt);
 		if (amt <= 0) {
 			return;
 		}
