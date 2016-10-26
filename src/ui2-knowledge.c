@@ -2118,10 +2118,17 @@ static bool messages_reader_find(const char *search,
 	return my_stristr(message_str(*cur_message), search) != NULL;
 }
 
-static bool messages_reader_get_search(char *search, size_t search_len)
+static bool messages_reader_get_search(char *search,
+		size_t search_len, struct loc loc)
 {
-	return askfor_popup("Find: ", search, search_len,
-			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER, NULL, NULL);
+	Term_erase_line(loc.x, loc.y);
+	Term_adds(loc.x, loc.y, TERM_MAX_LEN, COLOUR_WHITE, "Find: ");
+
+	Term_cursor_visible(true);
+	bool find = askfor_simple(search, search_len, askfor_keypress);
+	Term_cursor_visible(false);
+
+	return find;
 }
 
 static void messages_reader_scroll(int vscroll,
@@ -2360,9 +2367,11 @@ void do_cmd_messages(void)
 
 				case '/':
 					/* Get the string to find */
-					if (messages_reader_get_search(buf, sizeof(buf))) {
+					if (messages_reader_get_search(buf, sizeof(buf), help_loc)) {
 						event.key.code = '-';
 						search = buf;
+					} else {
+						messages_reader_help(search, help_loc);
 					}
 					break;
 
