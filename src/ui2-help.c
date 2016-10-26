@@ -307,6 +307,19 @@ static void help_display_frame(const struct help_file *help,
 	}
 }
 
+static void help_warn(const char *warning, region reg)
+{
+	const int y = reg.y + reg.h - 1;
+
+	Term_erase_line(reg.x, y);
+	Term_adds(reg.x, y, TERM_MAX_LEN, COLOUR_ORANGE, warning);
+	Term_puts(TERM_MAX_LEN, COLOUR_ORANGE, " (any key to continue)");
+	Term_cursor_visible(false);
+	Term_flush_output();
+
+	inkey_any();
+}
+
 static void help_find_line(struct help_file *help, region reg)
 {
 	Term_adds(reg.x, reg.y + reg.h - 1, TERM_MAX_LEN, COLOUR_WHITE, "Find: ");
@@ -332,7 +345,7 @@ static void help_find_line(struct help_file *help, region reg)
 		}
 
 		if (!found) {
-			bell("Search string not found!");
+			help_warn("Search string not found!", reg);
 			memset(&help->search, 0, sizeof(help->search));
 		}
 	}
