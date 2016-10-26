@@ -314,7 +314,6 @@ static void help_warn(const char *warning, region reg)
 	Term_erase_line(reg.x, y);
 	Term_adds(reg.x, y, TERM_MAX_LEN, COLOUR_ORANGE, warning);
 	Term_puts(TERM_MAX_LEN, COLOUR_ORANGE, " (any key to continue)");
-	Term_cursor_visible(false);
 	Term_flush_output();
 
 	inkey_any();
