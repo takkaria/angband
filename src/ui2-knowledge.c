@@ -2131,6 +2131,16 @@ static bool messages_reader_get_search(char *search,
 	return askfor_simple(search, search_len, askfor_keypress);
 }
 
+static void messages_reader_warn(const char *warning, struct loc loc)
+{
+	Term_erase_line(loc.x, loc.y);
+	Term_adds(loc.x, loc.y, TERM_MAX_LEN, COLOUR_ORANGE, warning);
+	Term_puts(TERM_MAX_LEN, COLOUR_ORANGE, " (any key to continue)");
+	Term_flush_output();
+
+	inkey_any();
+}
+
 static void messages_reader_scroll(int vscroll,
 		region reg, int *cur_line, int *min_line, int *message)
 {
@@ -2368,8 +2378,13 @@ void do_cmd_messages(void)
 				case '/':
 					/* Get the string to find */
 					if (messages_reader_get_search(buf, sizeof(buf), help_loc)) {
-						event.key.code = '-';
-						search = buf;
+						if (buf[0] != 0) {
+							search = buf;
+							event.key.code = '-';
+						} else {
+							search = NULL;
+							redraw = true;
+						}
 					} else {
 						messages_reader_help(search, help_loc);
 					}
@@ -2412,6 +2427,7 @@ void do_cmd_messages(void)
 				if (!messages_reader_find(search, &cur_message, n_messages,
 							event.key.code == '-'))
 				{
+					messages_reader_warn("Search string not found!", help_loc);
 					search = NULL;
 				}
 
