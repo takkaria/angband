@@ -84,6 +84,54 @@ static bool quickstart_allowed = false;
 bool arg_force_name;
 
 /**
+ * Locations of the menus, etc. on the screen
+ */
+#define HEADER_ROW         1
+
+#define MENU_HINT_ROW      7
+#define MENU_HINT_COL      2
+
+#define HISTORY_ROW       19
+#define HISTORY_COL        1
+#define HISTORY_WIDTH     78
+#define HISTORY_HEIGHT     4
+
+#define BIRTH_MENU_ROW     9
+
+#define RACE_MENU_COL      2
+#define CLASS_MENU_COL    19
+#define ROLLER_MENU_COL   36
+
+#define RACE_MENU_WIDTH   17
+#define CLASS_MENU_WIDTH  17
+#define ROLLER_MENU_WIDTH 34
+
+#define PROMPT_ROW        23
+
+#define BIRTH_MENU_HEIGHT \
+	(ANGBAND_TERM_STANDARD_HEIGHT - BIRTH_MENU_ROW - 1)
+
+/**
+ * Clear prompts at the bottom of the birth screen
+ */
+static void birth_clear_prompt(void)
+{
+	Term_erase_line(0, PROMPT_ROW);
+}
+
+/**
+ * Show various prompts at the bottom of the birth screen.
+ */
+static void birth_show_prompt(const char *prompt)
+{
+	assert(prompt != NULL);
+
+	birth_clear_prompt();
+	place_prompt_center(prompt,
+			PROMPT_ROW, COLOUR_WHITE, COLOUR_L_GREEN);
+}
+
+/**
  * ------------------------------------------------------------------------
  * Quickstart screen.
  * ------------------------------------------------------------------------
@@ -92,7 +140,7 @@ static enum birth_stage textui_birth_quickstart(void)
 {
 	const char *prompt =
 		"['Y' to use this character, 'N' to start afresh, 'C' to change name or history]";
-	show_prompt(prompt, false);
+	birth_show_prompt(prompt);
 
 	enum birth_stage next = BIRTH_QUICKSTART;
 
@@ -112,7 +160,7 @@ static enum birth_stage textui_birth_quickstart(void)
 		}
 	} while (next == BIRTH_QUICKSTART);
 
-	clear_prompt();
+	birth_clear_prompt();
 
 	return next;
 }
@@ -130,32 +178,6 @@ static enum birth_stage textui_birth_quickstart(void)
 static struct menu race_menu;
 static struct menu class_menu;
 static struct menu roller_menu;
-
-/**
- * Locations of the menus, etc. on the screen
- */
-#define HEADER_ROW         1
-
-#define MENU_HINT_ROW      7
-#define MENU_HINT_COL      2
-
-#define HISTORY_ROW       19
-#define HISTORY_COL        1
-#define HISTORY_WIDTH     78
-#define HISTORY_HEIGHT     5
-
-#define BIRTH_MENU_ROW     9
-
-#define RACE_MENU_COL      2
-#define CLASS_MENU_COL    19
-#define ROLLER_MENU_COL   36
-
-#define RACE_MENU_WIDTH   17
-#define CLASS_MENU_WIDTH  17
-#define ROLLER_MENU_WIDTH 34
-
-#define BIRTH_MENU_HEIGHT \
-	(ANGBAND_TERM_STANDARD_HEIGHT - BIRTH_MENU_ROW - 1)
 
 /**
  * upper left column and row, width, and lower column
@@ -695,7 +717,7 @@ static enum birth_stage roller_command(bool first_call)
 	}
 	my_strcat(prompt, " or 'Enter' to accept]", sizeof(prompt));
 
-	show_prompt(prompt, false);
+	birth_show_prompt(prompt);
 	
 	struct keypress key = inkey_only_key();
 
@@ -802,11 +824,11 @@ static void point_based_points(game_event_type type,
 static void point_based_start(void)
 {
 	const char *prompt =
-		"[up/down to move, left/right to modify, 'r' to reset, 'Enter' to accept]";
+		"['up'/'down' to move, 'left'/'right' to modify, 'r' to reset, 'Enter' to accept]";
 
 	Term_erase_all();
 	display_player(PLAYER_DISPLAY_MODE_BIRTH);
-	show_prompt(prompt, false);
+	birth_show_prompt(prompt);
 	Term_cursor_visible(true);
 
 	/* Register handlers for various events - cheat a bit because we redraw
@@ -961,7 +983,7 @@ bool edit_text(char *buffer, size_t bufsize) {
 	bool retval = false;
 	bool done = false;
 
-	show_prompt("['ESC' to step back, 'Enter' to accept]", false);
+	birth_show_prompt("['ESC' to step back, 'Enter' to accept]");
 
 	while (!done) {
 		assert(cursor <= length);
@@ -1106,7 +1128,7 @@ static enum birth_stage get_history_command(void)
 	/* Save the original history */
 	my_strcpy(old_history, player->history, sizeof(old_history));
 
-	show_prompt("Accept character history? [y/n]", false);
+	birth_show_prompt("Accept character history? ['y'/'n']");
 
 	struct keypress key = inkey_only_key();
 
@@ -1145,7 +1167,7 @@ static enum birth_stage get_confirm_command(void)
 
 	enum birth_stage next = BIRTH_RESET;
 
-	show_prompt(prompt, false);
+	birth_show_prompt(prompt);
 
 	struct keypress key = inkey_only_key();
 	
@@ -1160,7 +1182,7 @@ static enum birth_stage get_confirm_command(void)
 		next = BIRTH_COMPLETE;
 	}
 
-	clear_prompt();
+	birth_clear_prompt();
 
 	return next;
 }
@@ -1227,7 +1249,7 @@ int textui_do_birth(void)
 				command = CMD_CHOOSE_RACE;
 
 				Term_erase_all();
-				clear_prompt();
+				birth_clear_prompt();
 				print_menu_instructions();
 
 				if (current > BIRTH_RACE_CHOICE) {

@@ -536,6 +536,67 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
  * ------------------------------------------------------------------------
  */
 
+/**
+ * Print a colorized prompt on the screen
+ */
+void place_prompt(const char *str, struct loc loc,
+		uint32_t color, uint32_t highlight)
+{
+	/* We don't print single quotes; imagine that
+	 * every char in the string is surrounded by
+	 * two single quotes ("'a''b''c'"...).
+	 * The function must work correctly even then,
+	 * up to ANGBAND_TERM_STANDARD_WIDTH chars. */
+	wchar_t ws[ANGBAND_TERM_STANDARD_WIDTH * 3];
+
+	size_t text_length = text_mbstowcs(ws, str, N_ELEMENTS(ws));
+	assert(text_length != (size_t) -1);
+
+	ws[N_ELEMENTS(ws) - 1] = 0;
+
+	int w;
+	int h;
+	Term_get_size(&w, &h);
+
+	assert(loc.x >= 0);
+	assert(loc.x < w);
+	assert(loc.y >= 0);
+	assert(loc.y < h);
+
+	Term_cursor_to_xy(loc.x, loc.y);
+
+	uint32_t attr = COLOUR_WHITE;
+
+	for (size_t i = 0; i < text_length && loc.x < w; i++) {
+		if (ws[i] == L'\'') {
+			attr = attr == color ? highlight : color;
+		} else {
+			Term_putwc(attr, ws[i]);
+			loc.x++;
+		}
+	}
+
+	Term_flush_output();
+}
+
+void place_prompt_center(const char *str, int y,
+		uint32_t color, uint32_t highlight)
+{
+	int len = 0; /* length without singe quotes */
+	for (int i = 0; str[i] != 0; i++) {
+		if (str[i] != '\'') {
+			len++;
+		}
+	}
+
+	struct loc loc = {
+		.x = (Term_width() - len) / 2,
+		.y = y
+	};
+
+	place_prompt(str, loc, color, highlight);
+}
+
 void clear_prompt(void)
 {
 	display_term_push(DISPLAY_MESSAGE_LINE);

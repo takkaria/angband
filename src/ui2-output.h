@@ -108,6 +108,21 @@ void put_str(const char *str, struct loc at);
 void c_prt(uint32_t attr, const char *str, struct loc at);
 void prt(const char *str, struct loc at);
 
+/**
+ * Print a string at position loc; all substrings
+ * in single quotes will be printed using highlight
+ * color, and single quotes themselves wont be printed.
+ * It's like a simplified version of text_out_e().
+ */
+void place_prompt(const char *str, struct loc loc,
+		uint32_t color, uint32_t highlight);
+
+/**
+ * As above, but print the prompt at the center of row y.
+ */
+void place_prompt_center(const char *str, int y,
+		uint32_t color, uint32_t highlight);
+
 void show_prompt(const char *str, bool cursor);
 void clear_prompt(void);
 
