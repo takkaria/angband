@@ -2122,13 +2122,44 @@ static bool messages_reader_find(const char *search,
 	return my_stristr(message_str(*cur_message), search) != NULL;
 }
 
-static bool messages_reader_get_search(char *search,
-		size_t search_len, struct loc loc)
+static void messages_reader_help(const char *search, struct loc loc)
+{
+	if (search != NULL) {
+		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
+				COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '/' to find]");
+	} else {
+		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
+				COLOUR_WHITE, L"[<dir>, '/' to find, or ESCAPE to exit]");
+	}
+}
+
+static bool messages_reader_get_search(char *buf, size_t buflen,
+		const char **search, bool *redraw, struct loc loc)
 {
 	Term_erase_line(loc.x, loc.y);
 	Term_adds(loc.x, loc.y, TERM_MAX_LEN, COLOUR_WHITE, "Find: ");
 
-	return askfor_simple(search, search_len, askfor_keypress);
+	bool ok = askfor_simple(buf, buflen, askfor_keypress);
+
+	if (ok) {
+		/* If we got a search string, try to find it;
+		 * otherwise, dont search for anything, and
+		 * redraw the screen to erase all previous
+		 * highlighted search results (if any) */
+
+		if (buf[0] != 0) {
+			*search = buf;
+		} else {
+			*search = NULL;
+			*redraw = true;
+		}
+	} else {
+		/* Search is cancelled;
+		 * just erase the prompt */
+		messages_reader_help(*search, loc);
+	}
+
+	return ok;
 }
 
 static void messages_reader_warn(const char *warning, struct loc loc)
@@ -2267,17 +2298,6 @@ static int messages_reader_dump(int cur_message, int n_messages,
 	return cur_message - vscroll;
 }
 
-static void messages_reader_help(const char *search, struct loc loc)
-{
-	if (search != NULL) {
-		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
-				COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '/' to find]");
-	} else {
-		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
-				COLOUR_WHITE, L"[<dir>, '/' to find, or ESCAPE to exit]");
-	}
-}
-
 /**
  * Show previous messages to the user
  *
@@ -2376,17 +2396,10 @@ void do_cmd_messages(void)
 					break;
 
 				case '/':
-					/* Get the string to find */
-					if (messages_reader_get_search(buf, sizeof(buf), help_loc)) {
-						if (buf[0] != 0) {
-							search = buf;
-							event.key.code = '-';
-						} else {
-							search = NULL;
-							redraw = true;
-						}
-					} else {
-						messages_reader_help(search, help_loc);
+					if (messages_reader_get_search(buf, sizeof(buf),
+								&search, &redraw, help_loc))
+					{
+						event.key.code = '-'; /* try to find something */
 					}
 					break;
 
