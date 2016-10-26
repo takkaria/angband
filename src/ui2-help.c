@@ -283,21 +283,23 @@ static void help_set_regions(region *term_reg, region *text_reg)
 	assert(text_reg->h > 0);
 }
 
-static void help_display_rest(const struct help_file *help,
+static void help_display_frame(const struct help_file *help,
 		region term_reg, region text_reg)
 {
 	struct loc loc;
 
-	const char *prompt =
-		format("[Line %d-%d/%d]",
-				help->line + 1, help->line + text_reg.h, help->next);
+	char line[ANGBAND_TERM_STANDARD_WIDTH / 2];
+	strnfmt(line, sizeof(line), "[Line %d-%d/%d]",
+			help->line + 1, help->line + text_reg.h, help->next);
 
 	loc.x = term_reg.x;
 	loc.y = term_reg.y;
-	prt(prompt, loc);
+
+	prt(line, loc);
 
 	loc.x = term_reg.x;
 	loc.y = term_reg.y + term_reg.h - 1;
+
 	if (help->menu) {
 		prt("[Press a letter to view other files, or ESC to exit.]", loc);
 	} else {
@@ -305,18 +307,19 @@ static void help_display_rest(const struct help_file *help,
 	}
 }
 
-static void help_find_line(struct help_file *help)
+static void help_find_line(struct help_file *help, region reg)
 {
-	show_prompt("Find: ", false);
+	Term_adds(reg.x, reg.y + reg.h - 1, TERM_MAX_LEN, COLOUR_WHITE, "Find: ");
+	Term_cursor_visible(true);
 
-	if (askfor_prompt(help->search, sizeof(help->search), NULL)
+	if (askfor_simple(help->search, sizeof(help->search), NULL)
 			&& strlen(help->search) > 0)
 	{
-		clear_prompt();
+		bool found = false;
 
 		string_lower(help->search);
 
-		for (int n = 0, l = help->line + 1; n < help->next; n++, l++) {
+		for (int n = 0, l = help->line + 1; !found && n < help->next; n++, l++) {
 			if (l == help->next) {
 				l = 0;
 			}
@@ -324,15 +327,18 @@ static void help_find_line(struct help_file *help)
 			if (strstr(help->lines[l].line_lc, help->search)) {
 				help->line = l;
 				help->highlight = true;
-				return;
+				found = true;
 			}
 		}
 
-		bell("Search string not found!");
-		memset(&help->search, 0, sizeof(help->search));
-	} else {
-		clear_prompt();
+		if (!found) {
+			bell("Search string not found!");
+			memset(&help->search, 0, sizeof(help->search));
+		}
 	}
+
+	Term_cursor_visible(false);
+	Term_flush_output();
 }
 
 static void help_display_check(struct help_file *help, region reg)
@@ -451,7 +457,7 @@ static void show_file(const char *name)
 	while (!done) {
 		if (display) {
 			help_display_page(help, text_reg);
-			help_display_rest(help, term_reg, text_reg);
+			help_display_frame(help, term_reg, text_reg);
 		}
 
 		display = false;
@@ -468,7 +474,7 @@ static void show_file(const char *name)
 				display = true;
 				break;
 			case '/':
-				help_find_line(help);
+				help_find_line(help, term_reg);
 				display = true;
 				break;
 			case '#':
