@@ -567,7 +567,7 @@ bool askfor_popup(const char *prompt, char *buf, size_t buflen,
  * case of '*' for a new random name and passes any other keypress
  * through to the default editing handler.
  */
-static bool get_name_keypress(char *buf, size_t buflen,
+static bool askfor_name_keypress(char *buf, size_t buflen,
 		size_t *curs, size_t *len,
 		struct keypress keypress, bool firsttime)
 {
@@ -591,13 +591,14 @@ static bool get_name_keypress(char *buf, size_t buflen,
  */
 bool get_character_name(char *buf, size_t buflen)
 {
+	const char *prompt =
+		"Enter a name for your character (* for a random name): ";
+
 	my_strcpy(buf, player->full_name, buflen);
 
-	show_prompt("Enter a name for your character (* for a random name): ", false);
-	bool res = askfor_prompt(buf, buflen, get_name_keypress);
-	clear_prompt();
-
-	return res;
+	return askfor_popup(prompt, buf, buflen,
+			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+			NULL, askfor_name_keypress);
 }
 
 /**
