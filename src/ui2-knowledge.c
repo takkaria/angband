@@ -2113,7 +2113,7 @@ static bool messages_reader_find(const char *search,
 		for (int i = *cur_message - 1; i >= 0; i--) {
 			if (my_stristr(message_str(i), search) != NULL) {
 				*cur_message = i;
-				return true;;
+				return true;
 			}
 		}
 	}
