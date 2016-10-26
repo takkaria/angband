@@ -2128,11 +2128,7 @@ static bool messages_reader_get_search(char *search,
 	Term_erase_line(loc.x, loc.y);
 	Term_adds(loc.x, loc.y, TERM_MAX_LEN, COLOUR_WHITE, "Find: ");
 
-	Term_cursor_visible(true);
-	bool find = askfor_simple(search, search_len, askfor_keypress);
-	Term_cursor_visible(false);
-
-	return find;
+	return askfor_simple(search, search_len, askfor_keypress);
 }
 
 static void messages_reader_scroll(int vscroll,

@@ -323,7 +323,6 @@ static void help_warn(const char *warning, region reg)
 static void help_find_line(struct help_file *help, region reg)
 {
 	Term_adds(reg.x, reg.y + reg.h - 1, TERM_MAX_LEN, COLOUR_WHITE, "Find: ");
-	Term_cursor_visible(true);
 
 	if (askfor_simple(help->search, sizeof(help->search), NULL)
 			&& strlen(help->search) > 0)
@@ -350,7 +349,6 @@ static void help_find_line(struct help_file *help, region reg)
 		}
 	}
 
-	Term_cursor_visible(false);
 	Term_flush_output();
 }
 

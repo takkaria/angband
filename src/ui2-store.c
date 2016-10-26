@@ -522,7 +522,6 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 
 	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
 
-	Term_cursor_visible(true);
 	Term_flush_output();
 
 	int amt;

@@ -490,8 +490,14 @@ static bool askfor_aux(char *buf, size_t buflen, askfor_handler handler)
 bool askfor_simple(char *buf, size_t buflen,
 		askfor_handler handler)
 {
-	return askfor_aux(buf, buflen,
+	Term_cursor_visible(true);
+
+	bool ok = askfor_aux(buf, buflen,
 			handler != NULL ? handler : askfor_keypress);
+
+	Term_cursor_visible(false);
+
+	return ok;
 }
 
 /**
