@@ -2096,6 +2096,10 @@ static bool messages_reader_find(const char *search,
 {
 	assert(search != NULL);
 
+	if (search[0] == 0) {
+		return false;
+	}
+
 	if (older) {
 		/* Find a message older that the current one */
 		for (int i = *cur_message + 1; i < n_messages; i++) {
