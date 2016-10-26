@@ -2306,7 +2306,7 @@ void do_cmd_messages(void)
 		.x = 0,
 		.y = 0,
 		.w = term_width,
-		.h = term_height - 3
+		.h = term_height - 2
 	};
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH] = {0};
