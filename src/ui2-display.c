@@ -238,10 +238,7 @@ static void message_print(game_event_type type, game_event_data *data, void *use
  */
 static void message_bell(game_event_type type, game_event_data *data, void *user)
 {
-	(void) type;
-	(void) data;
-	(void) user;
-
+	message_print(type, data, user);
 	player->upkeep->redraw |= PR_MESSAGE;
 }
 
@@ -2276,7 +2273,7 @@ static void ui_enter_game(game_event_type type,
 	event_add_handler(EVENT_MESSAGE, message_print, display_message_line);
 
 	/* Display a message and make a noise to the player */
-	event_add_handler(EVENT_BELL, message_bell, NULL);
+	event_add_handler(EVENT_BELL, message_bell, display_message_line);
 
 	/* Tell the UI to ignore all pending input */
 	event_add_handler(EVENT_INPUT_FLUSH, inkey_flush, NULL);
@@ -2299,7 +2296,7 @@ static void ui_leave_game(game_event_type type,
 	event_remove_handler(EVENT_MESSAGE, message_print, display_message_line);
 
 	/* Display a message and make a noise to the player */
-	event_remove_handler(EVENT_BELL, message_bell, NULL);
+	event_remove_handler(EVENT_BELL, message_bell, display_message_line);
 
 	/* Tell the UI to ignore all pending input */
 	event_remove_handler(EVENT_INPUT_FLUSH, inkey_flush, NULL);
