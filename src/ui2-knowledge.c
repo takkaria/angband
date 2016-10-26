@@ -2379,25 +2379,25 @@ void do_cmd_messages(void)
 					}
 					break;
 
-				case ARROW_LEFT: case '4':
+				case ARROW_LEFT: case '4': case 'h':
 					if (hscroll > 0) {
 						hscroll = MAX(0, hscroll - term_width / 4);
 						redraw = true;
 					}
 					break;
 
-				case ARROW_RIGHT: case '6':
+				case ARROW_RIGHT: case '6': case 'l':
 					if (hscroll < term_width) {
 						hscroll += term_width / 4;
 						redraw = true;
 					}
 					break;
 
-				case ARROW_UP: case '8':
+				case ARROW_UP: case '8': case 'k':
 					vscroll = -1;
 					break;
 
-				case ARROW_DOWN: case '2': case KC_ENTER:
+				case ARROW_DOWN: case '2': case 'j': case KC_ENTER:
 					vscroll = 1;
 					break;
 
