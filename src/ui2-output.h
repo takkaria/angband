@@ -118,10 +118,20 @@ void put_str_h(const char *str, struct loc loc,
 		uint32_t color, uint32_t highlight);
 
 /**
- * As above, but print the string at the center of row y.
+ * As put_str_h, but uses predetermined colors.
+ */
+void put_str_h_simple(const char *str, struct loc loc);
+
+/**
+ * As put_str_h, but prints the string centered in row y.
  */
 void put_str_h_center(const char *str, int y,
 		uint32_t color, uint32_t highlight);
+
+/**
+ * As put_str_h_center, but uses predetermined colors.
+ */
+void put_str_h_center_simple(const char *str, int y);
 
 void show_prompt(const char *str, bool cursor);
 void clear_prompt(void);

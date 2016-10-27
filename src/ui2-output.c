@@ -539,6 +539,11 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 #define PLACE_PROMPT_MARK_CHAR   '`'
 #define PLACE_PROMPT_MARK_WCHAR L'`'
 
+#define PUT_STR_H_TEXT_COLOR \
+	COLOUR_WHITE
+#define PUT_STR_H_HIGHLIGHT_COLOR \
+	COLOUR_L_GREEN
+
 /**
  * Print a colorized string on the screen.
  */
@@ -598,6 +603,16 @@ void put_str_h_center(const char *str, int y,
 	};
 
 	put_str_h(str, loc, color, highlight);
+}
+
+void put_str_h_simple(const char *str, struct loc loc)
+{
+	put_str_h(str, loc, PUT_STR_H_TEXT_COLOR, PUT_STR_H_HIGHLIGHT_COLOR);
+}
+
+void put_str_h_center_simple(const char *str, int y)
+{
+	put_str_h_center(str, y, PUT_STR_H_TEXT_COLOR, PUT_STR_H_HIGHLIGHT_COLOR);
 }
 
 void clear_prompt(void)
