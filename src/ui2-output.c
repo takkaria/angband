@@ -536,6 +536,9 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
  * ------------------------------------------------------------------------
  */
 
+#define PLACE_PROMPT_MARK_CHAR   '`'
+#define PLACE_PROMPT_MARK_WCHAR L'`'
+
 /**
  * Print a colorized prompt on the screen
  */
@@ -568,7 +571,7 @@ void place_prompt(const char *str, struct loc loc,
 	uint32_t attr = COLOUR_WHITE;
 
 	for (size_t i = 0; i < text_length && loc.x < w; i++) {
-		if (ws[i] == L'`') {
+		if (ws[i] == PLACE_PROMPT_MARK_WCHAR) {
 			attr = attr == color ? highlight : color;
 		} else {
 			Term_putwc(attr, ws[i]);
@@ -582,9 +585,9 @@ void place_prompt(const char *str, struct loc loc,
 void place_prompt_center(const char *str, int y,
 		uint32_t color, uint32_t highlight)
 {
-	int len = 0; /* length without backticks */
+	int len = 0; /* length without mark chars */
 	for (int i = 0; str[i] != 0; i++) {
-		if (str[i] != '`') {
+		if (str[i] != PLACE_PROMPT_MARK_CHAR) {
 			len++;
 		}
 	}
