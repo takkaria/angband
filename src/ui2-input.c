@@ -673,8 +673,10 @@ static int textui_get_quantity(const char *prompt, int max)
  */
 bool textui_get_check(const char *prompt)
 {
+	int prompt_len = strlen(prompt);
+
 	struct term_hints hints = {
-		.width = strlen(prompt) + 7, /* add space for "[y/n] " */
+		.width = prompt_len + 7, /* add space for "[y/n] " */
 		.height = 1,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
@@ -683,8 +685,7 @@ bool textui_get_check(const char *prompt)
 	Term_push_new(&hints);
 	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
 
-	struct loc loc;
-	Term_get_cursor(&loc.x, &loc.y, NULL);
+	struct loc loc = {prompt_len, 0};
 	put_str_h("[`y`/`n`] ", loc, COLOUR_WHITE, COLOUR_ORANGE);
 
 	Term_cursor_visible(true);
