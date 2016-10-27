@@ -837,15 +837,13 @@ bool context_menu_object(struct object *obj)
 			return false; /* User cancelled the menu. */
 
 		case MENU_VALUE_DROP_ALL:
-			if (get_check("Drop all? ")) {
-				if (square_isshop(cave, player->py, player->px)) {
-					cmdq_push(CMD_STASH);
-				} else {
-					cmdq_push(CMD_DROP);
-				}
-				cmd_set_arg_item(cmdq_peek(), "item", obj);
-				cmd_set_arg_number(cmdq_peek(), "quantity", obj->number);
+			if (square_isshop(cave, player->py, player->px)) {
+				cmdq_push(CMD_STASH);
+			} else {
+				cmdq_push(CMD_DROP);
 			}
+			cmd_set_arg_item(cmdq_peek(), "item", obj);
+			cmd_set_arg_number(cmdq_peek(), "quantity", obj->number);
 			return true;
 
 		case CMD_BROWSE_SPELL:
