@@ -32,14 +32,11 @@ static void print_history_header(void)
 
 static void show_history_prompt(void)
 {
-#define HISTORY_PROMPT \
-	"[Arrow keys scroll, " \
-	"p/PgUp for previous page, " \
-	"n/PgDn for next page, ESC to exit.]"
+	const char *prompt =
+		"[<`dir`>, `p`/`PageUp` for previous page, `n`/`PageDown` for next page, `ESC`]";
 
-	show_prompt(HISTORY_PROMPT, false);
-
-#undef HISTORY_PROMPT
+	put_str_h_center(prompt, Term_height() - 1,
+			COLOUR_WHITE, COLOUR_L_BLUE);
 }
 
 /**
@@ -65,32 +62,34 @@ void history_display(void)
 	Term_push_new(&hints);
 	Term_add_tab(0, "Player history", COLOUR_WHITE, COLOUR_DARK);
 
-	/* Two lines provide space for the header */
-	const int page_size = term_height - 2;
+	print_history_header();
+	show_history_prompt();
+
+	/* 3 lines provide space for the header, prompt,
+	 * and separator line between prompt and text */
+	const int page_size = term_height - 3;
 
 	bool done = false;
 
 	while (!done) {
-		Term_erase_all();
-
-		/* Print everything to screen */
-		print_history_header();
-		show_history_prompt();
-
 		struct loc loc = {0, 1};
 
-		for (int i = first_item, y = 0; i < max_item && y < page_size; i++, y++, loc.y++) {
-			char buf[ANGBAND_TERM_STANDARD_WIDTH];
-			strnfmt(buf, sizeof(buf), "%10d%7d\'  %s",
-					history_list_local[i].turn,
-					history_list_local[i].dlev * 50,
-					history_list_local[i].event);
+		for (int i = first_item, l = 0; l < page_size; i++, l++, loc.y++) {
+			if (i < max_item) {
+				char buf[ANGBAND_TERM_STANDARD_WIDTH];
+				strnfmt(buf, sizeof(buf), "%10d%7d\'  %s",
+						history_list_local[i].turn,
+						history_list_local[i].dlev * 50,
+						history_list_local[i].event);
 
-			if (hist_has(history_list_local[i].type, HIST_ARTIFACT_LOST)) {
-				my_strcat(buf, " (LOST)", sizeof(buf));
+				if (hist_has(history_list_local[i].type, HIST_ARTIFACT_LOST)) {
+					my_strcat(buf, " (LOST)", sizeof(buf));
+				}
+
+				prt(buf, loc);
+			} else {
+				erase_line(loc);
 			}
-
-			prt(buf, loc);
 		}
 
 		Term_flush_output();
