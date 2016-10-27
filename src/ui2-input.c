@@ -683,6 +683,41 @@ bool textui_get_check(const char *prompt)
 	return false;
 }
 
+bool textui_get_check_popup(const char *prompt)
+{
+	char buf[ANGBAND_TERM_STANDARD_WIDTH + 1];
+	int len = strnfmt(buf, sizeof(buf),
+			"%.*s[y/n]",
+			ANGBAND_TERM_STANDARD_WIDTH - 5, prompt);
+
+	struct term_hints hints = {
+		.width = len + 1,
+		.height = 1,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	
+	Term_push_new(&hints);
+	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, buf);
+	Term_flush_output();
+
+	ui_event event = inkey_mouse_or_key();
+	
+	Term_pop();
+
+	if (event.type == EVT_MOUSE
+			&& event.mouse.button == MOUSE_BUTTON_LEFT)
+	{
+		return true;
+	} else if (event.type == EVT_KBRD
+			&& (event.key.code == 'Y' || event.key.code == 'y'))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 /**
  * Text-native way of getting a filename.
  */
@@ -693,7 +728,10 @@ static bool get_file_text(const char *suggested_name,
 
 	/* Get filename */
 	my_strcpy(buf, suggested_name, sizeof(buf));
-	if (!get_string("File name: ", buf, sizeof(buf))) {
+	if (!askfor_popup("File name: ", buf, sizeof(buf),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
 		return false;
 	}
 
@@ -704,13 +742,13 @@ static bool get_file_text(const char *suggested_name,
 
 	path_build(path, pathlen, ANGBAND_DIR_USER, buf);
 
-	if (file_exists(path) && !get_check("Replace existing file? ")) {
+	if (file_exists(path)
+			&& !textui_get_check_popup("Replace existing file? "))
+	{
 		return false;
 	}
 
-	show_prompt(format("Saving as %s.", path), false);
-	inkey_any();
-	clear_prompt();
+	show_prompt(format("Saved as %s.", path), false);
 
 	return true;
 }
