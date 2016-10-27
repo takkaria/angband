@@ -2276,37 +2276,37 @@ static void messages_reader_print(int message, int line,
 	}
 }
 
-static int messages_reader_dump(int cur_message, int n_messages,
+static int messages_reader_dump(int message, int n_messages,
 		region reg, int hscroll, int vscroll, bool redraw, const char *search)
 {
-	vscroll = messages_reader_scroll_check(cur_message, n_messages, vscroll, reg);
+	vscroll = messages_reader_scroll_check(message, n_messages, vscroll, reg);
 
 	if (vscroll != 0 || redraw) {
 		int cur_line = reg.y + reg.h - 1;
 		int min_line = reg.y;
-		int message = cur_message;
+		int cur_message = message;
 
 		if (vscroll != 0) {
 			messages_reader_scroll(vscroll,
-					reg, &cur_line, &min_line, &message);
+					reg, &cur_line, &min_line, &cur_message);
 		}
 
 		assert(cur_line >= min_line);
-		assert(message < n_messages);
+		assert(cur_message < n_messages);
 
-		while (cur_line >= min_line && message < n_messages) {
+		while (cur_line >= min_line && cur_message < n_messages) {
 			/* Print the messages, from bottom to top */
-			messages_reader_print(message,
+			messages_reader_print(cur_message,
 					cur_line, hscroll, reg, search);
 
-			message++;
 			cur_line--;
+			cur_message++;
 		}
 	}
 
 	/* Subtract vscroll, since we're
 	 * printing from bottom to top */
-	return cur_message - vscroll;
+	return message - vscroll;
 }
 
 /**
@@ -2357,7 +2357,7 @@ void do_cmd_messages(void)
 	const int n_messages = messages_num();
 	/* Message that is currently
 	 * at the bottom of the screen */
-	int cur_message = 0;
+	int message = 0;
 	/* Horizontal scroll offset */
 	int hscroll = 0;
 	/* Vertical scroll amount */
@@ -2379,9 +2379,8 @@ void do_cmd_messages(void)
 			messages_reader_help(search, help_loc);
 		}
 
-		cur_message =
-			messages_reader_dump(cur_message, n_messages,
-					msg_reg, hscroll, vscroll, redraw, search);
+		message = messages_reader_dump(message, n_messages,
+				msg_reg, hscroll, vscroll, redraw, search);
 
 		vscroll = 0;
 		redraw = false;
@@ -2448,7 +2447,7 @@ void do_cmd_messages(void)
 			if ((event.key.code == '-' || event.key.code == '+')
 					&& search != NULL)
 			{
-				if (!messages_reader_find(search, &cur_message, n_messages,
+				if (!messages_reader_find(search, &message, n_messages,
 							event.key.code == '-'))
 				{
 					messages_reader_warn("Search string not found!", help_loc);
