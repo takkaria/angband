@@ -223,16 +223,15 @@ static void help_goto_file(const struct help_file *help)
 	char name[HELP_LINE_SIZE];
 	my_strcpy(name, help->name, sizeof(name));
 
-	show_prompt("File: ", false);
-
-	if (askfor_prompt(name, sizeof(name), NULL)) {
+	if (askfor_popup("File: ", name, sizeof(name),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
 		clear_prompt();
 
 		Term_visible(false);
 		show_help(name);
 		Term_visible(true);
-	} else {
-		clear_prompt();
 	}
 }
 
@@ -253,12 +252,15 @@ static void try_show_help(const struct help_file *help, char key)
 
 static void help_goto_line(struct help_file *help)
 {
-	char line[HELP_LINE_SIZE];
+	char line[4];
 	my_strcpy(line, format("%zu", help->line), sizeof(line));
 
-	show_prompt("Line: ", false);
+	const char *prompt = "Line: ";
 
-	if (askfor_prompt(line, sizeof(line), NULL)) {
+	if (askfor_popup(prompt, line, sizeof(line),
+				strlen(prompt) + sizeof(line) - 1,
+				TERM_POSITION_CENTER, NULL, askfor_numbers))
+	{
 		char *end = NULL;
 		long l = strtol(line, &end, 10);
 		if (line != end) {
