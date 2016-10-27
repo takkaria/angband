@@ -139,7 +139,7 @@ static void birth_show_prompt(const char *prompt)
 static enum birth_stage textui_birth_quickstart(void)
 {
 	const char *prompt =
-		"['Y' to use this character, 'N' to start afresh, 'C' to change name or history]";
+		"[`Y` to use this character, `N` to start afresh, `C` to change name or history]";
 	birth_show_prompt(prompt);
 
 	enum birth_stage next = BIRTH_QUICKSTART;
@@ -711,11 +711,11 @@ static enum birth_stage roller_command(bool first_call)
 	}
 
 	/* Prepare a prompt (must squeeze everything in) */
-	my_strcpy(prompt, "['r' to reroll", sizeof(prompt));
+	my_strcpy(prompt, "[`r` to reroll", sizeof(prompt));
 	if (prev_roll) {
-		my_strcat(prompt, ", 'p' for previous roll", sizeof(prompt));
+		my_strcat(prompt, ", `p` for previous roll", sizeof(prompt));
 	}
-	my_strcat(prompt, " or 'Enter' to accept]", sizeof(prompt));
+	my_strcat(prompt, " or `Enter` to accept]", sizeof(prompt));
 
 	birth_show_prompt(prompt);
 	
@@ -824,7 +824,7 @@ static void point_based_points(game_event_type type,
 static void point_based_start(void)
 {
 	const char *prompt =
-		"['up'/'down' to move, 'left'/'right' to modify, 'r' to reset, 'Enter' to accept]";
+		"[`up`/`down` to move, `left`/`right` to modify, `r` to reset, `Enter` to accept]";
 
 	Term_erase_all();
 	display_player(PLAYER_DISPLAY_MODE_BIRTH);
@@ -983,7 +983,7 @@ bool edit_text(char *buffer, size_t bufsize) {
 	bool retval = false;
 	bool done = false;
 
-	birth_show_prompt("['ESC' to step back, 'Enter' to accept]");
+	birth_show_prompt("[`ESC` to step back, `Enter` to accept]");
 
 	while (!done) {
 		assert(cursor <= length);
@@ -1128,7 +1128,7 @@ static enum birth_stage get_history_command(void)
 	/* Save the original history */
 	my_strcpy(old_history, player->history, sizeof(old_history));
 
-	birth_show_prompt("Accept character history? ['y'/'n']");
+	birth_show_prompt("Accept character history? [`y`/`n`]");
 
 	struct keypress key = inkey_only_key();
 
@@ -1163,7 +1163,7 @@ static enum birth_stage get_history_command(void)
 static enum birth_stage get_confirm_command(void)
 {
 	const char *prompt =
-		"['ESC' to step back, 'S' to start over, or any other key to continue]";
+		"[`ESC` to step back, `S` to start over, or any other key to continue]";
 
 	enum birth_stage next = BIRTH_RESET;
 

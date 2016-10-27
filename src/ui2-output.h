@@ -110,8 +110,8 @@ void prt(const char *str, struct loc at);
 
 /**
  * Print a string at position loc; all substrings
- * in single quotes will be printed using highlight
- * color, and single quotes themselves wont be printed.
+ * in backticks (`) will be printed using highlight
+ * color, but backticks themselves wont be printed.
  * It's like a simplified version of text_out_e().
  */
 void place_prompt(const char *str, struct loc loc,

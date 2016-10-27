@@ -542,9 +542,9 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 void place_prompt(const char *str, struct loc loc,
 		uint32_t color, uint32_t highlight)
 {
-	/* We don't print single quotes; imagine that
+	/* We don't print backticks; imagine that
 	 * every char in the string is surrounded by
-	 * two single quotes ("'a''b''c'"...).
+	 * two backticks ("`a``b``c`"...).
 	 * The function must work correctly even then,
 	 * up to ANGBAND_TERM_STANDARD_WIDTH chars. */
 	wchar_t ws[ANGBAND_TERM_STANDARD_WIDTH * 3];
@@ -568,7 +568,7 @@ void place_prompt(const char *str, struct loc loc,
 	uint32_t attr = COLOUR_WHITE;
 
 	for (size_t i = 0; i < text_length && loc.x < w; i++) {
-		if (ws[i] == L'\'') {
+		if (ws[i] == L'`') {
 			attr = attr == color ? highlight : color;
 		} else {
 			Term_putwc(attr, ws[i]);
@@ -582,9 +582,9 @@ void place_prompt(const char *str, struct loc loc,
 void place_prompt_center(const char *str, int y,
 		uint32_t color, uint32_t highlight)
 {
-	int len = 0; /* length without singe quotes */
+	int len = 0; /* length without backticks */
 	for (int i = 0; str[i] != 0; i++) {
-		if (str[i] != '\'') {
+		if (str[i] != '`') {
 			len++;
 		}
 	}
