@@ -326,8 +326,11 @@ static void store_draw_frame(const struct store_context *context)
 		put_str("    Price", context->term_loc[LOC_PRICE]);
 	}
 
-	prt(context->prompt != NULL ? context->prompt : "Press '?' for help.",
-			context->term_loc[LOC_HELP_PROMPT]);
+	const char *help = context->prompt != NULL ?
+		context->prompt : "Press `?` for help.";
+
+	erase_line(context->term_loc[LOC_HELP_PROMPT]);
+	put_str_h_simple(help, context->term_loc[LOC_HELP_PROMPT]);
 
 	store_prt_gold(context, LOC_PLAYER_GOLD, player->au);
 }
@@ -463,12 +466,13 @@ static bool store_get_check(const char *name_str, uint32_t name_attr,
 	Term_cursor_visible(true);
 
 	int x = 0;
+
 	Term_adds(x, 0, verb_len, COLOUR_WHITE, verb_str);
-
 	x += verb_len + 1;
-	Term_adds(x, 0, name_len, name_attr, name_str);
 
+	Term_adds(x, 0, name_len, name_attr, name_str);
 	x += name_len + 1;
+
 	Term_adds(x, 0, cost_len, COLOUR_WHITE, cost_str);
 
 	Term_flush_output();
@@ -490,15 +494,15 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 {
 	assert(max_quantity > 1);
 
-	const char *prompt = "How many? ('a' for max) ";
+	const char *prompt = "How many? (`a` for max) ";
 	char buf[sizeof("123")] = "1"; /* 3 digits (999) maximum, 1 default */
 
 	const int verb_len = strlen(verb_str);
 	const int name_len = strlen(name_str);
 	const int add_len = strlen(add_str);
 
-	const int prompt_len = strlen(prompt);
-	const int buf_len = sizeof(buf) - 1; /* subtract 1 to account for null byte */
+	const int prompt_len = strlen(prompt) - 2; /* subtract 2 to account for backticks */
+	const int buf_len = sizeof(buf) - 1;       /* subtract 1 to account for null byte */
 
 	struct term_hints hints = {
 		.width = MAX(verb_len + name_len + add_len, prompt_len + buf_len),
@@ -520,7 +524,9 @@ static int store_get_quantity_aux(const char *name_str, uint32_t name_attr,
 		Term_adds(loc.x, loc.y, add_len, COLOUR_WHITE, add_str);
 	}
 
-	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
+	loc.x = 0;
+	loc.y = 0;
+	put_str_h_simple(prompt, loc);
 
 	Term_flush_output();
 
@@ -1100,8 +1106,8 @@ static bool store_menu_handle(struct menu *menu,
 				/* Use the old way of purchasing items */
 				store_prompt(context,
 						store->sidx == STORE_HOME ?
-						"Take which item? (ESC to cancel)" :
-						"Purchase which item? (ESC to cancel)");
+						"Take which item? (`ESC` to cancel)" :
+						"Purchase which item? (`ESC` to cancel)");
 				index = store_get_stock(menu, index);
 				store_clear_prompt(context);
 
@@ -1112,7 +1118,7 @@ static bool store_menu_handle(struct menu *menu,
 
 			case 'l': case 'x':
 				/* Use the old way of examining items */
-				store_prompt(context, "Examine which item? (ESC to cancel)");
+				store_prompt(context, "Examine which item? (`ESC` to cancel)");
 				index = store_get_stock(menu, index);
 				store_clear_prompt(context);
 
