@@ -39,22 +39,113 @@ static void show_history_prompt(void)
 			COLOUR_WHITE, COLOUR_L_BLUE);
 }
 
+static int history_scroll_check(int item, int n_items, int scroll, region reg)
+{
+	assert(item >= 0);
+
+	int new_scroll = scroll;
+
+	if (n_items > reg.h) {
+		const int new_item = item + scroll;
+		const int end_item = n_items - reg.h;
+
+		assert(item <= end_item);
+
+		if (new_item > end_item) {
+			new_scroll = end_item - item;
+		}
+		if (new_item < 0) {
+			new_scroll = -item;
+		}
+	} else {
+		new_scroll = 0;
+	}
+
+	return new_scroll;
+}
+
+static void history_scroll(int scroll, region reg,
+		int *line, int *end_line, int *item)
+{
+	const int abs_scroll = ABS(scroll);
+
+	assert(abs_scroll > 0);
+	assert(abs_scroll < reg.h);
+
+	const struct loc src = {
+		.x = reg.x,
+		.y = scroll > 0 ? reg.y + abs_scroll: reg.y
+	};
+	const struct loc dst = {
+		.x = reg.x,
+		.y = scroll > 0 ? reg.y : reg.y + abs_scroll
+	};
+
+	const int height = reg.h - abs_scroll;
+
+	Term_move_points(dst.x, dst.y, src.x, src.y, reg.w, height);
+
+	if (scroll > 0) {
+		*item += reg.h;
+		*line += height;
+	} else {
+		*item -= abs_scroll;
+		*end_line -= height;
+	}
+}
+
+static int history_dump(const struct history_info *history,
+		int item, int n_items, region reg, int scroll, bool redraw)
+{
+	scroll = history_scroll_check(item, n_items, scroll, reg);
+
+	if (scroll != 0 || redraw) {
+		int cur_line = reg.y;
+		int max_line = reg.y + reg.h;
+		int cur_item = item;
+
+		if (scroll != 0) {
+			history_scroll(scroll, reg,
+					&cur_line, &max_line, &cur_item);
+		}
+
+		while (cur_line < max_line && cur_item < n_items) {
+
+			char buf[ANGBAND_TERM_STANDARD_WIDTH];
+			int len =
+				strnfmt(buf, sizeof(buf), "%10d%7d\'  %s",
+					history[cur_item].turn,
+					history[cur_item].dlev * 50,
+					history[cur_item].event);
+
+			if (hist_has(history[cur_item].type, HIST_ARTIFACT_LOST)) {
+				len = my_strcat(buf, " (LOST)", sizeof(buf));
+			}
+
+			Term_erase_line(0, cur_line);
+			Term_adds(0, cur_line, len, COLOUR_WHITE, buf);
+
+			cur_line++;
+			cur_item++;
+		}
+	}
+
+	return item + scroll;
+}
+
 /**
  * Handles all of the display functionality for the history list.
  */
 void history_display(void)
 {
-	struct history_info *history_list_local = NULL;
+	struct history_info *history = NULL;
 
-	static int first_item = 0;
-	int max_item = history_get_list(player, &history_list_local);
-
-	const int term_width = ANGBAND_TERM_STANDARD_WIDTH;
-	const int term_height = ANGBAND_TERM_STANDARD_HEIGHT;
+	int cur_item = 0;
+	const int n_items = history_get_list(player, &history);
 
 	struct term_hints hints = {
-		.width = term_width,
-		.height = term_height,
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
 		.tabs = true,
 		.purpose = TERM_PURPOSE_TEXT,
 		.position = TERM_POSITION_CENTER
@@ -62,57 +153,45 @@ void history_display(void)
 	Term_push_new(&hints);
 	Term_add_tab(0, "Player history", COLOUR_WHITE, COLOUR_DARK);
 
+	/* 3 lines provide space for the header, prompt,
+	 * and separator line between prompt and text */
+	region text_reg = {0, 1, Term_width(), Term_height() - 3};
+
 	print_history_header();
 	show_history_prompt();
 
-	/* 3 lines provide space for the header, prompt,
-	 * and separator line between prompt and text */
-	const int page_size = term_height - 3;
+	int scroll = 0;
+	bool redraw = true;
 
 	bool done = false;
 
 	while (!done) {
-		struct loc loc = {0, 1};
+		cur_item = history_dump(history,
+				cur_item, n_items, text_reg, scroll, redraw);
 
-		for (int i = first_item, l = 0; l < page_size; i++, l++, loc.y++) {
-			if (i < max_item) {
-				char buf[ANGBAND_TERM_STANDARD_WIDTH];
-				strnfmt(buf, sizeof(buf), "%10d%7d\'  %s",
-						history_list_local[i].turn,
-						history_list_local[i].dlev * 50,
-						history_list_local[i].event);
-
-				if (hist_has(history_list_local[i].type, HIST_ARTIFACT_LOST)) {
-					my_strcat(buf, " (LOST)", sizeof(buf));
-				}
-
-				prt(buf, loc);
-			} else {
-				erase_line(loc);
-			}
-		}
-
+		scroll = 0;
+		redraw = false;
 		Term_flush_output();
 
 		struct keypress key = inkey_only_key();
 
 		switch (key.code) {
-			/* Use page_size - 1 to scroll by less than full page */
+			/* Use page size - 2 to scroll by less than full page */
 
 			case 'n': case ' ': case KC_PGDOWN:
-				first_item = MIN(max_item - 1, first_item + (page_size - 1));
+				scroll = text_reg.h - 2;
 				break;
 
 			case 'p': case '-': case KC_PGUP:
-				first_item = MAX(0, first_item - (page_size - 1));
+				scroll = -(text_reg.h - 2);
 				break;
 
 			case ARROW_DOWN:
-				first_item = MIN(max_item - 1, first_item + 1);
+				scroll = 1;
 				break;
 
 			case ARROW_UP:
-				first_item = MAX(0, first_item - 1);
+				scroll = -1;
 				break;
 
 			case ESCAPE:
@@ -121,7 +200,6 @@ void history_display(void)
 		}
 	}
 
-	clear_prompt();
 	Term_pop();
 }
 
