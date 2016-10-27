@@ -264,7 +264,7 @@ static void help_goto_line(struct help_file *help)
 		char *end = NULL;
 		long l = strtol(line, &end, 10);
 		if (line != end) {
-			help->line = l;
+			help->line = l - 1;
 		}
 	}
 
