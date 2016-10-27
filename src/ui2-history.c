@@ -109,6 +109,9 @@ static int history_dump(const struct history_info *history,
 					&cur_line, &max_line, &cur_item);
 		}
 
+		assert(cur_line < max_line);
+		assert(cur_item < n_items);
+
 		while (cur_line < max_line && cur_item < n_items) {
 
 			char buf[ANGBAND_TERM_STANDARD_WIDTH];
