@@ -95,11 +95,26 @@ void textui_cmd_suicide(void)
 		event_signal(EVENT_INPUT_FLUSH);
 
 		/* Special verification for suicide */
-		show_prompt("Please verify SUICIDE by typing the '@' sign: ", true);
-		struct keypress key = inkey_only_key();
-		clear_prompt();
+		const char *prompt =
+			"Please verify SUICIDE by typing the `@` sign: ";
 
-		if (key.code != '@') {
+		struct term_hints hints = {
+			.width = strlen(prompt) - 2 + 1,
+			.height = 1,
+			.position = TERM_POSITION_CENTER,
+			.purpose = TERM_PURPOSE_TEXT
+		};
+
+		Term_push_new(&hints);
+		Term_cursor_visible(true);
+		put_str_h(prompt, loc(0, 0), COLOUR_WHITE, COLOUR_RED);
+		Term_flush_output();
+
+		struct keypress key = inkey_only_key();
+
+		Term_pop();
+
+		if (key.code != L'@') {
 			return;
 		}
 	}
