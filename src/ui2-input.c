@@ -770,9 +770,23 @@ static bool get_mouse_or_key(const char *prompt, ui_event *event)
  */
 bool textui_get_com(const char *prompt, char *command)
 {
-	show_prompt(prompt, true);
+	int prompt_len = strlen(prompt);
+
+	struct term_hints hints = {
+		.width = prompt_len + 1, /* add space for cursor */
+		.height = 1,
+		.position = TERM_POSITION_TOP_LEFT,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+
+	Term_push_new(&hints);
+	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
+	Term_cursor_visible(true);
+	Term_flush_output();
+
 	struct keypress key = inkey_only_key();
-	clear_prompt();
+
+	Term_pop();
 
 	if (key.code != ESCAPE && key.code < CHAR_MAX) {
 		*command = (char) key.code;
