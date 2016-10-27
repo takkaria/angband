@@ -1454,21 +1454,28 @@ static void player_display_term_pop()
 	Term_pop();
 }
 
+static void view_char_prompt(enum player_display_mode mode)
+{
+	const char *prompt =
+		"[`c` to change name, `f` to dump to file, `h` to change mode, or `ESC`]";
+
+	if (mode == PLAYER_DISPLAY_MODE_BASIC) {
+		put_str_h_center_simple(prompt, Term_height() - 1);
+	}
+}
+
 /**
  * View character and (potentially) change name
  */
 void do_cmd_view_char(void)
 {
-	const char *prompt = "['c' to change name, 'f' to file, 'h' to change mode, or ESC]";
-
-	show_prompt(prompt, false);
-
 	enum player_display_mode mode = PLAYER_DISPLAY_MODE_BASIC;
 	bool done = false;
 	bool change = false;
 
 	player_display_term_push(mode);
 	display_player(mode);
+	view_char_prompt(mode);
 
 	while (!done) {
 
@@ -1476,6 +1483,7 @@ void do_cmd_view_char(void)
 			player_display_term_pop();
 			player_display_term_push(mode);
 			display_player(mode);
+			view_char_prompt(mode);
 			change = false;
 		}
 
