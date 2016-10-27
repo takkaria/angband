@@ -663,10 +663,10 @@ bool textui_get_check(const char *prompt)
 {
 	char buf[ANGBAND_TERM_STANDARD_WIDTH + 1];
 	strnfmt(buf, sizeof(buf),
-			"%.*s[y/n]",
-			ANGBAND_TERM_STANDARD_WIDTH - 5, prompt);
+			"%.*s[y/n] ",
+			ANGBAND_TERM_STANDARD_WIDTH - 6, prompt);
 
-	show_prompt(buf, false);
+	show_prompt(buf, true);
 	ui_event event = inkey_mouse_or_key();
 	clear_prompt();
 
@@ -687,8 +687,8 @@ bool textui_get_check_popup(const char *prompt)
 {
 	char buf[ANGBAND_TERM_STANDARD_WIDTH + 1];
 	int len = strnfmt(buf, sizeof(buf),
-			"%.*s[y/n]",
-			ANGBAND_TERM_STANDARD_WIDTH - 5, prompt);
+			"%.*s[y/n] ",
+			ANGBAND_TERM_STANDARD_WIDTH - 6, prompt);
 
 	struct term_hints hints = {
 		.width = len + 1,
@@ -699,6 +699,7 @@ bool textui_get_check_popup(const char *prompt)
 	
 	Term_push_new(&hints);
 	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, buf);
+	Term_cursor_visible(true);
 	Term_flush_output();
 
 	ui_event event = inkey_mouse_or_key();
