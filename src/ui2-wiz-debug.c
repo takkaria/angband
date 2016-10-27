@@ -1300,7 +1300,7 @@ static void do_cmd_wiz_jump(void)
 /**
  * Become aware of all object flavors
  */
-static void do_cmd_wiz_learn()
+static void do_cmd_wiz_learn(void)
 {
 	int level = 100;
 
@@ -1936,6 +1936,26 @@ void do_cmd_wiz_effect(void)
 	}
 }
 
+static void do_cmd_wiz_spoilers(void)
+{
+	do_cmd_spoilers();
+}
+
+static void do_cmd_wiz_disconnect_stats(void)
+{
+	disconnect_stats();
+}
+
+static void do_cmd_wiz_pit_stats(void)
+{
+	pit_stats();
+}
+
+static void do_cmd_wiz_stats_collect(void)
+{
+	stats_collect();
+}
+
 /*
  * Quit the game without saving
  */
@@ -1945,60 +1965,123 @@ static void do_cmd_wiz_quit(void)
 		quit("user choice");
 }
 
+struct debug_menu_item {
+	char tag;
+	const char *name;
+	void (*action)(void);
+};
+
+struct debug_menu_item debug_menu_items[] = {
+	{'"', "Create spoiler files",           do_cmd_wiz_spoilers},
+	{'?', "View help",                      do_cmd_wiz_help},
+	{'a', "Cure everything",                do_cmd_wiz_cure_all},
+	{'A', "Advance to level 50",            do_cmd_wiz_level_50},
+	{'b', "Teleport to target",             do_cmd_wiz_teleport_target},
+	{'c', "Create an item",                 do_cmd_wiz_create_item},
+	{'C', "Create an artifact",             do_cmd_wiz_create_artifact},
+	{'d', "Detect everything",              do_cmd_wiz_detect_everything},
+	{'D', "Check disconnects",              do_cmd_wiz_disconnect_stats},
+	{'e', "Change stats, gold, experience", do_cmd_wiz_change},
+	{'E', "Do an effect",                   do_cmd_wiz_effect},
+	{'F', "Query terrain",                  do_cmd_wiz_features},
+	{'g', "Create some good objects",       do_cmd_wiz_good_objects},
+	{'h', "Rerate hitpoints",               do_cmd_wiz_rerate},
+	{'H', "Hit all monsters in LOS",        do_cmd_wiz_hit_monsters},
+	{'j', "Go to any level",                do_cmd_wiz_jump},
+	{'l', "Learn all object flavors",       do_cmd_wiz_learn},
+	{'m', "Magic mapping",                  do_cmd_wiz_magic_map},
+	{'n', "Summon a named monster",         do_cmd_wiz_summon_monster},
+	{'o', "Play with an item",              do_cmd_wiz_play_item},
+	{'p', "Cast phase door",                do_cmd_wiz_phase_door},
+	{'P', "Get pit stats",                  do_cmd_wiz_pit_stats},
+	{'q', "Query square flags",             do_cmd_wiz_square_flag},
+	{'r', "Get full recall for a monster",  do_cmd_wiz_monster_recall},
+	{'s', "Summon random monsters",         do_cmd_wiz_summon_monsters},
+	{'S', "Collect stats",                  do_cmd_wiz_stats_collect},
+	{'t', "Random teleport",                do_cmd_wiz_teleport},
+	{'T', "Create a trap",                  do_cmd_wiz_place_trap},
+	{'u', "Reveal all monsters",            do_cmd_wiz_reveal_monsters},
+	{'v', "Create exceptional objects",     do_cmd_wiz_very_good_objects},
+	{'V', "Create lots of objects",         do_cmd_wiz_lots_objects},
+	{'w', "Wizard light the level",         do_cmd_wiz_light},
+	{'W', "Wipe recall for a monster",      do_cmd_wiz_wipe_recall},
+	{'x', "Increase experience",            do_cmd_wiz_gain_exp},
+	{'X', "Quit without saving",            do_cmd_wiz_quit},
+	{'z', "Banish some monsters",           do_cmd_wiz_banish},
+	{'_', "Show flow algorithm",            do_cmd_wiz_show_flow},
+};
+
+struct debug_menu_data {
+	struct debug_menu_item *items;
+	int n_items;
+	void (*action)(void);
+};
+
+static void debug_menu_display(struct menu *menu,
+		int index, bool cursor, struct loc loc, int width)
+{
+	struct debug_menu_data *data = menu_priv(menu);
+
+	Term_adds(loc.x, loc.y, width,
+			menu_row_style(true, cursor), data->items[index].name);
+}
+
+static bool debug_menu_handle(struct menu *menu,
+		const ui_event *event, int index)
+{
+	struct debug_menu_data *data = menu_priv(menu);
+
+	if (event->type == EVT_SELECT) {
+		data->action = data->items[index].action;
+	}
+
+	return false;
+}
+
+static char debug_menu_tag(struct menu *menu, int index)
+{
+	struct debug_menu_data *data = menu_priv(menu);
+
+	return data->items[index].tag;
+}
+
 /**
- * Main switch for processing debug commands.
- * This is a step back in time to how all commands used to be processed.
- * (Except everything used to be inlined for some reason).
+ * Main menu for processing debug commands.
  */
 void get_debug_command(void)
 {
-	char wiz_command;
+	menu_iter debug_iter = {
+		.display_row = debug_menu_display,
+		.row_handler = debug_menu_handle,
+		.get_tag = debug_menu_tag,
+	};
 
-	if (!get_com("Debug Command: ", &wiz_command)) {
-		return;
-	}
+	struct debug_menu_data data = {
+		.items = debug_menu_items,
+		.n_items = N_ELEMENTS(debug_menu_items),
+		.action = NULL,
+	};
 
-	switch (wiz_command) {
-		case '"': do_cmd_spoilers();              break;
-		case '?': do_cmd_wiz_help();              break;
-		case 'a': do_cmd_wiz_cure_all();          break;
-		case 'A': do_cmd_wiz_level_50();          break;
-		case 'b': do_cmd_wiz_teleport_target();   break;
-		case 'c': do_cmd_wiz_create_item();       break;
-		case 'C': do_cmd_wiz_create_artifact();   break;
-		case 'd': do_cmd_wiz_detect_everything(); break;
-		case 'D': disconnect_stats();             break;
-		case 'e': do_cmd_wiz_change();            break;
-		case 'E': do_cmd_wiz_effect();            break;
-		case 'f': stats_collect();                break;
-		case 'F': do_cmd_wiz_features();          break;
-		case 'g': do_cmd_wiz_good_objects();      break;
-		case 'h': do_cmd_wiz_rerate();            break;
-		case 'H': do_cmd_wiz_hit_monsters();      break;
-		case 'j': do_cmd_wiz_jump();              break;
-		case 'l': do_cmd_wiz_learn();             break;
-		case 'm': do_cmd_wiz_magic_map();         break;
-		case 'n': do_cmd_wiz_summon_monster();    break;
-		case 'o': do_cmd_wiz_play_item();         break;
-		case 'p': do_cmd_wiz_phase_door();        break;
-		case 'P': pit_stats();                    break;
-		case 'q': do_cmd_wiz_square_flag();       break;
-		case 'r': do_cmd_wiz_monster_recall();    break;
-		case 's': do_cmd_wiz_summon_monsters();   break;
-		case 'S': stats_collect();                break;
-		case 't': do_cmd_wiz_teleport();          break;
-		case 'T': do_cmd_wiz_place_trap();        break;
-		case 'u': do_cmd_wiz_reveal_monsters();   break;
-		case 'v': do_cmd_wiz_very_good_objects(); break;
-		case 'V': do_cmd_wiz_lots_objects();      break;
-		case 'w': do_cmd_wiz_light();             break;
-		case 'W': do_cmd_wiz_wipe_recall();       break;
-		case 'x': do_cmd_wiz_gain_exp();          break;
-		case 'X': do_cmd_wiz_quit();              break;
-		case 'z': do_cmd_wiz_banish();            break;
-		case '_': do_cmd_wiz_show_flow();         break;
+	struct menu menu;
 
-		default:
-			break;
+	menu_init(&menu, MN_SKIN_COLUMNS, &debug_iter);
+	menu_setpriv(&menu, data.n_items, &data);
+	menu.column_width = 40;
+
+	struct term_hints hints = {
+		.width = ANGBAND_TERM_STANDARD_WIDTH,
+		.height = ANGBAND_TERM_STANDARD_HEIGHT,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_MENU
+	};
+	Term_push_new(&hints);
+
+	menu_layout_term(&menu);
+	menu_select(&menu);
+
+	Term_pop();
+
+	if (data.action != NULL) {
+		data.action();
 	}
 }
