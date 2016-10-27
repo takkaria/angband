@@ -593,7 +593,7 @@ static bool askfor_name_keypress(char *buf, size_t buflen,
 bool get_character_name(char *buf, size_t buflen)
 {
 	const char *prompt =
-		"Enter a name for your character (* for a random name): ";
+		"Enter a name for your character (`*` for a random name): ";
 
 	my_strcpy(buf, player->full_name, buflen);
 
