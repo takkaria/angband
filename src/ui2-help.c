@@ -372,7 +372,7 @@ static void help_display_check(struct help_file *help, region reg)
 }
 
 static void help_scroll(struct help_file *help,
-		region reg, int *line, int *row, int *end)
+		region reg, int *line, int *cur_row, int *end_row)
 {
 	const int abs_scroll = ABS(help->scroll);
 
@@ -396,10 +396,10 @@ static void help_scroll(struct help_file *help,
 
 	if (help->scroll > 0) {
 		*line += reg.h;
-		*row += height;
+		*cur_row += height;
 	} else {
 		*line -= abs_scroll;
-		*end -= height;
+		*end_row -= height;
 	}
 
 	help->scroll = 0;
@@ -410,20 +410,20 @@ static void help_display_page(struct help_file *help, region reg)
 	help_display_check(help, reg);
 
 	int line = help->line;
-	int row  = reg.y;
-	int end  = reg.y + reg.h;
+	int cur_row  = reg.y;
+	int end_row  = reg.y + reg.h;
 
 	if (help->scroll != 0) {
-		help_scroll(help, reg, &line, &row, &end);
+		help_scroll(help, reg, &line, &cur_row, &end_row);
 	}
 
-	while (row < end && line < help->next) {
+	while (cur_row < end_row && line < help->next) {
 		const struct help_line *hline = &help->lines[line];
 
-		Term_erase(reg.x, row, reg.w);
+		Term_erase(reg.x, cur_row, reg.w);
 
 		if (hline->line[0] != 0) {
-			Term_adds(reg.x, row, reg.w, COLOUR_WHITE, hline->line);
+			Term_adds(reg.x, cur_row, reg.w, COLOUR_WHITE, hline->line);
 
 			if (help->highlight) {
 				size_t slen = strlen(help->search);
@@ -434,7 +434,7 @@ static void help_display_page(struct help_file *help, region reg)
 							found = strstr(found + slen, help->search))
 					{
 						ptrdiff_t pos = found - hline->line_lc;
-						Term_adds(reg.x + pos, row, slen,
+						Term_adds(reg.x + pos, cur_row, slen,
 								COLOUR_YELLOW, hline->line + pos);
 					}
 				}
@@ -442,7 +442,7 @@ static void help_display_page(struct help_file *help, region reg)
 		}
 
 		line++;
-		row++;
+		cur_row++;
 	}
 }
 
