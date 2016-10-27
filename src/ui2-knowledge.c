@@ -2134,13 +2134,16 @@ static bool messages_reader_find(const char *search,
 
 static void messages_reader_help(const char *search, struct loc loc)
 {
+	const char *help;
+
 	if (search != NULL) {
-		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
-				COLOUR_WHITE, L"[<dir>, '-' for older, '+' for newer, '/' to find]");
+		help = "[<`dir`>, `-` for older, `+` for newer, `/` to find]";
 	} else {
-		Term_addws(loc.x, loc.y, TERM_MAX_LEN,
-				COLOUR_WHITE, L"[<dir>, '/' to find, or ESCAPE to exit]");
+		help = "[<`dir`>, `/` to find, or `ESC` to exit]";
 	}
+
+	erase_line(loc);
+	put_str_h(help, loc, COLOUR_WHITE, COLOUR_L_WHITE);
 }
 
 static bool messages_reader_get_search(char *buf, size_t buflen,
