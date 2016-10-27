@@ -550,7 +550,8 @@ bool askfor_popup(const char *prompt, char *buf, size_t buflen,
 		textui_textblock_place(tb, area, NULL);
 	}
 
-	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
+	struct loc loc = {0};
+	put_str_h_simple(prompt, loc);
 
 	bool ok = askfor_aux(buf, buflen,
 			handler != NULL ? handler : askfor_keypress);
