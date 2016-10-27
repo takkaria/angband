@@ -182,13 +182,6 @@ static void display_group_member(struct menu *menu, int index,
 	o_funcs->display_member(index, cursor, loc, width);
 }
 
-static const char *recall_prompt(int index)
-{
-	(void) index;
-
-	return ", `r` to recall";
-}
-
 static ui_event knowledge_screen_event(struct menu *active_menu)
 {
 	ui_event in = inkey_simple();
@@ -215,7 +208,7 @@ static void knowledge_screen_prompt(member_funcs o_funcs, int index)
 		o_funcs.xtra_prompt(index) : "";
 
 	char prompt[ANGBAND_TERM_STANDARD_WIDTH * 2];
-	strnfmt(prompt, sizeof(prompt), "[<`dir`>%s, `ESC`]", xtra);
+	strnfmt(prompt, sizeof(prompt), "[<`dir`>, `r` to recall%s, `ESC`]", xtra);
 
 	erase_line(loc);
 	put_str_h(prompt, loc, COLOUR_WHITE, COLOUR_L_WHITE);
@@ -751,7 +744,7 @@ static void do_cmd_knowledge_monsters(const char *name, int row)
 	member_funcs m_funcs = {
 		.display_member = display_monster,
 		.lore = mon_lore,
-		.xtra_prompt = recall_prompt,
+		.xtra_prompt = NULL,
 		.xtra_act = NULL,
 	};
 
@@ -1071,7 +1064,7 @@ static void do_cmd_knowledge_artifacts(const char *name, int row)
 	member_funcs art_f = {
 		.display_member = display_artifact,
 		.lore = desc_art_fake,
-		.xtra_prompt = recall_prompt, 
+		.xtra_prompt = NULL,
 		.xtra_act = NULL,
 	};
 
@@ -1161,7 +1154,7 @@ static void do_cmd_knowledge_ego_items(const char *name, int row)
 	member_funcs ego_f = {
 		.display_member = display_ego_item, 
 		.lore = desc_ego_fake, 
-		.xtra_prompt = recall_prompt,
+		.xtra_prompt = NULL,
 		.xtra_act = NULL,
 	};
 
@@ -1396,9 +1389,9 @@ static const char *o_xtra_prompt(int index)
 	struct object_kind *kind = objkind_byid(index);
 
 	const char *no_insc =
-		", `s` to toggle ignore, `r` to recall, `{` to inscribe";
+		", `s` to toggle ignore, `{` to inscribe";
 	const char *with_insc =
-		", `s` to toggle ignore, `r` to recall, `{` to inscribe, `}` to uninscribe";
+		", `s` to toggle ignore, `{` to inscribe, `}` to uninscribe";
 
 	/* Appropriate prompt */
 	if (kind->aware) {
@@ -1578,9 +1571,9 @@ static void rune_lore(int index, int row)
 static const char *rune_xtra_prompt(int index)
 {
 	const char *no_insc =
-		", `r` to recall, `{` to inscribe";
+		", `{` to inscribe";
 	const char *with_insc =
-		", `r` to recall, `{` to inscribe, `}` to uninscribe";
+		", `{` to inscribe, `}` to uninscribe";
 
 	return rune_note(index) ? with_insc : no_insc;
 }
