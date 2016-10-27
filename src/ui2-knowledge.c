@@ -132,6 +132,16 @@ static void knowledge_textblock_show(textblock *tb, const char *header, int row)
 }
 
 /**
+ * Get an inscriptions string
+ */
+static bool knowledge_get_inscription(char *buf, size_t buflen)
+{
+	return askfor_popup("Inscribe with: ", buf, buflen,
+			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+			NULL, NULL);
+}
+
+/**
  * ------------------------------------------------------------------------
  * Knowledge menu utilities
  * ------------------------------------------------------------------------
@@ -1423,15 +1433,13 @@ static void o_xtra_act(struct keypress key, int index)
 		/* Inscribe */
 		char buf[ANGBAND_TERM_STANDARD_WIDTH] = {0};
 
-		show_prompt("Inscribe with: ", false);
-
 		/* Default note */
 		if (kind->note_aware || kind->note_unaware) {
 			strnfmt(buf, sizeof(buf), "%s", get_autoinscription(kind, kind->aware));
 		}
 
 		/* Get an inscription */
-		if (askfor_prompt(buf, sizeof(buf), NULL)) {
+		if (knowledge_get_inscription(buf, sizeof(buf))) {
 			/* Remove old inscription if existent */
 			if (kind->note_aware || kind->note_unaware) {
 				remove_autoinscription(index);
@@ -1583,15 +1591,13 @@ static void rune_xtra_act(struct keypress key, int index)
 		/* Inscribe */
 		char note_text[ANGBAND_TERM_STANDARD_WIDTH] = "";
 
-		show_prompt("Inscribe with: ", false);
-
 		/* Default note */
 		if (rune_note(index)) {
 			strnfmt(note_text, sizeof(note_text), "%s", quark_str(rune_note(index)));
 		}
 
 		/* Get an inscription */
-		if (askfor_prompt(note_text, sizeof(note_text), NULL)) {
+		if (knowledge_get_inscription(note_text, sizeof(note_text))) {
 			/* Remove old inscription if existent */
 			if (rune_note(index)) {
 				rune_set_note(index, NULL);
