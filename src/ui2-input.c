@@ -608,21 +608,27 @@ bool get_character_name(char *buf, size_t buflen)
  * See askfor_aux() for some notes about buf and buflen,
  * and about the return value of this function.
  */
-static bool textui_get_string_prompt(const char *prompt, char *buf, size_t buflen)
+static bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 {
-	event_signal(EVENT_MESSAGE_FLUSH);
+	assert(buflen > 0);
 
-	show_prompt(prompt, false);
-	bool res = askfor_prompt(buf, buflen, NULL);
-	clear_prompt();
+	int len = buflen - 1;
+	for (int i = 0; prompt[i] != 0; i++) {
+		if (prompt[i] != '`') {
+			len++;
+		}
+	}
 
-	return res;
+	len = MIN(len, ANGBAND_TERM_TEXTBLOCK_WIDTH);
+
+	return askfor_popup(prompt, buf, buflen,
+			len, TERM_POSITION_CENTER, NULL, NULL);
 }
 
 /**
  * Request a quantity from the user.
  */
-static int textui_get_quantity_prompt(const char *prompt, int max)
+static int textui_get_quantity(const char *prompt, int max)
 {
 	int amt = 1;
 
@@ -633,14 +639,14 @@ static int textui_get_quantity_prompt(const char *prompt, int max)
 
 		/* Build a prompt if needed */
 		if (prompt == NULL) {
-			strnfmt(tmp, sizeof(tmp), "Quantity (0-%d, 'a' for all): ", max);
+			strnfmt(tmp, sizeof(tmp), "Quantity (0-%d, `a` for all): ", max);
 			prompt = tmp;
 		}
 
 		/* Up to six digits (999999 maximum) */
 		const size_t buflen = sizeof("123456");
 
-		if (textui_get_string_prompt(prompt, buf, buflen)) {
+		if (textui_get_string(prompt, buf, buflen)) {
 			if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
 				amt = max; /* A star or letter means "all" */
 			} else {
@@ -660,30 +666,6 @@ static int textui_get_quantity_prompt(const char *prompt, int max)
  * Note that "[y/n]" is appended to the prompt.
  */
 bool textui_get_check(const char *prompt)
-{
-	char buf[ANGBAND_TERM_STANDARD_WIDTH + 1];
-	strnfmt(buf, sizeof(buf),
-			"%.*s[y/n] ",
-			ANGBAND_TERM_STANDARD_WIDTH - 6, prompt);
-
-	show_prompt(buf, true);
-	ui_event event = inkey_mouse_or_key();
-	clear_prompt();
-
-	if (event.type == EVT_MOUSE
-			&& event.mouse.button == MOUSE_BUTTON_LEFT)
-	{
-		return true;
-	} else if (event.type == EVT_KBRD
-			&& (event.key.code == 'Y' || event.key.code == 'y'))
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool textui_get_check_popup(const char *prompt)
 {
 	char buf[ANGBAND_TERM_STANDARD_WIDTH + 1];
 	int len = strnfmt(buf, sizeof(buf),
@@ -744,7 +726,7 @@ static bool get_file_text(const char *suggested_name,
 	path_build(path, pathlen, ANGBAND_DIR_USER, buf);
 
 	if (file_exists(path)
-			&& !textui_get_check_popup("Replace existing file? "))
+			&& !textui_get_check("Replace existing file? "))
 	{
 		return false;
 	}
@@ -971,8 +953,8 @@ bool textui_get_aim_dir(int *dir)
  */
 void textui_input_init(void)
 {
-	get_string_hook          = textui_get_string_prompt;
-	get_quantity_hook        = textui_get_quantity_prompt;
+	get_string_hook          = textui_get_string;
+	get_quantity_hook        = textui_get_quantity;
 	get_check_hook           = textui_get_check;
 	get_com_hook             = textui_get_com;
 	get_rep_dir_hook         = textui_get_rep_dir;
