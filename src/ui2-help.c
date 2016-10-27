@@ -57,6 +57,8 @@ struct help_file {
 	ang_file *file;
 };
 
+static void display_help(const char *name, bool hide_prev_term);
+
 static void string_lower(char *buf)
 {
 	for (char *s = buf; *s != 0; s++) {
@@ -227,11 +229,7 @@ static void help_goto_file(const struct help_file *help)
 				ANGBAND_TERM_TEXTBLOCK_WIDTH / 2, TERM_POSITION_CENTER,
 				NULL, NULL))
 	{
-		clear_prompt();
-
-		Term_visible(false);
-		show_help(name);
-		Term_visible(true);
+		display_help(name, true);
 	}
 }
 
@@ -243,9 +241,7 @@ static void try_show_help(const struct help_file *help, char key)
 				&& index < (int) N_ELEMENTS(help->menu_files)
 				&& help->menu_files[index] != NULL)
 		{
-			Term_visible(false);
-			show_help(help->menu_files[index]);
-			Term_visible(true);
+			display_help(help->menu_files[index], true);
 		}
 	}
 }
@@ -447,16 +443,27 @@ static void help_display_page(struct help_file *help, region reg)
 	}
 }
 
-static void show_file(const char *name)
+static void help_file_term_push(const struct help_file *help)
 {
-	struct help_file *help = open_help_file(name);
+	struct term_hints hints = {
+		.width    = HELP_TERM_WIDTH,
+		.height   = ANGBAND_TERM_STANDARD_HEIGHT,
+		.tabs = true,
+		.position = TERM_POSITION_CENTER,
+		.purpose  = TERM_PURPOSE_TEXT
+	};
 
-	if (help == NULL) {
-		return;
-	}
-
+	Term_push_new(&hints);
 	Term_add_tab(0, help->caption, COLOUR_WHITE, COLOUR_DARK);
+}
 
+static void help_file_term_pop(void)
+{
+	Term_pop();
+}
+
+static void show_file(struct help_file *help)
+{
 	region term_reg;
 	region text_reg;
 	help_set_regions(&term_reg, &text_reg);
@@ -538,23 +545,34 @@ static void show_file(const char *name)
 		}
 	}
 
-	close_help_file(help);
+
+}
+
+static void display_help(const char *name, bool hide_prev_term)
+{
+	struct help_file *help = open_help_file(name);
+
+	if (help != NULL) {
+		if (hide_prev_term) {
+			Term_visible(false);
+		}
+
+		help_file_term_push(help);
+
+		show_file(help);
+
+		close_help_file(help);
+		help_file_term_pop();
+
+		if (hide_prev_term) {
+			Term_visible(true);
+		}
+	}
 }
 
 void show_help(const char *name)
 {
-	struct term_hints hints = {
-		.width    = HELP_TERM_WIDTH,
-		.height   = ANGBAND_TERM_STANDARD_HEIGHT,
-		.tabs = true,
-		.position = TERM_POSITION_CENTER,
-		.purpose  = TERM_PURPOSE_TEXT
-	};
-	Term_push_new(&hints);
-
-	show_file(name);
-
-	Term_pop();
+	display_help(name, false);
 }
 
 /**
