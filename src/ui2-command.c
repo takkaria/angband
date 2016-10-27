@@ -128,7 +128,7 @@ void textui_cmd_suicide(void)
 void textui_cmd_rest(void)
 {
 	const char *prompt =
-		"Rest (0-9999, '!' for HP or SP, '*' for HP and SP, '&' as needed): ";
+		"Rest (0-9999, `!` for HP or SP, `*` for HP and SP, `&` as needed): ";
 
 	char buf[5] = "&";
 
