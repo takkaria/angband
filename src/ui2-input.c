@@ -634,24 +634,30 @@ static int textui_get_quantity(const char *prompt, int max)
 
 	/* Prompt if needed */
 	if (max > 1) {
-		char buf[ANGBAND_TERM_STANDARD_WIDTH] = "1";
+		char buf[ANGBAND_TERM_STANDARD_WIDTH];
 		char tmp[ANGBAND_TERM_STANDARD_WIDTH];
+
+		/* Default to max */
+		strnfmt(buf, sizeof(buf), "%d", max);
+
+		size_t prompt_len;
 
 		/* Build a prompt if needed */
 		if (prompt == NULL) {
-			strnfmt(tmp, sizeof(tmp), "Quantity (0-%d, `a` for all): ", max);
+			prompt_len = strnfmt(tmp, sizeof(tmp), "Quantity (0-%d): ", max);
 			prompt = tmp;
+		} else {
+			prompt_len = strlen(prompt);
 		}
 
 		/* Up to six digits (999999 maximum) */
 		const size_t buflen = sizeof("123456");
 
-		if (textui_get_string(prompt, buf, buflen)) {
-			if (buf[0] == '*' || isalpha((unsigned char) buf[0])) {
-				amt = max; /* A star or letter means "all" */
-			} else {
-				amt = atoi(buf);
-			}
+		if (askfor_popup(prompt, buf, buflen,
+					prompt_len + buflen - 1, TERM_POSITION_CENTER,
+					NULL, askfor_numbers))
+		{
+			amt = atoi(buf);
 		} else {
 			amt = 0;
 		}
