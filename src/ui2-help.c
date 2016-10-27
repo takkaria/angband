@@ -349,11 +349,16 @@ static void help_find_line(struct help_file *help, region reg)
 
 static void help_display_check(struct help_file *help, region reg)
 {
+	if (help->line > help->next - reg.h) {
+		help->line = help->next - reg.h;
+	}
+	if (help->line < 0) {
+		help->line = 0;
+	}
+
 	if (help->next > reg.h) {
 		const int scroll_line = help->line + help->scroll;
 		const int end_line = help->next - reg.h;
-
-		assert(help->line <= end_line);
 
 		if (scroll_line > end_line) {
 			help->scroll = end_line - help->line;
