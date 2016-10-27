@@ -2210,29 +2210,33 @@ static void messages_reader_scroll(int vscroll,
 	}
 }
 
-static void messages_reader_scroll_check(int *cur_message, int n_messages,
-		int *vscroll, region reg)
+static int messages_reader_scroll_check(int cur_message, int n_messages,
+		int vscroll, region reg)
 {
-	assert(*cur_message >= 0);
+	assert(cur_message >= 0);
 
 	/* Note that negative vscroll (scroll up) corresponds to
 	 * positive, increasing message numbers (older messages) */
 
+	int new_vscroll = vscroll;
+
 	if (n_messages > reg.h) {
-		const int new_message = *cur_message - *vscroll;
+		const int new_message = cur_message - vscroll;
 		const int end_message = n_messages - reg.h;
 
-		assert(*cur_message <= end_message);
+		assert(cur_message <= end_message);
 
 		if (new_message > end_message) {
-			*vscroll = -(end_message - *cur_message);
+			new_vscroll = -(end_message - cur_message);
 		}
 		if (new_message < 0) {
-			*vscroll = *cur_message;
+			new_vscroll = cur_message;
 		}
 	} else {
-		*vscroll = 0;
+		new_vscroll = 0;
 	}
+
+	return new_vscroll;
 }
 
 static void messages_reader_print(int message, int line,
@@ -2275,8 +2279,7 @@ static void messages_reader_print(int message, int line,
 static int messages_reader_dump(int cur_message, int n_messages,
 		region reg, int hscroll, int vscroll, bool redraw, const char *search)
 {
-	messages_reader_scroll_check(&cur_message,
-			n_messages, &vscroll, reg);
+	vscroll = messages_reader_scroll_check(cur_message, n_messages, vscroll, reg);
 
 	if (vscroll != 0 || redraw) {
 		int cur_line = reg.y + reg.h - 1;
