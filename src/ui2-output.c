@@ -573,7 +573,7 @@ void put_str_h(const char *str, struct loc loc,
 
 	Term_cursor_to_xy(loc.x, loc.y);
 
-	uint32_t attr = COLOUR_WHITE;
+	uint32_t attr = color;
 
 	for (size_t i = 0; i < text_length && loc.x < w; i++) {
 		if (ws[i] == PUT_STR_H_MARK_WCHAR) {
