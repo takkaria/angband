@@ -67,6 +67,37 @@ static int get_idx_from_name(char *s)
 }
 
 /**
+ * Simple wrapper for askfor_popup().
+ */
+
+static bool debug_get_string(const char *prompt,
+		char *buf, size_t buflen)
+{
+	return askfor_popup(prompt, buf, buflen,
+			ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+			NULL, NULL);
+}
+
+/**
+ * Simple wrapper for askfor_popup(askfor_numbers),
+ * that returns just a number.
+ */
+static int debug_get_quantity(const char *prompt, int max)
+{
+	char buf[32] = "";
+	int quantity = 0;
+
+	if (askfor_popup(prompt, buf, sizeof(buf),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, askfor_numbers))
+	{
+		quantity = atoi(buf);
+	}
+
+	return MAX(0, MIN(max, quantity));
+}
+
+/**
  * Display in sequence the squares at n grids from the player,
  * as measured by the flow algorithm; n goes from 1 to max flow depth
  */
@@ -107,7 +138,6 @@ static void do_cmd_wiz_show_flow(void)
 		map_redraw_all(DISPLAY_CAVE);
 	}
 
-	clear_prompt();
 	map_redraw_all(DISPLAY_CAVE);
 }
 
@@ -171,7 +201,7 @@ static void do_cmd_wiz_change_aux(void)
 		strnfmt(prompt, sizeof(prompt), "%s (3-118): ", stat_names[s]);
 		strnfmt(buf, sizeof(buf), "%d", player->stat_max[s]);
 
-		if (!get_string(prompt, buf, 4)) {
+		if (!debug_get_string(prompt, buf, 4)) {
 			return;
 		}
 
@@ -185,7 +215,7 @@ static void do_cmd_wiz_change_aux(void)
 	{
 		strnfmt(buf, sizeof(buf), "%ld", (long) player->au);
 
-		if (!get_string("Gold: ", buf, 10)) {
+		if (!debug_get_string("Gold: ", buf, 10)) {
 			return;
 		}
 
@@ -199,7 +229,7 @@ static void do_cmd_wiz_change_aux(void)
 	{
 		strnfmt(buf, sizeof(buf), "%ld", (long) player->exp);
 
-		if (!get_string("Experience: ", buf, 10)) {
+		if (!debug_get_string("Experience: ", buf, 10)) {
 			return;
 		}
 
@@ -764,13 +794,16 @@ static void wiz_tweak_item(struct object *obj)
 	int val;
 
 	prompt = "Enter new ego item index: ";
-	strnfmt(buf, sizeof(buf), "0");
+	my_strcpy(buf, "0",sizeof(buf));
+
 	if (obj->ego) {
 		strnfmt(buf, sizeof(buf), "%d", obj->ego->eidx);
 	}
-	if (!get_string(prompt, buf, 6)) {
+
+	if (!debug_get_string(prompt, buf, 6)) {
 		return;
 	}
+
 	val = atoi(buf);
 	if (val) {
 		obj->ego = &e_info[val];
@@ -781,13 +814,16 @@ static void wiz_tweak_item(struct object *obj)
 	wiz_display_item(obj, true);
 
 	prompt = "Enter new artifact index: ";
-	strnfmt(buf, sizeof(buf), "0");
+	my_strcpy(buf, "0", sizeof(buf));
+
 	if (obj->artifact) {
 		strnfmt(buf, sizeof(buf), "%d", obj->artifact->aidx);
 	}
-	if (!get_string(prompt, buf, 6)) {
+
+	if (!debug_get_string(prompt, buf, 6)) {
 		return;
 	}
+
 	val = atoi(buf);
 	if (val) {
 		obj->artifact = &a_info[val];
@@ -800,7 +836,7 @@ static void wiz_tweak_item(struct object *obj)
 #define WIZ_TWEAK(attribute) do { \
 	prompt = "Enter new '" #attribute "' setting: "; \
 	strnfmt(buf, sizeof(buf), "%d", obj->attribute); \
-	if (!get_string(prompt, buf, 6)) { \
+	if (!debug_get_string(prompt, buf, 6)) { \
 		return; \
 	} \
 	obj->attribute = atoi(buf); \
@@ -1059,7 +1095,7 @@ static void wiz_quantity_item(struct object *obj, bool carried)
 	char buf[3];
 	strnfmt(buf, sizeof(buf), "%d", obj->number);
 
-	if (get_string("Quantity: ", buf, 3)) {
+	if (debug_get_string("Quantity: ", buf, 3)) {
 		int val = atoi(buf);
 		val = MAX(1, MIN(val, 99));
 
@@ -1277,11 +1313,12 @@ static void do_cmd_wiz_jump(void)
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	char prompt[ANGBAND_TERM_STANDARD_WIDTH];
 
-	strnfmt(prompt, sizeof(prompt), "Jump to level (0-%d): ", z_info->max_depth - 1);
+	strnfmt(prompt, sizeof(prompt),
+			"Jump to level (0-%d): ", z_info->max_depth - 1);
+	strnfmt(buf, sizeof(buf),
+			"%d", player->depth);
 
-	strnfmt(buf, sizeof(buf), "%d", player->depth);
-
-	if (get_string(prompt, buf, 11)) {
+	if (debug_get_string(prompt, buf, 11)) {
 		int depth = atoi(buf);
 		depth = MIN(z_info->max_depth - 1, MAX(0, depth));
 
@@ -1417,12 +1454,10 @@ static void do_cmd_wiz_named_monster(struct monster_race *race, bool sleep)
  */
 static void do_cmd_wiz_summon_monster(void)
 {
-	char name[ANGBAND_TERM_STANDARD_WIDTH] = {0};
+	char name[ANGBAND_TERM_STANDARD_WIDTH] = "";
 	struct monster_race *race = NULL;
 
-	show_prompt("Summon which monster? ", false);
-
-	if (askfor_prompt(name, sizeof(name), NULL)) {
+	if (debug_get_string("Summon which monster? ", name, sizeof(name))) {
 		int r_idx = get_idx_from_name(name);
 		if (r_idx != 0) {
 			race = &r_info[r_idx];
@@ -1432,8 +1467,6 @@ static void do_cmd_wiz_summon_monster(void)
 			
 		player->upkeep->redraw |= (PR_MAP | PR_MONLIST);
 	}
-
-	clear_prompt();
 
 	if (race) {
 		do_cmd_wiz_named_monster(race, true);
@@ -1447,7 +1480,7 @@ static void do_cmd_wiz_summon_monster(void)
  */
 static void do_cmd_wiz_summon_monsters(void)
 {
-	int quantity = get_quantity("How many monsters? ", 40);
+	int quantity = debug_get_quantity("How many monsters? ", 40);
 
 	if (quantity > 0) {
 		do_cmd_wiz_summon(quantity);
@@ -1499,7 +1532,8 @@ static void wiz_show_feature(struct loc coords)
  */
 static void do_cmd_wiz_banish(void)
 {
-	int distance = get_quantity("Zap within what distance? ", z_info->max_sight);
+	int distance = debug_get_quantity("Zap within what distance? ",
+			z_info->max_sight);
 
 	if (distance > 0) {
 		do_cmd_wiz_monsters_delete(distance);
@@ -1574,8 +1608,8 @@ static void do_cmd_wiz_place_trap(void)
 		return;
 	}
 
-	char buf[ANGBAND_TERM_STANDARD_WIDTH];
-	if (get_string("Create which trap? ", buf, sizeof(buf))) {
+	char buf[ANGBAND_TERM_STANDARD_WIDTH] = "";
+	if (debug_get_string("Create which trap? ", buf, sizeof(buf))) {
 		struct trap_kind *trap = lookup_trap(buf);
 		if (trap != NULL) {
 			place_trap(cave, player->py, player->px, trap->tidx, 0);
@@ -1691,9 +1725,7 @@ static void do_cmd_wiz_wipe_recall(void)
 		char name[ANGBAND_TERM_STANDARD_WIDTH] = "";
 		const struct monster_race *race = NULL;
 
-		show_prompt("Which monster? ", false);
-
-		if (askfor_prompt(name, sizeof(name), NULL)) {
+		if (debug_get_string("Which monster? ",name, sizeof(name))) {
 			int r_idx = get_idx_from_name(name);
 			if (r_idx != 0) {
 				race = &r_info[r_idx];
@@ -1701,8 +1733,6 @@ static void do_cmd_wiz_wipe_recall(void)
 				race = lookup_monster(name); 
 			}
 		}
-
-		clear_prompt();
 
 		/* Did we find a valid monster? */
 		if (race != NULL) {
@@ -1735,9 +1765,7 @@ static void do_cmd_wiz_monster_recall(void)
 		char name[ANGBAND_TERM_STANDARD_WIDTH] = "";
 		const struct monster_race *race = NULL;
 			
-		show_prompt("Which monster? ", false);
-
-		if (askfor_prompt(name, sizeof(name), NULL)) {
+		if (debug_get_string("Which monster? ", name, sizeof(name))) {
 			int r_idx = get_idx_from_name(name);
 			if (r_idx != 0) {
 				race = &r_info[r_idx];
@@ -1803,7 +1831,7 @@ static void wiz_test_kind(int tval)
  */
 static void do_cmd_wiz_good_objects(void)
 {
-	int quantity = get_quantity("How many good objects? ", 40);
+	int quantity = debug_get_quantity("How many good objects? ", 40);
 
 	if (quantity > 0) {
 		acquirement(player->py, player->px, player->depth, quantity, false);
@@ -1815,7 +1843,7 @@ static void do_cmd_wiz_good_objects(void)
  */
 static void do_cmd_wiz_very_good_objects(void)
 {
-	int quantity = get_quantity("How many great objects? ", 40);
+	int quantity = debug_get_quantity("How many great objects? ", 40);
 
 	if (quantity > 0) {
 		acquirement(player->py, player->px, player->depth, quantity, true);
@@ -1827,7 +1855,7 @@ static void do_cmd_wiz_very_good_objects(void)
  */
 static void do_cmd_wiz_lots_objects(void)
 {
-	int tval = get_quantity("Create all items of what tval? ", 255);
+	int tval = debug_get_quantity("Create all items of what tval? ", 255);
 
 	if (tval > 0) {
 		wiz_test_kind(tval);
@@ -1874,7 +1902,7 @@ static void do_cmd_wiz_level_50(void)
  */
 static void do_cmd_wiz_gain_exp(void)
 {
-	int quantity = get_quantity("Gain how much experience? ", 9999);
+	int quantity = debug_get_quantity("Gain how much experience? ", 9999);
 
 	if (quantity > 0) {
 		player_exp_gain(player, quantity);
@@ -1891,8 +1919,7 @@ void do_cmd_wiz_effect(void)
 	char param[ANGBAND_TERM_STANDARD_WIDTH] = "0";
 
 	int index = -1;
-	show_prompt("Do which effect? ", false);
-	if (askfor_prompt(name, sizeof(name), NULL)) {
+	if (debug_get_string("Do which effect? ", name, sizeof(name))) {
 		/* See if an effect index was entered */
 		index = get_idx_from_name(name);
 
@@ -1901,29 +1928,26 @@ void do_cmd_wiz_effect(void)
 			index = effect_lookup(name);
 		}
 	}
-	clear_prompt();
 
-	show_prompt("Enter damage dice (eg 1+2d6M2): ", false);
-	if (!askfor_prompt(dice, sizeof(dice), NULL)) {
+	if (!debug_get_string("Enter damage dice (eg 1+2d6M2): ",
+				dice, sizeof(dice)))
+	{
 		my_strcpy(dice, "0", sizeof(dice));
 	}
-	clear_prompt();
 
 	int p1 = 0;
-	show_prompt("Enter name or number for first parameter: ", false);
-	if (askfor_prompt(param, sizeof(param), NULL)) {
+	if (debug_get_string("Enter name or number for first parameter: ",
+				param, sizeof(param)))
+	{
 		/* See if an effect parameter was entered */
 		p1 = effect_param(index, param);
 		if (p1 < 0) {
 			p1 = 0;
 		}
 	}
-	clear_prompt();
 
-	int p2 = get_quantity("Enter second parameter: ", 100);
-	int p3 = get_quantity("Enter third parameter: ", 100);
-
-	clear_prompt();
+	int p2 = debug_get_quantity("Enter second parameter: ", 100);
+	int p3 = debug_get_quantity("Enter third parameter: ", 100);
 
 	if (index > EF_NONE && index < EF_MAX) {
 		bool ident = false;

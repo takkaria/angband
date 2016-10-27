@@ -1567,7 +1567,10 @@ static int stats_prompt(void)
 	strnfmt(tmp_val, sizeof(tmp_val), "%d", tries);
 
 	/* Ask for the input */
-	if (!get_string(prompt, tmp_val, 7)) {
+	if (!askfor_popup(prompt, tmp_val, 7,
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
 		return 0;
 	}
 
@@ -1590,7 +1593,12 @@ static int stats_prompt(void)
 	strnfmt(tmp_val, sizeof(tmp_val), "%d", simtype);
 
 	/* Get the input */
-	if (!get_string(prompt, tmp_val, 4)) return 0;
+	if (!askfor_popup(prompt, tmp_val, 4,
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
+		return 0;
+	}
 
 	temp = atoi(tmp_val);
 
@@ -1785,7 +1793,12 @@ void pit_stats(void)
 	strnfmt(tmp_val, sizeof(tmp_val), "%d", tries);
 
 	/* Ask for the input - take the first 7 characters*/
-	if (!get_string("Num of simulations: ", tmp_val, 7)) return;
+	if (!askfor_popup("Num of simulations: ", tmp_val, 7,
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
+		return;
+	}
 
 	/* Get the new value */
 	tries = atoi(tmp_val);
@@ -1795,7 +1808,12 @@ void pit_stats(void)
 	strnfmt(tmp_val, sizeof(tmp_val), "%d", type);
 
 	/* Ask for the input - take the first 7 characters*/
-	if (!get_string("Pit type: ", tmp_val, 7)) return;
+	if (!askfor_popup("Pit type: ", tmp_val, 7,
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
+		return;
+	}
 
 	/* get the new value */
 	type = atoi(tmp_val);
@@ -1805,7 +1823,12 @@ void pit_stats(void)
 	strnfmt(tmp_val, sizeof(tmp_val), "%d", player->depth);
 
 	/* Ask for the input - take the first 7 characters*/
-	if (!get_string("Depth: ", tmp_val, 7)) return;
+	if (!askfor_popup("Depth: ", tmp_val, 7,
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
+		return;
+	}
 
 	/* get the new value */
 	int depth = atoi(tmp_val);
@@ -1859,7 +1882,10 @@ void disconnect_stats(void)
 	strnfmt(tmp_val, sizeof(tmp_val), "%d", tries);
 
 	/* Ask for the input */
-	if (!get_string(prompt, tmp_val, 7)) {
+	if (!askfor_popup(prompt, tmp_val, 7,
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
 		return;
 	}
 
