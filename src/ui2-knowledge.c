@@ -218,7 +218,7 @@ static void knowledge_screen_prompt(member_funcs o_funcs, int index)
 	strnfmt(prompt, sizeof(prompt), "[<`dir`>%s, or `ESC`]", xtra);
 
 	erase_line(loc);
-	put_str_h(prompt, loc, COLOUR_WHITE, COLOUR_L_BLUE);
+	put_str_h(prompt, loc, COLOUR_WHITE, COLOUR_L_WHITE);
 }
 
 static void knowledge_screen_summary(group_funcs g_funcs,
