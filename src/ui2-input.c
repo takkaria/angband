@@ -614,7 +614,7 @@ static bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 
 	int len = buflen - 1;
 	for (int i = 0; prompt[i] != 0; i++) {
-		if (prompt[i] != '`') {
+		if (prompt[i] != PUT_STR_H_MARK_CHAR) {
 			len++;
 		}
 	}
