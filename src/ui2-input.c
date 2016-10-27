@@ -673,20 +673,20 @@ static int textui_get_quantity(const char *prompt, int max)
  */
 bool textui_get_check(const char *prompt)
 {
-	char buf[ANGBAND_TERM_STANDARD_WIDTH + 1];
-	int len = strnfmt(buf, sizeof(buf),
-			"%.*s[y/n] ",
-			ANGBAND_TERM_STANDARD_WIDTH - 6, prompt);
-
 	struct term_hints hints = {
-		.width = len + 1,
+		.width = strlen(prompt) + 7, /* add space for "[y/n] " */
 		.height = 1,
 		.position = TERM_POSITION_CENTER,
 		.purpose = TERM_PURPOSE_TEXT
 	};
 	
 	Term_push_new(&hints);
-	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, buf);
+	Term_adds(0, 0, TERM_MAX_LEN, COLOUR_WHITE, prompt);
+
+	struct loc loc;
+	Term_get_cursor(&loc.x, &loc.y, NULL);
+	put_str_h("[`y`/`n`] ", loc, COLOUR_WHITE, COLOUR_ORANGE);
+
 	Term_cursor_visible(true);
 	Term_flush_output();
 
