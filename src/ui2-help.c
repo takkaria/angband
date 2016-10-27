@@ -223,8 +223,8 @@ static void help_goto_file(const struct help_file *help)
 	char name[HELP_LINE_SIZE];
 	my_strcpy(name, help->name, sizeof(name));
 
-	if (askfor_popup("File: ", name, sizeof(name),
-				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+	if (askfor_popup("View file: ", name, sizeof(name),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH / 2, TERM_POSITION_CENTER,
 				NULL, NULL))
 	{
 		clear_prompt();
@@ -255,7 +255,7 @@ static void help_goto_line(struct help_file *help)
 	char line[4];
 	my_strcpy(line, format("%zu", help->line), sizeof(line));
 
-	const char *prompt = "Line: ";
+	const char *prompt = "Jump to line: ";
 
 	if (askfor_popup(prompt, line, sizeof(line),
 				strlen(prompt) + sizeof(line) - 1,
