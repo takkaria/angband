@@ -111,7 +111,7 @@ void prt(const char *str, struct loc at);
 /**
  * Print a string at position loc; all substrings
  * in backticks (`) will be printed using highlight
- * color, but backticks themselves wont be printed.
+ * color, the backticks themselves wont be printed.
  * It's like a simplified version of text_out_e().
  */
 void put_str_h(const char *str, struct loc loc,
