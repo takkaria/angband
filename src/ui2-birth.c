@@ -127,7 +127,7 @@ static void birth_show_prompt(const char *prompt)
 	assert(prompt != NULL);
 
 	birth_clear_prompt();
-	place_prompt_center(prompt,
+	put_str_h_center(prompt,
 			PROMPT_ROW, COLOUR_WHITE, COLOUR_L_GREEN);
 }
 

@@ -114,13 +114,13 @@ void prt(const char *str, struct loc at);
  * color, but backticks themselves wont be printed.
  * It's like a simplified version of text_out_e().
  */
-void place_prompt(const char *str, struct loc loc,
+void put_str_h(const char *str, struct loc loc,
 		uint32_t color, uint32_t highlight);
 
 /**
- * As above, but print the prompt at the center of row y.
+ * As above, but print the string at the center of row y.
  */
-void place_prompt_center(const char *str, int y,
+void put_str_h_center(const char *str, int y,
 		uint32_t color, uint32_t highlight);
 
 void show_prompt(const char *str, bool cursor);

@@ -540,9 +540,9 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 #define PLACE_PROMPT_MARK_WCHAR L'`'
 
 /**
- * Print a colorized prompt on the screen
+ * Print a colorized string on the screen.
  */
-void place_prompt(const char *str, struct loc loc,
+void put_str_h(const char *str, struct loc loc,
 		uint32_t color, uint32_t highlight)
 {
 	/* We don't print backticks; imagine that
@@ -582,7 +582,7 @@ void place_prompt(const char *str, struct loc loc,
 	Term_flush_output();
 }
 
-void place_prompt_center(const char *str, int y,
+void put_str_h_center(const char *str, int y,
 		uint32_t color, uint32_t highlight)
 {
 	int len = 0; /* length without mark chars */
@@ -597,7 +597,7 @@ void place_prompt_center(const char *str, int y,
 		.y = y
 	};
 
-	place_prompt(str, loc, color, highlight);
+	put_str_h(str, loc, color, highlight);
 }
 
 void clear_prompt(void)
