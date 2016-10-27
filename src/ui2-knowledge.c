@@ -215,7 +215,7 @@ static void knowledge_screen_prompt(member_funcs o_funcs, int index)
 		o_funcs.xtra_prompt(index) : "";
 
 	char prompt[ANGBAND_TERM_STANDARD_WIDTH * 2];
-	strnfmt(prompt, sizeof(prompt), "[<`dir`>%s, or `ESC`]", xtra);
+	strnfmt(prompt, sizeof(prompt), "[<`dir`>%s, `ESC`]", xtra);
 
 	erase_line(loc);
 	put_str_h(prompt, loc, COLOUR_WHITE, COLOUR_L_WHITE);
@@ -1396,9 +1396,9 @@ static const char *o_xtra_prompt(int index)
 	struct object_kind *kind = objkind_byid(index);
 
 	const char *no_insc =
-		", `s` to toggle ignore, `r`ecall, `{` to inscribe";
+		", `s` to toggle ignore, `r` to recall, `{` to inscribe";
 	const char *with_insc =
-		", `s` to toggle ignore, `r`ecall, `{` to inscribe, `}` to uninscribe";
+		", `s` to toggle ignore, `r` to recall, `{` to inscribe, `}` to uninscribe";
 
 	/* Appropriate prompt */
 	if (kind->aware) {
@@ -1577,8 +1577,10 @@ static void rune_lore(int index, int row)
  */
 static const char *rune_xtra_prompt(int index)
 {
-	const char *no_insc = ", `r`ecall, `{` to inscribe";
-	const char *with_insc = ", `r`ecall, `{` to inscribe, `}` to uninscribe";
+	const char *no_insc =
+		", `r` to recall, `{` to inscribe";
+	const char *with_insc =
+		", `r` to recall, `{` to inscribe, `}` to uninscribe";
 
 	return rune_note(index) ? with_insc : no_insc;
 }
