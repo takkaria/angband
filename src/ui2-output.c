@@ -536,8 +536,8 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
  * ------------------------------------------------------------------------
  */
 
-#define PLACE_PROMPT_MARK_CHAR   '`'
-#define PLACE_PROMPT_MARK_WCHAR L'`'
+#define PUT_STR_H_MARK_CHAR   '`'
+#define PUT_STR_H_MARK_WCHAR L'`'
 
 #define PUT_STR_H_TEXT_COLOR \
 	COLOUR_WHITE
@@ -576,7 +576,7 @@ void put_str_h(const char *str, struct loc loc,
 	uint32_t attr = COLOUR_WHITE;
 
 	for (size_t i = 0; i < text_length && loc.x < w; i++) {
-		if (ws[i] == PLACE_PROMPT_MARK_WCHAR) {
+		if (ws[i] == PUT_STR_H_MARK_WCHAR) {
 			attr = attr == color ? highlight : color;
 		} else {
 			Term_putwc(attr, ws[i]);
@@ -592,7 +592,7 @@ void put_str_h_center(const char *str, int y,
 {
 	int len = 0; /* length without mark chars */
 	for (int i = 0; str[i] != 0; i++) {
-		if (str[i] != PLACE_PROMPT_MARK_CHAR) {
+		if (str[i] != PUT_STR_H_MARK_CHAR) {
 			len++;
 		}
 	}
