@@ -622,7 +622,7 @@ static bool textui_get_string(const char *prompt, char *buf, size_t buflen)
 	len = MIN(len, ANGBAND_TERM_TEXTBLOCK_WIDTH);
 
 	return askfor_popup(prompt, buf, buflen,
-			len, TERM_POSITION_CENTER, NULL, NULL);
+			len, TERM_POSITION_TOP_LEFT, NULL, NULL);
 }
 
 /**
@@ -654,7 +654,7 @@ static int textui_get_quantity(const char *prompt, int max)
 		const size_t buflen = sizeof("123456");
 
 		if (askfor_popup(prompt, buf, buflen,
-					prompt_len + buflen - 1, TERM_POSITION_CENTER,
+					prompt_len + buflen - 1, TERM_POSITION_TOP_LEFT,
 					NULL, askfor_numbers))
 		{
 			amt = atoi(buf);
