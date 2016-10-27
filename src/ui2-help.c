@@ -263,8 +263,6 @@ static void help_goto_line(struct help_file *help)
 			help->line = l - 1;
 		}
 	}
-
-	clear_prompt();
 }
 
 static void help_set_regions(region *term_reg, region *text_reg)
