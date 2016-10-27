@@ -474,12 +474,12 @@ static bool next_section(const char *source, size_t init,
 
 /**
  * Output text to the screen or to a file depending on the
- * selected hook.  Takes strings with "embedded formatting",
+ * selected hook. Takes strings with "embedded formatting",
  * such that something within {red}{/} will be printed in red.
  *
  * Note that such formatting will be treated as a "breakpoint"
- * for the printing, so if used within words may lead to part of the
- * word being moved to the next line.
+ * for the printing, so if used within words may lead to part
+ * of the word being moved to the next line.
  */
 void text_out_e(struct text_out_info info, const char *fmt, ...)
 {
@@ -640,7 +640,7 @@ void show_prompt(const char *str, bool cursor)
  * Display a string on the screen using an attribute.
  *
  * At the given location, using the given attribute, if allowed,
- * add the given string.  Do not clear the line.
+ * add the given string. Do not clear the line.
  */
 
 void c_put_str_len(uint32_t attr, const char *str, struct loc at, int len) {
