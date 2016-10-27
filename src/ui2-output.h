@@ -30,6 +30,10 @@
 /* Default width of a term that is used to display textblocks */
 #define ANGBAND_TERM_TEXTBLOCK_WIDTH 72
 
+/* Chars that trigger highlighting in put_str_h() */
+#define PUT_STR_H_MARK_CHAR   '`'
+#define PUT_STR_H_MARK_WCHAR L'`'
+
 /**
  * ------------------------------------------------------------------------
  * Regions

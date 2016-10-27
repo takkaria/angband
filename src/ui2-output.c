@@ -536,9 +536,6 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
  * ------------------------------------------------------------------------
  */
 
-#define PUT_STR_H_MARK_CHAR   '`'
-#define PUT_STR_H_MARK_WCHAR L'`'
-
 #define PUT_STR_H_TEXT_COLOR \
 	COLOUR_WHITE
 #define PUT_STR_H_HIGHLIGHT_COLOR \
