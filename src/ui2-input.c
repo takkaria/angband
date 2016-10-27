@@ -719,7 +719,7 @@ static bool get_file_text(const char *suggested_name,
  * Get a pathname to save a file to, given the suggested name.
  * Returns the result in path.
  */
-bool (*get_file)(const char *suggested_name, char *path, size_t pathlen) = get_file_text;
+bool (*get_file)(const char *name, char *path, size_t pathlen) = get_file_text;
 
 static bool get_mouse_or_key(const char *prompt, ui_event *event)
 {
