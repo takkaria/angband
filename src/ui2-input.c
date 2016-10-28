@@ -994,33 +994,19 @@ void textui_input_init(void)
  */
 static int textui_get_count(void)
 {
-	int count = 1;
+	char buf[sizeof("1234")] = "1";
+	const char *prompt = "Repeat: ";
 
-	while (true) {
-		show_prompt(format("Repeat: %d", count), true);
-		struct keypress key = inkey_only_key();
-		clear_prompt();
+	int count = 0;
 
-		if (key.code == ESCAPE) {
-			return -1;
-		} else if (key.code == KC_DELETE || key.code == KC_BACKSPACE) {
-			count = count / 10;
-		} else if (isdigit((unsigned char) key.code)) {
-			int new_count = count * 10 + D2I(key.code);
-
-			if (new_count > 9999) {
-				bell("Invalid repeat count!");
-			} else {
-				count = new_count;
-			}
-		} else {
-			if (key.code != KC_ENTER) {
-				ui_event event = {.key = key};
-				Term_prepend_events(&event, 1);
-			}
-			return count;
-		}
+	if (askfor_popup("Repeat: ", buf, sizeof(buf),
+				strlen(prompt) + sizeof(buf) - 1, TERM_POSITION_TOP_LEFT,
+				NULL, askfor_numbers))
+	{
+		count = atoi(buf);
 	}
+
+	return count <= 0 ? -1 : count;
 }
 
 static void textui_get_command_aux(ui_event *event,
