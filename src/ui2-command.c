@@ -219,10 +219,12 @@ void textui_cmd_rest(void)
 	struct term_hints hints = {
 		.width = max_len + 3,
 		.height = N_ELEMENTS(entries),
+		.tabs = true,
 		.position = TERM_POSITION_TOP_LEFT,
 		.purpose = TERM_PURPOSE_MENU
 	};
 	Term_push_new(&hints);
+	Term_add_tab(0, "Rest", COLOUR_WHITE, COLOUR_DARK);
 
 	menu_layout_term(&menu);
 	ui_event event = menu_select(&menu);
