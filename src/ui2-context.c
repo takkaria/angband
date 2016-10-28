@@ -217,7 +217,6 @@ static void context_menu_player_rest(struct loc mloc)
 	menu_dynamic_add(m, "For HP and SP", MENU_VALUE_REST_HP_AND_SP);
 	menu_dynamic_add(m, "For HP or SP",  MENU_VALUE_REST_HP_OR_SP);
 	menu_dynamic_add(m, "As needed",     MENU_VALUE_REST_AS_NEEDED);
-	menu_dynamic_add(m, "Specify",       MENU_VALUE_REST_KEYPRESS);
 
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
@@ -232,7 +231,6 @@ static void context_menu_player_rest(struct loc mloc)
 		case MENU_VALUE_REST_AS_NEEDED: context_rest(REST_COMPLETE);    break;
 		case MENU_VALUE_REST_HP_AND_SP: context_rest(REST_ALL_POINTS);  break;
 		case MENU_VALUE_REST_HP_OR_SP:  context_rest(REST_SOME_POINTS); break;
-		case MENU_VALUE_REST_KEYPRESS:  Term_keypress('R', 0);          break;
 	}
 }
 
