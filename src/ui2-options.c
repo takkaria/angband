@@ -704,6 +704,17 @@ static void options_load_pref_file(const char *title, int index)
 }
 
 /**
+ * Load a pref line.
+ */
+static void options_load_pref_line(const char *title, int index)
+{
+	(void) title;
+	(void) index;
+
+	do_cmd_pref();
+}
+
+/**
  * ------------------------------------------------------------------------
  * Ego item ignore menu
  * ------------------------------------------------------------------------
@@ -1500,7 +1511,8 @@ static menu_action option_actions[] = {
 	{0,  0,   NULL,                                 NULL},
 	{0, 'k', "Edit keymaps",                        do_cmd_keymaps},
 	{0,  0,   NULL,                                 NULL},
-	{0, 'l', "Load a user pref file",               options_load_pref_file},
+	{0, 'f', "Load a user pref file",               options_load_pref_file},
+	{0, 'l', "Load a single pref line",             options_load_pref_line},
 };
 
 /**

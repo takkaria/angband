@@ -31,7 +31,9 @@
 #include "project.h"
 #include "trap.h"
 #include "ui2-display.h"
+#include "ui2-input.h"
 #include "ui2-keymap.h"
+#include "ui2-output.h"
 #include "ui2-prefs.h"
 #include "ui2-term.h"
 #include "sound.h"
@@ -1306,9 +1308,12 @@ void textui_prefs_free(void)
  */
 void do_cmd_pref(void)
 {
-	char buf[80] = {0};
+	char buf[ANGBAND_TERM_TEXTBLOCK_WIDTH] = "";
 
-	if (get_string("Pref: ", buf, sizeof(buf))) {
+	if (askfor_popup("Pref: ", buf, sizeof(buf),
+				ANGBAND_TERM_TEXTBLOCK_WIDTH, TERM_POSITION_CENTER,
+				NULL, NULL))
+	{
 		process_pref_file_command(buf);
 	}
 }

@@ -157,7 +157,6 @@ struct cmd_info cmd_util[] = {
  */
 struct cmd_info cmd_hidden[] = {
 	{"Take notes",              {':'},            CMD_NULL,       do_cmd_note, NULL},
-	{"Load a single pref line", {'"'},            CMD_NULL,       do_cmd_pref, NULL},
 	{"Toggle windows",          {KTRL('E')},      CMD_NULL,       toggle_inven_equip, NULL},
 	{"Alter a grid",            {'+'},            CMD_ALTER,      NULL, NULL},
 	{"Walk",                    {';'},            CMD_WALK,       NULL, NULL},
