@@ -304,7 +304,8 @@ static void ui_keymap_query(const char *title, int index)
 
 		loc.x = 0;
 		loc.y = hints.height - 1;
-		prt("Press ESC to exit, any other key to continue.", loc);
+		put_str_h("Press `ESC` to exit, any other key to continue.",
+				loc, COLOUR_WHITE, COLOUR_L_BLUE);
 
 		Term_cursor_visible(false);
 		Term_flush_output();
@@ -317,10 +318,12 @@ static void ui_keymap_query(const char *title, int index)
 
 static void ui_keymap_print_help(struct loc loc)
 {
-	c_prt(COLOUR_WHITE, "Use 'Ctrl-U' to reset.", loc);
+	put_str_h("Use `Ctrl-U` to reset.", loc, COLOUR_WHITE, COLOUR_L_GREEN);
 	loc.y++;
-	c_prt(COLOUR_WHITE, "Press '$' when finished.", loc);
+
+	put_str_h("Press `$` when finished.", loc, COLOUR_WHITE, COLOUR_L_GREEN);
 	loc.y++;
+
 	c_prt(COLOUR_WHITE,
 			format("(Maximum keymap length is %d keys.)", KEYMAP_ACTION_MAX),
 			loc);
@@ -455,7 +458,8 @@ static void ui_keymap_create(const char *title, int index)
 
 		loc.x = 0;
 		loc.y = hints.height - 1;
-		prt("Press ESC to exit, any other key to continue.", loc);
+		put_str_h("Press `ESC` to exit, any other key to continue.",
+				loc, COLOUR_WHITE, COLOUR_L_BLUE);
 
 		Term_cursor_visible(false);
 		Term_flush_output();
@@ -527,7 +531,8 @@ static void ui_keymap_remove(const char *title, int index)
 		}
 
 		loc.y = hints.height - 1;
-		prt("Press ESC to exit, any other key to continue.", loc);
+		put_str_h("Press `ESC` to exit, any other key to continue.",
+				loc, COLOUR_WHITE, COLOUR_L_BLUE);
 
 		Term_cursor_visible(false);
 		Term_flush_output();
