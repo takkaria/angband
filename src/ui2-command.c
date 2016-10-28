@@ -28,6 +28,7 @@
 #include "ui2-event.h"
 #include "ui2-input.h"
 #include "ui2-map.h"
+#include "ui2-menu.h"
 #include "ui2-options.h"
 #include "ui2-output.h"
 #include "ui2-wizard.h"
@@ -125,40 +126,118 @@ void textui_cmd_suicide(void)
 /**
  * Get input for the rest command
  */
-void textui_cmd_rest(void)
+
+#define REST_MENU_DONT_REST 0
+
+struct rest_menu_entry {
+	int value;
+	const char *name;
+};
+
+static void rest_menu_display(struct menu *menu,
+			int index, bool cursor, struct loc loc, int width)
 {
-	const char *prompt =
-		"Rest (0-9999, `!` for HP or SP, `*` for HP and SP, `&` as needed): ";
+	struct rest_menu_entry *entries = menu_priv(menu);
 
-	char buf[5] = "&";
+	Term_adds(loc.x, loc.y, width,
+			menu_row_style(true, cursor), entries[index].name);
+}
 
-	/* Ask for duration */
-	if (!get_string(prompt, buf, sizeof(buf))) {
-		return;
-	}
+static bool rest_menu_handle(struct menu *menu,
+		const ui_event *event, int index)
+{
+	if (event->type == EVT_SELECT) {
+		struct rest_menu_entry *entries = menu_priv(menu);
 
-	/* Rest... */
-	if (buf[0] == '&') {
-		/* ...until done */
-		cmdq_push(CMD_REST);
-		cmd_set_arg_choice(cmdq_peek(), "choice", REST_COMPLETE);
-	} else if (buf[0] == '*') {
-		/* ...a lot */
-		cmdq_push(CMD_REST);
-		cmd_set_arg_choice(cmdq_peek(), "choice", REST_ALL_POINTS);
-	} else if (buf[0] == '!') {
-		/* ...until HP or SP filled */
-		cmdq_push(CMD_REST);
-		cmd_set_arg_choice(cmdq_peek(), "choice", REST_SOME_POINTS);
-	} else {
-		/* ...some */
-		int turns = atoi(buf);
-		if (turns > 0) {
-			turns = MIN(turns, 9999);
-			cmdq_push(CMD_REST);
-			cmd_set_arg_choice(cmdq_peek(), "choice", turns);
+		if (entries[index].value == REST_MENU_DONT_REST) {
+			char buf[sizeof("1234")] = "";
+			const wchar_t *prompt = L"Rest (0-9999) ";
+			int prompt_len = wcslen(prompt);
+
+			struct term_hints hints = {
+				.x = 0,
+				.y = index,
+				.width = prompt_len + sizeof(buf) - 1,
+				.height = 1,
+				.position = TERM_POSITION_EXACT,
+				.purpose = TERM_PURPOSE_TEXT
+			};
+
+			Term_push_new(&hints);
+			Term_addws(0, 0, prompt_len, COLOUR_WHITE, prompt);
+			Term_cursor_visible(true);
+			Term_flush_output();
+
+			/* Ask for duration */
+			if (askfor_simple(buf, sizeof(buf), askfor_numbers)) {
+				entries[index].value = atoi(buf);
+			} else {
+				entries[index].value = REST_MENU_DONT_REST;
+			}
+
+			Term_pop();
+
+			/* If the user cancelled, keep running this menu */
+			return entries[index].value == REST_MENU_DONT_REST;
 		}
 	}
+
+	return false;
+}
+
+void textui_cmd_rest(void)
+{
+	menu_iter rest_menu_iter = {
+		.display_row = rest_menu_display,
+		.row_handler = rest_menu_handle
+	};
+
+	assert(REST_COMPLETE != REST_MENU_DONT_REST
+			&& REST_ALL_POINTS != REST_MENU_DONT_REST
+			&& REST_SOME_POINTS != REST_MENU_DONT_REST);
+
+	struct rest_menu_entry entries[] = {
+		{REST_ALL_POINTS,     "For HP and MP"},
+		{REST_SOME_POINTS,    "For HP or MP"},
+		{REST_COMPLETE,       "As needed"},
+		{REST_MENU_DONT_REST, "Specify"},
+	};
+
+	struct menu menu;
+	menu_init(&menu, MN_SKIN_SCROLL, &rest_menu_iter);
+	menu_setpriv(&menu, N_ELEMENTS(entries), entries);
+	menu.selections = lower_case;
+
+	int max_len = 0;
+	for (size_t i = 0; i < N_ELEMENTS(entries); i++) {
+		int len = strlen(entries[i].name);
+		if (len > max_len) {
+			max_len = len;
+		}
+	}
+
+	struct term_hints hints = {
+		.width = max_len + 3,
+		.height = N_ELEMENTS(entries),
+		.position = TERM_POSITION_TOP_LEFT,
+		.purpose = TERM_PURPOSE_MENU
+	};
+	Term_push_new(&hints);
+
+	menu_layout_term(&menu);
+	ui_event event = menu_select(&menu);
+
+	assert(menu.cursor >= 0);
+	assert(menu.cursor < (int) N_ELEMENTS(entries));
+
+	int value = entries[menu.cursor].value;
+
+	if (event.type == EVT_SELECT && value != REST_MENU_DONT_REST) {
+		cmdq_push(CMD_REST);
+		cmd_set_arg_choice(cmdq_peek(), "choice", value);
+	}
+
+	Term_pop();
 }
 
 /**
