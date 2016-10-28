@@ -762,13 +762,7 @@ static bool get_mouse_or_key(const char *prompt, ui_event *event)
 	}
 }
 
-/**
- * Prompts for a keypress.
- * The prompt should take the form "Command: "
- * Returns true unless the character is "Escape",
- * or otherwise not represantable as char (aka byte).
- */
-bool textui_get_com(const char *prompt, char *command)
+static bool textui_get_key(const char *prompt, struct keypress *key)
 {
 	int prompt_len = strlen(prompt);
 
@@ -784,11 +778,24 @@ bool textui_get_com(const char *prompt, char *command)
 	Term_cursor_visible(true);
 	Term_flush_output();
 
-	struct keypress key = inkey_only_key();
+	*key = inkey_only_key();
 
 	Term_pop();
 
-	if (key.code != ESCAPE && key.code < CHAR_MAX) {
+	return key->code != ESCAPE;
+}
+
+/**
+ * Prompts for a keypress.
+ * The prompt should take the form "Command: "
+ * Returns true unless the character is "Escape",
+ * or otherwise not represantable as char (aka byte).
+ */
+bool textui_get_com(const char *prompt, char *command)
+{
+	struct keypress key;
+
+	if (textui_get_key(prompt, &key) && key.code <= CHAR_MAX) {
 		*command = (char) key.code;
 		return true;
 	} else {
@@ -1021,7 +1028,7 @@ static void textui_get_command_aux(ui_event *event,
 		case '0':
 			/* Allow repeat count to be entered */
 			cnt = textui_get_count();
-			if (cnt > 0 && get_mouse_or_key("Command: ", event)) {
+			if (cnt > 0 && textui_get_key("Command: ", &event->key)) {
 				*count = cnt;
 			} else {
 				event->type = EVT_NONE;
@@ -1031,7 +1038,7 @@ static void textui_get_command_aux(ui_event *event,
 
 		case '^':
 			/* Allow control chars to be entered */
-			if (get_com("Control: ", &ch)) {
+			if (textui_get_com("Control: ", &ch)) {
 				event->key.code = KTRL(ch);
 			} else {
 				event->type = EVT_NONE;
@@ -1042,7 +1049,7 @@ static void textui_get_command_aux(ui_event *event,
 		case '\\':
 			/* Allow keymaps to be bypassed; unlike in previous cases
 			 * we return on success to avoid searching for a keymap */
-			if (get_mouse_or_key("Command: ", event)) {
+			if (textui_get_key("Command: ", &event->key)) {
 				return;
 			} else {
 				event->type = EVT_NONE;
