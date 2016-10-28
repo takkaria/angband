@@ -152,7 +152,7 @@ static void option_toggle_menu(const char *name, int page)
 	struct menu *menu = menu_new(MN_SKIN_SCROLL, &option_toggle_iter);
 
 	/* for all menus */
-	menu->prompt = "Set option (y/n/t), '?' for information";
+	menu->prompt = "Set option (`y`/`n`/`t`), `?` for information";
 	menu->command_keys = "?YyNnTt";
 	menu->selections = "abcdefghijklmopqrsuvwxz";
 	mnflag_on(menu->flags, MN_DBL_TAP);
@@ -161,7 +161,7 @@ static void option_toggle_menu(const char *name, int page)
 	if (page == OPT_PAGE_BIRTH) {
 		menu->prompt =
 			"You can only modify these options at character birth. " /* concat */
-			"'?' for information";
+			"`?` for information";
 		menu->command_keys = "?";
 		/* Only view these options */
 		mnflag_on(menu->flags, MN_NO_TAGS);

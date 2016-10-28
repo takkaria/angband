@@ -657,9 +657,8 @@ void menu_display(struct menu *menu)
 
 	if (menu->prompt) {
 		/* Below the menu */
-		int y = menu->active.y + menu->active.h;
-		Term_adds(menu->boundary.x, y, menu->boundary.w,
-				COLOUR_WHITE, menu->prompt);
+		put_str_h_simple(menu->prompt,
+				loc(menu->boundary.x, menu->active.y + menu->active.h));
 	}
 
 	menu->skin->display_list(menu, menu->cursor, menu->active);
