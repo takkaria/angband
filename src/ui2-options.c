@@ -259,6 +259,12 @@ static void ui_keymap_pref_append(const char *title, int index)
 	dump_pref_file(keymap_dump, "Dump keymaps");
 }
 
+static void ui_keymap_prompt(struct loc loc)
+{
+	put_str_h("Press `ESC` to exit, any other key to continue.",
+			loc, COLOUR_WHITE, COLOUR_L_UMBER);
+}
+
 static void ui_keymap_query(const char *title, int index)
 {
 	(void) index;
@@ -304,8 +310,7 @@ static void ui_keymap_query(const char *title, int index)
 
 		loc.x = 0;
 		loc.y = hints.height - 1;
-		put_str_h("Press `ESC` to exit, any other key to continue.",
-				loc, COLOUR_WHITE, COLOUR_L_BLUE);
+		ui_keymap_prompt(loc);
 
 		Term_cursor_visible(false);
 		Term_flush_output();
@@ -442,7 +447,8 @@ static void ui_keymap_create(const char *title, int index)
 				loc.x = 0;
 				loc.y = hints.height - 1;
 
-				prt("Save this keymap? [y/n] ", loc);
+				put_str_h("Save this keymap? [`y`/`n`] ", loc,
+						COLOUR_WHITE, COLOUR_L_UMBER);
 				Term_flush_output();
 				loc.y--;
 
@@ -458,8 +464,7 @@ static void ui_keymap_create(const char *title, int index)
 
 		loc.x = 0;
 		loc.y = hints.height - 1;
-		put_str_h("Press `ESC` to exit, any other key to continue.",
-				loc, COLOUR_WHITE, COLOUR_L_BLUE);
+		ui_keymap_prompt(loc);
 
 		Term_cursor_visible(false);
 		Term_flush_output();
@@ -509,7 +514,8 @@ static void ui_keymap_remove(const char *title, int index)
 
 			loc.x = 0;
 			loc.y = hints.height - 1;
-			prt("Remove this keymap? [y/n] ", loc);
+			put_str_h("Remove this keymap? [`y`/`n`] ", loc,
+					COLOUR_WHITE, COLOUR_L_UMBER);
 			Term_flush_output();
 
 			loc.y = hints.height - 2;
@@ -531,8 +537,7 @@ static void ui_keymap_remove(const char *title, int index)
 		}
 
 		loc.y = hints.height - 1;
-		put_str_h("Press `ESC` to exit, any other key to continue.",
-				loc, COLOUR_WHITE, COLOUR_L_BLUE);
+		ui_keymap_prompt(loc);
 
 		Term_cursor_visible(false);
 		Term_flush_output();
