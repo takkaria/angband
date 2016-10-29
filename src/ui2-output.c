@@ -649,7 +649,7 @@ void show_prompt_h(const char *str,
  */
 void show_prompt(const char *str)
 {
-	show_prompt_h(str, COLOUR_WHITE, COLOUR_TEAL);
+	show_prompt_h(str, COLOUR_WHITE, COLOUR_L_WHITE);
 }
 
 /**
