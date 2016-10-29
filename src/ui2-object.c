@@ -1126,12 +1126,7 @@ static void show_menu_prompt(const struct object_menu_data *data,
 	}
 	my_strcat(menu_prompt, hint,   sizeof(menu_prompt));
 
-	event_signal(EVENT_MESSAGE_FLUSH);
-
-	struct loc loc = {0};
-	display_term_push(DISPLAY_MESSAGE_LINE);
-	put_str_h(menu_prompt, loc, COLOUR_WHITE, COLOUR_TEAL);
-	display_term_pop();
+	show_prompt_h(menu_prompt, false, COLOUR_WHITE, COLOUR_TEAL);
 }
 
 static void build_menu_list(struct object_menu_data *data,

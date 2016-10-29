@@ -818,9 +818,9 @@ bool context_menu_object(struct object *obj)
 	m->selections = labels;
 	context_menu_object_entries(m, labels, obj, mode);
 
-	show_prompt(format("Item commands: (%c-%c, ESC)",
+	show_prompt_h(format("Item commands: (`%c`-`%c`, ESC)",
 				labels[0], labels[MAX(0, m->count - 1)]),
-			false);
+			false, COLOUR_WHITE, COLOUR_TEAL);
 	context_menu_object_create(m, obj);
 
 	int selected = menu_dynamic_select(m);
