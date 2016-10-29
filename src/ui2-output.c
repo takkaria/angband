@@ -604,12 +604,16 @@ void put_str_h_center(const char *str, int y,
 
 void put_str_h_simple(const char *str, struct loc loc)
 {
-	put_str_h(str, loc, PUT_STR_H_TEXT_COLOR, PUT_STR_H_HIGHLIGHT_COLOR);
+	put_str_h(str, loc,
+			PUT_STR_H_TEXT_COLOR,
+			PUT_STR_H_HIGHLIGHT_COLOR);
 }
 
 void put_str_h_center_simple(const char *str, int y)
 {
-	put_str_h_center(str, y, PUT_STR_H_TEXT_COLOR, PUT_STR_H_HIGHLIGHT_COLOR);
+	put_str_h_center(str, y,
+			PUT_STR_H_TEXT_COLOR,
+			PUT_STR_H_HIGHLIGHT_COLOR);
 }
 
 void clear_prompt(void)
@@ -634,7 +638,9 @@ void show_prompt(const char *str)
 	Term_erase_all();
 
 	struct loc loc = {0, 0};
-	put_str_h(str, loc, PUT_STR_H_TEXT_COLOR, PUT_STR_H_HIGHLIGHT_COLOR);
+	put_str_h(str, loc,
+			PUT_STR_H_TEXT_COLOR,
+			PUT_STR_H_HIGHLIGHT_COLOR);
 
 	Term_flush_output();
 	display_term_pop();
