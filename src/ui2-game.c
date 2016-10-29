@@ -288,7 +288,7 @@ static bool cmd_keyboard(keycode_t code,
 			if (code <= UCHAR_MAX) {
 				*key = (unsigned char) code;
 				*cmd = converted_list[KEYMAP_MODE_OPT][*key];
-				return true;
+				return *cmd != NULL;
 			}
 			return false;
 	}
