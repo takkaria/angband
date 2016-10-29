@@ -151,7 +151,7 @@ static bool rest_menu_handle(struct menu *menu,
 
 		if (entries[index].value == REST_MENU_DONT_REST) {
 			char buf[sizeof("1234")] = "";
-			const wchar_t *prompt = L"Rest (0-9999) ";
+			const wchar_t *prompt = L"Rest (0-9999): ";
 			int prompt_len = wcslen(prompt);
 
 			struct term_hints hints = {
