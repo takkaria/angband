@@ -170,9 +170,10 @@ static bool rest_menu_handle(struct menu *menu,
 
 			/* Ask for duration */
 			if (askfor_simple(buf, sizeof(buf), askfor_numbers)) {
-				entries[index].value = atoi(buf);
-			} else {
-				entries[index].value = REST_MENU_DONT_REST;
+				int value = atoi(buf);
+				if (value > 0) {
+					entries[index].value = value;
+				}
 			}
 
 			Term_pop();
