@@ -808,22 +808,22 @@ static void cat_menu_hint(char *buf, size_t bufsize,
 	if (tags) {
 		char tmp_buf[ANGBAND_TERM_STANDARD_WIDTH];
 
-		strnfmt(tmp_buf, sizeof(tmp_buf), "%c-%c, ", I2A(tag_from), I2A(tag_to));
+		strnfmt(tmp_buf, sizeof(tmp_buf), "`%c`-`%c`, ", I2A(tag_from), I2A(tag_to));
 		my_strcat(buf, tmp_buf, bufsize);
 	}
 
 	/* Only one of those is allowed, and inventory takes precedence */
 	if (inven) {
-		my_strcat(buf, "'\\' for Inven, ", bufsize);
+		my_strcat(buf, "`\\` for Inven, ", bufsize);
 	}
 	if (equip) {
-		my_strcat(buf, "'=' for Equip, ", bufsize);
+		my_strcat(buf, "`=` for Equip, ", bufsize);
 	}
 	if (quiver) {
-		my_strcat(buf, "'|' for Quiver, ", bufsize);
+		my_strcat(buf, "`|` for Quiver, ", bufsize);
 	}
 	if (floor) {
-		my_strcat(buf, "'-' for floor, ", bufsize);
+		my_strcat(buf, "`-` for floor, ", bufsize);
 	}
 }
 
@@ -870,7 +870,7 @@ static void menu_hint(const struct object_menu_data *data,
 				use_inven, use_equip, use_quiver, false);
 	}
 
-	my_strcat(hint, "ESC)", hint_size);
+	my_strcat(hint, "`ESC`)", hint_size);
 }
 
 static bool handle_menu_key_action(struct object_menu_data *data,
@@ -1126,7 +1126,12 @@ static void show_menu_prompt(const struct object_menu_data *data,
 	}
 	my_strcat(menu_prompt, hint,   sizeof(menu_prompt));
 
-	show_prompt(menu_prompt, false);
+	event_signal(EVENT_MESSAGE_FLUSH);
+
+	struct loc loc = {0};
+	display_term_push(DISPLAY_MESSAGE_LINE);
+	put_str_h(menu_prompt, loc, COLOUR_WHITE, COLOUR_TEAL);
+	display_term_pop();
 }
 
 static void build_menu_list(struct object_menu_data *data,
