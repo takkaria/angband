@@ -5730,6 +5730,7 @@ static void load_subwindow(struct window *window,
 	}
 
 	if (!adjust_subwindow_geometry(window, subwindow)) {
+		detach_subwindow_from_window(window, subwindow);
 		quit_fmt("cant adjust geometry of subwindow %u in window %u",
 				subwindow->index, window->index);
 	}
@@ -5747,14 +5748,17 @@ static void load_subwindow(struct window *window,
 				subwindow->color.r, subwindow->color.g,
 				subwindow->color.b, subwindow->color.a) != 0)
 	{
+		detach_subwindow_from_window(window, subwindow);
 		quit_fmt("cant set draw color for subwindow %u window %u: %s",
 				subwindow->index, window->index, SDL_GetError());
 	}
 	if (SDL_SetRenderTarget(window->renderer, subwindow->texture) != 0) {
+		detach_subwindow_from_window(window, subwindow);
 		quit_fmt("cant set subwindow %u as render target in window %u: %s",
 				subwindow->index, window->index, SDL_GetError());
 	}
 	if (SDL_RenderClear(window->renderer) != 0) {
+		detach_subwindow_from_window(window, subwindow);
 		quit_fmt("cant clear texture in subwindow %u window %u: %s",
 				subwindow->index, window->index, SDL_GetError());
 	}
