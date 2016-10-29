@@ -627,15 +627,14 @@ void clear_prompt(void)
 /**
  * Display a colorized prompt on the screen.
  */
-void show_prompt_h(const char *str,
-		uint32_t color, uint32_t highlight)
+void show_prompt(const char *str)
 {
 	event_signal(EVENT_MESSAGE_FLUSH);
 	display_term_push(DISPLAY_MESSAGE_LINE);
 	Term_erase_all();
 
 	struct loc loc = {0, 0};
-	put_str_h(str, loc, color, highlight);
+	put_str_h(str, loc, COLOUR_WHITE, COLOUR_L_WHITE);
 
 	Term_flush_output();
 	display_term_pop();
@@ -643,13 +642,6 @@ void show_prompt_h(const char *str,
 	/* Reset the term state, so that messages
 	 * won't print "-more-" over prompt string */
 	message_skip_more();
-}
-/**
- * Display a simple prompt on the screen.
- */
-void show_prompt(const char *str)
-{
-	show_prompt_h(str, COLOUR_WHITE, COLOUR_L_WHITE);
 }
 
 /**
