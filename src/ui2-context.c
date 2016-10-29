@@ -678,6 +678,7 @@ static void context_menu_object_create(struct menu *m, struct object *obj)
 		.h = 0
 	};
 	textui_textblock_place(tb, textblock_reg, NULL);
+	textblock_free(tb);
 
 	menu_layout(m, menu_reg);
 
