@@ -97,56 +97,45 @@ static void target_display_help_aux(bool monster, bool free)
 	};
 	Term_push_new(&hints);
 
-	struct text_out_info info = {0};
+	struct loc loc = {0, 0};
 
-	/* Display 1 line of "header" and 1 empty line */
-	text_out(info, "<");
-	text_out_c(info, COLOUR_L_GREEN, "dir");
-	text_out(info, ">");
-	text_out(info, " and ");
-	text_out(info, "<");
-	text_out_c(info, COLOUR_L_GREEN, "click");
-	text_out(info, ">");
-	text_out(info, " look around.\n\n");
+	/* Display one line of "header" and one empty line */
+	put_str_h_simple("<`dir`> and <`click`> look around.", loc);
+	loc.y++;
+	loc.y++;
 
-	info.indent = 1;
-	Term_cursor_to_xy(info.indent, 2);
+	loc.x += 1;
 
-	/* Display rest of help - 4 lines */
-	text_out_c(info, COLOUR_L_GREEN, "g");
-	text_out(info, " moves to the selection.\n");
-	text_out_c(info, COLOUR_L_GREEN, "p");
-	text_out(info, " selects the player.\n");
-	text_out_c(info, COLOUR_L_GREEN, "q");
-	text_out(info, " exits.\n");
-	text_out_c(info, COLOUR_L_GREEN, "r");
-	text_out(info, " displays details.\n");
+	/* Display rest of help - four lines */
+	put_str_h_simple("`g` moves to the selection.", loc);
+	loc.y++;
+	put_str_h_simple("`p` selects the player.", loc);
+	loc.y++;
+	put_str_h_simple("`q` exits.", loc);
+	loc.y++;
+	put_str_h_simple("`r` displays details.", loc);
+	loc.y++;
 
 	if (free) {
-		/* If free selection, display 1 more line */
-		text_out_c(info, COLOUR_L_GREEN, "m");
-		text_out(info, " restricts to interesting places.");
+		/* If free selection, display one more line */
+		put_str_h_simple("`m` restricts to interesting places.", loc);
+		loc.y++;
 	} else {
-		/* Else display 2 more lines */
-		text_out_c(info, COLOUR_L_GREEN, "+");
-		text_out(info, " and ");
-		text_out_c(info, COLOUR_L_GREEN, "-");
-		text_out(info, " cycle through interesting places.\n");
-		text_out_c(info, COLOUR_L_GREEN, "o");
-		text_out(info, " allows free selection.");
+		/* Else display two more lines */
+		put_str_h_simple("`+` and `-` cycle through interesting places.", loc);
+		loc.y++;
+		put_str_h_simple("`o` allows free selection.", loc);
+		loc.y++;
 	}
 	
 	if (monster || free) {
-		/* If free selection or targetable monster under cursor, add 1 more line */
-		text_out(info, "\n");
-		text_out_c(info, COLOUR_L_GREEN, "t");
-		text_out(info, " targets the current selection.");
+		/* If free selection or targetable monster
+		 * is under cursor, add one more line */
+		put_str_h_simple("`t` targets the current selection.", loc);
 	}
 
 	Term_flush_output();
-
 	inkey_any();
-
 	Term_pop();
 }
 
