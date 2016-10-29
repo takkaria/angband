@@ -634,7 +634,7 @@ void show_prompt(const char *str)
 	Term_erase_all();
 
 	struct loc loc = {0, 0};
-	put_str_h(str, loc, COLOUR_WHITE, COLOUR_L_WHITE);
+	put_str_h(str, loc, PUT_STR_H_TEXT_COLOR, PUT_STR_H_HIGHLIGHT_COLOR);
 
 	Term_flush_output();
 	display_term_pop();
