@@ -2056,7 +2056,7 @@ static void see_floor_items(game_event_type type,
 		} else if (blind) {
 			p = "feel something on the floor";
 		}
-		show_prompt(format("You %s:", p), false);
+		show_prompt(format("You %s:", p));
 
 		/* Display objects on the floor */
 		struct term_hints hints = {

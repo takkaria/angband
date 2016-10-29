@@ -738,7 +738,7 @@ static bool get_file_text(const char *suggested_name,
 		return false;
 	}
 
-	show_prompt(format("Saved as %s.", path), false);
+	show_prompt(format("Saved as %s.", path));
 
 	return true;
 }
@@ -751,7 +751,7 @@ bool (*get_file)(const char *name, char *path, size_t pathlen) = get_file_text;
 
 static bool get_mouse_or_key(const char *prompt, ui_event *event)
 {
-	show_prompt(prompt, false);
+	show_prompt(prompt);
 	*event = inkey_mouse_or_key();
 	clear_prompt();
 
@@ -845,7 +845,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
 		if (event.type == EVT_NONE
 				|| (event.type == EVT_KBRD && target_dir(event.key) == 0))
 		{
-			show_prompt("Direction or <click> (Escape to cancel)?", false);
+			show_prompt("<`dir`> or <`click`> (`ESC` to cancel)?");
 			event = inkey_simple();
 		}
 

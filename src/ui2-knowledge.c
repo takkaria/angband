@@ -2552,8 +2552,8 @@ void do_cmd_locate(void)
 			sector[0] = 0;
 		} else {
 			strnfmt(sector, sizeof(sector), "%s%s of",
-					((cur.y < start.y) ? " north" : (cur.y > start.y) ? " south" : ""),
-					((cur.x < start.x) ? " west"  : (cur.x > start.x) ? " east"  : ""));
+					((cur.y < start.y) ? " `north`" : (cur.y > start.y) ? " `south`" : ""),
+					((cur.x < start.x) ? " `west`"  : (cur.x > start.x) ? " `east`"  : ""));
 		}
 
 		char prompt[ANGBAND_TERM_STANDARD_WIDTH];
@@ -2568,7 +2568,7 @@ void do_cmd_locate(void)
 					"Map sector [%d, %d], which is%s your sector. Direction? ",
 					cur.x / PANEL_SIZE, cur.y / PANEL_SIZE, sector);
 		}
-		show_prompt(prompt, false);
+		show_prompt(prompt);
 
 		struct keypress key = inkey_only_key();
 		if (key.code == ESCAPE) {

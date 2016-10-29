@@ -47,7 +47,7 @@ void do_cmd_options_and_redraw(void)
  */
 void do_cmd_unknown(void)
 {
-	show_prompt("Type '?' for help.", false);
+	show_prompt("Type `?` for help.");
 }
 
 /**

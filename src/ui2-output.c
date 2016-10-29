@@ -615,11 +615,8 @@ void put_str_h_center_simple(const char *str, int y)
 void clear_prompt(void)
 {
 	display_term_push(DISPLAY_MESSAGE_LINE);
-
 	Term_erase_all();
-	Term_cursor_visible(false);
 	Term_flush_output();
-
 	display_term_pop();
 
 	/* Reset the term state, so that messages
@@ -630,20 +627,17 @@ void clear_prompt(void)
 /**
  * Display a colorized prompt on the screen.
  */
-void show_prompt_h(const char *str, bool cursor,
+void show_prompt_h(const char *str,
 		uint32_t color, uint32_t highlight)
 {
-	struct loc loc = {0, 0};
-
 	event_signal(EVENT_MESSAGE_FLUSH);
-
 	display_term_push(DISPLAY_MESSAGE_LINE);
-
 	Term_erase_all();
-	Term_cursor_visible(cursor);
-	put_str_h(str, loc, color, highlight);
-	Term_flush_output();
 
+	struct loc loc = {0, 0};
+	put_str_h(str, loc, color, highlight);
+
+	Term_flush_output();
 	display_term_pop();
 
 	/* Reset the term state, so that messages
@@ -651,11 +645,11 @@ void show_prompt_h(const char *str, bool cursor,
 	message_skip_more();
 }
 /**
- * Display a simple prompt on the screen
+ * Display a simple prompt on the screen.
  */
-void show_prompt(const char *str, bool cursor)
+void show_prompt(const char *str)
 {
-	show_prompt_h(str, cursor, COLOUR_WHITE, COLOUR_WHITE);
+	show_prompt_h(str, COLOUR_WHITE, COLOUR_TEAL);
 }
 
 /**

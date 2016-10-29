@@ -137,9 +137,8 @@ void put_str_h_center(const char *str, int y,
  */
 void put_str_h_center_simple(const char *str, int y);
 
-void show_prompt_h(const char *str, bool cursor,
-		uint32_t color, uint32_t highlight);
-void show_prompt(const char *str, bool cursor);
+void show_prompt_h(const char *str, uint32_t color, uint32_t highlight);
+void show_prompt(const char *str);
 void clear_prompt(void);
 
 /**

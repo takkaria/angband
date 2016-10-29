@@ -114,7 +114,7 @@ static void context_menu_player_other(struct loc mloc)
 	menu_dynamic_add(m, "Options", MENU_VALUE_OPTIONS);
 	menu_dynamic_add(m, "Commands", MENU_VALUE_COMMANDS);
 
-	show_prompt("(Enter to select, ESC) Command:", false);
+	show_prompt("(`Enter` to select, `ESC`) Command:");
 
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
@@ -242,7 +242,7 @@ static void context_menu_player_display_floor(void)
 				player->upkeep->total_weight / 10,
 				player->upkeep->total_weight % 10,
 				abs(diff) / 10, abs(diff) % 10,
-				(diff < 0 ? "overweight" : "remaining")), false);
+				(diff < 0 ? "overweight" : "remaining")));
 
 
 	struct object *obj;
@@ -302,7 +302,7 @@ void context_menu_player(struct loc mloc)
 	mnflag_on(m->flags, MN_NO_TAGS);
 	context_menu_player_entries(m);
 
-	show_prompt("(Enter to select, ESC) Command:", false);
+	show_prompt("(`Enter` to select, `ESC`) Command:");
 
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
@@ -468,32 +468,32 @@ static void context_menu_cave_entries(struct menu *m,
 	menu_dynamic_add(m, "Throw To", CMD_THROW);
 
 #define PROMPT(str) \
-	("(Enter to select command, ESC to cancel) " str)
+	("(`Enter` to select command, `ESC` to cancel) " str)
 
 	struct object *square_obj = square_object(c, loc.y, loc.x);
 
 	if (player->timed[TMD_IMAGE]) {
-		show_prompt(PROMPT("You see something strange:"), false);
+		show_prompt(PROMPT("You see something strange:"));
 	} else if (c->squares[loc.y][loc.x].mon) {
 		char m_name[ANGBAND_TERM_STANDARD_WIDTH];
 		struct monster *mon = square_monster(c, loc.y, loc.x);
 		/* Get the monster name ("a kobold") */
 		monster_desc(m_name, sizeof(m_name), mon, MDESC_IND_VIS);
-		show_prompt(format(PROMPT("You see %s:"), m_name), false);
+		show_prompt(format(PROMPT("You see %s:"), m_name));
 	} else if (square_obj && !ignore_item_ok(square_obj)) {
 		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 		/* Obtain an object description */
 		object_desc(o_name, sizeof(o_name), square_obj,
 				ODESC_PREFIX | ODESC_FULL);
-		show_prompt(format(PROMPT("You see %s:"), o_name), false);
+		show_prompt(format(PROMPT("You see %s:"), o_name));
 	} else {
 		/* Feature (apply mimic) */
 		const char *name = square_apparent_name(c, player, loc.y, loc.x);
 		if (square_isshop(cave, loc.y, loc.x)) {
-			show_prompt(format(PROMPT("You see the entrance to the %s:"), name), false);
+			show_prompt(format(PROMPT("You see the entrance to the %s:"), name));
 		} else {
 			show_prompt(format(PROMPT("You see %s %s:"),
-						(is_a_vowel(name[0]) ? "an" : "a"), name), false);
+						(is_a_vowel(name[0]) ? "an" : "a"), name));
 		}
 	}
 
@@ -818,9 +818,8 @@ bool context_menu_object(struct object *obj)
 	m->selections = labels;
 	context_menu_object_entries(m, labels, obj, mode);
 
-	show_prompt_h(format("Item commands: (`%c`-`%c`, ESC)",
-				labels[0], labels[MAX(0, m->count - 1)]),
-			false, COLOUR_WHITE, COLOUR_TEAL);
+	show_prompt(format("Item commands: (`%c`-`%c`, ESC)",
+				labels[0], labels[MAX(0, m->count - 1)]));
 	context_menu_object_create(m, obj);
 
 	int selected = menu_dynamic_select(m);
@@ -925,7 +924,7 @@ static void show_command_list(struct cmd_info *cmd_list,
 		menu_dynamic_add(m, cmd_list[i].desc, i + 1);
 	}
 
-	show_prompt("(Enter to select, ESC) Command:", false);
+	show_prompt("(`Enter` to select, `ESC`) Command:");
 
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
@@ -956,7 +955,7 @@ void context_menu_command(struct loc mloc)
 	menu_dynamic_add(m, "Util", 5);
 	menu_dynamic_add(m, "Misc", 6);
 
-	show_prompt("(Enter to select, ESC) Command:", false);
+	show_prompt("(`Enter` to select, `ESC`) Command:");
 
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);

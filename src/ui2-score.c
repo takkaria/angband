@@ -147,7 +147,7 @@ static void display_scores_aux(const high_score *scores,
 
 		Term_flush_output();
 
-		show_prompt("[Press ESC to exit, any other key to continue.]", false);
+		show_prompt("[Press `ESC` to exit, any other key to continue.]");
 		struct keypress key = inkey_only_key();
 		clear_prompt();
 

@@ -327,7 +327,7 @@ static void display_winner(void)
 	Term_flush_output();
 	event_signal(EVENT_INPUT_FLUSH);
 
-	show_prompt("(Press any key to continue)", false);
+	show_prompt("(Press any key to continue)");
 	inkey_any();
 	clear_prompt();
 }

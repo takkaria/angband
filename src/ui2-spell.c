@@ -334,9 +334,9 @@ static int spell_menu_select(struct menu *menu, const char *noun, const char *ve
 	spell_menu_layout(menu);
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
-	strnfmt(buf, sizeof(buf), "%s which %s? ('?' to read description)", verb, noun);
+	strnfmt(buf, sizeof(buf), "%s which %s? (`?` to read description)", verb, noun);
 	my_strcap(buf);
-	show_prompt(buf, false);
+	show_prompt(buf);
 
 	menu_select(menu);
 
@@ -360,7 +360,7 @@ static void spell_menu_browse(struct menu *menu, const char *noun)
 
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	strnfmt(buf, sizeof(buf), "Examine which %s?", noun);
-	show_prompt(buf, false);
+	show_prompt(buf);
 
 	menu_select(menu);
 
@@ -557,7 +557,7 @@ static bool get_spell_book(const struct object **book,
 		const char *prompt, const char *reject,
 		item_tester tester, cmd_code cmd)
 {
-	show_prompt(prompt, false);
+	show_prompt(prompt);
 
 	*book = NULL;
 

@@ -1126,7 +1126,7 @@ static void show_menu_prompt(const struct object_menu_data *data,
 	}
 	my_strcat(menu_prompt, hint,   sizeof(menu_prompt));
 
-	show_prompt_h(menu_prompt, false, COLOUR_WHITE, COLOUR_TEAL);
+	show_prompt(menu_prompt);
 }
 
 static void build_menu_list(struct object_menu_data *data,
@@ -1663,7 +1663,7 @@ void textui_cmd_ignore_menu(struct object *obj)
 	ignore_menu_build(menu, obj);
 	menu->selections = lower_case;
 
-	show_prompt("(Enter to select, ESC)", false);
+	show_prompt("(`Enter` to select, `ESC`) Ignore:");
 
 	/* Work out display region */
 	region reg = menu_dynamic_calc_location(menu);

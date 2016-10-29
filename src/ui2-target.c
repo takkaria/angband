@@ -273,7 +273,7 @@ static ui_event target_recall_loop_object(struct object *obj,
 				desc->a, desc->b, desc->c, o_name, desc->coords);
 	}
 
-	show_prompt(buf, false);
+	show_prompt(buf);
 
 	ui_event event;
 
@@ -305,7 +305,7 @@ static bool target_interactive_aux_halluc(ui_event *event,
 				desc->a, desc->b, desc->c, strange, desc->coords);
 	}
 
-	show_prompt(buf, false);
+	show_prompt(buf);
 
 	event->key = inkey_only_key();
 
@@ -356,7 +356,7 @@ static bool target_interactive_aux_monster_objects(ui_event *event,
 				(int) cave->squares[coords.y][coords.x].cost,
 				(int) cave->squares[coords.y][coords.x].when);
 
-		show_prompt(buf, false);
+		show_prompt(buf);
 		*event = inkey_mouse_or_key();
 
 		if (is_target_stop_event(event, mode)) {
@@ -394,7 +394,7 @@ static bool target_interactive_aux_monster(ui_event *event,
 	char buf[ANGBAND_TERM_STANDARD_WIDTH];
 	target_desc_monster(buf, sizeof(buf), mon, coords, desc); 
 
-	show_prompt(buf, false);
+	show_prompt(buf);
 
 	do {
 		*event = inkey_mouse_or_key();
@@ -457,7 +457,7 @@ static bool target_interactive_aux_trap(ui_event *event,
 				desc->a, desc->b, desc->c, trap->kind->desc, desc->coords);
 	}
 
-	show_prompt(buf, false);
+	show_prompt(buf);
 
 	do {
 		*event = inkey_mouse_or_key();
@@ -499,7 +499,7 @@ static bool target_interactive_aux_objects(ui_event *event,
 					desc->a, desc->b, desc->c, floor_num, desc->coords);
 		}
 
-		show_prompt(buf, false);
+		show_prompt(buf);
 
 		struct term_hints hints = {
 			.width = ANGBAND_TERM_STANDARD_WIDTH,
@@ -565,7 +565,7 @@ static bool target_interactive_aux_square(ui_event *event,
 				"%s%s%s%s, %s.", desc->a, desc->b, desc->c, name, desc->coords);
 	}
 
-	show_prompt(buf, false);
+	show_prompt(buf);
 	*event = inkey_mouse_or_key();
 
 	return is_target_stop_event(event, mode);

@@ -159,7 +159,7 @@ static void prt_welcome(const struct owner *proprietor)
 		}
 
 		/* Balthazar says "Welcome" */
-		show_prompt(format(comment_welcome[i], short_name, player_name), false);
+		show_prompt(format(comment_welcome[i], short_name, player_name));
 	}
 }
 

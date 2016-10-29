@@ -1587,7 +1587,7 @@ static void do_cmd_wiz_square_flag(void)
 
 	Term_flush_output();
 
-	show_prompt("Press any key.", false);
+	show_prompt("Press any key.");
 	inkey_any();
 	clear_prompt();
 
@@ -1696,7 +1696,7 @@ static void do_cmd_wiz_features(void)
 
 	Term_flush_output();
 
-	show_prompt("Press any key.", false);
+	show_prompt("Press any key.");
 	inkey_any();
 	clear_prompt();
 
