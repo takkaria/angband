@@ -818,7 +818,7 @@ bool context_menu_object(struct object *obj)
 	m->selections = labels;
 	context_menu_object_entries(m, labels, obj, mode);
 
-	show_prompt(format("Item commands: (`%c`-`%c`, ESC)",
+	show_prompt(format("Item commands: (`%c`-`%c`, `ESC`)",
 				labels[0], labels[MAX(0, m->count - 1)]));
 	context_menu_object_create(m, obj);
 
