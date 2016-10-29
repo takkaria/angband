@@ -2916,6 +2916,14 @@ static bool is_close_to(int a, int b, unsigned range)
 	}
 }
 
+static bool is_same_color(SDL_Color a, SDL_Color b)
+{
+	return a.r == b.r
+		&& a.g == b.g
+		&& a.b == b.b
+		&& a.a == b.a;
+}
+
 static bool is_point_in_rect(int x, int y, const SDL_Rect *rect)
 {
 	return x >= rect->x && x < rect->x + rect->w
@@ -4088,8 +4096,10 @@ static void term_draw_text(const struct subwindow *subwindow,
 	SDL_Color bg = g_colors[point->terrain_attr];
 	bg.a = subwindow->color.a;
 
-	render_fill_rect(subwindow->window,
-			subwindow->texture, &rect, &bg);
+	if (!is_same_color(bg, subwindow->color)) {
+		render_fill_rect(subwindow->window,
+				subwindow->texture, &rect, &bg);
+	}
 
 	if (!IS_BLANK_POINT_FG(point)) {
 		SDL_Color fg = g_colors[point->fg_attr];
@@ -4142,8 +4152,6 @@ static void term_draw_tile(const struct subwindow *subwindow,
 
 	int fg_col = point->fg_char & 0x7F;
 	int fg_row = point->fg_attr & 0x7F;
-
-	render_fill_rect(subwindow->window, subwindow->texture, &rect, &subwindow->color);
 
 	if (!IS_BLANK_POINT_BG(point)) {
 		render_tile(subwindow, graphics, bg_col, bg_row, col, row, rect);
@@ -4230,9 +4238,14 @@ static void term_draw(void *user,
 	SDL_Rect rect = {
 		subwindow->inner_rect.x + col * subwindow->cell_width,
 		subwindow->inner_rect.y + row * subwindow->cell_height,
-		subwindow->cell_width,
+		subwindow->cell_width * n_points,
 		subwindow->cell_height
 	};
+
+	render_fill_rect(subwindow->window,
+			subwindow->texture, &rect, &subwindow->color);
+
+	rect.w = subwindow->cell_width;
 
 	for (int i = 0; i < n_points; i++) {
 		if (points[i].fg_attr & 0x80) {
