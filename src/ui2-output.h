@@ -137,7 +137,16 @@ void put_str_h_center(const char *str, int y,
  */
 void put_str_h_center_simple(const char *str, int y);
 
+/**
+ * Print a string on the message line.
+ * Note that it uses put_str_h() with
+ * predetermined colors.
+ * */
 void show_prompt(const char *str);
+
+/**
+ * Clear the message line.
+ */
 void clear_prompt(void);
 
 /**
