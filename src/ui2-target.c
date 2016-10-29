@@ -100,9 +100,13 @@ static void target_display_help_aux(bool monster, bool free)
 	struct text_out_info info = {0};
 
 	/* Display 1 line of "header" and 1 empty line */
-	text_out_c(info, COLOUR_L_GREEN, "<dir>");
+	text_out(info, "<");
+	text_out_c(info, COLOUR_L_GREEN, "dir");
+	text_out(info, ">");
 	text_out(info, " and ");
-	text_out_c(info, COLOUR_L_GREEN, "<click>");
+	text_out(info, "<");
+	text_out_c(info, COLOUR_L_GREEN, "click");
+	text_out(info, ">");
 	text_out(info, " look around.\n\n");
 
 	info.indent = 1;
