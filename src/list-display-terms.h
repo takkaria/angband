@@ -20,7 +20,7 @@ DISPLAY(MESSAGE_LINE,   "Prompt line",      40,     1,    80,     1,  INT_MAX,  
 
 DISPLAY(STATUS_LINE,    "Status line",      40,     1,    80,     1,  INT_MAX,        1,     false)
 DISPLAY(PLAYER_COMPACT, "Player (compact)", 12,     1,    12,    24,  INT_MAX,  INT_MAX,     false)
-DISPLAY(PLAYER_BASIC,   "Player (basic)",   72,    24,    72,    24,  INT_MAX,  INT_MAX,     false)
+DISPLAY(PLAYER_BASIC,   "Player (basic)",   80,    24,    80,    24,  INT_MAX,  INT_MAX,     false)
 DISPLAY(PLAYER_EXTRA,   "Player (extra)",   80,    24,    80,    24,  INT_MAX,  INT_MAX,     false)
 DISPLAY(INVEN,          "Inven/equip",      12,     1,    40,    24,  INT_MAX,  INT_MAX,     false)
 DISPLAY(EQUIP,          "Equip/inven",      12,     1,    40,    24,  INT_MAX,  INT_MAX,     false)
