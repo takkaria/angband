@@ -272,10 +272,8 @@ void message_skip_more(void)
 	struct display_term *display_message_line =
 		display_term_get(DISPLAY_MESSAGE_LINE);
 
-	if (display_message_line->messages.offset > 0) {
-		display_message_line->messages.offset = 0;
-		display_message_line->messages.clear = true;
-	}
+	display_message_line->messages.offset = 0;
+	display_message_line->messages.clear = true;
 }
 
 /**
