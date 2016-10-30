@@ -2916,12 +2916,12 @@ static bool is_close_to(int a, int b, unsigned range)
 	}
 }
 
-static bool is_same_color(SDL_Color a, SDL_Color b)
+static bool is_same_color(const SDL_Color *one, const SDL_Color *two)
 {
-	return a.r == b.r
-		&& a.g == b.g
-		&& a.b == b.b
-		&& a.a == b.a;
+	return one->r == two->r
+		&& one->g == two->g
+		&& one->b == two->b
+		&& one->a == two->a;
 }
 
 static bool is_point_in_rect(int x, int y, const SDL_Rect *rect)
@@ -4093,10 +4093,14 @@ static void term_push_new(const struct term_hints *hints,
 static void term_draw_text(const struct subwindow *subwindow,
 		SDL_Rect rect, const struct term_point *point)
 {
-	SDL_Color bg = g_colors[point->terrain_attr];
-	bg.a = subwindow->color.a;
+	SDL_Color bg = {
+		.r = g_colors[point->terrain_attr].r,
+		.g = g_colors[point->terrain_attr].g,
+		.b = g_colors[point->terrain_attr].b,
+		.a = subwindow->color.a
+	};
 
-	if (!is_same_color(bg, subwindow->color)) {
+	if (!is_same_color(&subwindow->color, &bg)) {
 		render_fill_rect(subwindow->window,
 				subwindow->texture, &rect, &bg);
 	}
