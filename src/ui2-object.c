@@ -62,7 +62,8 @@
  * three chars + null byte */
 #define OLIST_LABEL_SIZE 4
 
-/* Equip looks like this: "On right hand : "
+/* Equip looks like this: "On right hand "
+ * (see equipment screen, the 'e' command)
  * 20 bytes should be enough */
 #define OLIST_EQUIP_SIZE 20
 
