@@ -201,6 +201,28 @@ struct object *object_new(void)
 }
 
 /**
+ * Free up an object
+ *
+ * This doesn't affect any game state outside of the object itself
+ */
+void object_free(struct object *obj)
+{
+	if (obj->slays) {
+		free_slay(obj->slays);
+	}
+
+	if (obj->brands) {
+		free_brand(obj->brands);
+	}
+
+	if (obj->curses) {
+		free_curse(obj->curses, true);
+	}
+
+	mem_free(obj);
+}
+
+/**
  * Delete an object and free its memory, and set its pointer to NULL
  */
 void object_delete(struct object **obj_address)
@@ -240,12 +262,6 @@ void object_delete(struct object **obj_address)
 		return;
 	}
 
-	/* Free slays and brands */
-	if (obj->slays)
-		free_slay(obj->slays);
-	if (obj->brands)
-		free_brand(obj->brands);
-
 	/* Remove from any lists */
 	if (player && player->cave && player->cave->objects && obj->oidx
 		&& (obj == player->cave->objects[obj->oidx]))
@@ -254,6 +270,14 @@ void object_delete(struct object **obj_address)
 	if (cave && cave->objects && obj->oidx
 		&& (obj == cave->objects[obj->oidx]))
 		cave->objects[obj->oidx] = NULL;
+
+	if (obj->slays) {
+		free_slay(obj->slays);
+	}
+
+	if (obj->brands) {
+		free_brand(obj->brands);
+	}
 
 	mem_free(obj);
 	*obj_address = NULL;
