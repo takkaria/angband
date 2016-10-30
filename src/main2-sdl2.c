@@ -816,11 +816,11 @@ static const struct term_point default_blank_point = {
 /* Functions */
 
 static void render_clear(const struct window *window,
-		SDL_Texture *texture, const SDL_Color *color)
+		SDL_Texture *texture, SDL_Color color)
 {
 	SDL_SetRenderTarget(window->renderer, texture);
 	SDL_SetRenderDrawColor(window->renderer,
-			color->r, color->g, color->b, color->a);
+			color.r, color.g, color.b, color.a);
 	SDL_RenderClear(window->renderer);
 }
 
@@ -864,7 +864,7 @@ static void render_wallpaper_centered(const struct window *window)
 
 static void render_window_background(const struct window *window)
 {
-	render_clear(window, NULL, &window->color);
+	render_clear(window, NULL, window->color);
 
 	switch (window->wallpaper.mode) {
 		case WALLPAPER_DONT_SHOW:
@@ -936,7 +936,7 @@ static void render_big_map(const struct window *window)
 
 static void render_status_bar(const struct window *window)
 {
-	render_clear(window, window->status_bar.texture, &window->status_bar.color);
+	render_clear(window, window->status_bar.texture, window->status_bar.color);
 
 	for (size_t i = 0; i < window->status_bar.button_bank.number; i++) {
 		struct button *button = &window->status_bar.button_bank.buttons[i];
@@ -947,16 +947,16 @@ static void render_status_bar(const struct window *window)
 }
 
 static void render_outline_rect(const struct window *window,
-		SDL_Texture *texture, const SDL_Rect *rect, const SDL_Color *color)
+		SDL_Texture *texture, const SDL_Rect *rect, SDL_Color color)
 {
 	SDL_SetRenderTarget(window->renderer, texture);
 	SDL_SetRenderDrawColor(window->renderer,
-			color->r, color->g, color->b, color->a);
+			color.r, color.g, color.b, color.a);
 	SDL_RenderDrawRect(window->renderer, rect);
 }
 
 static void render_outline_rect_width(const struct window *window,
-		SDL_Texture *texture, const SDL_Rect *rect, const SDL_Color *color, int width)
+		SDL_Texture *texture, const SDL_Rect *rect, SDL_Color color, int width)
 {
 	SDL_Rect dst = *rect;
 
@@ -967,11 +967,11 @@ static void render_outline_rect_width(const struct window *window,
 }
 
 static void render_fill_rect(const struct window *window,
-		SDL_Texture *texture, const SDL_Rect *rect, const SDL_Color *color)
+		SDL_Texture *texture, const SDL_Rect *rect, SDL_Color color)
 {
 	SDL_SetRenderTarget(window->renderer, texture);
 	SDL_SetRenderDrawColor(window->renderer,
-			color->r, color->g, color->b, color->a);
+			color.r, color.g, color.b, color.a);
 	SDL_RenderFillRect(window->renderer, rect);
 }
 
@@ -988,7 +988,7 @@ static void render_all_in_menu(const struct window *window)
 				SDL_SetRenderTarget(window->renderer, subwindow->aux_texture);
 				/* in case subwindow's color changed (as in when it becomes transparent) */
 				render_fill_rect(window,
-						subwindow->aux_texture, NULL, &subwindow->color);
+						subwindow->aux_texture, NULL, subwindow->color);
 
 				SDL_SetRenderTarget(window->renderer, NULL);
 				SDL_RenderCopy(window->renderer,
@@ -1168,7 +1168,7 @@ static void render_cursor(struct subwindow *subwindow,
 	};
 
 	render_outline_rect(subwindow->window,
-			subwindow->texture, &rect, &color);
+			subwindow->texture, &rect, color);
 }
 
 static void render_big_map_cursor(struct subwindow *subwindow,
@@ -1189,7 +1189,7 @@ static void render_big_map_cursor(struct subwindow *subwindow,
 
 	/* render cursor around player */
 	render_outline_rect_width(subwindow->window,
-			subwindow->texture, &rect, &color, width);
+			subwindow->texture, &rect, color, width);
 }
 
 static void render_tile(const struct subwindow *subwindow,
@@ -1242,10 +1242,10 @@ static void render_tab(struct subwindow *subwindow,
 	SDL_Color fg = g_colors[fg_attr];
 	SDL_Color bg = g_colors[bg_attr];
 
-	render_fill_rect(subwindow->window, texture, NULL, &bg);
+	render_fill_rect(subwindow->window, texture, NULL, bg);
 
 	render_outline_rect_width(subwindow->window, texture, &total_rect,
-			&g_colors[DEFAULT_TAB_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
+			g_colors[DEFAULT_TAB_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
 
 	SDL_SetRenderTarget(subwindow->window->renderer, texture);
 
@@ -1270,13 +1270,13 @@ static void render_borders(struct subwindow *subwindow)
 	SDL_Rect rect = {0};
 	SDL_QueryTexture(subwindow->texture, NULL, NULL, &rect.w, &rect.h);
 
-	SDL_Color *color;
+	SDL_Color color;
 	if (subwindow->borders.error) {
-		color = &g_colors[DEFAULT_ERROR_COLOR];
+		color = g_colors[DEFAULT_ERROR_COLOR];
 	} else if (subwindow->borders.visible) {
-		color = &subwindow->borders.color;
+		color = subwindow->borders.color;
 	} else {
-		color = &subwindow->color;
+		color = subwindow->color;
 	}
 
 	render_outline_rect_width(subwindow->window,
@@ -1321,7 +1321,7 @@ static void render_menu_panel(const struct window *window, struct menu_panel *me
 		button->callbacks.on_render(window, button);
 	}
 	render_outline_rect(window,
-			NULL, &menu_panel->rect, &g_colors[DEFAULT_MENU_PANEL_OUTLINE_COLOR]);
+			NULL, &menu_panel->rect, g_colors[DEFAULT_MENU_PANEL_OUTLINE_COLOR]);
 
 	/* recurse */
 	render_menu_panel(window, menu_panel->next);
@@ -1340,31 +1340,31 @@ static SDL_Rect get_button_caption_rect(const struct button *button)
 }
 
 static void render_button_menu(const struct window *window,
-		struct button *button, const SDL_Color *fg, const SDL_Color *bg)
+		struct button *button, SDL_Color fg, SDL_Color bg)
 {
 	SDL_Rect rect = get_button_caption_rect(button);
 
 	render_fill_rect(window,
 			NULL, &button->full_rect, bg);
 	render_utf8_string(window, window->status_bar.font, NULL, 
-			*fg, rect, button->caption);
+			fg, rect, button->caption);
 }
 
 static void render_button_menu_toggle(const struct window *window,
 		struct button *button, bool active)
 {
-	SDL_Color *fg;
+	SDL_Color fg;
 	if (active) {
-		fg = &g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
+		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	} else {
-		fg = &g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
+		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
 	}
 
-	SDL_Color *bg;
+	SDL_Color bg;
 	if (button->highlighted) {
-		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
-		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
 	}
 
 	render_button_menu(window, button, fg, bg);
@@ -1372,15 +1372,15 @@ static void render_button_menu_toggle(const struct window *window,
 
 static void render_button_menu_simple(const struct window *window, struct button *button)
 {
-	SDL_Color *fg;
-	SDL_Color *bg;
+	SDL_Color fg;
+	SDL_Color bg;
 
 	if (button->highlighted) {
-		fg = &g_colors[DEFAULT_MENU_SIMPLE_FG_ACTIVE_COLOR];
-		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
+		fg = g_colors[DEFAULT_MENU_SIMPLE_FG_ACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
-		fg = &g_colors[DEFAULT_MENU_SIMPLE_FG_INACTIVE_COLOR];
-		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
+		fg = g_colors[DEFAULT_MENU_SIMPLE_FG_INACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
 	}
 
 	render_button_menu(window, button, fg, bg);
@@ -1409,11 +1409,11 @@ static void render_button_menu_alpha(const struct window *window, struct button 
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
 	}
 
-	SDL_Color *bg;
+	SDL_Color bg;
 	if (button->highlighted) {
-		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
-		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
 	}
 
 	SDL_Rect rect = get_button_caption_rect(button);
@@ -1447,11 +1447,11 @@ static void render_button_menu_tile_size(const struct window *window,
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
 	}
 
-	SDL_Color *bg;
+	SDL_Color bg;
 	if (button->highlighted) {
-		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
-		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
 	}
 
 	SDL_Rect rect = get_button_caption_rect(button);
@@ -1488,11 +1488,11 @@ static void render_button_menu_font_size(const struct window *window,
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
 	}
 
-	SDL_Color *bg;
+	SDL_Color bg;
 	if (button->highlighted) {
-		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
-		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
 	}
 
 	SDL_Rect rect = get_button_caption_rect(button);
@@ -1523,11 +1523,11 @@ static void render_button_menu_font_name(const struct window *window, struct but
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
 	}
 
-	SDL_Color *bg;
+	SDL_Color bg;
 	if (button->highlighted) {
-		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
-		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
 	}
 
 	SDL_Rect rect = get_button_caption_rect(button);
@@ -1550,11 +1550,11 @@ static void render_button_menu_window(const struct window *window,
 		fg = g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
 	}
 
-	SDL_Color *bg;
+	SDL_Color bg;
 	if (button->highlighted) {
-		bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
 	} else {
-		bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
+		bg = g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
 	}
 
 	SDL_Rect rect = get_button_caption_rect(button);
@@ -1627,7 +1627,7 @@ static void render_subwindows_button(const struct window *window, struct button 
 			render_outline_rect_width(window,
 					NULL,
 					&outline_rect,
-					&g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR],
+					g_colors[DEFAULT_SUBWINDOW_BORDER_COLOR],
 					outline_width);
 		}
 
@@ -1650,10 +1650,10 @@ static void render_subwindows_button(const struct window *window, struct button 
 				DEFAULT_UI_ELEMENT_BORDER, DEFAULT_UI_ELEMENT_BORDER);
 
 		render_fill_rect(window, NULL, &background_rect,
-				&g_colors[DEFAULT_TOOLTIP_BG_COLOR]);
+				g_colors[DEFAULT_TOOLTIP_BG_COLOR]);
 
 		render_outline_rect_width(window, NULL, &background_rect,
-				&g_colors[DEFAULT_TOOLTIP_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
+				g_colors[DEFAULT_TOOLTIP_OUTLINE_COLOR], DEFAULT_VISIBLE_BORDER);
 
 		render_utf8_string(window, window->status_bar.font, NULL,
 				g_colors[DEFAULT_TOOLTIP_FG_COLOR], text_rect, tip);
@@ -1739,14 +1739,14 @@ static void show_about(const struct window *window)
 
 	render_all_in_menu(window);
 
-	render_fill_rect(window, NULL, &total, &g_colors[DEFAULT_ABOUT_BG_COLOR]);
+	render_fill_rect(window, NULL, &total, g_colors[DEFAULT_ABOUT_BG_COLOR]);
 	render_outline_rect_width(window, NULL, &total,
-			&g_colors[DEFAULT_ABOUT_BORDER_OUTER_COLOR], DEFAULT_VISIBLE_BORDER);
+			g_colors[DEFAULT_ABOUT_BORDER_OUTER_COLOR], DEFAULT_VISIBLE_BORDER);
 	resize_rect(&total,
 			DEFAULT_VISIBLE_BORDER, DEFAULT_VISIBLE_BORDER,
 			-DEFAULT_VISIBLE_BORDER, -DEFAULT_VISIBLE_BORDER);
 	render_outline_rect_width(window, NULL, &total,
-			&g_colors[DEFAULT_ABOUT_BORDER_INNER_COLOR], DEFAULT_VISIBLE_BORDER);
+			g_colors[DEFAULT_ABOUT_BORDER_INNER_COLOR], DEFAULT_VISIBLE_BORDER);
 
 	for (size_t i = 0; i < N_ELEMENTS(elems); i++) {
 		/* center the string in total rect */
@@ -2550,7 +2550,7 @@ static void handle_menu_subwindow_alpha(struct window *window,
 	struct subwindow *subwindow = button->info.data.alphaval.subwindow;
 	subwindow->color.a = button->info.data.alphaval.real_value;
 
-	render_clear(subwindow->window, subwindow->texture, &subwindow->color);
+	render_clear(subwindow->window, subwindow->texture, subwindow->color);
 	render_borders(subwindow);
 
 	refresh_display_terms();
@@ -3232,7 +3232,7 @@ static void resize_subwindow(struct subwindow *subwindow)
 	subwindow->texture = make_subwindow_texture(subwindow->window,
 			subwindow->full_rect.w, subwindow->full_rect.h);
 
-	render_clear(subwindow->window, subwindow->texture, &subwindow->color);
+	render_clear(subwindow->window, subwindow->texture, subwindow->color);
 	render_borders(subwindow);
 
 	Term_push(subwindow->term);
@@ -3955,7 +3955,7 @@ static void term_erase(void *user)
 	struct subwindow *subwindow = user;
 
 	render_fill_rect(subwindow->window,
-			subwindow->texture, &subwindow->inner_rect, &subwindow->color);
+			subwindow->texture, &subwindow->inner_rect, subwindow->color);
 
 	subwindow->window->is_dirty = true;
 }
@@ -4100,8 +4100,7 @@ static void term_draw_text(const struct subwindow *subwindow,
 	};
 
 	if (!is_same_color(subwindow->color, bg)) {
-		render_fill_rect(subwindow->window,
-				subwindow->texture, &rect, &bg);
+		render_fill_rect(subwindow->window, subwindow->texture, &rect, bg);
 	}
 
 	if (!IS_BLANK_POINT_FG(point)) {
@@ -4132,7 +4131,7 @@ static void term_draw_target(const struct subwindow *subwindow,
 	}
 
 	render_fill_rect(subwindow->window,
-			subwindow->aux_texture, NULL, &color);
+			subwindow->aux_texture, NULL, color);
 
 	SDL_SetRenderTarget(subwindow->window->renderer,
 			subwindow->texture);
@@ -4181,7 +4180,7 @@ static bool term_move(void *user,
 				subwindow->full_rect.w, subwindow->full_rect.h);
 
 		render_clear(subwindow->window,
-				subwindow->swap_texture, &subwindow->color);
+				subwindow->swap_texture, subwindow->color);
 		render_borders(subwindow);
 	}
 
@@ -4246,7 +4245,7 @@ static void term_draw(void *user,
 	};
 
 	render_fill_rect(subwindow->window,
-			subwindow->texture, &rect, &subwindow->color);
+			subwindow->texture, &rect, subwindow->color);
 
 	rect.w = subwindow->cell_width;
 
@@ -4310,7 +4309,7 @@ static void load_wallpaper(struct window *window, const char *path)
 		window->wallpaper.height = h;
 
 		SDL_Color color = {0};
-		render_clear(window, window->wallpaper.texture, &color);
+		render_clear(window, window->wallpaper.texture, color);
 
 		for (dst.y = 0; dst.y < h; dst.y += dst.h) {
 			for (dst.x = 0; dst.x < w; dst.x += dst.w) {
@@ -4425,7 +4424,7 @@ static void make_font_cache(const struct window *window, struct font *font)
 
 	/* fill texture with white transparent pixels */
 	SDL_Color white = {0xFF, 0xFF, 0xFF, 0};
-	render_clear(window, font->cache.texture, &white);
+	render_clear(window, font->cache.texture, white);
 	/* restore the alpha; we will render glyphs in white */
 	white.a = 0xFF;
 
@@ -4817,7 +4816,7 @@ static void adjust_subwindow_size(struct subwindow *subwindow)
 		adjust_subwindow_geometry(subwindow->window, subwindow);
 
 		render_clear(subwindow->window,
-				subwindow->texture, &subwindow->color);
+				subwindow->texture, subwindow->color);
 		render_borders(subwindow);
 
 		Term_push(subwindow->term);
@@ -5377,7 +5376,7 @@ static void load_window(struct window *window)
 		load_graphics(window, get_graphics_mode(window->graphics.id));
 	}
 
-	render_clear(window, NULL, &window->color);
+	render_clear(window, NULL, window->color);
 	render_status_bar(window);
 
 	window->loaded = true;
@@ -5723,7 +5722,7 @@ static struct subwindow *transfer_subwindow(struct window *window, unsigned inde
 	free_font(subwindow->font);
 	subwindow->font = new_font;
 
-	render_clear(window, subwindow->texture, &subwindow->color);
+	render_clear(window, subwindow->texture, subwindow->color);
 
 	subwindow->borders.error = false;
 	render_borders(subwindow);
