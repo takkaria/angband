@@ -61,7 +61,7 @@ static bool display_scores_aux(const high_score *scores,
 		count++;
 	}
 
-	struct loc prompt_loc = {indent - 2, Term_height() - 1};
+	struct loc prompt_loc = {indent - 1, Term_height() - 1};
 	const char *prompt_str = "[Press `ESC` to exit, any other key to continue.]";
 
 	/* Show 5 per page, until done */
