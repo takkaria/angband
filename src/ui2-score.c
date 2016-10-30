@@ -36,7 +36,7 @@ static const char *skip_spaces(const char *str)
 /**
  * Display the scores in a given range.
  */
-static void display_scores_aux(const high_score *scores,
+static bool display_scores_aux(const high_score *scores,
 		int from, int to, int highlight)
 {
 	/* Assume we will show the first 10 */
@@ -157,9 +157,11 @@ static void display_scores_aux(const high_score *scores,
 		struct keypress key = inkey_only_key();
 
 		if (key.code == ESCAPE) {
-			break;
+			return false; /* stop displaying the rest of highscores */
 		}
 	}
+
+	return true; /* keep displaying the rest of highscores */
 }
 
 /**
@@ -186,8 +188,9 @@ void predict_score(void)
 	if (pos < 10) {
 		display_scores_aux(scores, 0, 15, pos);
 	} else {
-		display_scores_aux(scores, 0, 5, -1);
-		display_scores_aux(scores, pos - 2, pos + 8, pos);
+		if (display_scores_aux(scores, 0, 5, -1)) {
+			display_scores_aux(scores, pos - 2, pos + 8, pos);
+		}
 	}
 }
 
