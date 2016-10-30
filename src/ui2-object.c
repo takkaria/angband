@@ -67,7 +67,8 @@
  * 20 bytes should be enough */
 #define OLIST_EQUIP_SIZE 20
 
-/* Name is the name of an object: "a Wooden Torch (5000 turns)" */
+/* Name is the name of an object:
+ * "a Wooden Torch (5000 turns)" */
 #define OLIST_NAME_SIZE \
 	ANGBAND_TERM_STANDARD_WIDTH
 
