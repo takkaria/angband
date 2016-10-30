@@ -59,6 +59,9 @@ static void display_scores_aux(const high_score *scores,
 		count++;
 	}
 
+	struct loc prompt_loc = {15, Term_height() - 1};
+	const char *prompt_str = "[Press `ESC` to exit, any other key to continue.]";
+
 	/* Show 5 per page, until done */
 	for (int page = from, pos = from, place = from + 1; page < count; page += 5) {
 		char out_val[ANGBAND_TERM_STANDARD_WIDTH];
@@ -145,11 +148,11 @@ static void display_scores_aux(const high_score *scores,
 			loc.y += 2;
 		}
 
+		put_str_h_simple(prompt_str, prompt_loc);
+
 		Term_flush_output();
 
-		show_prompt("[Press `ESC` to exit, any other key to continue.]");
 		struct keypress key = inkey_only_key();
-		clear_prompt();
 
 		if (key.code == ESCAPE) {
 			break;
