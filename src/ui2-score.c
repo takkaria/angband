@@ -50,6 +50,8 @@ static void display_scores_aux(const high_score *scores,
 		to = MAX_HISCORES;
 	}
 
+	const int indent = 15;
+
 	/* Count the high scores */
 	int count = 0;
 	while (count < MAX_HISCORES
@@ -59,7 +61,7 @@ static void display_scores_aux(const high_score *scores,
 		count++;
 	}
 
-	struct loc prompt_loc = {15, Term_height() - 1};
+	struct loc prompt_loc = {indent, Term_height() - 1};
 	const char *prompt_str = "[Press `ESC` to exit, any other key to continue.]";
 
 	/* Show 5 per page, until done */
@@ -125,7 +127,7 @@ static void display_scores_aux(const high_score *scores,
 			}
 
 			/* Second and third lines are indented to the left */
-			loc.x = 15;
+			loc.x = indent;
 
 			/* Dump the info */
 			c_put_str(attr, out_val, loc);
