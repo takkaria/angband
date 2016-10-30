@@ -2916,12 +2916,12 @@ static bool is_close_to(int a, int b, unsigned range)
 	}
 }
 
-static bool is_same_color(const SDL_Color *one, const SDL_Color *two)
+static bool is_same_color(SDL_Color one, SDL_Color two)
 {
-	return one->r == two->r
-		&& one->g == two->g
-		&& one->b == two->b
-		&& one->a == two->a;
+	return one.r == two.r
+		&& one.g == two.g
+		&& one.b == two.b
+		&& one.a == two.a;
 }
 
 static bool is_point_in_rect(int x, int y, const SDL_Rect *rect)
@@ -4100,7 +4100,7 @@ static void term_draw_text(const struct subwindow *subwindow,
 		.a = subwindow->color.a
 	};
 
-	if (!is_same_color(&subwindow->color, &bg)) {
+	if (!is_same_color(subwindow->color, bg)) {
 		render_fill_rect(subwindow->window,
 				subwindow->texture, &rect, &bg);
 	}
