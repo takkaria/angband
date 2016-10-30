@@ -1151,7 +1151,7 @@ static enum birth_stage get_history_command(void)
 		} else {
 			next = BIRTH_BACK;
 		}
-	} else if (key.code == 'Y' || key.code == 'y') {
+	} else if (key.code == 'Y' || key.code == 'y' || key.code == KC_ENTER) {
 		next = BIRTH_FINAL_CONFIRM;
 	}
 
