@@ -3954,9 +3954,8 @@ static void term_erase(void *user)
 {
 	struct subwindow *subwindow = user;
 
-	render_clear(subwindow->window,
-			subwindow->texture, &subwindow->color);
-	render_borders(subwindow);
+	render_fill_rect(subwindow->window,
+			subwindow->texture, &subwindow->inner_rect, &subwindow->color);
 
 	subwindow->window->is_dirty = true;
 }
@@ -4816,6 +4815,10 @@ static void adjust_subwindow_size(struct subwindow *subwindow)
 				subwindow->cell_width, subwindow->cell_height))
 	{
 		adjust_subwindow_geometry(subwindow->window, subwindow);
+
+		render_clear(subwindow->window,
+				subwindow->texture, &subwindow->color);
+		render_borders(subwindow);
 
 		Term_push(subwindow->term);
 		Term_resize(subwindow->cols, subwindow->rows);
