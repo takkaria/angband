@@ -738,7 +738,7 @@ static bool get_file_text(const char *suggested_name,
 		return false;
 	}
 
-	show_prompt(format("Saved as %s.", path));
+	msg(format("Saved as %s.", path));
 
 	return true;
 }
