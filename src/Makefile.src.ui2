@@ -5,12 +5,12 @@
 # across a range of different makefiles, to cut down on maintenance.
 #
 
-NAME = Angband
-VERSION = 4.0.4
-COPYRIGHT = (c) 1995-2015 Angband contributors
-PROGNAME = angband
+NAME := Angband
+VERSION := 4.0.4
+COPYRIGHT := (c) 1995-2016 Angband contributors
+PROGNAME := angband
 
-HEADERS = \
+HEADERS := \
 	angband.h \
 	cmds.h \
 	cmd-core.h \
@@ -40,7 +40,7 @@ HEADERS = \
 	z-util.h \
 	z-virt.h
 
-ZFILES = \
+ZFILES := \
 	z-bitflag.o \
 	z-color.o \
 	z-dice.o \
@@ -56,29 +56,7 @@ ZFILES = \
 	z-util.o \
 	z-virt.o
 
-# MAINFILES is defined by autotools (or manually) to be combinations of these
-
-BASEMAINFILES = main.o
-
-GCUMAINFILES = main-gcu.o
-
-SDLMAINFILES = main-sdl.o
-
-SNDSDLFILES = snd-sdl.o
-
-TESTMAINFILES = main-test.o
-
-WINMAINFILES = \
-        win/angband.res \
-        main-win.o \
-        win/readdib.o \
-        win/readpng.o \
-        win/scrnshot.o \
-		win/win-layout.o
-
-X11MAINFILES = main-x11.o
-
-ANGFILES = \
+ANGFILES := \
 	cave.o \
 	cave-map.o \
 	cave-square.o \
@@ -194,12 +172,8 @@ ANGFILES = \
 	ui2-wiz-debug.o \
 	ui2-wiz-spoil.o \
 	ui2-wiz-stats.o
-	#wiz-debug.o \
-	#wiz-spoil.o \
-	#wiz-stats.o \
-
-STATSMAINFILES = main-stats.o \
-        stats/db.o
 
 buildid.o: $(ANGFILES)
 ANGFILES += buildid.o
+
+BASEOBJS := $(ANGFILES) $(ZFILES)

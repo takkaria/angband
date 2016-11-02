@@ -6,10 +6,8 @@
 
 include Makefile.src.ui2
 
-BASEOBJS := $(ANGFILES) $(ZFILES)
-
 depgen:
-	head -n 17 Makefile.inc.ui2 > Makefile.new
+	head -n 15 Makefile.inc.ui2 > Makefile.new
 	@for i in $(BASEOBJS:.o=.c); do \
 		DIR=$$(echo "./$$i" | sed 's|/[^/]*$$||'); \
 		gcc -MM -I. "$$i" | sed "s|^\\([^ ]\\)|$$DIR/\\1|" >> Makefile.new; \
@@ -1049,8 +1047,8 @@ depgen:
  list-square-flags.h list-terrain-flags.h game-input.h cmd-core.h \
  game-world.h player-calcs.h player-util.h ui2-command.h ui2-display.h \
  ui2-term.h ui2-event.h list-display-terms.h ui2-input.h ui2-keymap.h \
- z-textblock.h ui2-map.h ui2-output.h ui2-options.h obj-ignore.h \
- list-ignore-types.h ui2-wizard.h
+ z-textblock.h ui2-map.h ui2-output.h ui2-menu.h ui2-options.h \
+ obj-ignore.h list-ignore-types.h ui2-wizard.h
 ./ui2-context.o: ui2-context.c angband.h h-basic.h z-bitflag.h z-form.h \
  z-virt.h z-color.h z-util.h z-rand.h config.h game-event.h z-type.h \
  message.h list-message.h player.h guid.h obj-properties.h z-file.h \
@@ -1337,8 +1335,8 @@ depgen:
  list-mon-spells.h obj-ignore.h list-ignore-types.h obj-tval.h \
  list-tvals.h obj-util.h project.h list-project-environs.h \
  list-project-monsters.h trap.h list-trap-flags.h ui2-display.h \
- ui2-term.h ui2-event.h list-display-terms.h ui2-keymap.h ui2-prefs.h \
- sound.h
+ ui2-term.h ui2-event.h list-display-terms.h ui2-input.h ui2-keymap.h \
+ z-textblock.h ui2-output.h ui2-prefs.h sound.h
 ./ui2-score.o: ui2-score.c angband.h h-basic.h z-bitflag.h z-form.h \
  z-virt.h z-color.h z-util.h z-rand.h config.h game-event.h z-type.h \
  message.h list-message.h player.h guid.h obj-properties.h z-file.h \
