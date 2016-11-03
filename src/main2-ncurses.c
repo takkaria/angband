@@ -17,9 +17,7 @@
 #ifdef USE_NCURSES
 
 #include "main.h"
-
 #include <ncurses.h>
-
 #include "ui2-display.h"
 #include "ui2-output.h"
 
@@ -28,15 +26,27 @@
 
 #define HALFDELAY_PERIOD 2
 
+/* The main datastructure that holds ncurses window,
+ * which corresponds to a certain textui2 term */
 struct term_data {
+	/* index as defined in ui2-display.c, or some
+	 * arbitrary index if it's a temporary term */
 	unsigned index;
 
+	/* this term_data is ready for use */
 	bool loaded;
+
+	/* this term_data's term is temporary, and lives
+	 * on the stack of terms (see ui2-term.c) */
 	bool temporary;
 
+	/* textui2 term */
 	term term;
+
+	/* ncurses window */
 	WINDOW *window;
 
+	/* array of wchar_t for use in term_draw() callback */
 	struct {
 		int len;
 		wchar_t *buf;
@@ -56,6 +66,8 @@ struct term_info {
 	bool required;
 };
 
+/* Ncurses color pairs (foreground); note
+ * that background is always black (so far) */
 enum color_pairs {
 	PAIR_WHITE,
 	PAIR_RED,
@@ -67,8 +79,13 @@ enum color_pairs {
 	PAIR_BLACK,
 };
 
-/* Term callbacks */
+/* Global array of ncurses attributes (colors) */
+static int g_attrs[BASIC_COLORS];
 
+/* Brief module description */
+const char help_ncurses[] = "Ncurses (widestring) frontend";
+
+/* Term callbacks */
 static void term_flush_events(void *user);
 static void term_make_visible(void *user, bool visible);
 static void term_cursor(void *user, int col, int row);
@@ -85,6 +102,8 @@ static void term_add_tab(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 static bool term_move(void *user,
 		int dst_x, int dst_y, int src_x, int src_y, int cols, int rows);
+
+/* Term initialization info */
 
 static const struct term_callbacks default_callbacks = {
 	.flush_events = term_flush_events,
@@ -114,25 +133,15 @@ static const struct term_point default_blank_point = {
 	.has_flags = false
 };
 
-/* Global array of ncurses attributes (colors) */
-
-static int g_attrs[BASIC_COLORS];
-
-const char help_ncurses[] = "Ncurses (widestring) frontend";
-
-/* Prototypes */
+/* Forward declarations */
 
 static void init_globals(void);
-
 static void make_fg_buf(struct term_data *data);
-
 static void redraw_terms(bool update);
-
 static struct term_data *new_stack_data(void);
 static void free_stack_data(struct term_data *data);
 static struct term_data *get_stack_top(void);
 static struct term_data *get_perm_data(enum display_term_index i);
-
 static const struct term_info *get_term_info(enum display_term_index i);
 
 /* Functions */
@@ -647,6 +656,8 @@ int init_ncurses(int argc, char **argv)
 	return 0;
 }
 
+/* Global datastructures and functions that operate on them */
+
 /* Permanent terms (managed by ui2-display.c) */
 static struct term_data g_perm_data[DISPLAY_MAX];
 
@@ -656,6 +667,7 @@ static struct {
 	size_t top;
 } g_temp_data;
 
+/* Information about terms (description, size, etc) */
 static struct term_info g_term_info[] = {
 	#define DISPLAY(i, desc, minc, minr, defc, defr, maxc, maxr, req) \
 		{ \
