@@ -30,6 +30,7 @@
 
 struct term_data {
 	unsigned index;
+
 	bool loaded;
 	bool temporary;
 
