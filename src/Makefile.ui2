@@ -15,7 +15,7 @@ default: install
 #### Things you should, or could, change ####
 
 ## Support ncurses (widestring) console mode
-#SYS_ncurses := -DUSE_NCURSES -lncursesw
+SYS_ncurses := -DUSE_NCURSES -I/usr/include/ncursesw -lncursesw
 
 ## Support SDL2 frontend
 SYS_sdl2 := -DUSE_SDL2 \
