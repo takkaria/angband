@@ -151,7 +151,7 @@ static void term_redraw(void *user, int delay)
 	redraw_terms(false);
 
 	if (delay > 0) {
-		term_delay(user, delay);
+		napms(delay);
 	}
 }
 
@@ -398,15 +398,7 @@ static void term_delay(void *user, int msecs)
 {
 	(void) user;
 
-	const long sec = msecs / 1000L;
-	const long msec = msecs % 1000L;
-
-	struct timespec t = {
-		.tv_sec = sec,
-		.tv_nsec = msec * 1000L * 1000L,
-	};
-
-	nanosleep(&t, NULL);
+	napms(msecs);
 }
 
 static void term_erase(void *user)
