@@ -408,7 +408,7 @@ static void term_erase(void *user)
 {
 	struct term_data *data = user;
 
-	wclear(data->window);
+	werase(data->window);
 }
 
 static void term_add_tab(void *user,
