@@ -92,7 +92,7 @@ static void term_draw(void *user,
 		int col, int row, int n_points, struct term_point *points);
 static void term_delay(void *user, int msecs);
 static void term_erase(void *user);
-static void term_create(const struct term_hints *hints,
+static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
 static void term_destroy(void *user);
 static void term_add_tab(void *user,
@@ -112,9 +112,9 @@ static const struct term_callbacks default_callbacks = {
 	.move         = term_move,
 	.delay        = term_delay,
 	.erase        = term_erase,
-	.create       = term_create,
 	.destroy      = term_destroy,
-	.add_tab      = term_add_tab
+	.add_tab      = term_add_tab,
+	.push_new     = term_push_new,
 };
 
 #define BLANK_CHAR    L' '
@@ -224,7 +224,7 @@ static region get_temp_region(const struct term_hints *hints)
 	return reg;
 }
 
-static void term_create(const struct term_hints *hints,
+static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info)
 {
 	struct term_data *data = new_stack_data();
