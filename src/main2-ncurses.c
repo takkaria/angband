@@ -94,7 +94,7 @@ static void term_delay(void *user, int msecs);
 static void term_erase(void *user);
 static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
-static void term_destroy(void *user);
+static void term_pop_new(void *user);
 static void term_add_tab(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 static bool term_move(void *user,
@@ -112,8 +112,8 @@ static const struct term_callbacks default_callbacks = {
 	.move         = term_move,
 	.delay        = term_delay,
 	.erase        = term_erase,
-	.destroy      = term_destroy,
 	.add_tab      = term_add_tab,
+	.pop_new      = term_pop_new,
 	.push_new     = term_push_new,
 };
 
@@ -251,16 +251,12 @@ static void term_push_new(const struct term_hints *hints,
 	info->callbacks = default_callbacks;
 }
 
-static void term_destroy(void *user)
+static void term_pop_new(void *user)
 {
 	struct term_data *data = user;
 
-	if (data->temporary) {
-		free_stack_data(data);
-		redraw_terms(true);
-	} else {
-		free_data(data);
-	}
+	free_stack_data(data);
+	redraw_terms(true);
 }
 
 static int draw_points(struct term_data *data,
@@ -550,6 +546,7 @@ static void free_terms(void)
 
 		if (data->loaded) {
 			display_term_destroy(data->index);
+			free_data(data);
 		}
 	}
 }
