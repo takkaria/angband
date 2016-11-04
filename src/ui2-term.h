@@ -124,8 +124,11 @@ typedef void (*draw_hook)(void *user,
 		int x, int y, int num_points, struct term_point *points);
 /* erase_hook should completely clear the term */
 typedef void (*erase_hook)(void *user);
-/* cursor_hook should draw a cursor at position x, y */
-typedef void (*cursor_hook)(void *user, int x, int y);
+/* cursor_hook should draw a cursor at position x, y if the cursor
+ * is visible; else, it should either hide it (if it's a "hardware"
+ * cursor, like in terminal emulators), or ignore it (during update,
+ * cursor is erased by redrawing the tile at coordinates x, y) */
+typedef void (*cursor_hook)(void *user, bool visible, int x, int y);
 /* redraw_hook should make sure that all that was drawn previously
  * actually appears on the screen; the parameter delay is the time
  * (in milliseconds) of pause that should be taken after redraw */

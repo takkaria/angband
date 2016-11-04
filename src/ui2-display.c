@@ -1290,7 +1290,7 @@ static void animate(game_event_type type, game_event_data *data, void *user)
 
 	if (player->opts.delay_factor > 0) {
 		if (player->upkeep->running) {
-			if (OPT(player, highlight_player)) {
+			if (OPT(player, show_target) || OPT(player, highlight_player)) {
 				verify_cursor();
 			}
 

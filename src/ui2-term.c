@@ -604,21 +604,38 @@ static void term_mbstowcs(wchar_t *ws, const char *mbs, size_t ws_max_len)
 	ws[ws_max_len - 1] = 0;
 }
 
-static void term_erase_cursor(struct term_cursor cursor)
+static bool term_cursor_change(void)
 {
 	STACK_OK();
 
-	if (cursor.visible && cursor.x < TOP->width) {
-		term_mark_point_dirty(cursor.x, cursor.y, cursor.i);
+	/* cursor has changed (or will change) if
+	 * 1) cursor has moved, or
+	 * 2) cursor's visiblity changed, or
+	 * 3) tile under cursor will be redrawn
+	 *    (so it should not be off screen) */
+
+	return TOP->cursor.old.i != TOP->cursor.new.i
+		|| TOP->cursor.old.visible != TOP->cursor.new.visible
+		|| (TOP->cursor.old.x < TOP->width
+				&& TOP->dirty.points[TOP->cursor.old.i]);
+}
+
+static void term_erase_cursor(const struct term_cursor *cursor)
+{
+	STACK_OK();
+
+	if (cursor->visible && cursor->x < TOP->width) {
+		term_mark_point_dirty(cursor->x, cursor->y, cursor->i);
 	}
 }
 
-static void term_draw_cursor(struct term_cursor cursor)
+static void term_draw_cursor(const struct term_cursor *cursor)
 {
 	STACK_OK();
 
-	if (cursor.visible && cursor.x < TOP->width) {
-		TOP->callbacks.cursor(TOP->user, cursor.x, cursor.y);
+	if (cursor->x < TOP->width) {
+		TOP->callbacks.cursor(TOP->user,
+				cursor->visible, cursor->x, cursor->y);
 	}
 }
 
@@ -1092,11 +1109,14 @@ void Term_flush_output(void)
 {
 	STACK_OK();
 
-	term_erase_cursor(TOP->cursor.old);
-	term_flush_out();
-
-	term_draw_cursor(TOP->cursor.new);
-	TOP->cursor.old = TOP->cursor.new;
+	if (term_cursor_change()) {
+		term_erase_cursor(&TOP->cursor.old);
+		term_flush_out();
+		term_draw_cursor(&TOP->cursor.new);
+		TOP->cursor.old = TOP->cursor.new;
+	} else {
+		term_flush_out();
+	}
 }
 
 void Term_redraw_screen(int delay)

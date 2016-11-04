@@ -753,7 +753,7 @@ static const struct term_info *get_term_info(enum display_term_index index);
 
 static void term_flush_events(void *user);
 static void term_make_visible(void *user, bool visible);
-static void term_cursor(void *user, int col, int row);
+static void term_cursor(void *user, bool visible, int col, int row);
 static void term_redraw(void *user, int delay);
 static void term_event(void *user, bool wait);
 static void term_draw(void *user,
@@ -3982,19 +3982,23 @@ static void term_pop_new(void *user)
 	set_subwindows_brightness(window, DEFAULT_BRIGHTNESS_FULL);
 }
 
-static void term_cursor(void *user, int col, int row)
+static void term_cursor(void *user, bool visible, int col, int row)
 {
-	struct subwindow *subwindow = user;
+	if (visible) {
+		struct subwindow *subwindow = user;
 
-	render_cursor(subwindow, col, row);
-	subwindow->window->is_dirty = true;
+		render_cursor(subwindow, col, row);
+		subwindow->window->is_dirty = true;
+	}
 }
 
-static void term_big_map_cursor(void *user, int col, int row)
+static void term_big_map_cursor(void *user, bool visible, int col, int row)
 {
-	struct subwindow *subwindow = user;
+	if (visible) {
+		struct subwindow *subwindow = user;
 
-	render_big_map_cursor(subwindow, col, row);
+		render_big_map_cursor(subwindow, col, row);
+	}
 }
 
 static void term_add_tab(void *user,

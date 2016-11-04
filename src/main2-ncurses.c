@@ -40,6 +40,13 @@ struct term_data {
 	 * on the stack of terms (see ui2-term.c) */
 	bool temporary;
 
+	/* cursor in window */
+	struct {
+		int col;
+		int row;
+		bool visible;
+	} cursor;
+
 	/* ncurses window */
 	WINDOW *window;
 
@@ -85,7 +92,7 @@ const char help_ncurses[] = "Ncurses (widestring) frontend";
 /* Term callbacks */
 static void term_flush_events(void *user);
 static void term_make_visible(void *user, bool visible);
-static void term_cursor(void *user, int col, int row);
+static void term_cursor(void *user, bool visible, int col, int row);
 static void term_redraw(void *user, int delay);
 static void term_event(void *user, bool wait);
 static void term_draw(void *user,
@@ -135,9 +142,10 @@ static const struct term_point default_blank_point = {
 static void init_globals(void);
 static void make_fg_buf(struct term_data *data);
 static void redraw_terms(bool update);
-static void free_data(struct term_data *data);
+static void free_term_data(struct term_data *data);
 static struct term_data *new_stack_data(void);
 static void free_stack_data(struct term_data *data);
+static struct term_data *get_top();
 static struct term_data *get_stack_top(void);
 static struct term_data *get_perm_data(enum display_term_index i);
 static const struct term_info *get_term_info(enum display_term_index i);
@@ -185,12 +193,7 @@ static void region_relative_cave(enum term_position pos, region *reg)
 
 static void region_relative_top(region *reg, int x, int y)
 {
-	const struct term_data *top = get_stack_top();
-	if (top == NULL) {
-		top = get_perm_data(DISPLAY_CAVE);
-	}
-
-	assert(top->loaded);
+	const struct term_data *top = get_top();
 
 	int top_x;
 	int top_y;
@@ -249,6 +252,8 @@ static void term_push_new(const struct term_hints *hints,
 	info->width = reg.w,
 	info->height = reg.h,
 	info->callbacks = default_callbacks;
+
+	curs_set(0);
 }
 
 static void term_pop_new(void *user)
@@ -290,6 +295,22 @@ static void term_draw(void *user,
 	while (drawn < n_points) {
 		drawn += draw_points(data, points + drawn, n_points - drawn);
 	}
+}
+
+static struct term_data *get_top(void)
+{
+	struct term_data *top = get_stack_top();
+
+	if (top == NULL) {
+		/* if there are no terms on the stack,
+		 * we assume that map term is the top */
+		top = get_perm_data(DISPLAY_CAVE);
+	}
+
+	assert(top != NULL);
+	assert(top->loaded);
+
+	return top;
 }
 
 static int get_ch(bool wait)
@@ -386,11 +407,20 @@ static void term_make_visible(void *user, bool visible)
 	(void) visible;
 }
 
-static void term_cursor(void *user, int col, int row)
+static void term_cursor(void *user, bool visible, int col, int row)
 {
 	struct term_data *data = user;
 
-	wmove(data->window, row, col);
+	if (visible && !data->cursor.visible) {
+		curs_set(1);
+		data->cursor.visible = true;
+	} else if (!visible && data->cursor.visible) {
+		curs_set(0);
+		data->cursor.visible = false;
+	}
+
+	data->cursor.col = col;
+	data->cursor.row = row;
 }
 
 static void term_delay(void *user, int msecs)
@@ -468,6 +498,20 @@ static region get_perm_region(enum display_term_index index)
 	return reg;
 }
 
+static void handle_cursor(bool update)
+{
+	const struct term_data *top = get_top();
+
+	if (update) {
+		curs_set(top->cursor.visible ? 1 : 0);
+	}
+
+	if (top->cursor.visible) {
+		wmove(top->window, top->cursor.row, top->cursor.col);
+		wnoutrefresh(top->window);
+	}
+}
+
 static void make_fg_buf(struct term_data *data)
 {
 	assert(data->window != NULL);
@@ -520,23 +564,32 @@ static void load_terms(void)
 	load_term(DISPLAY_MESSAGE_LINE);
 }
 
-static void free_data(struct term_data *data)
+static void wipe_term_data(struct term_data *data)
+{
+	bool temporary = data->temporary;
+	unsigned index = data->index;
+
+	memset(data, 0, sizeof(*data));
+
+	data->temporary = temporary;
+	data->index = index;
+
+	data->window = NULL;
+	data->fg.buf = NULL;
+}
+
+static void free_term_data(struct term_data *data)
 {
 	assert(data->loaded);
 
 	assert(data->fg.buf != NULL);
 	assert(data->fg.len != 0);
-
 	mem_free(data->fg.buf);
-	data->fg.buf = NULL;
-	data->fg.len = 0;
 
 	assert(data->window != NULL);
-
 	delwin(data->window);
-	data->window = NULL;
 
-	data->loaded = false;
+	wipe_term_data(data);
 }
 
 static void free_terms(void)
@@ -546,7 +599,7 @@ static void free_terms(void)
 
 		if (data->loaded) {
 			display_term_destroy(data->index);
-			free_data(data);
+			free_term_data(data);
 		}
 	}
 }
@@ -631,6 +684,8 @@ int init_ncurses(int argc, char **argv)
 	nodelay(stdscr, false);
 	keypad(stdscr, true);
 
+	curs_set(0);
+
 	init_globals();
 	load_terms();
 
@@ -709,7 +764,7 @@ static void free_stack_data(struct term_data *data)
 	assert(g_temp_data.top > 0);
 	assert(&g_temp_data.stack[g_temp_data.top - 1] == data);
 
-	free_data(data);
+	free_term_data(data);
 
 	g_temp_data.top--;
 }
@@ -736,6 +791,7 @@ static struct term_data *get_perm_data(enum display_term_index i)
 	return &g_perm_data[i];
 }
 
+
 static void redraw_terms(bool update)
 {
 	for (size_t i = 0; i < N_ELEMENTS(g_perm_data); i++) {
@@ -758,6 +814,8 @@ static void redraw_terms(bool update)
 		}
 		wnoutrefresh(data->window);
 	}
+
+	handle_cursor(update);
 
 	doupdate();
 }
