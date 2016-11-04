@@ -73,18 +73,19 @@ struct term_point {
 /* forward declaration */
 struct term_create_info;
 
-/* on push_new_hook and pop_new_hook
- * push_new_hook is called when a new, temporary term is about to be
- * pushed on the stack (with the call Term_push_new())
+/* on create_hook and destroy_hook
+ * create_hook is called when a new, temporary term is about
+ * to be pushed on the stack (with the call Term_push_new())
  * the frontend must supply the desirable parameters for creation in term_create_info
  * (taking term_hints into account as it sees fit; the only thing guaranteed is that
  * the new term's width and height are no smaller than those specified in term_hints)
  * and must be ready to draw on this new term
- * pop_new_hook is called when the temporary term is about to be popped
- * from the stack; the frontend must perform all necessary cleanup
+ * destroy is called when the temporary term is about to be popped from the stack
+ * or when a permanent term is the parameter to Term_destroy();
+ * the frontend must perform all necessary cleanup
  *
- * note that the frontend shouldn't create or destroy temporary terms;
- * that will be done without automatically */
+ * note that the frontend shouldn't create or destroy temporary terms
+ * (with Term_destroy()); that will be done automatically */
 
 enum term_position {
 	TERM_POSITION_NONE,
@@ -115,9 +116,9 @@ struct term_hints {
 
 /* NOTE THAT ALL HOOKS ARE MANDATORY */
 
-typedef void (*push_new_hook)(const struct term_hints *hints,
+typedef void (*create_hook)(const struct term_hints *hints,
 		struct term_create_info *info);
-typedef void (*pop_new_hook)(void *user);
+typedef void (*destroy_hook)(void *user);
 
 /* draw_hook should draw num_points points starting at position x, y */
 typedef void (*draw_hook)(void *user,
@@ -156,9 +157,9 @@ typedef bool (*move_hook)(void *user,
 struct term_callbacks {
 	make_visible_hook make_visible;
 	flush_events_hook flush_events;
-	push_new_hook     push_new;
-	pop_new_hook      pop_new;
 	add_tab_hook      add_tab;
+	destroy_hook      destroy;
+	create_hook       create;
 	cursor_hook       cursor;
 	redraw_hook       redraw;
 	erase_hook        erase;

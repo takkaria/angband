@@ -189,9 +189,9 @@ static term term_new(const struct term_create_info *info)
 
 	assert(t->callbacks.make_visible != NULL);
 	assert(t->callbacks.flush_events != NULL);
-	assert(t->callbacks.push_new     != NULL);
-	assert(t->callbacks.pop_new      != NULL);
 	assert(t->callbacks.add_tab      != NULL);
+	assert(t->callbacks.destroy      != NULL);
+	assert(t->callbacks.create       != NULL);
 	assert(t->callbacks.redraw       != NULL);
 	assert(t->callbacks.cursor       != NULL);
 	assert(t->callbacks.erase        != NULL);
@@ -789,7 +789,7 @@ static void term_pop_stack(void)
 	STACK_OK();
 
 	if (TOP->temporary) {
-		TOP->callbacks.pop_new(TOP->user);
+		TOP->callbacks.destroy(TOP->user);
 		term_free(TOP);
 	}
 
@@ -806,8 +806,9 @@ term Term_create(const struct term_create_info *info)
 
 void Term_destroy(term t)
 {
-	assert(t->temporary == false);
+	assert(!t->temporary);
 
+	t->callbacks.destroy(t->user);
 	term_free(t);
 }
 
@@ -838,7 +839,7 @@ void Term_push_new(struct term_hints *hints)
 
 	struct term_create_info info = {0};
 
-	TOP->callbacks.push_new(hints, &info);
+	TOP->callbacks.create(hints, &info);
 
 	if (info.width == 0) {
 		info.width = hints->width;

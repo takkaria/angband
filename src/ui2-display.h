@@ -39,8 +39,11 @@ extern const char *stat_names[STAT_MAX];
 extern const char *stat_names_reduced[STAT_MAX];
 extern const char *window_flag_desc[32];
 
-void display_term_init(enum display_term_index i, term t);
+void display_term_create(enum display_term_index i,
+		const struct term_create_info *info);
 void display_term_destroy(enum display_term_index i);
+
+void display_term_resize(enum display_term_index i, int cols, int rows);
 
 /* Given absolute coords, calculate ones that are relative to display_term */
 void display_term_rel_coords(enum display_term_index i, struct loc *coords);

@@ -2303,14 +2303,13 @@ static void ui_leave_game(game_event_type type,
 	event_remove_handler(EVENT_MESSAGE_FLUSH, message_flush, display_message_line);
 }
 
-void display_term_init(enum display_term_index index, term term)
+void display_term_create(enum display_term_index index,
+		const struct term_create_info *info)
 {
 	struct display_term *dt = display_term_get(index);
-
 	assert(dt->term == NULL);
-	assert(term != NULL);
 
-	dt->term = term;
+	dt->term = Term_create(info);
 
 	if (index != DISPLAY_CAVE && index != DISPLAY_MESSAGE_LINE) {
 		display_term_handler(dt, true);
@@ -2320,7 +2319,6 @@ void display_term_init(enum display_term_index index, term term)
 void display_term_destroy(enum display_term_index index)
 {
 	struct display_term *dt = display_term_get(index);
-
 	assert(dt->term != NULL);
 
 	if (index != DISPLAY_CAVE && index != DISPLAY_MESSAGE_LINE) {
@@ -2331,6 +2329,17 @@ void display_term_destroy(enum display_term_index index)
 	dt->term = NULL;
 
 	memset(&dt->coords, 0, sizeof(dt->coords));
+}
+
+void display_term_resize(enum display_term_index index,
+		int cols, int rows)
+{
+	struct display_term *dt = display_term_get(index);
+	assert(dt->term != NULL);
+
+	Term_push(dt->term);
+	Term_resize(cols, rows);
+	Term_pop();
 }
 
 void display_term_get_coords(enum display_term_index index, struct loc *coords)
