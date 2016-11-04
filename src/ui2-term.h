@@ -73,16 +73,15 @@ struct term_point {
 /* forward declaration */
 struct term_create_info;
 
-/* on push_new_hook and destroy_hook
+/* on push_new_hook and pop_new_hook
  * push_new_hook is called when a new, temporary term is about
  * to be pushed on the stack (with the call Term_push_new())
  * the frontend must supply the desirable parameters for creation in term_create_info
  * (taking term_hints into account as it sees fit; the only thing guaranteed is that
  * the new term's width and height are no smaller than those specified in term_hints)
  * and must be ready to draw on this new term
- * destroy is called when the temporary term is about to be popped from the stack,
- * or when a permanent term is the parameter to Term_destroy(); the frontend must
- * perform all necessary cleanup
+ * pop_new_hook is called when the temporary term is about to be popped from the stack;
+ * the frontend must perform all necessary cleanup
  *
  * note that the frontend shouldn't create or destroy temporary terms
  * (with Term_destroy()); that will be done automatically */
@@ -118,7 +117,7 @@ struct term_hints {
 
 typedef void (*push_new_hook)(const struct term_hints *hints,
 		struct term_create_info *info);
-typedef void (*destroy_hook)(void *user);
+typedef void (*pop_new_hook)(void *user);
 
 /* draw_hook should draw num_points points starting at position x, y */
 typedef void (*draw_hook)(void *user,
@@ -158,8 +157,8 @@ struct term_callbacks {
 	make_visible_hook make_visible;
 	flush_events_hook flush_events;
 	push_new_hook     push_new;
+	pop_new_hook      pop_new;
 	add_tab_hook      add_tab;
-	destroy_hook      destroy;
 	cursor_hook       cursor;
 	redraw_hook       redraw;
 	erase_hook        erase;

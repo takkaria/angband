@@ -760,7 +760,7 @@ static void term_draw(void *user,
 		int col, int row, int n_points, struct term_point *points);
 static void term_delay(void *user, int msecs);
 static void term_erase(void *user);
-static void term_destroy(void *user);
+static void term_pop_new(void *user);
 static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
 static void term_add_tab(void *user,
@@ -780,8 +780,8 @@ static const struct term_callbacks default_callbacks = {
 	.move         = term_move,
 	.delay        = term_delay,
 	.erase        = term_erase,
-	.destroy      = term_destroy,
 	.add_tab      = term_add_tab,
+	.pop_new      = term_pop_new,
 	.push_new     = term_push_new,
 };
 
@@ -3965,25 +3965,21 @@ static void term_delay(void *user, int msecs)
 	SDL_Delay(msecs);
 }
 
-static void term_destroy(void *user)
+static void term_pop_new(void *user)
 {
 	struct subwindow *subwindow = user;
 	struct window *window = subwindow->window;
 
-	if (subwindow->is_temporary) {
-		if (subwindow->big_map) {
-			SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-		}
-
-		detach_subwindow_from_window(subwindow->window, subwindow);
-		free_temporary_subwindow(subwindow);
-
-		window->is_dirty = true;
-
-		set_subwindows_brightness(window, DEFAULT_BRIGHTNESS_FULL);
-	} else {
-		free_subwindow(subwindow);
+	if (subwindow->big_map) {
+		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	}
+
+	detach_subwindow_from_window(subwindow->window, subwindow);
+	free_temporary_subwindow(subwindow);
+
+	window->is_dirty = true;
+
+	set_subwindows_brightness(window, DEFAULT_BRIGHTNESS_FULL);
 }
 
 static void term_cursor(void *user, int col, int row)
@@ -6047,6 +6043,8 @@ static void free_window(struct window *window)
 		struct subwindow *subwindow = window->permanent.subwindows[i];
 
 		display_term_destroy(subwindow->index);
+		free_subwindow(subwindow);
+
 		window->permanent.subwindows[i] = NULL;
 	}
 	window->permanent.number = 0;
