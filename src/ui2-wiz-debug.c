@@ -1639,6 +1639,7 @@ static void do_cmd_wiz_features(void)
 	int featg[] = {FEAT_GRANITE};
 	int featp[] = {FEAT_PERM};
 	int featr[] = {FEAT_RUBBLE};
+	int feata[] = {FEAT_PASS_RUBBLE};
 	int length = 0;
 
 	char cmd;
@@ -1648,33 +1649,35 @@ static void do_cmd_wiz_features(void)
 
 	switch (cmd) {
 		/* Floors */
-		case 'f': feat = featf; length = 1; break;
+		case 'f': feat = featf; length = 1;  break;
 		/* Open doors */
-		case 'o': feat = feato; length = 1; break;
+		case 'o': feat = feato; length = 1;  break;
 		/* Broken doors */
-		case 'b': feat = featb; length = 1; break;
+		case 'b': feat = featb; length = 1;  break;
 		/* Upstairs */
-		case 'u': feat = featu; length = 1; break;
+		case 'u': feat = featu; length = 1;  break;
 		/* Downstairs */
-		case 'z': feat = featz; length = 1; break;
+		case 'z': feat = featz; length = 1;  break;
 		/* Stairs */
-		case 't': feat = featt; length = 2; break;
+		case 't': feat = featt; length = 2;  break;
 		/* Closed doors */
-		case 'c': feat = featc; length = 8; break;
+		case 'c': feat = featc; length = 8;  break;
 		/* Doors */
 		case 'd': feat = featd; length = 11; break;
 		/* Secret doors */
-		case 'h': feat = feath; length = 1; break;
+		case 'h': feat = feath; length = 1;  break;
 		/* Magma */
-		case 'm': feat = featm; length = 3; break;
+		case 'm': feat = featm; length = 3;  break;
 		/* Quartz */
-		case 'q': feat = featq; length = 3; break;
+		case 'q': feat = featq; length = 3;  break;
 		/* Granite */
-		case 'g': feat = featg; length = 1; break;
+		case 'g': feat = featg; length = 1;  break;
 		/* Permanent wall */
-		case 'p': feat = featp; length = 1; break;
+		case 'p': feat = featp; length = 1;  break;
 		/* Rubble */
-		case 'r': feat = featr; length = 1; break;
+		case 'r': feat = featr; length = 1;  break;
+		/* Passable rubble */
+		case 'a': feat = feata; length = 1;  break;
 	}
 
 	region reg;
