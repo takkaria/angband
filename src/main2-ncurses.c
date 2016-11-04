@@ -671,6 +671,8 @@ int init_ncurses(int argc, char **argv)
 	(void) argc;
 	(void) argv;
 
+	setenv("ESCDELAY", "20", 0);
+
 	if (initscr() == NULL) {
 		return 1;
 	}
