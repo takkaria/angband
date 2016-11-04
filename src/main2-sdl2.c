@@ -403,7 +403,6 @@ struct subwindow {
 	struct font *font;
 	struct window *window;
 	struct tab_bank tab_bank;
-	term term;
 };
 
 struct button;
@@ -761,9 +760,9 @@ static void term_draw(void *user,
 		int col, int row, int n_points, struct term_point *points);
 static void term_delay(void *user, int msecs);
 static void term_erase(void *user);
-static void term_push_new(const struct term_hints *hints,
+static void term_destroy(void *user);
+static void term_create(const struct term_hints *hints,
 		struct term_create_info *info);
-static void term_pop_new(void *user);
 static void term_add_tab(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 static bool term_move(void *user,
@@ -781,8 +780,8 @@ static const struct term_callbacks default_callbacks = {
 	.move         = term_move,
 	.delay        = term_delay,
 	.erase        = term_erase,
-	.push_new     = term_push_new,
-	.pop_new      = term_pop_new,
+	.create       = term_create,
+	.destroy      = term_destroy,
 	.add_tab      = term_add_tab
 };
 
@@ -3215,6 +3214,7 @@ static void handle_windowevent(const SDL_WindowEvent *event)
 static void resize_subwindow(struct subwindow *subwindow)
 {
 	assert(subwindow->texture != NULL);
+	assert(!subwindow->is_temporary);
 
 	SDL_DestroyTexture(subwindow->texture);
 
@@ -3235,9 +3235,7 @@ static void resize_subwindow(struct subwindow *subwindow)
 	render_clear(subwindow->window, subwindow->texture, subwindow->color);
 	render_borders(subwindow);
 
-	Term_push(subwindow->term);
-	Term_resize(subwindow->cols, subwindow->rows);
-	Term_pop();
+	display_term_resize(subwindow->index, subwindow->cols, subwindow->rows);
 
 	refresh_display_terms();
 }
@@ -3967,21 +3965,25 @@ static void term_delay(void *user, int msecs)
 	SDL_Delay(msecs);
 }
 
-static void term_pop_new(void *user)
+static void term_destroy(void *user)
 {
 	struct subwindow *subwindow = user;
 	struct window *window = subwindow->window;
 
-	if (subwindow->big_map) {
-		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+	if (subwindow->is_temporary) {
+		if (subwindow->big_map) {
+			SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+		}
+
+		detach_subwindow_from_window(subwindow->window, subwindow);
+		free_temporary_subwindow(subwindow);
+
+		window->is_dirty = true;
+
+		set_subwindows_brightness(window, DEFAULT_BRIGHTNESS_FULL);
+	} else {
+		free_subwindow(subwindow);
 	}
-
-	detach_subwindow_from_window(subwindow->window, subwindow);
-	free_temporary_subwindow(subwindow);
-
-	window->is_dirty = true;
-
-	set_subwindows_brightness(window, DEFAULT_BRIGHTNESS_FULL);
 }
 
 static void term_cursor(void *user, int col, int row)
@@ -4043,7 +4045,7 @@ static void term_add_tab(void *user,
 	subwindow->tab_bank.number++;
 }
 
-static void term_push_new(const struct term_hints *hints,
+static void term_create(const struct term_hints *hints,
 		struct term_create_info *info)
 {
 	struct window *window = get_loaded_window(WINDOW_MAIN);
@@ -4808,6 +4810,8 @@ static bool adjust_subwindow_geometry(const struct window *window,
 
 static void adjust_subwindow_size(struct subwindow *subwindow)
 {
+	assert(!subwindow->is_temporary);
+
 	adjust_subwindow_cell_size(subwindow->window, subwindow);
 
 	if (is_ok_col_row(subwindow, &subwindow->full_rect,
@@ -4819,9 +4823,8 @@ static void adjust_subwindow_size(struct subwindow *subwindow)
 				subwindow->texture, subwindow->color);
 		render_borders(subwindow);
 
-		Term_push(subwindow->term);
-		Term_resize(subwindow->cols, subwindow->rows);
-		Term_pop();
+		display_term_resize(subwindow->index,
+				subwindow->cols, subwindow->rows);
 	} else {
 		assert(subwindow->cols >= get_min_cols(subwindow));
 		assert(subwindow->rows >= get_min_rows(subwindow));
@@ -5800,10 +5803,7 @@ static void load_term(struct subwindow *subwindow)
 		.blank     = default_blank_point
 	};
 
-	term term = Term_create(&info);
-
-	subwindow->term = term;
-	display_term_init(subwindow->index, term);
+	display_term_create(subwindow->index, &info);
 
 	subwindow->linked = true;
 }
@@ -5828,7 +5828,6 @@ static void wipe_subwindow(struct subwindow *subwindow)
 	subwindow->swap_texture  = NULL;
 	subwindow->window        = NULL;
 	subwindow->font          = NULL;
-	subwindow->term          = NULL;
 	subwindow->config        = NULL;
 	subwindow->tab_bank.tabs = NULL;
 
@@ -6029,10 +6028,6 @@ static void free_subwindow(struct subwindow *subwindow)
 	if (subwindow->tab_bank.tabs != NULL) {
 		free_tab_bank(&subwindow->tab_bank);
 	}
-	if (subwindow->term != NULL) {
-		assert(!subwindow->is_temporary);
-		display_term_destroy(subwindow->index);
-	}
 	if (subwindow->config != NULL) {
 		free_subwindow_config(subwindow->config);
 		subwindow->config = NULL;
@@ -6051,7 +6046,7 @@ static void free_window(struct window *window)
 	for (size_t i = 0; i < window->permanent.number; i++) {
 		struct subwindow *subwindow = window->permanent.subwindows[i];
 
-		free_subwindow(subwindow);
+		display_term_destroy(subwindow->index);
 		window->permanent.subwindows[i] = NULL;
 	}
 	window->permanent.number = 0;
@@ -6322,10 +6317,9 @@ static void free_temporary_subwindow(struct subwindow *subwindow)
 	assert(subwindow->index == g_shadow_stack.subwindows[STACK_TOP].index);
 #undef STACK_TOP
 
-	/* font of temporary subwindow 'belongs' to its window;
-	 * term of temporary subwindow should not be destroyed manually */
+	/* font of temporary subwindow
+	 * 'belongs' to its window */
 	subwindow->font = NULL;
-	subwindow->term = NULL;
 
 	free_subwindow(subwindow);
 	g_shadow_stack.number--;
