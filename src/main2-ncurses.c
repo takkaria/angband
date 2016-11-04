@@ -40,9 +40,6 @@ struct term_data {
 	 * on the stack of terms (see ui2-term.c) */
 	bool temporary;
 
-	/* textui2 term */
-	term term;
-
 	/* ncurses window */
 	WINDOW *window;
 
@@ -95,9 +92,9 @@ static void term_draw(void *user,
 		int col, int row, int n_points, struct term_point *points);
 static void term_delay(void *user, int msecs);
 static void term_erase(void *user);
-static void term_push_new(const struct term_hints *hints,
+static void term_create(const struct term_hints *hints,
 		struct term_create_info *info);
-static void term_pop_new(void *user);
+static void term_destroy(void *user);
 static void term_add_tab(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
 static bool term_move(void *user,
@@ -115,8 +112,8 @@ static const struct term_callbacks default_callbacks = {
 	.move         = term_move,
 	.delay        = term_delay,
 	.erase        = term_erase,
-	.push_new     = term_push_new,
-	.pop_new      = term_pop_new,
+	.create       = term_create,
+	.destroy      = term_destroy,
 	.add_tab      = term_add_tab
 };
 
@@ -138,6 +135,7 @@ static const struct term_point default_blank_point = {
 static void init_globals(void);
 static void make_fg_buf(struct term_data *data);
 static void redraw_terms(bool update);
+static void free_data(struct term_data *data);
 static struct term_data *new_stack_data(void);
 static void free_stack_data(struct term_data *data);
 static struct term_data *get_stack_top(void);
@@ -226,15 +224,14 @@ static region get_temp_region(const struct term_hints *hints)
 	return reg;
 }
 
-static void term_push_new(const struct term_hints *hints,
+static void term_create(const struct term_hints *hints,
 		struct term_create_info *info)
 {
 	struct term_data *data = new_stack_data();
-	assert(!data->loaded);
-	assert(data->temporary);
 
+	assert(data->temporary);
 	assert(data->window == NULL);
-	assert(data->term == NULL);
+	assert(!data->loaded);
 
 	region reg = get_temp_region(hints); 
 	
@@ -254,10 +251,16 @@ static void term_push_new(const struct term_hints *hints,
 	info->callbacks = default_callbacks;
 }
 
-static void term_pop_new(void *user)
+static void term_destroy(void *user)
 {
-	free_stack_data(user);
-	redraw_terms(true);
+	struct term_data *data = user;
+
+	if (data->temporary) {
+		free_stack_data(data);
+		redraw_terms(true);
+	} else {
+		free_data(data);
+	}
 }
 
 static int draw_points(struct term_data *data,
@@ -489,10 +492,9 @@ static void make_fg_buf(struct term_data *data)
 static void load_term(enum display_term_index index)
 {
 	struct term_data *data = get_perm_data(index);
-	assert(!data->loaded);
 
-	assert(data->term == NULL);
 	assert(data->window == NULL);
+	assert(!data->loaded);
 
 	region reg = get_perm_region(index);
 	assert(reg.w > 0 && reg.h > 0);
@@ -512,8 +514,7 @@ static void load_term(enum display_term_index index)
 		.blank     = default_blank_point,
 	};
 
-	data->term = Term_create(&info);
-	display_term_init(index, data->term);
+	display_term_create(index, &info);
 	data->loaded = true;
 }
 
@@ -523,16 +524,9 @@ static void load_terms(void)
 	load_term(DISPLAY_MESSAGE_LINE);
 }
 
-static void free_term(struct term_data *data)
+static void free_data(struct term_data *data)
 {
 	assert(data->loaded);
-
-	if (data->term != NULL) {
-		assert(!data->temporary);
-
-		display_term_destroy(data->index);
-		data->term = NULL;
-	}
 
 	assert(data->fg.buf != NULL);
 	assert(data->fg.len != 0);
@@ -555,7 +549,7 @@ static void free_terms(void)
 		struct term_data *data = get_perm_data(i);
 
 		if (data->loaded) {
-			free_term(data);
+			display_term_destroy(data->index);
 		}
 	}
 }
@@ -714,12 +708,11 @@ static void free_stack_data(struct term_data *data)
 {
 	assert(data->loaded);
 	assert(data->temporary);
-	assert(data->term == NULL);
 
 	assert(g_temp_data.top > 0);
 	assert(&g_temp_data.stack[g_temp_data.top - 1] == data);
 
-	free_term(data);
+	free_data(data);
 
 	g_temp_data.top--;
 }
