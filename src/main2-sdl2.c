@@ -761,7 +761,7 @@ static void term_draw(void *user,
 static void term_delay(void *user, int msecs);
 static void term_erase(void *user);
 static void term_destroy(void *user);
-static void term_create(const struct term_hints *hints,
+static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info);
 static void term_add_tab(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
@@ -780,9 +780,9 @@ static const struct term_callbacks default_callbacks = {
 	.move         = term_move,
 	.delay        = term_delay,
 	.erase        = term_erase,
-	.create       = term_create,
 	.destroy      = term_destroy,
-	.add_tab      = term_add_tab
+	.add_tab      = term_add_tab,
+	.push_new     = term_push_new,
 };
 
 #define BLANK_CHAR    0
@@ -4045,7 +4045,7 @@ static void term_add_tab(void *user,
 	subwindow->tab_bank.number++;
 }
 
-static void term_create(const struct term_hints *hints,
+static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info)
 {
 	struct window *window = get_loaded_window(WINDOW_MAIN);
