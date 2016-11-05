@@ -192,6 +192,12 @@ static void term_redraw(void *user, int delay)
 	}
 }
 
+static void draw_border(struct term_data *data)
+{
+	wattrset(data->window, A_DIM);
+	box(data->window, 0, 0);
+}
+
 static bool region_in_region(const region *small, const region *big)
 {
 	return small->x >= big->x
@@ -224,7 +230,7 @@ static void load_term_data(struct term_data *data,
 		data->border.col = sub->x;
 		data->border.row = sub->y;
 
-		box(data->window, 0, 0);
+		draw_border(data);
 	}
 
 	make_fg_buf(data);
@@ -548,7 +554,7 @@ static void term_erase(void *user)
 	werase(data->window);
 
 	if (data->border.ok) {
-		box(data->window, 0, 0);
+		draw_border(data);
 	}
 }
 
