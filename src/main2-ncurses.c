@@ -54,12 +54,12 @@ struct term_data {
 	/* ncurses window (includes borders) */
 	WINDOW *window;
 
-	/* information about borders */
-	struct {
-		int col;
-		int row;
-		bool ok;
-	} border;
+	/* area of window without borders */
+	WINDOW *subwindow;
+
+	/* offset of next tab to print; note that
+	 * term_add_tab() prints them one by one*/
+	int tab_offset;
 
 	/* array of wchar_t for use in term_draw() callback */
 	struct {
@@ -163,16 +163,17 @@ static const struct term_info *get_term_info(enum display_term_index i);
 
 /* Functions */
 
-static void redraw_data(const struct term_data *data, int n_data)
+static void redraw_win(const struct term_data *data, int n_data)
 {
 	for (int n = 0; n < n_data; n++) {
 		if (data[n].loaded) {
 			wnoutrefresh(data[n].window);
+			wnoutrefresh(data[n].subwindow);
 		}
 	}
 }
 
-static void touch_data(const struct term_data *data, int n_data)
+static void touch_win(const struct term_data *data, int n_data)
 {
 	for (int n = 0; n < n_data; n++) {
 		if (data[n].loaded) {
@@ -226,11 +227,14 @@ static void load_term_data(struct term_data *data,
 			&& sub->w > 0
 			&& sub->h > 0)
 	{
-		data->border.ok = true;
-		data->border.col = sub->x;
-		data->border.row = sub->y;
+		data->subwindow =
+			derwin(data->window,
+				sub->h, sub->w, sub->y, sub->x);
 
 		draw_border(data);
+	} else {
+		data->subwindow =
+			derwin(data->window, win->h, win->w, 0, 0);
 	}
 
 	make_fg_buf(data);
@@ -389,8 +393,8 @@ static int draw_points(struct term_data *data,
 	assert(draw < data->fg.len);
 	data->fg.buf[draw] = 0;
 
-	wattrset(data->window, g_attrs[fg_attr]);
-	waddnwstr(data->window, data->fg.buf, draw);
+	wattrset(data->subwindow, g_attrs[fg_attr]);
+	waddnwstr(data->subwindow, data->fg.buf, draw);
 
 	return draw;
 }
@@ -400,12 +404,7 @@ static void term_draw(void *user,
 {
 	struct term_data *data = user;
 
-	if (data->border.ok) {
-		col += data->border.col;
-		row += data->border.row;
-	}
-
-	wmove(data->window, row, col);
+	wmove(data->subwindow, row, col);
 
 	int drawn = 0;
 	while (drawn < n_points) {
@@ -435,7 +434,10 @@ static int get_ch(struct term_data *data, bool wait)
 
 	if (wait) {
 		halfdelay(HALFDELAY_PERIOD);
-		for (ch = wgetch(data->window); ch == ERR; ch = wgetch(data->window)) {
+		for (ch = wgetch(data->window);
+				ch == ERR;
+				ch = wgetch(data->window))
+		{
 			idle_update();
 		}
 		cbreak();
@@ -523,11 +525,6 @@ static void term_cursor(void *user, bool visible, int col, int row)
 {
 	struct term_data *data = user;
 
-	if (data->border.ok) {
-		col += data->border.col;
-		row += data->border.row;
-	}
-
 	if (visible && !data->cursor.visible) {
 		curs_set(1);
 		data->cursor.visible = true;
@@ -551,23 +548,54 @@ static void term_erase(void *user)
 {
 	struct term_data *data = user;
 
-	werase(data->window);
+	werase(data->subwindow);
+}
 
-	if (data->border.ok) {
-		draw_border(data);
+/* Strip label of preceding spaces, and return
+ * length without spaces at the end (if any) */
+static int wihout_spaces(const wchar_t **label)
+{
+	const wchar_t *l = *label;
+
+	/* strip spaces at
+	 * the beginning */
+	while (*l == L' ') {
+		l++;
 	}
+	*label = l;
+
+	/* count the rest */
+	int len = 0;
+	while (*l) {
+		l++;
+		len++;
+	}
+
+	/* count spaces
+	 * at the end */
+	int spaces = 0;
+	for (int pos = len - 1; pos >= 0 && l[pos] == L' '; pos--) {
+		spaces++;
+	}
+
+	return len - spaces;
 }
 
 static void term_add_tab(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr)
 {
-	/* Don't draw any tabs (for now) */
-
-	(void) user;
 	(void) code;
-	(void) label;
-	(void) fg_attr;
-	(void) bg_attr;
+
+	struct term_data *data = user;
+
+	wmove(data->window, 0, data->tab_offset);
+
+	const int len = wihout_spaces(&label);
+
+	wattrset(data->window, g_attrs[fg_attr]);
+	waddnwstr(data->window, label, len);
+
+	data->tab_offset += len + 1;
 }
 
 static bool term_move(void *user,
@@ -626,8 +654,8 @@ static void handle_cursor(bool update)
 	}
 
 	if (top->cursor.visible) {
-		wmove(top->window, top->cursor.row, top->cursor.col);
-		wnoutrefresh(top->window);
+		wmove(top->subwindow, top->cursor.row, top->cursor.col);
+		wnoutrefresh(top->subwindow);
 	}
 }
 
@@ -684,6 +712,7 @@ static void wipe_term_data(struct term_data *data)
 	data->temporary = temporary;
 	data->index = index;
 
+	data->subwindow = NULL;
 	data->window = NULL;
 
 	data->fg.buf = NULL;
@@ -696,6 +725,9 @@ static void free_term_data(struct term_data *data)
 	assert(data->fg.buf != NULL);
 	assert(data->fg.len != 0);
 	mem_free(data->fg.buf);
+
+	assert(data->subwindow != NULL);
+	delwin(data->subwindow);
 
 	assert(data->window != NULL);
 	delwin(data->window);
@@ -865,6 +897,7 @@ static struct term_data *new_stack_data(void)
 	assert(t < N_ELEMENTS(g_temp_data.stack));
 
 	g_temp_data.top++;
+	g_update = true;
 
 	return &g_temp_data.stack[t];
 }
@@ -880,9 +913,6 @@ static void free_stack_data(struct term_data *data)
 	free_term_data(data);
 
 	g_temp_data.top--;
-
-	/* now that the term is popped, the next refresh
-	 * should redraw the whole stack from scratch */
 	g_update = true;
 }
 
@@ -911,12 +941,12 @@ static struct term_data *get_perm_data(enum display_term_index i)
 static void redraw_terms()
 {
 	if (g_update) {
-		touch_data(g_perm_data, N_ELEMENTS(g_perm_data));
-		touch_data(g_temp_data.stack, g_temp_data.top);
+		touch_win(g_perm_data, N_ELEMENTS(g_perm_data));
+		touch_win(g_temp_data.stack, g_temp_data.top);
 	}
 
-	redraw_data(g_perm_data, N_ELEMENTS(g_perm_data));
-	redraw_data(g_temp_data.stack, g_temp_data.top);
+	redraw_win(g_perm_data, N_ELEMENTS(g_perm_data));
+	redraw_win(g_temp_data.stack, g_temp_data.top);
 
 	handle_cursor(g_update);
 	doupdate();
