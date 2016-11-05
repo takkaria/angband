@@ -588,12 +588,10 @@ static void term_add_tab(void *user,
 
 	struct term_data *data = user;
 
-	wmove(data->window, 0, data->tab_offset);
-
 	const int len = wihout_spaces(&label);
 
 	wattrset(data->window, g_attrs[fg_attr]);
-	waddnwstr(data->window, label, len);
+	mvwaddnwstr(data->window, 0, data->tab_offset, label, len);
 
 	data->tab_offset += len + 1;
 }
