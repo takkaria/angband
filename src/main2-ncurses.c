@@ -40,6 +40,10 @@ struct term_data {
 	 * on the stack of terms (see ui2-term.c) */
 	bool temporary;
 
+	/* this term is newly pushed on the stack,
+	 * and the whole stack should be redrawn */
+	bool new;
+
 	/* cursor in window */
 	struct {
 		int col;
@@ -47,8 +51,15 @@ struct term_data {
 		bool visible;
 	} cursor;
 
-	/* ncurses window */
+	/* ncurses window (includes borders) */
 	WINDOW *window;
+
+	/* information about borders */
+	struct {
+		int col;
+		int row;
+		bool ok;
+	} border;
 
 	/* array of wchar_t for use in term_draw() callback */
 	struct {
@@ -141,7 +152,7 @@ static const struct term_point default_blank_point = {
 
 static void init_globals(void);
 static void make_fg_buf(struct term_data *data);
-static void redraw_terms(bool update);
+static void redraw_terms();
 static void free_term_data(struct term_data *data);
 static struct term_data *new_stack_data(void);
 static void free_stack_data(struct term_data *data);
@@ -152,105 +163,200 @@ static const struct term_info *get_term_info(enum display_term_index i);
 
 /* Functions */
 
+static void redraw_data(const struct term_data *data, int n_data)
+{
+	for (int n = 0; n < n_data; n++) {
+		if (data[n].loaded) {
+			wnoutrefresh(data[n].window);
+		}
+	}
+}
+
+static void touch_data(const struct term_data *data, int n_data)
+{
+	for (int n = 0; n < n_data; n++) {
+		if (data[n].loaded) {
+			touchwin(data[n].window);
+		}
+	}
+}
+
 static void term_redraw(void *user, int delay)
 {
-	redraw_terms(false);
+	(void) user;
+
+	redraw_terms();
 
 	if (delay > 0) {
 		napms(delay);
 	}
 }
 
-static void region_relative_cave(enum term_position pos, region *reg)
+static bool region_in_region(const region *small, const region *big)
 {
-	const struct term_data *cave = get_perm_data(DISPLAY_CAVE);
-	assert(cave->loaded);
+	return small->x >= big->x
+		&& small->x + small->w <= big->x + big->w
+		&& small->y >= big->y
+		&& small->y + small->h <= big->y + big->h;
+}
 
-	region cave_reg;
-	getbegyx(cave->window, cave_reg.y, cave_reg.x);
-	getmaxyx(cave->window, cave_reg.h, cave_reg.w);
+static void load_term_data(struct term_data *data,
+		const region *win, const region *sub)
+{
+	assert(!data->loaded);
 
-	switch (pos) {
-		case TERM_POSITION_TOP_LEFT:
-			/* Put it in the top left corner of the map */
-			reg->x = cave_reg.x;
-			reg->y = cave_reg.y;
-			break;
+	assert(data->window == NULL);
+	assert(data->fg.buf == NULL);
 
-		default:
-			/* All other positions just center the term in map */
-			reg->x = cave_reg.x + (cave_reg.w - reg->w) / 2;
-			reg->y = cave_reg.y + (cave_reg.h - reg->h) / 2;
-			break;
+	data->window = newwin(win->h, win->w, win->y, win->x);
+	assert(data->window != NULL);
+
+	keypad(data->window, true);
+	werase(data->window);
+
+	if (sub != NULL
+			&& sub->x > 0
+			&& sub->y > 0
+			&& sub->w > 0
+			&& sub->h > 0)
+	{
+		data->border.ok = true;
+		data->border.col = sub->x;
+		data->border.row = sub->y;
+
+		box(data->window, 0, 0);
 	}
 
-	if (reg->x < 0 || reg->y < 0) {
-		/* Try to center in the screen then */
-		reg->x = (COLS - reg->w) / 2;
-		reg->y = (LINES - reg->h) / 2;
+	make_fg_buf(data);
+
+	data->loaded = true;
+}
+
+static void region_adjust(region *win, region *sub, const region *bottom)
+{
+	if (win->x < 0) {
+		win->x = 0;
+	}
+	if (win->y < 0) {
+		win->y = 0;
+	}
+
+	if (region_in_region(win, bottom)
+			&& win->x > 0 && win->y > 0
+			&& win->w + 2 <= bottom->w && win->h + 2 <= bottom->h)
+	{
+		sub->x = 1;
+		sub->y = 1;
+		sub->w = win->w;
+		sub->h = win->h;
+
+		win->x -= 1;
+		win->w += 2;
+
+		win->y -= 1;
+		win->h += 2;
+	} else {
+		sub->x = 0;
+		sub->y = 0;
+		sub->w = win->w;
+		sub->h = win->h;
+
+		win->x = 0;
+		win->y = 0;
 	}
 }
 
-static void region_relative_top(region *reg, int x, int y)
+static void region_corner_map(region *win, region *sub)
+{
+	const struct term_data *map = get_perm_data(DISPLAY_CAVE);
+	assert(map->loaded);
+
+	region mapwin;
+	getbegyx(map->window, mapwin.y, mapwin.x);
+	getmaxyx(map->window, mapwin.h, mapwin.w);
+
+	win->x = mapwin.x + 1;
+	win->y = mapwin.y + 1;
+
+	region_adjust(win, sub, &mapwin);
+}
+
+static void region_exact_top(region *win, region *sub, int x, int y)
 {
 	const struct term_data *top = get_top();
 
-	int top_x;
-	int top_y;
-	getbegyx(top->window, top_y, top_x);
+	region topwin;
+	getbegyx(top->window, topwin.y, topwin.x);
+	getmaxyx(top->window, topwin.h, topwin.w);
 
-	reg->x = top_x + x;
-	reg->y = top_y + y;
+	win->x = x + topwin.x + 1;
+	win->y = y + topwin.y + 1;
+
+	region_adjust(win, sub, &topwin);
 }
 
-static region get_temp_region(const struct term_hints *hints)
+static void region_center_top(region *win, region *sub)
 {
-	region reg = {
-		.w = hints->width,
-		.h = hints->height,
-	};
+	const struct term_data *top = get_stack_top();
+
+	region topwin;
+	if (top == NULL) {
+		getbegyx(stdscr, topwin.y, topwin.x);
+		getmaxyx(stdscr, topwin.h, topwin.w);
+	} else {
+		getbegyx(top->window, topwin.y, topwin.x);
+		getmaxyx(top->window, topwin.h, topwin.w);
+	}
+
+	win->x = topwin.x + (topwin.w - win->w) / 2;
+	win->y = topwin.y + (topwin.h - win->h) / 2;
+
+	region_adjust(win, sub, &topwin);
+}
+
+static void calc_temp_window(const struct term_hints *hints,
+		region *win, region *sub)
+{
+	memset(win, 0, sizeof(*win));
+	memset(sub, 0, sizeof(*sub));
+
+	win->w = hints->width;
+	win->h = hints->height;
 
 	switch (hints->position) {
-		case TERM_POSITION_CENTER:
 		case TERM_POSITION_TOP_LEFT:
-			region_relative_cave(hints->position, &reg);
+			region_corner_map(win, sub);
 			break;
 
 		case TERM_POSITION_EXACT:
-			region_relative_top(&reg, hints->x, hints->y);
+			region_exact_top(win, sub, hints->x, hints->y);
 			break;
 
 		default:
+			region_center_top(win, sub);
 			break;
 	}
-
-	return reg;
 }
 
 static void term_push_new(const struct term_hints *hints,
 		struct term_create_info *info)
 {
+	region win;
+	region sub;
+	calc_temp_window(hints, &win, &sub); 
+
+	assert(sub.w > 0);
+	assert(sub.h > 0);
+
 	struct term_data *data = new_stack_data();
-
 	assert(data->temporary);
-	assert(data->window == NULL);
-	assert(!data->loaded);
-
-	region reg = get_temp_region(hints); 
 	
-	data->window = newwin(reg.h, reg.w, reg.y, reg.x);
-	assert(data->window != NULL);
-
-	make_fg_buf(data);
-
-	werase(data->window);
-
-	data->loaded = true;
+	load_term_data(data, &win, &sub);
 
 	info->user = data;
 	info->blank = default_blank_point;
-	info->width = reg.w,
-	info->height = reg.h,
+	info->width = sub.w,
+	info->height = sub.h,
 	info->callbacks = default_callbacks;
 
 	curs_set(0);
@@ -261,7 +367,6 @@ static void term_pop_new(void *user)
 	struct term_data *data = user;
 
 	free_stack_data(data);
-	redraw_terms(true);
 }
 
 static int draw_points(struct term_data *data,
@@ -289,6 +394,11 @@ static void term_draw(void *user,
 {
 	struct term_data *data = user;
 
+	if (data->border.ok) {
+		col += data->border.col;
+		row += data->border.row;
+	}
+
 	wmove(data->window, row, col);
 
 	int drawn = 0;
@@ -313,20 +423,20 @@ static struct term_data *get_top(void)
 	return top;
 }
 
-static int get_ch(bool wait)
+static int get_ch(struct term_data *data, bool wait)
 {
 	int ch;
 
 	if (wait) {
 		halfdelay(HALFDELAY_PERIOD);
-		for (ch = getch(); ch == ERR; ch = getch()) {
+		for (ch = wgetch(data->window); ch == ERR; ch = wgetch(data->window)) {
 			idle_update();
 		}
 		cbreak();
 	} else {
-		nodelay(stdscr, true);
-		ch = getch();
-		nodelay(stdscr, false);
+		nodelay(data->window, true);
+		ch = wgetch(data->window);
+		nodelay(data->window, false);
 	}
 
 	return ch;
@@ -379,9 +489,9 @@ static keycode_t ch_to_code(int ch)
 
 static void term_event(void *user, bool wait)
 {
-	(void) user;
+	struct term_data *data = user;
 
-	int ch = get_ch(wait);
+	int ch = get_ch(data, wait);
 
 	if (ch != ERR && ch != EOF) {
 		Term_keypress(ch_to_code(ch), 0);
@@ -392,11 +502,7 @@ static void term_flush_events(void *user)
 {
 	(void) user;
 
-	nodelay(stdscr, true);
-	for (int ch = getch(); ch != ERR && ch != EOF; ch = getch()) {
-		;
-	}
-	nodelay(stdscr, false);
+	flushinp();
 }
 
 static void term_make_visible(void *user, bool visible)
@@ -410,6 +516,11 @@ static void term_make_visible(void *user, bool visible)
 static void term_cursor(void *user, bool visible, int col, int row)
 {
 	struct term_data *data = user;
+
+	if (data->border.ok) {
+		col += data->border.col;
+		row += data->border.row;
+	}
 
 	if (visible && !data->cursor.visible) {
 		curs_set(1);
@@ -435,6 +546,10 @@ static void term_erase(void *user)
 	struct term_data *data = user;
 
 	werase(data->window);
+
+	if (data->border.ok) {
+		box(data->window, 0, 0);
+	}
 }
 
 static void term_add_tab(void *user,
@@ -465,23 +580,23 @@ static bool term_move(void *user,
 	return false;
 }
 
-static region get_perm_region(enum display_term_index index)
+static void calc_perm_window(enum display_term_index index, region *win)
 {
-	region reg = {0};
+	memset(win, 0, sizeof(*win));
 
 	switch (index) {
 		case DISPLAY_CAVE:
-			reg.w = COLS;
-			reg.h = LINES - 1;
-			reg.x = 0;
-			reg.y = 1;
+			win->w = COLS;
+			win->h = LINES - 1;
+			win->x = 0;
+			win->y = 1;
 			break;
 
 		case DISPLAY_MESSAGE_LINE:
-			reg.w = COLS;
-			reg.h = 1;
-			reg.x = 0;
-			reg.y = 0;
+			win->w = COLS;
+			win->h = 1;
+			win->x = 0;
+			win->y = 0;
 			break;
 		
 		default:
@@ -489,13 +604,11 @@ static region get_perm_region(enum display_term_index index)
 	}
 
 	const struct term_info *info = get_term_info(index);
-	if (reg.w < info->min_cols || reg.h < info->min_rows) {
+	if (win->w < info->min_cols || win->h < info->min_rows) {
 		quit_fmt("Screen size for term '%s'" /* concat */
 				" is too small (need %dx%d, got %dx%d)",
-				info->name, info->min_cols, info->min_rows, reg.w, reg.h);
+				info->name, info->min_cols, info->min_rows, win->w, win->h);
 	}
-
-	return reg;
 }
 
 static void handle_cursor(bool update)
@@ -531,31 +644,22 @@ static void make_fg_buf(struct term_data *data)
 
 static void load_term(enum display_term_index index)
 {
+	region win;
+	calc_perm_window(index, &win);
+
 	struct term_data *data = get_perm_data(index);
 
-	assert(data->window == NULL);
-	assert(!data->loaded);
-
-	region reg = get_perm_region(index);
-	assert(reg.w > 0 && reg.h > 0);
-
-	data->window = newwin(reg.h, reg.w, reg.y, reg.x);
-	assert(data->window != NULL);
-
-	make_fg_buf(data);
-
-	werase(data->window);
+	load_term_data(data, &win, NULL);
 
 	struct term_create_info info = {
 		.user      = data,
-		.width     = reg.w,
-		.height    = reg.h,
+		.width     = win.w,
+		.height    = win.h,
 		.callbacks = default_callbacks,
 		.blank     = default_blank_point,
 	};
 
 	display_term_create(index, &info);
-	data->loaded = true;
 }
 
 static void load_terms(void)
@@ -575,6 +679,7 @@ static void wipe_term_data(struct term_data *data)
 	data->index = index;
 
 	data->window = NULL;
+
 	data->fg.buf = NULL;
 }
 
@@ -683,9 +788,6 @@ int init_ncurses(int argc, char **argv)
 	noecho();
 	nonl();
 
-	nodelay(stdscr, false);
-	keypad(stdscr, true);
-
 	curs_set(0);
 
 	init_globals();
@@ -706,6 +808,9 @@ static struct {
 	struct term_data stack[TERM_STACK_MAX];
 	size_t top;
 } g_temp_data;
+
+/* All terms must be redrawn completely */
+static int g_update;
 
 /* Information about terms (description, size, etc) */
 static struct term_info g_term_info[] = {
@@ -769,6 +874,10 @@ static void free_stack_data(struct term_data *data)
 	free_term_data(data);
 
 	g_temp_data.top--;
+
+	/* now that the term is popped, the next refresh
+	 * should redraw the whole stack from scratch */
+	g_update = true;
 }
 
 static struct term_data *get_stack_top(void)
@@ -793,33 +902,20 @@ static struct term_data *get_perm_data(enum display_term_index i)
 	return &g_perm_data[i];
 }
 
-
-static void redraw_terms(bool update)
+static void redraw_terms()
 {
-	for (size_t i = 0; i < N_ELEMENTS(g_perm_data); i++) {
-		struct term_data *data = &g_perm_data[i];
-
-		if (data->loaded) {
-			if (update) {
-				touchwin(data->window);
-			}
-			wnoutrefresh(data->window);
-		}
+	if (g_update) {
+		touch_data(g_perm_data, N_ELEMENTS(g_perm_data));
+		touch_data(g_temp_data.stack, g_temp_data.top);
 	}
 
-	for (size_t t = 0; t < g_temp_data.top; t++) {
-		struct term_data *data = &g_temp_data.stack[t];
-		assert(data->loaded);
+	redraw_data(g_perm_data, N_ELEMENTS(g_perm_data));
+	redraw_data(g_temp_data.stack, g_temp_data.top);
 
-		if (update) {
-			touchwin(data->window);
-		}
-		wnoutrefresh(data->window);
-	}
-
-	handle_cursor(update);
-
+	handle_cursor(g_update);
 	doupdate();
+
+	g_update = false;
 }
 
 #endif /* USE_NCURSES */
