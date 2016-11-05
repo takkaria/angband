@@ -234,6 +234,7 @@ static void load_term_data(struct term_data *data,
 	} else {
 		data->subwindow =
 			derwin(data->window, win->h, win->w, 0, 0);
+
 		data->tab_offset = DONT_USE_TABS;
 	}
 
