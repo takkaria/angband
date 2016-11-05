@@ -571,14 +571,12 @@ static int wihout_spaces(const wchar_t **label)
 		len++;
 	}
 
-	/* count spaces
-	 * at the end */
-	int spaces = 0;
-	for (int pos = len - 1; pos >= 0 && l[pos] == L' '; pos--) {
-		spaces++;
+	/* count spaces at the end */
+	for (l--; len > 0 && *l == L' '; l--) {
+		len--;
 	}
 
-	return len - spaces;
+	return len;
 }
 
 static void term_add_tab(void *user,
