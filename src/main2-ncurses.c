@@ -195,12 +195,6 @@ static void term_redraw(void *user, int delay)
 	}
 }
 
-static void draw_border(struct term_data *data)
-{
-	wattrset(data->window, A_DIM);
-	box(data->window, 0, 0);
-}
-
 static bool region_in_region(const region *small, const region *big)
 {
 	return small->x >= big->x
@@ -233,7 +227,8 @@ static void load_term_data(struct term_data *data,
 			derwin(data->window,
 				sub->h, sub->w, sub->y, sub->x);
 
-		draw_border(data);
+		wattrset(data->window, A_DIM);
+		box(data->window, 0, 0);
 	} else {
 		data->subwindow =
 			derwin(data->window, win->h, win->w, 0, 0);
