@@ -24,6 +24,8 @@
 #define MIN_COLORS      8
 #define MIN_COLOR_PAIRS 8
 
+#define DONT_USE_TABS (-1)
+
 #define HALFDELAY_PERIOD 2
 
 /* The main datastructure that holds ncurses window,
@@ -235,6 +237,7 @@ static void load_term_data(struct term_data *data,
 	} else {
 		data->subwindow =
 			derwin(data->window, win->h, win->w, 0, 0);
+		data->tab_offset = DONT_USE_TABS;
 	}
 
 	make_fg_buf(data);
@@ -586,12 +589,14 @@ static void term_add_tab(void *user,
 
 	struct term_data *data = user;
 
-	const int len = wihout_spaces(&label);
+	if (data->tab_offset != DONT_USE_TABS) {
+		const int len = wihout_spaces(&label);
 
-	wattrset(data->window, g_attrs[fg_attr]);
-	mvwaddnwstr(data->window, 0, data->tab_offset, label, len);
+		wattrset(data->window, g_attrs[fg_attr]);
+		mvwaddnwstr(data->window, 0, data->tab_offset, label, len);
 
-	data->tab_offset += len + 1;
+		data->tab_offset += len + 1;
+	}
 }
 
 static bool term_move(void *user,
