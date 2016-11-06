@@ -83,8 +83,7 @@ struct term_info {
 	bool required;
 };
 
-/* Ncurses color pairs (foreground); note
- * that background is always black (so far) */
+/* Ncurses color pairs (foreground) */
 enum color_pairs {
 	PAIR_WHITE,
 	PAIR_RED,
