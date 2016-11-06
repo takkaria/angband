@@ -96,8 +96,14 @@ enum color_pairs {
 	PAIR_BLACK,
 };
 
-/* Global array of ncurses attributes (colors) */
-static int g_attrs[BASIC_COLORS];
+/* Global array of ncurses attributes (color pairs); we need
+ * BASIC_COLORS * 3 colors to support hybrid and solid walls */
+static int g_attrs[BASIC_COLORS * 3];
+
+/* Normal terrain first (first block of BASIC_COLORS in g_attrs[]),
+ * then hybrid walls (second block), then solid walls (third block) */
+#define TERRAIN_ATTR_OFFSET(t) \
+	((t) == COLOUR_DARK ? 0 : (t) == COLOUR_SHADE ? BASIC_COLORS : BASIC_COLORS * 2)
 
 /* Brief module description */
 const char help_ncurses[] = "Ncurses (widestring) frontend";
@@ -384,9 +390,13 @@ static int draw_points(struct term_data *data,
 		const struct term_point *points, int n_points)
 {
 	uint32_t fg_attr = points[0].fg_attr;
+	uint32_t terrain_attr = points[0].terrain_attr;
 
 	int draw = 0;
-	while (draw < n_points && fg_attr == points[draw].fg_attr) {
+	while (draw < n_points
+			&& fg_attr == points[draw].fg_attr
+			&& terrain_attr == points[draw].terrain_attr)
+	{
 		data->fg.buf[draw] = points[draw].fg_char;
 		draw++;
 	}
@@ -394,7 +404,7 @@ static int draw_points(struct term_data *data,
 	assert(draw < data->fg.len);
 	data->fg.buf[draw] = 0;
 
-	wattrset(data->subwindow, g_attrs[fg_attr]);
+	wattrset(data->subwindow, g_attrs[fg_attr + TERRAIN_ATTR_OFFSET(terrain_attr)]);
 	waddnwstr(data->subwindow, data->fg.buf, draw);
 
 	return draw;
@@ -746,16 +756,56 @@ static void free_terms(void)
 	}
 }
 
-static void init_ncurses_colors(void)
+static void init_max_colors(void)
 {
-	if (start_color() == ERR) {
-		quit_fmt("Can't initialize color");
+	assert(COLORS      >= BASIC_COLORS);
+	assert(COLOR_PAIRS >= BASIC_COLORS);
+
+#define SCALE_COLOR(color, channel) \
+	((long) angband_color_table[(color)][(channel)] * 1000L / 256L)
+
+	/* color pair zero is special (to ncurses);
+	 * we don't want to call init_pair() on it */
+	init_color(COLORS - 1,
+			SCALE_COLOR(0, 1), SCALE_COLOR(0, 2), SCALE_COLOR(0, 3));
+	g_attrs[0] = COLOR_PAIR(0);
+
+	/* init colors downwards, so as not to clobber
+	 * existing terminal colors, because ncurses
+	 * seems to be incapable of restoring them */
+	for (int c = 1, color = COLORS - 2; c < BASIC_COLORS; c++, color--) {
+		init_color(color, SCALE_COLOR(c, 1), SCALE_COLOR(c, 2), SCALE_COLOR(c, 3));
+		init_pair(c, color, -1);
+		g_attrs[c] = COLOR_PAIR(c);
 	}
 
-	if (!has_colors()) {
-		quit_fmt("Can't start without color");
-	}
+#undef SCALE_COLOR
 
+	if (COLORS >= (int) N_ELEMENTS(g_attrs) + MIN_COLORS
+			&& COLOR_PAIRS >= (int) N_ELEMENTS(g_attrs) + MIN_COLORS)
+	{
+		/* If we have enough colors, initialize
+		 * color pairs for hybrid and solid walls */
+		for (int c = 0, color = COLORS - 1, pair = BASIC_COLORS;
+				c < BASIC_COLORS;
+				c++, color--, pair++)
+		{
+			init_pair(pair, color, COLORS - 1 - COLOUR_SHADE);
+			g_attrs[pair] = COLOR_PAIR(pair);
+		}
+
+		for (int c = 0, color = COLORS - 1, pair = BASIC_COLORS * 2;
+				c < BASIC_COLORS;
+				c++, color--, pair++)
+		{
+			init_pair(pair, color, color);
+			g_attrs[pair] = COLOR_PAIR(pair);
+		}
+	}
+}
+
+static void init_min_colors(void)
+{
 	assert(COLORS      >= MIN_COLORS);
 	assert(COLOR_PAIRS >= MIN_COLOR_PAIRS);
 
@@ -797,6 +847,28 @@ static void init_ncurses_colors(void)
 	g_attrs[COLOUR_MUSTARD]     = COLOR_PAIR(PAIR_YELLOW);
 	g_attrs[COLOUR_BLUE_SLATE]  = COLOR_PAIR(PAIR_BLUE);
 	g_attrs[COLOUR_DEEP_L_BLUE] = COLOR_PAIR(PAIR_BLUE);
+}
+
+static void init_ncurses_colors(void)
+{
+	if (start_color() == ERR) {
+		quit_fmt("Can't initialize color");
+	}
+
+	if (!has_colors()) {
+		quit_fmt("Can't start without color");
+	}
+
+	use_default_colors();
+
+	if (!can_change_color()
+			|| COLORS < MIN_COLORS + BASIC_COLORS
+			|| COLOR_PAIRS < MIN_COLORS + BASIC_COLORS)
+	{
+		init_min_colors();
+	} else {
+		init_max_colors();
+	}
 }
 
 static void quit_hook(const char *s)
