@@ -803,6 +803,11 @@ static void init_max_colors(void)
 			init_pair(pair, color, color);
 			g_attrs[G_ATTR_SOLID][c] = COLOR_PAIR(pair);
 		}
+	} else {
+		const size_t size = sizeof(g_attrs[G_ATTR_NORMAL]);
+
+		memcpy(g_attrs[G_ATTR_HYBRID], g_attrs[G_ATTR_NORMAL], size);
+		memcpy(g_attrs[G_ATTR_SOLID],  g_attrs[G_ATTR_NORMAL], size);
 	}
 }
 
