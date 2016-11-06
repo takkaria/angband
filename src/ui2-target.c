@@ -262,11 +262,11 @@ static ui_event target_recall_loop_object(struct object *obj,
 
 	if (player->wizard) {
 		strnfmt(buf, size,
-				"%s%s%s%s, %s (%d:%d, cost = %d, when = %d).",
+				"%s%s%s%s, %s (%d:%d, noise = %d, scent = %d).",
 				desc->a, desc->b, desc->c, o_name,
 				desc->coords, coords.x, coords.y,
-				(int) cave->squares[coords.y][coords.x].cost,
-				(int) cave->squares[coords.y][coords.x].when);
+				(int) cave->squares[coords.y][coords.x].noise,
+				(int) cave->squares[coords.y][coords.x].scent);
 	} else {
 		strnfmt(buf, size,
 				"%s%s%s%s, %s.",
@@ -295,11 +295,11 @@ static bool target_interactive_aux_halluc(ui_event *event,
 	/* Display a message */
 	if (player->wizard) {
 		strnfmt(buf, sizeof(buf),
-				"%s%s%s%s, %s (%d:%d, cost = %d, when = %d).",
+				"%s%s%s%s, %s (%d:%d, noise = %d, scent = %d).",
 				desc->a, desc->b, desc->c, strange,
 				desc->coords, coords.x, coords.y,
-				(int) cave->squares[coords.y][coords.x].cost,
-				(int) cave->squares[coords.y][coords.x].when);
+				(int) cave->squares[coords.y][coords.x].noise,
+				(int) cave->squares[coords.y][coords.x].scent);
 	} else {
 		strnfmt(buf, sizeof(buf), "%s%s%s%s, %s.",
 				desc->a, desc->b, desc->c, strange, desc->coords);
@@ -324,11 +324,11 @@ static void target_desc_monster(char *buf, size_t size,
 
 	if (player->wizard) {
 		strnfmt(buf, size,
-				"%s%s%s%s (%s), %s (%d:%d, cost = %d, when = %d).",
+				"%s%s%s%s (%s), %s (%d:%d, noise = %d, scent = %d).",
 				desc->a, desc->b, desc->c, mon_name, mon_health,
 				desc->coords, coords.x, coords.y,
-				(int) cave->squares[coords.y][coords.x].cost,
-				(int) cave->squares[coords.y][coords.x].when);
+				(int) cave->squares[coords.y][coords.x].noise,
+				(int) cave->squares[coords.y][coords.x].scent);
 	} else {
 		strnfmt(buf, size,
 				"%s%s%s%s (%s), %s.",
@@ -350,11 +350,11 @@ static bool target_interactive_aux_monster_objects(ui_event *event,
 		char o_name[ANGBAND_TERM_STANDARD_WIDTH];
 		object_desc(o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
 		strnfmt(buf, size,
-				"%s%s%s%s, %s (%d:%d, cost = %d, when = %d).",
+				"%s%s%s%s, %s (%d:%d, noise = %d, scent = %d).",
 				copy.a, copy.b, copy.c, o_name,
 				copy.coords, coords.x, coords.y,
-				(int) cave->squares[coords.y][coords.x].cost,
-				(int) cave->squares[coords.y][coords.x].when);
+				(int) cave->squares[coords.y][coords.x].noise,
+				(int) cave->squares[coords.y][coords.x].scent);
 
 		show_prompt(buf);
 		*event = inkey_mouse_or_key();
@@ -447,11 +447,11 @@ static bool target_interactive_aux_trap(ui_event *event,
 
 	if (player->wizard) {
 		strnfmt(buf, sizeof(buf),
-				"%s%s%s%s, %s (%d:%d, cost = %d, when = %d).",
+				"%s%s%s%s, %s (%d:%d, noise = %d, scent = %d).",
 				desc->a, desc->b, desc->c, trap->kind->name,
 				desc->coords, coords.x, coords.y,
-				(int) cave->squares[coords.y][coords.x].cost,
-				(int) cave->squares[coords.y][coords.x].when);
+				(int) cave->squares[coords.y][coords.x].noise,
+				(int) cave->squares[coords.y][coords.x].scent);
 	} else {
 		strnfmt(buf, sizeof(buf), "%s%s%s%s, %s.", 
 				desc->a, desc->b, desc->c, trap->kind->desc, desc->coords);
@@ -488,11 +488,11 @@ static bool target_interactive_aux_objects(ui_event *event,
 	if (floor_num > 1) {
 		if (player->wizard) {
 			strnfmt(buf, sizeof(buf),
-					"%s%s%sa pile of %d objects, %s (%d:%d, cost = %d, when = %d).",
+					"%s%s%sa pile of %d objects, %s (%d:%d, noise = %d, scent = %d).",
 					desc->a, desc->b, desc->c, floor_num,
 					desc->coords, coords.x, coords.y,
-					(int) cave->squares[coords.y][coords.x].cost,
-					(int) cave->squares[coords.y][coords.x].when);
+					(int) cave->squares[coords.y][coords.x].noise,
+					(int) cave->squares[coords.y][coords.x].scent);
 		} else {
 			strnfmt(buf, sizeof(buf),
 					"%s%s%sa pile of %d objects, %s.",
@@ -555,11 +555,11 @@ static bool target_interactive_aux_square(ui_event *event,
 
 	if (player->wizard) {
 		strnfmt(buf, sizeof(buf),
-				"%s%s%s%s, %s (%d:%d, cost = %d, when = %d).", 
+				"%s%s%s%s, %s (%d:%d, noise = %d, scent = %d).", 
 				desc->a, desc->b, desc->c, name,
 				desc->coords, coords.x, coords.y,
-				(int) cave->squares[coords.y][coords.x].cost,
-				(int) cave->squares[coords.y][coords.x].when);
+				(int) cave->squares[coords.y][coords.x].noise,
+				(int) cave->squares[coords.y][coords.x].scent);
 	} else {
 		strnfmt(buf, sizeof(buf),
 				"%s%s%s%s, %s.", desc->a, desc->b, desc->c, name, desc->coords);
