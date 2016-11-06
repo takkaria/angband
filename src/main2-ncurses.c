@@ -103,9 +103,11 @@ static int g_attrs[3][BASIC_COLORS];
 #define G_ATTR_HYBRID 1
 #define G_ATTR_SOLID  2
 
-#define G_ATTR_INDEX(fg, t) \
-	((t) == (fg) ? G_ATTR_SOLID : \
-	 (t) == COLOUR_SHADE ? G_ATTR_HYBRID : G_ATTR_NORMAL)
+/* Note that in text mode, background is term_points's
+ * terrain_attr and not bg_attr (which is used for tiles) */
+#define G_ATTR_INDEX(foreground, background) \
+	((background) == (foreground) ? G_ATTR_SOLID : \
+	 (background) == COLOUR_SHADE ? G_ATTR_HYBRID : G_ATTR_NORMAL)
 
 /* Brief module description */
 const char help_ncurses[] = "Ncurses (widestring) frontend";
