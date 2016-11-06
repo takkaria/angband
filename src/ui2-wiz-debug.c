@@ -113,10 +113,10 @@ static void do_cmd_wiz_show_flow(void)
 		for (int y = reg.y, endy = reg.y + reg.h; y < endy; y++) {
 			for (int x = reg.x, endx = reg.x + reg.w; x < endx; x++) {
 				if (square_in_bounds_fully(cave, y, x)
-						&& cave->squares[y][x].cost == i)
+						&& cave->squares[y][x].noise == i)
 				{
 					uint32_t attr =
-						cave->squares[y][x].when == cave->squares[py][px].when ?
+						cave->squares[y][x].scent == cave->squares[py][px].scent ?
 						COLOUR_YELLOW : COLOUR_RED;
 
 					if (x == player->px && y == player->py) {
@@ -1262,7 +1262,7 @@ static void do_cmd_wiz_cure_all(void)
 	/* Remove curses */
 	for (int i = 0; i < player->body.count; i++) {
 		if (player->body.slots[i].obj) {
-			free_curse(player->body.slots[i].obj->curses, true);
+			free_curse(player->body.slots[i].obj->curses, true, true);
 			player->body.slots[i].obj->curses = NULL;
 		}
 	}
