@@ -149,11 +149,11 @@ static void do_cmd_wiz_hack_ben(void)
 
 				if (!square_in_bounds_fully(cave, y, x)) continue;
 
-				/* Display proper cost */
-				if (cave->squares[y][x].cost != i) continue;
+				/* Display proper noise */
+				if (cave->squares[y][x].noise != i) continue;
 
 				/* Reliability in yellow */
-				if (cave->squares[y][x].when == cave->squares[py][px].when)
+				if (cave->squares[y][x].scent == cave->squares[py][px].scent)
 					a = COLOUR_YELLOW;
 
 				/* Display player/floors/walls */
@@ -1352,7 +1352,7 @@ static void do_cmd_wiz_cure_all(void)
 	/* Remove curses */
 	for (i = 0; i < player->body.count; i++) {
 		if (player->body.slots[i].obj) {
-			free_curse(player->body.slots[i].obj->curses, true);
+			free_curse(player->body.slots[i].obj->curses, true, true);
 			player->body.slots[i].obj->curses = NULL;
 		}
 	}
