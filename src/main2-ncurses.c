@@ -871,8 +871,8 @@ static void init_min_colors(void)
 	memcpy(g_attrs[G_ATTR_NORMAL], attrs, sizeof(attrs));
 
 	for (size_t i = 0; i < N_ELEMENTS(attrs); i++) {
-		g_attrs[G_ATTR_HYBRID][i] = attrs[i] | A_REVERSE | A_DIM;
-		g_attrs[G_ATTR_SOLID][i]  = attrs[i] | A_REVERSE | A_INVIS;
+		g_attrs[G_ATTR_HYBRID][i] = attrs[i] | A_REVERSE;
+		g_attrs[G_ATTR_SOLID][i] = attrs[i] | A_REVERSE | A_INVIS;
 	}
 }
 
