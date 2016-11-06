@@ -21,9 +21,6 @@
 #include "ui2-display.h"
 #include "ui2-output.h"
 
-#define MIN_COLORS      8
-#define MIN_COLOR_PAIRS 8
-
 #define DONT_USE_TABS (-1)
 
 #define HALFDELAY_PERIOD 2
@@ -108,6 +105,20 @@ static int g_attrs[3][BASIC_COLORS];
 #define G_ATTR_INDEX(foreground, background) \
 	((background) == (foreground) ? G_ATTR_SOLID : \
 	 (background) == COLOUR_SHADE ? G_ATTR_HYBRID : G_ATTR_NORMAL)
+
+/* We don't want to change definitions of 16 basic colors,
+ * so we redefine colors only if there is enough of them */
+#define MIN_EXTENDED_COLORS      (16 + BASIC_COLORS)
+#define MIN_EXTENDED_COLOR_PAIRS (16 + BASIC_COLORS)
+
+/* We need this many colors and pairs to use all parts of g_attrs[] */
+#define MAX_EXTENDED_COLORS      (16 + BASIC_COLORS * 3)
+#define MAX_EXTENDED_COLOR_PAIRS (16 + BASIC_COLORS * 3)
+
+/* If there are not enough colors,
+ * use the bare minimum of them */
+#define MIN_COLORS      8
+#define MIN_COLOR_PAIRS 8
 
 /* Brief module description */
 const char help_ncurses[] = "Ncurses (widestring) frontend";
@@ -784,8 +795,8 @@ static void init_max_colors(void)
 
 #undef SCALE_COLOR
 
-	if (COLORS >= BASIC_COLORS * 3 + MIN_COLORS
-			&& COLOR_PAIRS >= BASIC_COLORS * 3 + MIN_COLORS)
+	if (COLORS >= MAX_EXTENDED_COLORS
+			&& COLOR_PAIRS >= MAX_EXTENDED_COLOR_PAIRS)
 	{
 		/* If we have enough colors, initialize
 		 * color pairs for hybrid and solid walls */
@@ -876,8 +887,8 @@ static void init_ncurses_colors(void)
 	use_default_colors();
 
 	if (!can_change_color()
-			|| COLORS < MIN_COLORS + BASIC_COLORS
-			|| COLOR_PAIRS < MIN_COLORS + BASIC_COLORS)
+			|| COLORS < MIN_EXTENDED_COLORS
+			|| COLOR_PAIRS < MIN_EXTENDED_COLOR_PAIRS)
 	{
 		init_min_colors();
 	} else {
