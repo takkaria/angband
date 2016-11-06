@@ -98,12 +98,15 @@ enum color_pairs {
 
 /* Global array of ncurses attributes (color pairs); we need
  * BASIC_COLORS * 3 colors to support hybrid and solid walls */
-static int g_attrs[BASIC_COLORS * 3];
+static int g_attrs[3][BASIC_COLORS];
 
-/* Normal terrain first (first block of BASIC_COLORS in g_attrs[]),
- * then hybrid walls (second block), then solid walls (third block) */
-#define TERRAIN_ATTR_OFFSET(t) \
-	((t) == COLOUR_DARK ? 0 : (t) == COLOUR_SHADE ? BASIC_COLORS : BASIC_COLORS * 2)
+#define G_ATTR_NORMAL 0
+#define G_ATTR_HYBRID 1
+#define G_ATTR_SOLID  2
+
+#define G_ATTR_INDEX(fg, t) \
+	((t) == (fg) ? G_ATTR_SOLID : \
+	 (t) == COLOUR_SHADE ? G_ATTR_HYBRID : G_ATTR_NORMAL)
 
 /* Brief module description */
 const char help_ncurses[] = "Ncurses (widestring) frontend";
@@ -404,7 +407,8 @@ static int draw_points(struct term_data *data,
 	assert(draw < data->fg.len);
 	data->fg.buf[draw] = 0;
 
-	wattrset(data->subwindow, g_attrs[fg_attr + TERRAIN_ATTR_OFFSET(terrain_attr)]);
+	wattrset(data->subwindow,
+			g_attrs[G_ATTR_INDEX(fg_attr, terrain_attr)][fg_attr]);
 	waddnwstr(data->subwindow, data->fg.buf, draw);
 
 	return draw;
@@ -596,7 +600,7 @@ static void term_add_tab(void *user,
 	if (data->tab_offset != DONT_USE_TABS) {
 		const int len = wihout_spaces(&label);
 
-		wattrset(data->window, g_attrs[fg_attr]);
+		wattrset(data->window, g_attrs[G_ATTR_NORMAL][fg_attr]);
 		mvwaddnwstr(data->window, 0, data->tab_offset, label, len);
 
 		data->tab_offset += len + 1;
@@ -757,14 +761,16 @@ static void init_max_colors(void)
 	assert(COLORS      >= BASIC_COLORS);
 	assert(COLOR_PAIRS >= BASIC_COLORS);
 
+	assert(N_ELEMENTS(g_attrs[G_ATTR_NORMAL]) == BASIC_COLORS);
+
 #define SCALE_COLOR(color, channel) \
-	((long) angband_color_table[(color)][(channel)] * 1000L / 256L)
+	((long) angband_color_table[(color)][(channel)] * 1000L / 255L)
 
 	/* color pair zero is special (to ncurses);
 	 * we don't want to call init_pair() on it */
 	init_color(COLORS - 1,
 			SCALE_COLOR(0, 1), SCALE_COLOR(0, 2), SCALE_COLOR(0, 3));
-	g_attrs[0] = COLOR_PAIR(0);
+	g_attrs[G_ATTR_NORMAL][0] = COLOR_PAIR(0);
 
 	/* init colors downwards, so as not to clobber
 	 * existing terminal colors, because ncurses
@@ -772,13 +778,13 @@ static void init_max_colors(void)
 	for (int c = 1, color = COLORS - 2; c < BASIC_COLORS; c++, color--) {
 		init_color(color, SCALE_COLOR(c, 1), SCALE_COLOR(c, 2), SCALE_COLOR(c, 3));
 		init_pair(c, color, -1);
-		g_attrs[c] = COLOR_PAIR(c);
+		g_attrs[G_ATTR_NORMAL][c] = COLOR_PAIR(c);
 	}
 
 #undef SCALE_COLOR
 
-	if (COLORS >= (int) N_ELEMENTS(g_attrs) + MIN_COLORS
-			&& COLOR_PAIRS >= (int) N_ELEMENTS(g_attrs) + MIN_COLORS)
+	if (COLORS >= BASIC_COLORS * 3 + MIN_COLORS
+			&& COLOR_PAIRS >= BASIC_COLORS * 3 + MIN_COLORS)
 	{
 		/* If we have enough colors, initialize
 		 * color pairs for hybrid and solid walls */
@@ -787,7 +793,7 @@ static void init_max_colors(void)
 				c++, color--, pair++)
 		{
 			init_pair(pair, color, COLORS - 1 - COLOUR_SHADE);
-			g_attrs[pair] = COLOR_PAIR(pair);
+			g_attrs[G_ATTR_HYBRID][c] = COLOR_PAIR(pair);
 		}
 
 		for (int c = 0, color = COLORS - 1, pair = BASIC_COLORS * 2;
@@ -795,7 +801,7 @@ static void init_max_colors(void)
 				c++, color--, pair++)
 		{
 			init_pair(pair, color, color);
-			g_attrs[pair] = COLOR_PAIR(pair);
+			g_attrs[G_ATTR_SOLID][c] = COLOR_PAIR(pair);
 		}
 	}
 }
@@ -805,7 +811,6 @@ static void init_min_colors(void)
 	assert(COLORS      >= MIN_COLORS);
 	assert(COLOR_PAIRS >= MIN_COLOR_PAIRS);
 
-	/* Initialize ncurses color pairs */
 	init_pair(PAIR_RED,     COLOR_RED,     COLOR_BLACK);
 	init_pair(PAIR_GREEN,   COLOR_GREEN,   COLOR_BLACK);
 	init_pair(PAIR_YELLOW,  COLOR_YELLOW,  COLOR_BLACK);
@@ -814,35 +819,42 @@ static void init_min_colors(void)
 	init_pair(PAIR_CYAN,    COLOR_CYAN,    COLOR_BLACK);
 	init_pair(PAIR_BLACK,   COLOR_BLACK,   COLOR_BLACK);
 
-	/* Initialize array of ncurses attributes */
-	g_attrs[COLOUR_DARK]        = COLOR_PAIR(PAIR_BLACK);
-	g_attrs[COLOUR_WHITE]       = COLOR_PAIR(PAIR_WHITE)   | A_BOLD;
-	g_attrs[COLOUR_SLATE]       = COLOR_PAIR(PAIR_WHITE);
-	g_attrs[COLOUR_ORANGE]      = COLOR_PAIR(PAIR_YELLOW)  | A_BOLD;
-	g_attrs[COLOUR_RED]         = COLOR_PAIR(PAIR_RED);
-	g_attrs[COLOUR_GREEN]       = COLOR_PAIR(PAIR_GREEN);
-	g_attrs[COLOUR_BLUE]        = COLOR_PAIR(PAIR_BLUE);
-	g_attrs[COLOUR_UMBER]       = COLOR_PAIR(PAIR_YELLOW);
-	g_attrs[COLOUR_L_DARK]      = COLOR_PAIR(PAIR_BLACK)   | A_BOLD;
-	g_attrs[COLOUR_L_WHITE]     = COLOR_PAIR(PAIR_WHITE);
-	g_attrs[COLOUR_L_PURPLE]    = COLOR_PAIR(PAIR_MAGENTA);
-	g_attrs[COLOUR_YELLOW]      = COLOR_PAIR(PAIR_YELLOW)  | A_BOLD;
-	g_attrs[COLOUR_L_RED]       = COLOR_PAIR(PAIR_MAGENTA) | A_BOLD;
-	g_attrs[COLOUR_L_GREEN]     = COLOR_PAIR(PAIR_GREEN)   | A_BOLD;
-	g_attrs[COLOUR_L_BLUE]      = COLOR_PAIR(PAIR_BLUE)    | A_BOLD;
-	g_attrs[COLOUR_L_UMBER]     = COLOR_PAIR(PAIR_YELLOW);
-	g_attrs[COLOUR_PURPLE]      = COLOR_PAIR(PAIR_MAGENTA);
-	g_attrs[COLOUR_VIOLET]      = COLOR_PAIR(PAIR_MAGENTA);
-	g_attrs[COLOUR_TEAL]        = COLOR_PAIR(PAIR_CYAN);
-	g_attrs[COLOUR_MUD]         = COLOR_PAIR(PAIR_YELLOW);
-	g_attrs[COLOUR_L_YELLOW]    = COLOR_PAIR(PAIR_YELLOW)  | A_BOLD;
-	g_attrs[COLOUR_MAGENTA]     = COLOR_PAIR(PAIR_MAGENTA) | A_BOLD;
-	g_attrs[COLOUR_L_TEAL]      = COLOR_PAIR(PAIR_CYAN)    | A_BOLD;
-	g_attrs[COLOUR_L_VIOLET]    = COLOR_PAIR(PAIR_MAGENTA) | A_BOLD;
-	g_attrs[COLOUR_L_PINK]      = COLOR_PAIR(PAIR_MAGENTA) | A_BOLD;
-	g_attrs[COLOUR_MUSTARD]     = COLOR_PAIR(PAIR_YELLOW);
-	g_attrs[COLOUR_BLUE_SLATE]  = COLOR_PAIR(PAIR_BLUE);
-	g_attrs[COLOUR_DEEP_L_BLUE] = COLOR_PAIR(PAIR_BLUE);
+	int attrs[BASIC_COLORS] = {
+		[COLOUR_DARK]        = COLOR_PAIR(PAIR_BLACK),
+		[COLOUR_WHITE]       = COLOR_PAIR(PAIR_WHITE)   | A_BOLD,
+		[COLOUR_SLATE]       = COLOR_PAIR(PAIR_WHITE),
+		[COLOUR_ORANGE]      = COLOR_PAIR(PAIR_YELLOW)  | A_BOLD,
+		[COLOUR_RED]         = COLOR_PAIR(PAIR_RED),
+		[COLOUR_GREEN]       = COLOR_PAIR(PAIR_GREEN),
+		[COLOUR_BLUE]        = COLOR_PAIR(PAIR_BLUE),
+		[COLOUR_UMBER]       = COLOR_PAIR(PAIR_YELLOW),
+		[COLOUR_L_DARK]      = COLOR_PAIR(PAIR_BLACK)   | A_BOLD,
+		[COLOUR_L_WHITE]     = COLOR_PAIR(PAIR_WHITE),
+		[COLOUR_L_PURPLE]    = COLOR_PAIR(PAIR_MAGENTA),
+		[COLOUR_YELLOW]      = COLOR_PAIR(PAIR_YELLOW)  | A_BOLD,
+		[COLOUR_L_RED]       = COLOR_PAIR(PAIR_MAGENTA) | A_BOLD,
+		[COLOUR_L_GREEN]     = COLOR_PAIR(PAIR_GREEN)   | A_BOLD,
+		[COLOUR_L_BLUE]      = COLOR_PAIR(PAIR_BLUE)    | A_BOLD,
+		[COLOUR_L_UMBER]     = COLOR_PAIR(PAIR_YELLOW),
+		[COLOUR_PURPLE]      = COLOR_PAIR(PAIR_MAGENTA),
+		[COLOUR_VIOLET]      = COLOR_PAIR(PAIR_MAGENTA),
+		[COLOUR_TEAL]        = COLOR_PAIR(PAIR_CYAN),
+		[COLOUR_MUD]         = COLOR_PAIR(PAIR_YELLOW),
+		[COLOUR_L_YELLOW]    = COLOR_PAIR(PAIR_YELLOW)  | A_BOLD,
+		[COLOUR_MAGENTA]     = COLOR_PAIR(PAIR_MAGENTA) | A_BOLD,
+		[COLOUR_L_TEAL]      = COLOR_PAIR(PAIR_CYAN)    | A_BOLD,
+		[COLOUR_L_VIOLET]    = COLOR_PAIR(PAIR_MAGENTA) | A_BOLD,
+		[COLOUR_L_PINK]      = COLOR_PAIR(PAIR_MAGENTA) | A_BOLD,
+		[COLOUR_MUSTARD]     = COLOR_PAIR(PAIR_YELLOW),
+		[COLOUR_BLUE_SLATE]  = COLOR_PAIR(PAIR_BLUE),
+		[COLOUR_DEEP_L_BLUE] = COLOR_PAIR(PAIR_BLUE),
+	};
+
+	assert(sizeof(g_attrs[G_ATTR_NORMAL]) == sizeof(attrs));
+
+	memcpy(g_attrs[G_ATTR_NORMAL], attrs, sizeof(attrs));
+	memcpy(g_attrs[G_ATTR_HYBRID], attrs, sizeof(attrs));
+	memcpy(g_attrs[G_ATTR_SOLID],  attrs, sizeof(attrs));
 }
 
 static void init_ncurses_colors(void)
