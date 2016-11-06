@@ -562,27 +562,23 @@ static void term_erase(void *user)
 	werase(data->subwindow);
 }
 
-/* Strip label of preceding spaces, and return
+/* Strip label of initial spaces, and return
  * length without spaces at the end (if any) */
 static int wihout_spaces(const wchar_t **label)
 {
 	const wchar_t *l = *label;
 
-	/* strip spaces at
-	 * the beginning */
 	while (*l == L' ') {
 		l++;
 	}
 	*label = l;
 
-	/* count the rest */
 	int len = 0;
 	while (*l) {
 		l++;
 		len++;
 	}
 
-	/* count spaces at the end */
 	for (l--; len > 0 && *l == L' '; l--) {
 		len--;
 	}
