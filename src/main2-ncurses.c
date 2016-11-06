@@ -807,11 +807,6 @@ static void init_max_colors(void)
 		init_pair(pair, COLORS - 1 - c, COLORS - 1 - c);
 		g_attrs[G_ATTR_SOLID][c] = COLOR_PAIR(pair);
 	}
-
-	assert(pair ==
-			(int) N_ELEMENTS(g_attrs[G_ATTR_NORMAL]) +
-			(int) N_ELEMENTS(g_attrs[G_ATTR_HYBRID]) +
-			(int) N_ELEMENTS(g_attrs[G_ATTR_SOLID]));
 }
 
 static void init_min_colors(void)
