@@ -1022,7 +1022,7 @@ static struct term_data *get_perm_data(enum display_term_index i)
 	return &g_perm_data[i];
 }
 
-static void redraw_terms()
+static void redraw_terms(void)
 {
 	if (g_update) {
 		touch_win(g_perm_data, N_ELEMENTS(g_perm_data));
