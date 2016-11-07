@@ -155,7 +155,7 @@ static const struct term_callbacks default_callbacks = {
 };
 
 #define BLANK_CHAR    L' '
-#define BLANK_ATTR    COLOUR_WHITE
+#define BLANK_ATTR    COLOUR_SLATE
 #define BLANK_TERRAIN COLOUR_DARK
 
 static const struct term_point default_blank_point = {
