@@ -472,6 +472,44 @@ static int get_ch(struct term_data *data, bool wait)
 
 	return ch;
 }
+static void define_keys(void)
+{
+	/* Stolen from Dungeon Crawl's source...
+	 * It appears that ncurses redefines some of these
+	 * control strings when keypad() is called on a window;
+	 * so we use these definitions as a fallback for ncurses,
+	 * in case it doesn't have suitable strings in its database.
+	 * Note that some keypad keys are mapped to KC_HOME, KC_END, etc;
+	 * Angband defines keymaps that translate those to movement keys. */
+
+    /* keypad 0 - 9 */
+    define_key("\033Op",  KC_INSERT);
+    define_key("\033Oq",  KC_END);
+    define_key("\033Or", '2');
+    define_key("\033Os",  KC_PGDOWN);
+    define_key("\033Ot", '4');
+    define_key("\033Ou", '5');
+    define_key("\033Ov", '6');
+    define_key("\033Ow",  KC_HOME);
+    define_key("\033Ox", '8');
+    define_key("\033Oy",  KC_PGUP);
+
+    /* non-arrow keypad keys */
+    define_key("\033OM", KC_ENTER);
+    define_key("\033OQ", '/');
+    define_key("\033OR", '*');
+    define_key("\033OS", '-');
+    define_key("\033Oj", '*');
+    define_key("\033Ok", '+');
+    define_key("\033Ol", '+');
+    define_key("\033Om", '.');
+    define_key("\033On", '.');
+    define_key("\033Oo", '-');
+
+    define_key("\033[1~", KC_HOME);
+    define_key("\033[4~", KC_END);
+    define_key("\033[E",  '5');
+}
 
 static keycode_t ch_to_code(int ch)
 {
@@ -487,16 +525,19 @@ static keycode_t ch_to_code(int ch)
 		case KEY_ENTER:     key = KC_ENTER;     break;
 		case '\r':          key = KC_ENTER;     break;
 		case '\t':          key = KC_TAB;       break;
-		case 0x1B:          key = ESCAPE;       break;
+		case 033:           key = ESCAPE;       break;
+
+		case KEY_HOME:      key = KC_HOME;      break;
+		case KEY_END:       key = KC_END;       break;
+		case KEY_PPAGE:     key = KC_PGUP;      break;
+		case KEY_NPAGE:     key = KC_PGDOWN;    break;
 
 		/* Keypad keys */
-		case 0xFC:          key = '0';          break;
-		case 0xFD:          key = '.';          break;
-		case 0xDF:          key = '1';          break;
-		case 0xF5:          key = '3';          break;
-		case 0xE9:          key = '5';          break;
-		case 0xC1:          key = '7';          break;
-		case 0xF4:          key = '9';          break;
+		case KEY_C1:        key = '1';          break;
+		case KEY_C3:        key = '3';          break;
+		case KEY_B2:        key = '5';          break;
+		case KEY_A1:        key = '7';          break;
+		case KEY_A3:        key = '9';          break;
 
 		/* F1 - F12 keys */
 		case KEY_F(1):      key = KC_F1;        break;
@@ -929,6 +970,8 @@ int init_ncurses(int argc, char **argv)
 	cbreak();
 	noecho();
 	nonl();
+
+	define_keys();
 
 	curs_set(0);
 
