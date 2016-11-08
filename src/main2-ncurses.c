@@ -635,19 +635,37 @@ static void calc_perm_window(enum display_term_index index, region *win)
 {
 	memset(win, 0, sizeof(*win));
 
+	const struct term_info *sidebar = get_term_info(DISPLAY_PLAYER_COMPACT);
+	const struct term_info *message_line = get_term_info(DISPLAY_MESSAGE_LINE);
+	const struct term_info *status_line = get_term_info(DISPLAY_STATUS_LINE);
+
 	switch (index) {
 		case DISPLAY_CAVE:
-			win->w = COLS;
-			win->h = LINES - 1;
-			win->x = 0;
-			win->y = 1;
+			win->x = sidebar->def_cols + 1;
+			win->y = message_line->def_rows;
+			win->w = COLS - sidebar->def_cols - 1;
+			win->h = LINES - message_line->def_rows - status_line->def_rows;
 			break;
 
 		case DISPLAY_MESSAGE_LINE:
-			win->w = COLS;
-			win->h = 1;
 			win->x = 0;
 			win->y = 0;
+			win->w = COLS;
+			win->h = message_line->def_rows;
+			break;
+
+		case DISPLAY_PLAYER_COMPACT:
+			win->x = 0;
+			win->y = message_line->def_rows;
+			win->w = sidebar->def_cols + 1;
+			win->h = LINES - message_line->def_rows - status_line->def_rows;
+			break;
+
+		case DISPLAY_STATUS_LINE:
+			win->x = 0;
+			win->y = LINES - status_line->def_rows;
+			win->w = COLS;
+			win->h = status_line->def_rows;
 			break;
 		
 		default:
@@ -717,6 +735,8 @@ static void load_default_terms(void)
 {
 	load_term(DISPLAY_CAVE);
 	load_term(DISPLAY_MESSAGE_LINE);
+	load_term(DISPLAY_PLAYER_COMPACT);
+	load_term(DISPLAY_STATUS_LINE);
 }
 
 static void wipe_term_data(struct term_data *data)
