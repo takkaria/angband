@@ -815,9 +815,9 @@ static void init_min_colors(void)
 	assert(COLOR_PAIRS >= MIN_COLOR_PAIRS);
 
 	/* In some terminals the cursor has the same color as the grid
-	 * under it; if there are problems with cursor, it's useful to
-	 * note that PAIR_BLACK has black background and foreground
-	 * and solid walls have an attribute A_INVIS */
+	 * under it; if there are problems with cursor, notice that
+	 * PAIR_BLACK has black background and foreground, and
+	 * solid walls have an attribute A_INVIS */
 
 	init_pair(PAIR_RED,     COLOR_RED,     COLOR_BLACK);
 	init_pair(PAIR_GREEN,   COLOR_GREEN,   COLOR_BLACK);
