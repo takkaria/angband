@@ -713,7 +713,7 @@ static void load_term(enum display_term_index index)
 	display_term_create(index, &info);
 }
 
-static void load_terms(void)
+static void load_default_terms(void)
 {
 	load_term(DISPLAY_CAVE);
 	load_term(DISPLAY_MESSAGE_LINE);
@@ -913,7 +913,7 @@ int init_ncurses(int argc, char **argv)
 	curs_set(0);
 
 	init_globals();
-	load_terms();
+	load_default_terms();
 
 	quit_aux = quit_hook;
 
