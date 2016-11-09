@@ -300,18 +300,24 @@ static void load_term_data(struct term_data *data,
 	data->loaded = true;
 }
 
-static void region_adjust(region *win, region *sub, const region *bottom)
+static void region_adjust(region *win, region *sub)
 {
+	if (win->x + win->w + 1 > COLS) {
+		win->x = COLS - win->w - 1;
+	}
 	if (win->x < 0) {
 		win->x = 0;
+	}
+	if (win->y + win->h + 1 > LINES) {
+		win->y = LINES - win->h - 1;
 	}
 	if (win->y < 0) {
 		win->y = 0;
 	}
 
-	if (region_in_region(win, bottom)
-			&& win->x > 0 && win->y > 0
-			&& win->w + 2 <= bottom->w && win->h + 2 <= bottom->h)
+	if (win->x > 0 && win->y > 0
+			&& win->x + win->w + 1 <= COLS
+			&& win->y + win->h + 1 <= LINES)
 	{
 		sub->x = 1;
 		sub->y = 1;
@@ -339,28 +345,28 @@ static void region_corner_map(region *win, region *sub)
 	const struct term_data *map = get_perm_data(DISPLAY_CAVE);
 	assert(map->loaded);
 
-	region mapwin;
-	getbegyx(map->window, mapwin.y, mapwin.x);
-	getmaxyx(map->window, mapwin.h, mapwin.w);
+	int mapx;
+	int mapy;
+	getbegyx(map->window, mapy, mapx);
 
-	win->x = mapwin.x + 1;
-	win->y = mapwin.y + 1;
+	win->x = mapx + 1;
+	win->y = mapy + 1;
 
-	region_adjust(win, sub, &mapwin);
+	region_adjust(win, sub);
 }
 
 static void region_exact_top(region *win, region *sub, int x, int y)
 {
 	const struct term_data *top = get_top();
 
-	region topwin;
-	getbegyx(top->window, topwin.y, topwin.x);
-	getmaxyx(top->window, topwin.h, topwin.w);
+	int topx;
+	int topy;
+	getbegyx(top->window, topy, topx);
 
-	win->x = x + topwin.x + 1;
-	win->y = y + topwin.y + 1;
+	win->x = x + topx + 1;
+	win->y = y + topy + 1;
 
-	region_adjust(win, sub, &topwin);
+	region_adjust(win, sub);
 }
 
 static void region_center_top(region *win, region *sub)
@@ -379,7 +385,7 @@ static void region_center_top(region *win, region *sub)
 	win->x = topwin.x + (topwin.w - win->w) / 2;
 	win->y = topwin.y + (topwin.h - win->h) / 2;
 
-	region_adjust(win, sub, &topwin);
+	region_adjust(win, sub);
 }
 
 static void region_big_map(region *win, region *sub)
