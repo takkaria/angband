@@ -510,7 +510,9 @@ static int get_ch(struct term_data *data, bool wait)
 				ch == ERR;
 				ch = wgetch(data->window))
 		{
-			idle_update();
+			if (data->index == DISPLAY_CAVE) {
+				idle_update();
+			}
 		}
 		cbreak();
 	} else {
