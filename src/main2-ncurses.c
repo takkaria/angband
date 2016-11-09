@@ -45,6 +45,8 @@
  * export ANGBAND_TERM_STATUS_LINE=0x23x80x1
  * export ANGBAND_TERM_PLAYER_COMPACT=68x1x12x22
  * angband -mncurses
+ *
+ * Note that it's better to not have overlapping terms.
  */
 
 #ifdef USE_NCURSES
