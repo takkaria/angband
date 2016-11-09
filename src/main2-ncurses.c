@@ -1223,6 +1223,10 @@ static void read_env_term_regions(void)
 				env_error("in size", "term is too big", info);
 			}
 
+			if (reg.w < info->min_cols || reg.h < info->min_rows) {
+				env_error("in size", "term is too small", info);
+			}
+
 			if (!region_in_region(&reg, &scr)) {
 				env_error("in size or coordinates", "term is offscreen", info);
 			}
