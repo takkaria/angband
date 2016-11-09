@@ -181,6 +181,7 @@ static struct term_data *get_perm_data(enum display_term_index i);
 static const struct term_info *get_term_info(enum display_term_index i);
 static void calc_default_term_regions(void);
 static const region *get_term_region(enum display_term_index i);
+static void get_out(const char *fmt, ...);
 
 /* Functions */
 
@@ -695,7 +696,7 @@ static void calc_perm_window(enum display_term_index index, region *win)
 	const struct term_info *info = get_term_info(index);
 
 	if (reg->w < info->min_cols || reg->h < info->min_rows) {
-		quit_fmt("Screen size for term '%s'" /* concat */
+		get_out("Screen size for term '%s'" /* concat */
 				" is too small (need %dx%d, got %dx%d)",
 				info->name, info->min_cols, info->min_rows, reg->w, reg->h);
 	}
@@ -910,11 +911,11 @@ static void init_min_colors(void)
 static void init_ncurses_colors(void)
 {
 	if (start_color() == ERR) {
-		quit_fmt("Can't initialize color");
+		get_out("Can't initialize color");
 	}
 
 	if (!has_colors()) {
-		quit_fmt("Can't start without color");
+		get_out("Can't start without color");
 	}
 
 	use_default_colors();
@@ -929,13 +930,31 @@ static void init_ncurses_colors(void)
 	}
 }
 
+static void handle_quit(void)
+{
+	Term_pop_all();
+	free_terms();
+	endwin();
+}
+
+static void get_out(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	char *msg = vformat(fmt, ap);
+	va_end(ap);
+
+	handle_quit();
+	quit_aux = NULL;
+	quit(msg);
+}
+
 static void quit_hook(const char *s)
 {
 	(void) s;
 
-	Term_pop_all();
-	free_terms();
-	endwin();
+	handle_quit();
 }
 
 int init_ncurses(int argc, char **argv)
@@ -1104,7 +1123,7 @@ static void calc_default_term_regions(void)
 	if (LINES < ANGBAND_TERM_STANDARD_HEIGHT
 			|| COLS < ANGBAND_TERM_STANDARD_WIDTH)
 	{
-		quit_fmt("Angband needs at least %dx%d screen",
+		get_out("Angband needs at least %dx%d screen",
 				ANGBAND_TERM_STANDARD_WIDTH, ANGBAND_TERM_STANDARD_HEIGHT);
 	}
 
