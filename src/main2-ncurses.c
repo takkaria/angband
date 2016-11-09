@@ -1211,7 +1211,7 @@ static void redraw_terms(void)
 
 /* Areas of permanent terms on the screen;
  * initialized by calc_default_term_regions()
- * and environment variables defined by the user (not implemented yet) */
+ * and environment variables defined by the user */
 static region g_term_regions[DISPLAY_MAX];
 
 static const region *get_term_region(enum display_term_index i)
