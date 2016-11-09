@@ -525,10 +525,32 @@ static int get_ch(struct term_data *data, bool wait)
 
 	return ch;
 }
+
+#define N_KEY_Z 0xE001
+#define N_KEY_1 0xE002
+#define N_KEY_2 0xE003
+#define N_KEY_3 0xE004
+#define N_KEY_4 0xE005
+#define N_KEY_5 0xE006
+#define N_KEY_6 0xE007
+#define N_KEY_7 0xE008
+#define N_KEY_8 0xE009
+#define N_KEY_9 0xE00A
+
+#define N_KEY_SHIFT_Z 0xE00B
+#define N_KEY_SHIFT_1 0xE00C
+#define N_KEY_SHIFT_2 0xE00D
+#define N_KEY_SHIFT_3 0xE00E
+#define N_KEY_SHIFT_4 0xE00F
+#define N_KEY_SHIFT_5 0xE010
+#define N_KEY_SHIFT_6 0xE011
+#define N_KEY_SHIFT_7 0xE012
+#define N_KEY_SHIFT_8 0xE013
+#define N_KEY_SHIFT_9 0xE014
+
 static void define_keys(void)
 {
-	/* Stolen from Dungeon Crawl's source...
-	 * It appears that ncurses redefines some of these
+	/* It appears that ncurses redefines some of these
 	 * control strings when keypad() is called on a window;
 	 * so we use these definitions as a fallback for ncurses,
 	 * in case it doesn't have suitable strings in its database.
@@ -536,16 +558,28 @@ static void define_keys(void)
 	 * Angband defines keymaps that translate those to movement keys. */
 
     /* keypad 0 - 9 */
-    define_key("\033Op",  KC_INSERT);
-    define_key("\033Oq",  KC_END);
-    define_key("\033Or", '2');
-    define_key("\033Os",  KC_PGDOWN);
-    define_key("\033Ot", '4');
-    define_key("\033Ou", '5');
-    define_key("\033Ov", '6');
-    define_key("\033Ow",  KC_HOME);
-    define_key("\033Ox", '8');
-    define_key("\033Oy",  KC_PGUP);
+    define_key("\033Op", N_KEY_Z);
+    define_key("\033Oq", N_KEY_1);
+    define_key("\033Or", N_KEY_2);
+    define_key("\033Os", N_KEY_3);
+    define_key("\033Ot", N_KEY_4);
+    define_key("\033Ou", N_KEY_5);
+    define_key("\033Ov", N_KEY_6);
+    define_key("\033Ow", N_KEY_7);
+    define_key("\033Ox", N_KEY_8);
+    define_key("\033Oy", N_KEY_9);
+
+	/* keypad + shift 0 - 9 */
+    define_key("\033O2p", N_KEY_SHIFT_Z);
+    define_key("\033O2q", N_KEY_SHIFT_1);
+    define_key("\033O2r", N_KEY_SHIFT_2);
+    define_key("\033O2s", N_KEY_SHIFT_3);
+    define_key("\033O2t", N_KEY_SHIFT_4);
+    define_key("\033O2u", N_KEY_SHIFT_5);
+    define_key("\033O2v", N_KEY_SHIFT_6);
+    define_key("\033O2w", N_KEY_SHIFT_7);
+    define_key("\033O2x", N_KEY_SHIFT_8);
+    define_key("\033O2y", N_KEY_SHIFT_9);
 
     /* non-arrow keypad keys */
     define_key("\033OM", KC_ENTER);
@@ -564,52 +598,75 @@ static void define_keys(void)
     define_key("\033[E",  '5');
 }
 
-static keycode_t ch_to_code(int ch)
+static void ch_to_code(int ch, keycode_t *key, int *mods)
 {
-	keycode_t key;
+	*key = 0;
+	*mods = 0;
 
 	switch (ch) {
-		case KEY_UP:        key = ARROW_UP;     break;
-		case KEY_DOWN:      key = ARROW_DOWN;   break;
-		case KEY_LEFT:      key = ARROW_LEFT;   break;
-		case KEY_RIGHT:     key = ARROW_RIGHT;  break;
-		case KEY_DC:        key = KC_DELETE;    break;
-		case KEY_BACKSPACE: key = KC_BACKSPACE; break;
-		case KEY_ENTER:     key = KC_ENTER;     break;
-		case '\r':          key = KC_ENTER;     break;
-		case '\t':          key = KC_TAB;       break;
-		case 033:           key = ESCAPE;       break;
-
-		case KEY_HOME:      key = KC_HOME;      break;
-		case KEY_END:       key = KC_END;       break;
-		case KEY_PPAGE:     key = KC_PGUP;      break;
-		case KEY_NPAGE:     key = KC_PGDOWN;    break;
-
-		/* Keypad keys */
-		case KEY_C1:        key = '1';          break;
-		case KEY_C3:        key = '3';          break;
-		case KEY_B2:        key = '5';          break;
-		case KEY_A1:        key = '7';          break;
-		case KEY_A3:        key = '9';          break;
+		case KEY_UP:        *key = ARROW_UP;     break;
+		case KEY_DOWN:      *key = ARROW_DOWN;   break;
+		case KEY_LEFT:      *key = ARROW_LEFT;   break;
+		case KEY_RIGHT:     *key = ARROW_RIGHT;  break;
+		case KEY_DC:        *key = KC_DELETE;    break;
+		case KEY_BACKSPACE: *key = KC_BACKSPACE; break;
+		case KEY_ENTER:     *key = KC_ENTER;     break;
+		case KEY_HOME:      *key = KC_HOME;      break;
+		case KEY_END:       *key = KC_END;       break;
+		case KEY_PPAGE:     *key = KC_PGUP;      break;
+		case KEY_NPAGE:     *key = KC_PGDOWN;    break;
+		case '\r':          *key = KC_ENTER;     break;
+		case '\t':          *key = KC_TAB;       break;
+		case 033:           *key = ESCAPE;       break;
 
 		/* F1 - F12 keys */
-		case KEY_F(1):      key = KC_F1;        break;
-		case KEY_F(2):      key = KC_F2;        break;
-		case KEY_F(3):      key = KC_F3;        break;
-		case KEY_F(4):      key = KC_F4;        break;
-		case KEY_F(5):      key = KC_F5;        break;
-		case KEY_F(6):      key = KC_F6;        break;
-		case KEY_F(7):      key = KC_F7;        break;
-		case KEY_F(8):      key = KC_F8;        break;
-		case KEY_F(9):      key = KC_F9;        break;
-		case KEY_F(10):     key = KC_F10;       break;
-		case KEY_F(11):     key = KC_F11;       break;
-		case KEY_F(12):     key = KC_F12;       break;
+		case KEY_F(1):  *key = KC_F1;  break;
+		case KEY_F(2):  *key = KC_F2;  break;
+		case KEY_F(3):  *key = KC_F3;  break;
+		case KEY_F(4):  *key = KC_F4;  break;
+		case KEY_F(5):  *key = KC_F5;  break;
+		case KEY_F(6):  *key = KC_F6;  break;
+		case KEY_F(7):  *key = KC_F7;  break;
+		case KEY_F(8):  *key = KC_F8;  break;
+		case KEY_F(9):  *key = KC_F9;  break;
+		case KEY_F(10): *key = KC_F10; break;
+		case KEY_F(11): *key = KC_F11; break;
+		case KEY_F(12): *key = KC_F12; break;
 
-		default:            key = ch;           break;
+		/* Numpad keys */
+		case N_KEY_Z: *key = '0'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_1: *key = '1'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_2: *key = '2'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_3: *key = '3'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_4: *key = '4'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_5: *key = '5'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_6: *key = '6'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_7: *key = '7'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_8: *key = '8'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_9: *key = '9'; *mods |= KC_MOD_KEYPAD; break;
+
+		case KEY_C1:  *key = '1'; *mods |= KC_MOD_KEYPAD; break;
+		case KEY_C3:  *key = '3'; *mods |= KC_MOD_KEYPAD; break;
+		case KEY_B2:  *key = '5'; *mods |= KC_MOD_KEYPAD; break;
+		case KEY_A1:  *key = '7'; *mods |= KC_MOD_KEYPAD; break;
+		case KEY_A3:  *key = '9'; *mods |= KC_MOD_KEYPAD; break;
+
+		/* Shift + numpad keys */
+#define N_KEY_MOD_SHIFT (KC_MOD_SHIFT | KC_MOD_KEYPAD)
+		case N_KEY_SHIFT_Z: *key = '0'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_1: *key = '1'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_2: *key = '2'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_3: *key = '3'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_4: *key = '4'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_5: *key = '5'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_6: *key = '6'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_7: *key = '7'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_8: *key = '8'; *mods |= N_KEY_MOD_SHIFT; break;
+		case N_KEY_SHIFT_9: *key = '9'; *mods |= N_KEY_MOD_SHIFT; break;
+#undef N_KEY_MOD_SHIFT
+
+		default: *key = ch; break;
 	}
-
-	return key;
 }
 
 static void term_event(void *user, bool wait)
@@ -619,7 +676,11 @@ static void term_event(void *user, bool wait)
 	int ch = get_ch(data, wait);
 
 	if (ch != ERR && ch != EOF) {
-		Term_keypress(ch_to_code(ch), 0);
+		int mods;
+		keycode_t key;
+		ch_to_code(ch, &key, &mods);
+
+		Term_keypress(key, mods);
 	}
 }
 
