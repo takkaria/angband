@@ -1120,11 +1120,12 @@ static const region *get_term_region(enum display_term_index i)
 
 static void calc_default_term_regions(void)
 {
-	if (LINES < ANGBAND_TERM_STANDARD_HEIGHT
-			|| COLS < ANGBAND_TERM_STANDARD_WIDTH)
+	if (COLS < ANGBAND_TERM_STANDARD_WIDTH
+			|| LINES < ANGBAND_TERM_STANDARD_HEIGHT)
 	{
-		get_out("Angband needs at least %dx%d screen",
-				ANGBAND_TERM_STANDARD_WIDTH, ANGBAND_TERM_STANDARD_HEIGHT);
+		get_out("Angband needs at least %dx%d screen (you have %dx%d)",
+				ANGBAND_TERM_STANDARD_WIDTH, ANGBAND_TERM_STANDARD_HEIGHT,
+				COLS, LINES);
 	}
 
 	const struct term_info *sidebar      = get_term_info(DISPLAY_PLAYER_COMPACT);
