@@ -14,6 +14,39 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 
+/**
+ * You can define environment variables to make this frontend
+ * display additional terms and control their sizes and positions.
+ * The terms are listed in list-display-terms.h. You can get the names
+ * of environment variables by appending "ANGBAND_TERM_" to term's names.
+ * For example, the term that displays a list of visible/detected monsters:
+ *
+ * DISPLAY(MONLIST, "Monster list", 12, 3, 24, 12, INT_MAX, INT_MAX, false)
+ *
+ * MONLIST is the term's name; 12 and 3 are the minimum width and height.
+ * So, you can define the following environment variable in your shell:
+ *
+ * export ANGBAND_TERM_MONLIST=0x0x12x3
+ *
+ * And this term will appear in the top left corner of your screen.
+ * The general format of the variable is:
+ *
+ * ANGBAND_TERM_[NAME]=[LEFT]x[TOP]x[WIDTH]x[HEIGHT]
+ *
+ * Note that you can make terms bigger than the minimum size,
+ * but don't make them smaller than that! They also
+ * shouldn't be off screen (not even partially!)
+ * It's a good idea to write a shell script that starts the game,
+ * something like the following (assuming 80x24 screen):
+ *
+ * #!/usr/bin/env sh
+ * export ANGBAND_TERM_CAVE=0x1x67x22
+ * export ANGBAND_TERM_MESSAGE_LINE=0x0x80x1
+ * export ANGBAND_TERM_STATUS_LINE=0x23x80x1
+ * export ANGBAND_TERM_PLAYER_COMPACT=68x1x12x22
+ * angband -mncurses
+ */
+
 #ifdef USE_NCURSES
 
 #include "main.h"
@@ -71,6 +104,7 @@ struct term_data {
 struct term_info {
 	enum display_term_index index;
 	const char *name;
+	const char *env_name;
 	int min_cols;
 	int min_rows;
 	int def_cols;
@@ -180,6 +214,7 @@ static struct term_data *get_stack_top(void);
 static struct term_data *get_perm_data(enum display_term_index i);
 static const struct term_info *get_term_info(enum display_term_index i);
 static void calc_default_term_regions(void);
+static void read_env_term_regions(void);
 static const region *get_term_region(enum display_term_index i);
 static void get_out(const char *fmt, ...);
 
@@ -1004,6 +1039,7 @@ static struct term_info g_term_info[] = {
 		{ \
 			.index    = DISPLAY_ ##i, \
 			.name     = (desc), \
+			.env_name = "ANGBAND_TERM_" #i, \
 			.min_cols = (minc), \
 			.min_rows = (minr), \
 			.def_cols = (defc), \
@@ -1030,6 +1066,7 @@ static void init_globals(void)
 	}
 
 	calc_default_term_regions();
+	read_env_term_regions();
 	init_ncurses_colors();
 }
 
@@ -1092,6 +1129,8 @@ static struct term_data *get_perm_data(enum display_term_index i)
 static void redraw_terms(void)
 {
 	if (g_update) {
+		erase();
+		refresh();
 		touch_win(g_perm_data, N_ELEMENTS(g_perm_data));
 		touch_win(g_temp_data.stack, g_temp_data.top);
 	}
@@ -1153,6 +1192,42 @@ static void calc_default_term_regions(void)
 	g_term_regions[DISPLAY_STATUS_LINE].y = LINES - status_line->def_rows;
 	g_term_regions[DISPLAY_STATUS_LINE].w = COLS;
 	g_term_regions[DISPLAY_STATUS_LINE].h = status_line->def_rows;
+}
+
+static void env_error(const char *error, const char *hint,
+		const struct term_info *info)
+{
+	get_out("Error %s: %s\n(term \"%s\", variable %s)",
+			error, hint, info->name, info->env_name);
+}
+
+static void read_env_term_regions(void)
+{
+	const region scr = {0, 0, COLS, LINES};
+
+	for (unsigned i = 0; i < DISPLAY_MAX; i++) {
+
+		const struct term_info *info = get_term_info(i);
+		const char *size = getenv(info->env_name);
+
+		if (size != NULL) {
+			region reg = {0};
+
+			if (sscanf(size, "%dx%dx%dx%d", &reg.x, &reg.y, &reg.w, &reg.h) != 4) {
+				env_error("reading variable", size, info);
+			}
+
+			if (reg.w > COLS || reg.h > LINES) {
+				env_error("in size", "term is too big", info);
+			}
+
+			if (!region_in_region(&reg, &scr)) {
+				env_error("in size or coordinates", "term is offscreen", info);
+			}
+
+			g_term_regions[info->index] = reg;
+		}
+	}
 }
 
 #endif /* USE_NCURSES */
