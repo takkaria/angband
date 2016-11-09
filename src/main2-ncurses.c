@@ -344,27 +344,38 @@ static void region_center_top(region *win, region *sub)
 	region_adjust(win, sub, &topwin);
 }
 
+static void region_big_map(region *win, region *sub)
+{
+	win->w = COLS;
+	win->h = LINES;
+	sub->w = COLS;
+	sub->h = LINES;
+}
+
 static void calc_temp_window(const struct term_hints *hints,
 		region *win, region *sub)
 {
 	memset(win, 0, sizeof(*win));
 	memset(sub, 0, sizeof(*sub));
 
-	win->w = hints->width;
-	win->h = hints->height;
+	if (hints->purpose == TERM_PURPOSE_BIG_MAP) {
+		region_big_map(win, sub);
+	} else {
+		win->w = hints->width;
+		win->h = hints->height;
+		switch (hints->position) {
+			case TERM_POSITION_TOP_LEFT:
+				region_corner_map(win, sub);
+				break;
 
-	switch (hints->position) {
-		case TERM_POSITION_TOP_LEFT:
-			region_corner_map(win, sub);
-			break;
+			case TERM_POSITION_EXACT:
+				region_exact_top(win, sub, hints->x, hints->y);
+				break;
 
-		case TERM_POSITION_EXACT:
-			region_exact_top(win, sub, hints->x, hints->y);
-			break;
-
-		default:
-			region_center_top(win, sub);
-			break;
+			default:
+				region_center_top(win, sub);
+				break;
+		}
 	}
 }
 
