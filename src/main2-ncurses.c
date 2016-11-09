@@ -1089,7 +1089,6 @@ static struct term_data *new_stack_data(void)
 	assert(t < N_ELEMENTS(g_temp_data.stack));
 
 	g_temp_data.top++;
-	g_update = true;
 
 	return &g_temp_data.stack[t];
 }
