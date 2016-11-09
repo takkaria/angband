@@ -179,6 +179,8 @@ static struct term_data *get_top();
 static struct term_data *get_stack_top(void);
 static struct term_data *get_perm_data(enum display_term_index i);
 static const struct term_info *get_term_info(enum display_term_index i);
+static void calc_default_term_regions(void);
+static const region *get_term_region(enum display_term_index i);
 
 /* Functions */
 
@@ -674,51 +676,20 @@ static bool term_move(void *user,
 
 static void calc_perm_window(enum display_term_index index, region *win)
 {
-	memset(win, 0, sizeof(*win));
+	const region *reg = get_term_region(index);
 
-	const struct term_info *sidebar = get_term_info(DISPLAY_PLAYER_COMPACT);
-	const struct term_info *message_line = get_term_info(DISPLAY_MESSAGE_LINE);
-	const struct term_info *status_line = get_term_info(DISPLAY_STATUS_LINE);
-
-	switch (index) {
-		case DISPLAY_CAVE:
-			win->x = sidebar->def_cols + 1;
-			win->y = message_line->def_rows;
-			win->w = COLS - sidebar->def_cols - 1;
-			win->h = LINES - message_line->def_rows - status_line->def_rows;
-			break;
-
-		case DISPLAY_MESSAGE_LINE:
-			win->x = 0;
-			win->y = 0;
-			win->w = COLS;
-			win->h = message_line->def_rows;
-			break;
-
-		case DISPLAY_PLAYER_COMPACT:
-			win->x = 0;
-			win->y = message_line->def_rows;
-			win->w = sidebar->def_cols + 1;
-			win->h = LINES - message_line->def_rows - status_line->def_rows;
-			break;
-
-		case DISPLAY_STATUS_LINE:
-			win->x = 0;
-			win->y = LINES - status_line->def_rows;
-			win->w = COLS;
-			win->h = status_line->def_rows;
-			break;
-		
-		default:
-			break;
-	}
+	assert(reg->x >= 0);
+	assert(reg->y >= 0);
 
 	const struct term_info *info = get_term_info(index);
-	if (win->w < info->min_cols || win->h < info->min_rows) {
+
+	if (reg->w < info->min_cols || reg->h < info->min_rows) {
 		quit_fmt("Screen size for term '%s'" /* concat */
 				" is too small (need %dx%d, got %dx%d)",
-				info->name, info->min_cols, info->min_rows, win->w, win->h);
+				info->name, info->min_cols, info->min_rows, reg->w, reg->h);
 	}
+
+	*win = *reg;
 }
 
 static void handle_cursor(bool update)
@@ -772,12 +743,14 @@ static void load_term(enum display_term_index index)
 	display_term_create(index, &info);
 }
 
-static void load_default_terms(void)
+static void load_perm_terms(void)
 {
-	load_term(DISPLAY_CAVE);
-	load_term(DISPLAY_MESSAGE_LINE);
-	load_term(DISPLAY_PLAYER_COMPACT);
-	load_term(DISPLAY_STATUS_LINE);
+	for (unsigned i = 0; i < DISPLAY_MAX; i++) {
+		const region *reg = get_term_region(i);
+		if (reg->w > 0 && reg->h > 0) {
+			load_term(i);
+		}
+	}
 }
 
 static void wipe_term_data(struct term_data *data)
@@ -965,8 +938,6 @@ int init_ncurses(int argc, char **argv)
 		return 1;
 	}
 
-	init_ncurses_colors();
-
 	cbreak();
 	noecho();
 	nonl();
@@ -976,7 +947,7 @@ int init_ncurses(int argc, char **argv)
 	curs_set(0);
 
 	init_globals();
-	load_default_terms();
+	load_perm_terms();
 
 	quit_aux = quit_hook;
 
@@ -1027,6 +998,9 @@ static void init_globals(void)
 		g_temp_data.stack[i].index = DISPLAY_MAX + i;
 		g_temp_data.stack[i].temporary = true;
 	}
+
+	calc_default_term_regions();
+	init_ncurses_colors();
 }
 
 static const struct term_info *get_term_info(enum display_term_index i)
@@ -1099,6 +1073,55 @@ static void redraw_terms(void)
 	doupdate();
 
 	g_update = false;
+}
+
+/* Areas of permanent terms on the screen;
+ * initialized by calc_default_term_regions()
+ * and environment variables defined by the user (not implemented yet) */
+static region g_term_regions[DISPLAY_MAX];
+
+static const region *get_term_region(enum display_term_index i)
+{
+	assert(i >= 0);
+	assert(i < DISPLAY_MAX);
+
+	return &g_term_regions[i];
+}
+
+static void calc_default_term_regions(void)
+{
+	if (LINES < ANGBAND_TERM_STANDARD_HEIGHT
+			|| COLS < ANGBAND_TERM_STANDARD_WIDTH)
+	{
+		quit_fmt("Angband needs at least %dx%d screen",
+				ANGBAND_TERM_STANDARD_WIDTH, ANGBAND_TERM_STANDARD_HEIGHT);
+	}
+
+	const struct term_info *sidebar      = get_term_info(DISPLAY_PLAYER_COMPACT);
+	const struct term_info *message_line = get_term_info(DISPLAY_MESSAGE_LINE);
+	const struct term_info *status_line  = get_term_info(DISPLAY_STATUS_LINE);
+
+	g_term_regions[DISPLAY_CAVE].x = sidebar->def_cols + 1;
+	g_term_regions[DISPLAY_CAVE].y = message_line->def_rows;
+	g_term_regions[DISPLAY_CAVE].w = COLS - sidebar->def_cols - 1;
+	g_term_regions[DISPLAY_CAVE].h =
+		LINES - message_line->def_rows - status_line->def_rows;
+
+	g_term_regions[DISPLAY_PLAYER_COMPACT].x = 0;
+	g_term_regions[DISPLAY_PLAYER_COMPACT].y = message_line->def_rows;
+	g_term_regions[DISPLAY_PLAYER_COMPACT].w = sidebar->def_cols + 1;
+	g_term_regions[DISPLAY_PLAYER_COMPACT].h =
+		LINES - message_line->def_rows - status_line->def_rows;
+
+	g_term_regions[DISPLAY_MESSAGE_LINE].x = 0;
+	g_term_regions[DISPLAY_MESSAGE_LINE].y = 0;
+	g_term_regions[DISPLAY_MESSAGE_LINE].w = COLS;
+	g_term_regions[DISPLAY_MESSAGE_LINE].h = message_line->def_rows;
+
+	g_term_regions[DISPLAY_STATUS_LINE].x = 0;
+	g_term_regions[DISPLAY_STATUS_LINE].y = LINES - status_line->def_rows;
+	g_term_regions[DISPLAY_STATUS_LINE].w = COLS;
+	g_term_regions[DISPLAY_STATUS_LINE].h = status_line->def_rows;
 }
 
 #endif /* USE_NCURSES */
