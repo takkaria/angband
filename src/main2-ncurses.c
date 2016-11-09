@@ -305,14 +305,8 @@ static void region_adjust(region *win, region *sub)
 	if (win->x + win->w + 1 > COLS) {
 		win->x = COLS - win->w - 1;
 	}
-	if (win->x < 0) {
-		win->x = 0;
-	}
 	if (win->y + win->h + 1 > LINES) {
 		win->y = LINES - win->h - 1;
-	}
-	if (win->y < 0) {
-		win->y = 0;
 	}
 
 	if (win->x > 0 && win->y > 0
