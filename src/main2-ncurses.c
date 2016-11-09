@@ -1133,8 +1133,9 @@ static struct term_data *get_perm_data(enum display_term_index i)
 static void redraw_terms(void)
 {
 	if (g_update) {
-		erase();
-		refresh();
+		werase(stdscr);
+		wnoutrefresh(stdscr);
+
 		touch_win(g_perm_data, N_ELEMENTS(g_perm_data));
 		touch_win(g_temp_data.stack, g_temp_data.top);
 	}
