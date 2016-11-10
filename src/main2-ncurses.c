@@ -1298,11 +1298,10 @@ static void read_env_term_regions(void)
 			}
 
 			/* setting width and height to 0 disables the term,
-			 * but main map subwindow must always be displayed */
+			 * but some subwindows must always be displayed */
 
-			if (info->index == DISPLAY_CAVE
-					|| reg.w != 0 || reg.h != 0)
-			{
+			if (info->required || reg.w != 0 || reg.h != 0) {
+
 				if (reg.w > COLS || reg.h > LINES) {
 					env_error("in size", "term is too big", info);
 				}
