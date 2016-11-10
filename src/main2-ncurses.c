@@ -58,7 +58,7 @@
 
 #define DONT_USE_TABS (-1)
 
-#define HALFDELAY_PERIOD 2
+#define IDLE_UPDATE_TIMEOUT 200
 
 /* The main datastructure that holds ncurses window,
  * which corresponds to a certain textui2 term */
@@ -544,7 +544,7 @@ static int get_ch(struct term_data *data, bool wait)
 	int ch;
 
 	if (wait) {
-		halfdelay(HALFDELAY_PERIOD);
+		wtimeout(data->window, IDLE_UPDATE_TIMEOUT);
 		for (ch = wgetch(data->window);
 				ch == ERR;
 				ch = wgetch(data->window))
@@ -553,11 +553,9 @@ static int get_ch(struct term_data *data, bool wait)
 				idle_update();
 			}
 		}
-		cbreak();
 	} else {
-		nodelay(data->window, true);
+		wtimeout(data->window, 0);
 		ch = wgetch(data->window);
-		nodelay(data->window, false);
 	}
 
 	return ch;
@@ -1084,7 +1082,7 @@ int init_ncurses(int argc, char **argv)
 		return 1;
 	}
 
-	cbreak();
+	raw();
 	noecho();
 	nonl();
 
