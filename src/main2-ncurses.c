@@ -321,7 +321,7 @@ static void load_term_data(struct term_data *data,
 			derwin(data->window,
 				sub->h, sub->w, sub->y, sub->x);
 
-		wattrset(data->window, A_DIM);
+		wattrset(data->window, g_attrs[G_ATTR_NORMAL][COLOUR_WHITE]);
 		box(data->window, 0, 0);
 
 		data->tab_offset = sub->x + 1;
