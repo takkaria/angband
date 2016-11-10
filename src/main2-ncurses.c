@@ -610,11 +610,8 @@ static void define_keys(void)
     define_key("\033[E",  N_KEY_5);
 }
 
-static void ch_to_code(int ch, keycode_t *key, int *mods)
+static void ch_to_code(int ch, keycode_t *key, byte *mods)
 {
-	*key = 0;
-	*mods = 0;
-
 	switch (ch) {
 		case KEY_UP:        *key = ARROW_UP;     break;
 		case KEY_DOWN:      *key = ARROW_DOWN;   break;
@@ -697,8 +694,8 @@ static void term_event(void *user, bool wait)
 	int ch = get_ch(data, wait);
 
 	if (ch != ERR && ch != EOF) {
-		int mods;
-		keycode_t key;
+		byte mods = 0;
+		keycode_t key = 0;
 		ch_to_code(ch, &key, &mods);
 
 		Term_keypress(key, mods);
