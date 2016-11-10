@@ -33,9 +33,10 @@
  *
  * ANGBAND_TERM_[NAME]=[LEFT]x[TOP]x[WIDTH]x[HEIGHT]
  *
- * Note that you can make terms bigger than the minimum size,
- * but don't make them smaller than that! They also
- * shouldn't be off screen (not even partially!)
+ * Note that you can make a term bigger than the minimum size, but
+ * don't make it smaller that that, unless you set its size to 0.
+ * If width and height are (both) 0, the term is disabled.
+ * The terms shouldn't be off screen (not even partially!)
  * It's a good idea to write a shell script that starts the game,
  * something like the following (assuming 80x24 screen):
  *
@@ -1296,16 +1297,23 @@ static void read_env_term_regions(void)
 				env_error("reading variable", size, info);
 			}
 
-			if (reg.w > COLS || reg.h > LINES) {
-				env_error("in size", "term is too big", info);
-			}
+			/* setting width and height to 0 disables the term,
+			 * but main map subwindow must always be displayed */
 
-			if (reg.w < info->min_cols || reg.h < info->min_rows) {
-				env_error("in size", "term is too small", info);
-			}
+			if (info->index == DISPLAY_CAVE
+					|| reg.w != 0 || reg.h != 0)
+			{
+				if (reg.w > COLS || reg.h > LINES) {
+					env_error("in size", "term is too big", info);
+				}
 
-			if (!region_in_region(&reg, &scr)) {
-				env_error("in size or coordinates", "term is offscreen", info);
+				if (reg.w < info->min_cols || reg.h < info->min_rows) {
+					env_error("in size", "term is too small", info);
+				}
+
+				if (!region_in_region(&reg, &scr)) {
+					env_error("in size or coordinates", "term is offscreen", info);
+				}
 			}
 
 			g_term_regions[info->index] = reg;
