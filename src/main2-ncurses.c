@@ -468,7 +468,7 @@ static void term_push_new(const struct term_hints *hints,
 {
 	region win;
 	region sub;
-	calc_temp_window(hints, &win, &sub); 
+	calc_temp_window(hints, &win, &sub);
 
 	assert(sub.w > 0);
 	assert(sub.h > 0);
