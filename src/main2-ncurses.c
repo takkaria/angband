@@ -165,15 +165,6 @@ enum color_pairs {
 #define N_KEY_PLUS  (N_KEY_PRIVATE + 25)
 #define N_KEY_DOT   (N_KEY_PRIVATE + 26)
 
-/* Some alternatives for numpad keys */
-#define N_KEY_ALT_1     (N_KEY_PRIVATE + 27)
-#define N_KEY_ALT_5     (N_KEY_PRIVATE + 28)
-#define N_KEY_ALT_7     (N_KEY_PRIVATE + 29)
-#define N_KEY_ALT_STAR  (N_KEY_PRIVATE + 30)
-#define N_KEY_ALT_PLUS  (N_KEY_PRIVATE + 31)
-#define N_KEY_ALT_DOT   (N_KEY_PRIVATE + 32)
-#define N_KEY_ALT_MINUS (N_KEY_PRIVATE + 33)
-
 /* Global array of ncurses attributes (color pairs); we need
  * BASIC_COLORS * 3 colors to support hybrid and solid walls */
 static int g_attrs[3][BASIC_COLORS];
@@ -578,10 +569,10 @@ static void define_keys(void)
 	 * control strings when keypad() is called on a window;
 	 * so we use these definitions as a fallback for ncurses,
 	 * in case it doesn't have suitable strings in its database.
-	 * Note that some keypad keys are mapped to KC_HOME, KC_END, etc;
+	 * Note that some numpad keys are mapped to KC_HOME, KC_END, etc;
 	 * Angband defines keymaps that translate those to movement keys. */
 
-    /* keypad 0 - 9 */
+    /* numpad 0 - 9 */
     define_key("\033Op", N_KEY_Z);
     define_key("\033Oq", N_KEY_1);
     define_key("\033Or", N_KEY_2);
@@ -593,7 +584,7 @@ static void define_keys(void)
     define_key("\033Ox", N_KEY_8);
     define_key("\033Oy", N_KEY_9);
 
-	/* keypad + shift 0 - 9 */
+	/* numpad + shift 0 - 9 */
     define_key("\033O2p", N_KEY_SHIFT_Z);
     define_key("\033O2q", N_KEY_SHIFT_1);
     define_key("\033O2r", N_KEY_SHIFT_2);
@@ -605,21 +596,18 @@ static void define_keys(void)
     define_key("\033O2x", N_KEY_SHIFT_8);
     define_key("\033O2y", N_KEY_SHIFT_9);
 
-    /* non-arrow keypad keys */
+    /* non-arrow numpad keys */
     define_key("\033OM", N_KEY_ENTER);
-    define_key("\033OQ", N_KEY_SLASH);
-    define_key("\033OR", N_KEY_STAR);
-    define_key("\033OS", N_KEY_MINUS);
-    define_key("\033Oj", N_KEY_ALT_STAR);
+    define_key("\033Oj", N_KEY_STAR);
     define_key("\033Ok", N_KEY_PLUS);
-    define_key("\033Ol", N_KEY_ALT_PLUS);
-    define_key("\033Om", N_KEY_DOT);
-    define_key("\033On", N_KEY_ALT_DOT);
-    define_key("\033Oo", N_KEY_ALT_MINUS);
+    define_key("\033Om", N_KEY_MINUS);
+    define_key("\033On", N_KEY_DOT);
+    define_key("\033Oo", N_KEY_SLASH);
 
-    define_key("\033[1~", N_KEY_ALT_7);
-    define_key("\033[4~", N_KEY_ALT_1);
-    define_key("\033[E",  N_KEY_ALT_5);
+	/* some alternatives */
+    define_key("\033[1~", N_KEY_7);
+    define_key("\033[4~", N_KEY_1);
+    define_key("\033[E",  N_KEY_5);
 }
 
 static void ch_to_code(int ch, keycode_t *key, int *mods)
@@ -676,9 +664,6 @@ static void ch_to_code(int ch, keycode_t *key, int *mods)
 		case KEY_A1:  *key = '7'; *mods |= KC_MOD_KEYPAD; break;
 		case KEY_A3:  *key = '9'; *mods |= KC_MOD_KEYPAD; break;
 
-		/* Numpad ENTER key */
-		case N_KEY_ENTER: *key = KC_ENTER; *mods |= KC_MOD_KEYPAD; break;
-
 		/* Shift + numpad keys */
 #define N_KEY_MOD_SHIFT (KC_MOD_SHIFT | KC_MOD_KEYPAD)
 		case N_KEY_SHIFT_Z: *key = '0'; *mods |= N_KEY_MOD_SHIFT; break;
@@ -694,18 +679,12 @@ static void ch_to_code(int ch, keycode_t *key, int *mods)
 #undef N_KEY_MOD_SHIFT
 
 		/* Various numpad keys */
-		case N_KEY_SLASH:     *key = '/'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_STAR:      *key = '*'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_ALT_STAR:  *key = '*'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_MINUS:     *key = '-'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_ALT_MINUS: *key = '-'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_PLUS:      *key = '+'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_ALT_PLUS:  *key = '+'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_DOT:       *key = '.'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_ALT_DOT:   *key = '.'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_ALT_1:     *key = '1'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_ALT_5:     *key = '5'; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_ALT_7:     *key = '7'; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_ENTER:     *key = KC_ENTER; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_SLASH:     *key = '/';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_STAR:      *key = '*';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_MINUS:     *key = '-';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_PLUS:      *key = '+';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_DOT:       *key = '.';      *mods |= KC_MOD_KEYPAD; break;
 
 		default: *key = ch; break;
 	}
