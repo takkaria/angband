@@ -1052,23 +1052,21 @@ static void init_min_colors(void)
 
 static void init_ncurses_colors(void)
 {
-	if (start_color() == ERR) {
-		get_out("Can't initialize color");
-	}
+	if (has_colors()) {
+		if (start_color() == ERR) {
+			get_out("Can't initialize color");
+		}
 
-	if (!has_colors()) {
-		get_out("Can't start without color");
-	}
+		use_default_colors();
 
-	use_default_colors();
-
-	if (!can_change_color()
-			|| COLORS < MIN_EXTENDED_COLORS
-			|| COLOR_PAIRS < MIN_EXTENDED_COLOR_PAIRS)
-	{
-		init_min_colors();
-	} else {
-		init_max_colors();
+		if (!can_change_color()
+				|| COLORS < MIN_EXTENDED_COLORS
+				|| COLOR_PAIRS < MIN_EXTENDED_COLOR_PAIRS)
+		{
+			init_min_colors();
+		} else {
+			init_max_colors();
+		}
 	}
 }
 
