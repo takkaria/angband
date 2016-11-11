@@ -682,6 +682,9 @@ static void ch_to_code(int ch, keycode_t *key, byte *mods)
 		case N_KEY_PLUS:  *key = '+';      *mods |= KC_MOD_KEYPAD; break;
 		case N_KEY_DOT:   *key = '.';      *mods |= KC_MOD_KEYPAD; break;
 
+		/* Ncurses events */
+		case KEY_MOUSE: case KEY_RESIZE: /* ignore */ break;
+
 		default: *key = ch; break;
 	}
 }
