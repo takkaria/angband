@@ -675,12 +675,12 @@ static void ch_to_code(int ch, keycode_t *key, byte *mods)
 #undef N_KEY_MOD_SHIFT
 
 		/* Various numpad keys */
-		case N_KEY_ENTER:     *key = KC_ENTER; *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_SLASH:     *key = '/';      *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_STAR:      *key = '*';      *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_MINUS:     *key = '-';      *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_PLUS:      *key = '+';      *mods |= KC_MOD_KEYPAD; break;
-		case N_KEY_DOT:       *key = '.';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_ENTER: *key = KC_ENTER; *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_SLASH: *key = '/';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_STAR:  *key = '*';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_MINUS: *key = '-';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_PLUS:  *key = '+';      *mods |= KC_MOD_KEYPAD; break;
+		case N_KEY_DOT:   *key = '.';      *mods |= KC_MOD_KEYPAD; break;
 
 		default: *key = ch; break;
 	}
