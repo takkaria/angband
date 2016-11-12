@@ -108,4 +108,4 @@ install: ../$(EXE)
 
 # Clean up old junk
 clean:
-	-rm -f $(OBJS) ../$(EXE)
+	-rm -f $(OBJS) ./$(EXE) ../$(EXE)
