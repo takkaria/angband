@@ -245,7 +245,8 @@ static const struct term_point default_blank_point = {
 
 static void init_globals(void);
 static void make_fg_buf(struct term_data *data);
-static void redraw_terms();
+static void redraw_terms(void);
+static void force_redraw(void);
 static void free_term_data(struct term_data *data);
 static struct term_data *new_stack_data(void);
 static void free_stack_data(struct term_data *data);
@@ -683,7 +684,8 @@ static void ch_to_code(int ch, keycode_t *key, byte *mods)
 		case N_KEY_DOT:   *key = '.';      *mods |= KC_MOD_KEYPAD; break;
 
 		/* Ncurses events */
-		case KEY_MOUSE: case KEY_RESIZE: /* ignore */ break;
+		case KEY_MOUSE:  /* ignore */;   break;
+		case KEY_RESIZE: force_redraw(); break;
 
 		default: *key = ch; break;
 	}
@@ -1206,6 +1208,11 @@ static struct term_data *get_perm_data(enum display_term_index i)
 	assert(g_perm_data[i].index == i);
 
 	return &g_perm_data[i];
+}
+
+static void force_redraw(void)
+{
+	g_update = true;
 }
 
 static void redraw_terms(void)
