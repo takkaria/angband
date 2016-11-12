@@ -3856,30 +3856,31 @@ static void handle_quit(void)
 	quit(NULL);
 }
 
-static bool get_event(struct window *window)
+static bool get_event(struct window *window, int timeout)
 {
 	SDL_Event event;
-	if (!SDL_PollEvent(&event)) {
-		return false;
-	}
 
-	switch (event.type) {
-		case SDL_KEYDOWN:
-			return handle_keydown(window, &event.key);
-		case SDL_TEXTINPUT:
-			return handle_text_input(window, &event.text);
-		case SDL_MOUSEMOTION:
-			return handle_mousemotion(&event.motion);
-		case SDL_MOUSEBUTTONDOWN:
-			return handle_mousebuttondown(&event.button);
-		case SDL_WINDOWEVENT:
-			handle_windowevent(&event.window);
-			return false;
-		case SDL_QUIT:
-			handle_quit();
-			return false;
-		default:
-			return false;
+	if (SDL_WaitEventTimeout(&event, timeout)) {
+		switch (event.type) {
+			case SDL_KEYDOWN:
+				return handle_keydown(window, &event.key);
+			case SDL_TEXTINPUT:
+				return handle_text_input(window, &event.text);
+			case SDL_MOUSEMOTION:
+				return handle_mousemotion(&event.motion);
+			case SDL_MOUSEBUTTONDOWN:
+				return handle_mousebuttondown(&event.button);
+			case SDL_WINDOWEVENT:
+				handle_windowevent(&event.window);
+				return false;
+			case SDL_QUIT:
+				handle_quit();
+				return false;
+			default:
+				return false;
+		}
+	} else {
+		return false;
 	}
 }
 
@@ -3893,13 +3894,12 @@ static void term_event(void *user, bool wait)
 {
 	struct subwindow *subwindow = user;
 
-	if (!get_event(subwindow->window) && wait) {
+	if (!get_event(subwindow->window, 0) && wait) {
 		while (true) {
 			for (int i = 0; i < DEFAULT_IDLE_UPDATE_PERIOD; i++) {
-				if (get_event(subwindow->window)) {
+				if (get_event(subwindow->window, subwindow->window->delay)) {
 					return;
 				}
-				SDL_Delay(subwindow->window->delay);
 			}
 			idle_update();
 		}
