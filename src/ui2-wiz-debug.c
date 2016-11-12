@@ -638,18 +638,21 @@ static bool wiz_create_item_action(struct menu *menu,
 	}
 
 	int choice[60];
+	/* Reserve space for WIZ_CREATE_ALL_MENU_ITEM and tval */
+	int n_choices = N_ELEMENTS(choice) - 2;
+
 	int count = 0;
 	/* Artifacts */
 	if (choose_artifact) {
 		/* We have to search the whole artifact list. */
-		for (int a = 1; count < (int) N_ELEMENTS(choice) && a < z_info->a_max; a++) {
+		for (int a = 1; count < n_choices && a < z_info->a_max; a++) {
 			if (a_info[a].tval == index) {
 				choice[count++] = a;
 			}
 		}
 	} else {
 		/* Regular objects */
-		for (int k = 1; count < (int) N_ELEMENTS(choice) && k < z_info->k_max; k++) {
+		for (int k = 1; count < n_choices && k < z_info->k_max; k++) {
 			if (k_info[k].tval == index
 					&& !kf_has(k_info[k].kind_flags, KF_INSTA_ART))
 			{
