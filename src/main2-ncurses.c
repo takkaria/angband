@@ -1091,10 +1091,9 @@ int init_ncurses(int argc, char **argv)
 	raw();
 	noecho();
 	nonl();
-
 	define_keys();
-
 	curs_set(0);
+	refresh();
 
 	init_globals();
 	load_perm_terms();
