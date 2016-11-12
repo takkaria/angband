@@ -184,9 +184,7 @@ ui_event inkey_full(bool instant, bool wait, int scans)
 		return event;
 	}
 	
-	if (!Term_check_event(NULL)) {
-		Term_redraw_screen(0);
-	}
+	Term_redraw_screen(0);
 
 	if (wait) {
 		Term_wait_event(&event);
