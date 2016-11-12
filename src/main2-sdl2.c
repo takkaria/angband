@@ -3895,14 +3895,16 @@ static void term_event(void *user, bool wait)
 	struct subwindow *subwindow = user;
 
 	if (!get_event(subwindow->window, 0) && wait) {
-		while (true) {
-			for (int i = 0; i < DEFAULT_IDLE_UPDATE_PERIOD; i++) {
-				if (get_event(subwindow->window, subwindow->window->delay)) {
-					return;
-				}
+		const int timeout =
+			DEFAULT_IDLE_UPDATE_PERIOD * subwindow->window->delay;
+
+		do {
+			if (get_event(subwindow->window, timeout)) {
+				wait = false;
+			} else {
+				idle_update();
 			}
-			idle_update();
-		}
+		} while (wait);
 	}
 }
 
