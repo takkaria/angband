@@ -232,7 +232,9 @@ static void grid_get_player(const struct grid_data *g,
 	point->fg_char = monster_x_char[race->ridx];
 
 	if (OPT(player, hp_changes_color) && !(point->fg_attr & 0x80)) {
-		switch (player->chp * 10 / player->mhp) {
+		const int hp = player->chp * 10 / player->mhp;
+
+		switch (hp) {
 			case 10: case 9:
 				point->fg_attr = COLOUR_WHITE;
 				break;
@@ -249,7 +251,7 @@ static void grid_get_player(const struct grid_data *g,
 				point->fg_attr = COLOUR_RED;
 				break;
 			default:
-				point->fg_attr = COLOUR_WHITE;
+				point->fg_attr = hp < 0 ? COLOUR_RED : COLOUR_WHITE;
 				break;
 		}
 	}
