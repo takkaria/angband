@@ -1587,7 +1587,8 @@ enum {
 	UNIGNORE_THIS_FLAVOR,
 	IGNORE_THIS_EGO,
 	UNIGNORE_THIS_EGO,
-	IGNORE_THIS_QUALITY
+	IGNORE_THIS_QUALITY,
+	UNIGNORE_THIS_QUALITY
 };
 
 static void ignore_menu_build(struct menu *menu, struct object *obj)
@@ -1641,16 +1642,25 @@ static void ignore_menu_build(struct menu *menu, struct object *obj)
 	}
 
 	/* Quality ignoring */
-	byte ignore_value = ignore_level_of(obj);
-	int ignore_type = ignore_type_of(obj);
+	int ignore_value = ignore_level_of(obj);
+	int ignore_type  = ignore_type_of(obj);
 
-	if ((!tval_is_jewelry(obj) || ignore_value == IGNORE_BAD)
-			&& ignore_value < IGNORE_MAX
-			&& ignore_type  < ITYPE_MAX)
-	{
-		strnfmt(buf, sizeof(buf), "Ignore all %s %s",
-				quality_values[ignore_value].name, ignore_name_for_type(ignore_type));
-		menu_dynamic_add(menu, buf, IGNORE_THIS_QUALITY);
+	/* ignore_level_of() and ignore_type_of() are
+	 * supposed to return IGNORE_MAX and ITYPE_MAX
+	 * for objects that can't be ignored by quality */
+	assert(ignore_value > 0 && ignore_value > IGNORE_NONE);
+	assert(ignore_type  > 0 && ignore_type  > ITYPE_NONE);
+
+	if (ignore_value < IGNORE_MAX && ignore_type < ITYPE_MAX) {
+		if (ignore_level[ignore_type] < ignore_value) {
+			strnfmt(buf, sizeof(buf), "Ignore all %s %s",
+					quality_values[ignore_value].name, ignore_name_for_type(ignore_type));
+			menu_dynamic_add(menu, buf, IGNORE_THIS_QUALITY);
+		} else {
+			strnfmt(buf, sizeof(buf), "Unignore all %s %s",
+					quality_values[ignore_value].name, ignore_name_for_type(ignore_type));
+			menu_dynamic_add(menu, buf, UNIGNORE_THIS_QUALITY);
+		}
 	}
 }
 
@@ -1711,6 +1721,9 @@ void textui_cmd_ignore_menu(struct object *obj)
 			break;
 		case IGNORE_THIS_QUALITY:
 			ignore_level[ignore_type_of(obj)] = ignore_level_of(obj);
+			break;
+		case UNIGNORE_THIS_QUALITY:
+			ignore_level[ignore_type_of(obj)] = ignore_level_of(obj) - 1;
 			break;
 	}
 
