@@ -885,7 +885,7 @@ static struct panel *get_panel_combat(void)
 			"Melee damage", "%dd%d,%+d", melee_dice, melee_sides, dam);
 	panel_line(p, COLOUR_L_WHITE,
 			"Melee to-hit", "%d,%+d", bth / 10, hit);
-	panel_line(p, COLOUR_L_WHITE, "Blows (per turn)", "%d.%d",
+	panel_line(p, COLOUR_L_WHITE, "Blows (per round)", "%d.%d",
 			player->state.num_blows / 100, (player->state.num_blows / 10 % 10));
 
 	/* Ranged */
@@ -896,7 +896,7 @@ static struct panel *get_panel_combat(void)
 
 	panel_line(p, COLOUR_L_WHITE, "Shoot to-damage", "%+d", dam);
 	panel_line(p, COLOUR_L_WHITE, "Shoot to-hit", "%d,%+d", bth / 10, hit);
-	panel_line(p, COLOUR_L_WHITE, "Shots (per turn)", "%d", player->state.num_shots);
+	panel_line(p, COLOUR_L_WHITE, "Shots (per round)", "%d", player->state.num_shots);
 
 	return p;
 }
@@ -964,7 +964,7 @@ static struct panel *get_panel_flavor(void)
 	panel_line(p, COLOUR_L_WHITE, "Weight",
 			"%dst %dlb", player->wt / 14, player->wt % 14);
 
-	panel_line(p, COLOUR_L_WHITE, "Actions", "%d", player->total_energy / 100);
+	panel_line(p, COLOUR_L_WHITE, "Rounds", "%d", player->total_energy / 100);
 	panel_line(p, COLOUR_L_WHITE, "Resting", "%d", player->resting_turn);
 	panel_line(p, COLOUR_L_WHITE, "Ticks", "%d", turn);
 	panel_line(p, COLOUR_L_WHITE, "Depth", "%s", get_max_depth(player));
