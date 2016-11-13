@@ -534,6 +534,17 @@ static void free_priority_grid(byte **priority_grid)
 	mem_free(priority_grid);
 }
 
+static bool map_grid_interesting(const struct grid_data *g)
+{
+	return g->m_idx != 0
+		|| g->trap
+		|| g->first_kind
+		|| g->multiple_objects
+		|| g->unseen_object
+		|| g->unseen_money
+		|| g->hallucinate;
+}
+
 /**
  * Display a map of the dungeon in the active term.
  * The map may be scaled if the term is too small for the whole dungeon.
@@ -571,14 +582,8 @@ static void view_map_aux(void)
 				if (priority_grid == NULL) {
 					Term_set_point(col, row, point);
 				} else {
-					byte priority = f_info[g.f_idx].priority;
-
-					/* Stuff on top of terrain gets higher priority */
-					if (point.fg_attr != point.bg_attr
-							|| point.fg_char != point.bg_char)
-					{
-						priority = 20;
-					}
+					byte priority = map_grid_interesting(&g) ?
+						20 : f_info[g.f_idx].priority;
 
 					if (priority_grid[row][col] < priority) {
 						Term_set_point(col, row, point);
