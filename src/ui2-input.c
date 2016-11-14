@@ -845,7 +845,7 @@ bool textui_get_rep_dir(int *dp, bool allow_5)
 		if (event.type == EVT_NONE
 				|| (event.type == EVT_KBRD && target_dir(event.key) == 0))
 		{
-			show_prompt("`dir` or `click` (`ESC` to cancel)?");
+			show_prompt("<`dir`> or <`click`> (`ESC` to cancel)?");
 			event = inkey_simple();
 		}
 
@@ -915,8 +915,8 @@ bool textui_get_aim_dir(int *dir)
 		struct loc loc;
 
 		const char *prompt = target_okay() ?
-			"Direction (`5` for target, `*` or `click` to re-target, `ESC` to cancel)? " :
-			"Direction (`*` or `click` to target, `'` for closest, `ESC` to cancel)? ";
+			"Direction (`5` for target, `*` or <`click`> to re-target, `ESC` to cancel)? " :
+			"Direction (`*` or <`click`> to target, `'` for closest, `ESC` to cancel)? ";
 
 		ui_event event;
 		if (!get_mouse_or_key(prompt, &event)) {
