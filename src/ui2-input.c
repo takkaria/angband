@@ -913,8 +913,8 @@ bool textui_get_aim_dir(int *dir)
 		struct loc loc;
 
 		const char *prompt = target_okay() ?
-			"Direction ('5' for target, '*' or <click> to re-target, Escape to cancel)? " :
-			"Direction ('*' or <click> to target, \"'\" for closest, Escape to cancel)? ";
+			"Direction (`5` for target, `*` or `click` to re-target, `ESC` to cancel)? " :
+			"Direction (`*` or `click` to target, `'` for closest, `ESC` to cancel)? ";
 
 		ui_event event;
 		if (!get_mouse_or_key(prompt, &event)) {
