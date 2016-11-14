@@ -211,7 +211,7 @@ static void knowledge_screen_prompt(member_funcs o_funcs, int index)
 	strnfmt(prompt, sizeof(prompt), "[<`dir`>, `r` to recall%s, `ESC`]", xtra);
 
 	erase_line(loc);
-	put_str_h(prompt, loc, COLOUR_WHITE, COLOUR_L_WHITE);
+	put_str_h(prompt, loc, COLOUR_WHITE, COLOUR_BLUE_SLATE);
 }
 
 static void knowledge_screen_summary(group_funcs g_funcs,
@@ -2138,7 +2138,7 @@ static void messages_reader_help(const char *search, struct loc loc)
 	}
 
 	erase_line(loc);
-	put_str_h(help, loc, COLOUR_WHITE, COLOUR_L_WHITE);
+	put_str_h(help, loc, COLOUR_WHITE, COLOUR_BLUE_SLATE);
 }
 
 static bool messages_reader_get_search(char *buf, size_t buflen,
