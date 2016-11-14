@@ -114,8 +114,6 @@ static void context_menu_player_other(struct loc mloc)
 	menu_dynamic_add(m, "Options", MENU_VALUE_OPTIONS);
 	menu_dynamic_add(m, "Commands", MENU_VALUE_COMMANDS);
 
-	show_prompt("(`Enter` to select, `ESC`) Command:");
-
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
 	menu_layout_term(m);
@@ -123,7 +121,6 @@ static void context_menu_player_other(struct loc mloc)
 	int selected = menu_dynamic_select(m);
 
 	menu_dynamic_free(m);
-	clear_prompt();
 	Term_pop();
 
 	bool allowed = false;
@@ -236,15 +233,6 @@ static void context_menu_player_rest(struct loc mloc)
 
 static void context_menu_player_display_floor(void)
 {
-	int diff = weight_remaining(player);
-
-	show_prompt(format("(Inventory) Burden %d.%d lb (%d.%d lb %s). Item for command:",
-				player->upkeep->total_weight / 10,
-				player->upkeep->total_weight % 10,
-				abs(diff) / 10, abs(diff) % 10,
-				(diff < 0 ? "overweight" : "remaining")));
-
-
 	struct object *obj;
 	player->upkeep->command_wrk = USE_FLOOR;
 
@@ -302,8 +290,6 @@ void context_menu_player(struct loc mloc)
 	mnflag_on(m->flags, MN_NO_TAGS);
 	context_menu_player_entries(m);
 
-	show_prompt("(`Enter` to select, `ESC`) Command:");
-
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
 	menu_layout_term(m);
@@ -311,7 +297,6 @@ void context_menu_player(struct loc mloc)
 	int selected = menu_dynamic_select(m);
 
 	menu_dynamic_free(m);
-	clear_prompt();
 	Term_pop();
 
 	bool allowed = false;
@@ -925,8 +910,6 @@ static void show_command_list(struct cmd_info *cmd_list,
 		menu_dynamic_add(m, cmd_list[i].desc, i + 1);
 	}
 
-	show_prompt("(`Enter` to select, `ESC`) Command:");
-
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
 	menu_layout_term(m);
@@ -934,7 +917,6 @@ static void show_command_list(struct cmd_info *cmd_list,
 	int selected = menu_dynamic_select(m);
 
 	menu_dynamic_free(m);
-	clear_prompt();
 	Term_pop();
 
 	if (selected > 0 && selected < size + 1) {
@@ -956,8 +938,6 @@ void context_menu_command(struct loc mloc)
 	menu_dynamic_add(m, "Util", 5);
 	menu_dynamic_add(m, "Misc", 6);
 
-	show_prompt("(`Enter` to select, `ESC`) Command:");
-
 	struct term_hints hints = context_term_hints(m, mloc);
 	Term_push_new(&hints);
 	menu_layout_term(m);
@@ -965,7 +945,6 @@ void context_menu_command(struct loc mloc)
 	int selected = menu_dynamic_select(m);
 
 	menu_dynamic_free(m);
-	clear_prompt();
 	Term_pop();
 
 	if (selected > 0) {

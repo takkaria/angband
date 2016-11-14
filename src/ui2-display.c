@@ -2048,14 +2048,6 @@ static void see_floor_items(game_event_type type,
 		event_signal(EVENT_MESSAGE_FLUSH);
 		msg("You %s %s.", p, o_name);
 	} else {
-		const char *p = "see";
-		if (!can_pickup) {
-			p = "have no room for the following objects";
-		} else if (blind) {
-			p = "feel something on the floor";
-		}
-		show_prompt(format("You %s:", p));
-
 		/* Display objects on the floor */
 		struct term_hints hints = {
 			.width = ANGBAND_TERM_STANDARD_WIDTH,

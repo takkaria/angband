@@ -476,20 +476,19 @@ void save_game(void)
 	event_signal(EVENT_MESSAGE_FLUSH);
 	handle_stuff(player);
 
-	show_prompt("Saving game...");
-
 	/* The player is not dead */
 	my_strcpy(player->died_from, "(saved)", sizeof(player->died_from));
 
 	if (savefile_save(savefile)) {
-		show_prompt("Saving game... done.");
+		msg("Game saved.");
 	} else {
-		show_prompt("Saving game... failed!");
+		msg("Game save failed!");
+		event_signal(EVENT_MESSAGE_FLUSH);
 	}
 
 	/* Save monster memory to user directory */
 	if (!lore_save("lore.txt")) {
-		msg("lore save failed!");
+		msg("Lore save failed!");
 		event_signal(EVENT_MESSAGE_FLUSH);
 	}
 
