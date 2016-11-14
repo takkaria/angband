@@ -1675,8 +1675,6 @@ void textui_cmd_ignore_menu(struct object *obj)
 	ignore_menu_build(menu, obj);
 	menu->selections = lower_case;
 
-	show_prompt("(`Enter` to select, `ESC`) Ignore:");
-
 	/* Work out display region */
 	region reg = menu_dynamic_calc_location(menu);
 	struct term_hints hints = {
@@ -1697,7 +1695,6 @@ void textui_cmd_ignore_menu(struct object *obj)
 	int selected = menu_dynamic_select(menu);
 
 	menu_dynamic_free(menu);
-	clear_prompt();
 	Term_pop();
 
 	switch (selected) {
