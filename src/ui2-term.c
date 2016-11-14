@@ -1187,10 +1187,6 @@ bool Term_check_event(ui_event *event)
 {
 	STACK_OK();
 
-	if (event_queue.number == 0) {
-		TOP->callbacks.event(TOP->user, false);
-	}
-
 	return term_check_event(event);
 }
 
