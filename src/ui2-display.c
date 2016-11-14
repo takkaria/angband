@@ -272,8 +272,10 @@ void message_skip_more(void)
 	struct display_term *display_message_line =
 		display_term_get(DISPLAY_MESSAGE_LINE);
 
-	display_message_line->messages.offset = 0;
-	display_message_line->messages.clear = true;
+	if (display_message_line->term != NULL) {
+		display_message_line->messages.offset = 0;
+		display_message_line->messages.clear = true;
+	}
 }
 
 /**
@@ -2305,6 +2307,7 @@ void display_term_destroy(enum display_term_index index)
 	dt->term = NULL;
 
 	memset(&dt->coords, 0, sizeof(dt->coords));
+	memset(&dt->messages, 0, sizeof(dt->messages));
 }
 
 void display_term_resize(enum display_term_index index,
