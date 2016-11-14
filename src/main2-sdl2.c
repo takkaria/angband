@@ -723,6 +723,7 @@ static void reload_graphics(struct window *window,
 static void free_graphics(struct graphics *graphics);
 static void load_terms(void);
 static void load_term(struct subwindow *subwindow);
+static void unload_term(struct subwindow *subwindow);
 static bool adjust_subwindow_geometry(const struct window *window,
 		struct subwindow *subwindow);
 static void adjust_subwindow_size(struct subwindow *subwindow);
@@ -5125,7 +5126,10 @@ static bool do_button_open_subwindow(struct window *window,
 	if (subwindow != NULL) {
 		subwindow->visible = !subwindow->visible;
 		if (subwindow->visible) {
+			load_term(subwindow);
 			bring_to_top(window, subwindow);
+		} else {
+			unload_term(subwindow);
 		}
 	} else if (is_subwindow_loaded(index)) {
 		subwindow = transfer_subwindow(window, index);
@@ -5792,6 +5796,15 @@ static void load_subwindow(struct window *window,
 	render_borders(subwindow);
 }
 
+static void unload_term(struct subwindow *subwindow)
+{
+	assert(subwindow->loaded);
+	assert(subwindow->linked);
+
+	display_term_destroy(subwindow->index);
+	subwindow->linked = false;
+}
+
 static void load_term(struct subwindow *subwindow)
 {
 	assert(subwindow->loaded);
@@ -6009,6 +6022,7 @@ static void free_subwindow_config(struct subwindow_config *config)
 static void free_subwindow(struct subwindow *subwindow)
 {
 	assert(subwindow->loaded);
+	assert(!subwindow->linked);
 
 	if (subwindow->font != NULL) {
 		assert(!subwindow->is_temporary);
@@ -6038,7 +6052,6 @@ static void free_subwindow(struct subwindow *subwindow)
 	subwindow->window = NULL;
 	subwindow->loaded = false;
 	subwindow->inited = false;
-	subwindow->linked = false;
 }
 
 static void free_window(struct window *window)
@@ -6048,7 +6061,9 @@ static void free_window(struct window *window)
 	for (size_t i = 0; i < window->permanent.number; i++) {
 		struct subwindow *subwindow = window->permanent.subwindows[i];
 
-		display_term_destroy(subwindow->index);
+		if (subwindow->linked) {
+			unload_term(subwindow);
+		}
 		free_subwindow(subwindow);
 
 		window->permanent.subwindows[i] = NULL;
@@ -6320,6 +6335,10 @@ static void free_temporary_subwindow(struct subwindow *subwindow)
 	/* font of temporary subwindow
 	 * 'belongs' to its window */
 	subwindow->font = NULL;
+
+	/* term of this subwindow was
+	 * freed by term package */
+	subwindow->linked = false;
 
 	free_subwindow(subwindow);
 	g_shadow_stack.number--;
