@@ -16,7 +16,7 @@
 
 /*      index            name            min_c  min_r  def_c  def_r     max_c     max_r   required */
 DISPLAY(CAVE,           "Main",              1,     1,    80,    24,  INT_MAX,  INT_MAX,      true)
-DISPLAY(MESSAGE_LINE,   "Prompt line",      40,     1,    80,     1,  INT_MAX,        1,      true)
+DISPLAY(MESSAGE_LINE,   "Prompt line",      40,     1,    80,     1,  INT_MAX,        1,     false)
 
 DISPLAY(STATUS_LINE,    "Status line",      40,     1,    80,     1,  INT_MAX,        1,     false)
 DISPLAY(PLAYER_COMPACT, "Player (compact)", 12,     1,    12,    24,  INT_MAX,  INT_MAX,     false)

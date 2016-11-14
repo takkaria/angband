@@ -6154,12 +6154,8 @@ static void create_defaults(void)
 	struct window *window = get_new_window(WINDOW_MAIN);
 	assert(window != NULL);
 
-	for (unsigned i = DISPLAY_CAVE; i < DISPLAY_MAX; i++) {
-		if (get_term_info(i)->required) {
-			attach_subwindow_to_window(window, get_new_subwindow(i));
-		}
-	}
-
+	attach_subwindow_to_window(window, get_new_subwindow(DISPLAY_CAVE));
+	attach_subwindow_to_window(window, get_new_subwindow(DISPLAY_MESSAGE_LINE));
 	attach_subwindow_to_window(window, get_new_subwindow(DISPLAY_STATUS_LINE));
 	attach_subwindow_to_window(window, get_new_subwindow(DISPLAY_PLAYER_COMPACT));
 }

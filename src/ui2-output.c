@@ -613,14 +613,16 @@ void put_str_h_center_simple(const char *str, int y)
 
 void clear_prompt(void)
 {
-	display_term_push(DISPLAY_MESSAGE_LINE);
-	Term_erase_all();
-	Term_flush_output();
-	display_term_pop();
+	if (display_term_loaded(DISPLAY_MESSAGE_LINE)) {
+		display_term_push(DISPLAY_MESSAGE_LINE);
+		Term_erase_all();
+		Term_flush_output();
+		display_term_pop();
 
-	/* Reset the term state, so that messages
-	 * won't print "-more-" over empty message line */
-	message_skip_more();
+		/* Reset the term state, so that messages
+		 * won't print "-more-" over empty message line */
+		message_skip_more();
+	}
 }
 
 /**
@@ -628,21 +630,23 @@ void clear_prompt(void)
  */
 void show_prompt(const char *str)
 {
-	event_signal(EVENT_MESSAGE_FLUSH);
-	display_term_push(DISPLAY_MESSAGE_LINE);
-	Term_erase_all();
+	if (display_term_loaded(DISPLAY_MESSAGE_LINE)) {
+		event_signal(EVENT_MESSAGE_FLUSH);
+		display_term_push(DISPLAY_MESSAGE_LINE);
+		Term_erase_all();
 
-	struct loc loc = {0, 0};
-	put_str_h(str, loc,
-			COLOUR_WHITE,
-			COLOUR_BLUE_SLATE);
+		struct loc loc = {0, 0};
+		put_str_h(str, loc,
+				COLOUR_WHITE,
+				COLOUR_BLUE_SLATE);
 
-	Term_flush_output();
-	display_term_pop();
+		Term_flush_output();
+		display_term_pop();
 
-	/* Reset the term state, so that messages
-	 * won't print "-more-" over prompt string */
-	message_skip_more();
+		/* Reset the term state, so that messages
+		 * won't print "-more-" over prompt string */
+		message_skip_more();
+	}
 }
 
 /**

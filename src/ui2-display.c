@@ -1755,6 +1755,15 @@ static void display_term_handler(struct display_term *dt, bool enable)
 	}
 
 	switch (dt->index) {
+		case DISPLAY_MESSAGE_LINE:
+			register_or_deregister(EVENT_MESSAGE,
+					message_print, dt);
+			register_or_deregister(EVENT_BELL,
+					message_bell, dt);
+			register_or_deregister(EVENT_MESSAGE_FLUSH,
+					message_flush, dt);
+			break;
+
 		case DISPLAY_PLAYER_COMPACT:
 			set_register_or_deregister(player_events,
 					N_ELEMENTS(player_events), update_sidebar, dt);
@@ -1813,7 +1822,6 @@ static void display_term_handler(struct display_term *dt, bool enable)
 			break;
 
 		case DISPLAY_CAVE:
-		case DISPLAY_MESSAGE_LINE:
 			quit_fmt("Handlers for term '%s' are set automatically!", dt->name);
 			break;
 
@@ -2256,20 +2264,8 @@ static void ui_enter_game(game_event_type type,
 	(void) data;
 	(void) user;
 
-	struct display_term *display_message_line =
-		display_term_get(DISPLAY_MESSAGE_LINE);
-
-	/* Display a message to the player */
-	event_add_handler(EVENT_MESSAGE, message_print, display_message_line);
-
-	/* Display a message and make a noise to the player */
-	event_add_handler(EVENT_BELL, message_bell, display_message_line);
-
 	/* Tell the UI to ignore all pending input */
 	event_add_handler(EVENT_INPUT_FLUSH, inkey_flush, NULL);
-
-	/* Print all waiting messages */
-	event_add_handler(EVENT_MESSAGE_FLUSH, message_flush, display_message_line);
 }
 
 static void ui_leave_game(game_event_type type,
@@ -2279,20 +2275,8 @@ static void ui_leave_game(game_event_type type,
 	(void) data;
 	(void) user;
 
-	struct display_term *display_message_line =
-		display_term_get(DISPLAY_MESSAGE_LINE);
-
-	/* Display a message to the player */
-	event_remove_handler(EVENT_MESSAGE, message_print, display_message_line);
-
-	/* Display a message and make a noise to the player */
-	event_remove_handler(EVENT_BELL, message_bell, display_message_line);
-
 	/* Tell the UI to ignore all pending input */
 	event_remove_handler(EVENT_INPUT_FLUSH, inkey_flush, NULL);
-
-	/* Print all waiting messages */
-	event_remove_handler(EVENT_MESSAGE_FLUSH, message_flush, display_message_line);
 }
 
 void display_term_create(enum display_term_index index,
@@ -2303,7 +2287,7 @@ void display_term_create(enum display_term_index index,
 
 	dt->term = Term_create(info);
 
-	if (index != DISPLAY_CAVE && index != DISPLAY_MESSAGE_LINE) {
+	if (index != DISPLAY_CAVE) {
 		display_term_handler(dt, true);
 	}
 }
@@ -2313,7 +2297,7 @@ void display_term_destroy(enum display_term_index index)
 	struct display_term *dt = display_term_get(index);
 	assert(dt->term != NULL);
 
-	if (index != DISPLAY_CAVE && index != DISPLAY_MESSAGE_LINE) {
+	if (index != DISPLAY_CAVE) {
 		display_term_handler(dt, false);
 	}
 
@@ -2382,6 +2366,13 @@ void display_term_pop(void)
 	Term_pop();
 }
 
+bool display_term_loaded(enum display_term_index index)
+{
+	struct display_term *dt = display_term_get(index);
+
+	return dt->term != NULL;
+}
+
 void init_terms(void)
 {
 	display_terms_check();
@@ -2437,9 +2428,6 @@ static struct display_term *display_term_get(enum display_term_index index)
 
 static void display_terms_check(void)
 {
-	assert(display_terms[DISPLAY_CAVE].required);
-	assert(display_terms[DISPLAY_MESSAGE_LINE].required);
-
 	for (size_t i = 0; i < N_ELEMENTS(display_terms); i++) {
 		assert(display_terms[i].index == i);
 

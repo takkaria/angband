@@ -57,6 +57,8 @@ void display_term_get_area(enum display_term_index i,
 void display_term_push(enum display_term_index i);
 void display_term_pop(void);
 
+bool display_term_loaded(enum display_term_index i);
+
 void display_terms_redraw(void);
 
 void init_display(void);
