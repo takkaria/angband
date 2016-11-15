@@ -5126,10 +5126,10 @@ static bool do_button_open_subwindow(struct window *window,
 	if (subwindow != NULL) {
 		subwindow->visible = !subwindow->visible;
 		if (subwindow->visible) {
-			load_term(subwindow);
+			display_term_on(subwindow->index);
 			bring_to_top(window, subwindow);
 		} else {
-			unload_term(subwindow);
+			display_term_off(subwindow->index);
 		}
 	} else if (is_subwindow_loaded(index)) {
 		subwindow = transfer_subwindow(window, index);
@@ -6061,9 +6061,7 @@ static void free_window(struct window *window)
 	for (size_t i = 0; i < window->permanent.number; i++) {
 		struct subwindow *subwindow = window->permanent.subwindows[i];
 
-		if (subwindow->linked) {
-			unload_term(subwindow);
-		}
+		unload_term(subwindow);
 		free_subwindow(subwindow);
 
 		window->permanent.subwindows[i] = NULL;

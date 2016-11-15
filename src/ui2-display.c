@@ -71,6 +71,7 @@ struct display_term {
 
 	const char *name;
 	bool required;
+	bool active;
 };
 
 static struct display_term *display_term_get(enum display_term_index index);
@@ -79,6 +80,9 @@ static void display_terms_check(void);
 /* For use in event handlers */
 #define DISPLAY_TERM(void_ptr) \
 	((struct display_term *) (void_ptr))
+
+#define DISPLAY_TERM_ACTIVE(void_ptr) \
+	(((struct display_term *) (void_ptr))->active)
 
 /**
  * There are a few functions installed to be triggered by several
@@ -175,9 +179,13 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 {
 	(void) type;
 
-	if (data == NULL
-			|| data->message.msg == NULL
-			|| !character_generated)
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
+
+	if (!character_generated
+			|| data == NULL
+			|| data->message.msg == NULL)
 	{
 		return;
 	}
@@ -238,6 +246,10 @@ static void message_print(game_event_type type, game_event_data *data, void *use
  */
 static void message_bell(game_event_type type, game_event_data *data, void *user)
 {
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
+
 	message_print(type, data, user);
 	player->upkeep->redraw |= PR_MESSAGE;
 }
@@ -249,6 +261,10 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
 {
 	(void) type;
 	(void) data;
+
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
 
 	struct display_term *dt = user;
 
@@ -272,7 +288,7 @@ void message_skip_more(void)
 	struct display_term *display_message_line =
 		display_term_get(DISPLAY_MESSAGE_LINE);
 
-	if (display_message_line->term != NULL) {
+	if (DISPLAY_TERM_ACTIVE(display_message_line)) {
 		display_message_line->messages.offset = 0;
 		display_message_line->messages.clear = true;
 	}
@@ -689,6 +705,10 @@ static void update_sidebar(game_event_type type,
 		game_event_data *data, void *user)
 {
 	(void) data;
+
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
 
 	Term_push(DISPLAY_TERM(user)->term);
 
@@ -1127,6 +1147,10 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 	(void) type;
 	(void) data;
 
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
+
 	Term_push(DISPLAY_TERM(user)->term);
 
 	const int width = Term_width();
@@ -1535,6 +1559,10 @@ static void update_inven_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
+
 	Term_push(DISPLAY_TERM(user)->term);
 	Term_erase_all();
 
@@ -1553,6 +1581,10 @@ static void update_equip_subwindow(game_event_type type,
 {
 	(void) type;
 	(void) data;
+
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
 
 	Term_push(DISPLAY_TERM(user)->term);
 	Term_erase_all();
@@ -1612,6 +1644,10 @@ static void update_itemlist_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
+
 	Term_push(DISPLAY_TERM(user)->term);
 	Term_erase_all();
 
@@ -1627,6 +1663,10 @@ static void update_monlist_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
+
 	Term_push(DISPLAY_TERM(user)->term);
 	Term_erase_all();
 
@@ -1641,6 +1681,10 @@ static void update_monster_subwindow(game_event_type type,
 {
 	(void) type;
 	(void) data;
+
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
 
 	Term_push(DISPLAY_TERM(user)->term);
 
@@ -1660,6 +1704,10 @@ static void update_object_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
+
 	Term_push(DISPLAY_TERM(user)->term);
 	
 	if (player->upkeep->object != NULL) {
@@ -1677,6 +1725,10 @@ static void update_messages_subwindow(game_event_type type,
 {
 	(void) type;
 	(void) data;
+
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
 
 	Term_push(DISPLAY_TERM(user)->term);
 
@@ -1713,6 +1765,10 @@ static void update_player_basic_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
+
 	Term_push(DISPLAY_TERM(user)->term);
 
 	display_player(PLAYER_DISPLAY_MODE_BASIC);
@@ -1729,6 +1785,10 @@ static void update_player_extra_subwindow(game_event_type type,
 {
 	(void) type;
 	(void) data;
+
+	if (!DISPLAY_TERM_ACTIVE(user)) {
+		return;
+	}
 
 	Term_push(DISPLAY_TERM(user)->term);
 
@@ -2292,6 +2352,8 @@ void display_term_create(enum display_term_index index,
 	if (index != DISPLAY_CAVE) {
 		display_term_handler(dt, true);
 	}
+
+	dt->active = true;
 }
 
 void display_term_destroy(enum display_term_index index)
@@ -2308,6 +2370,8 @@ void display_term_destroy(enum display_term_index index)
 
 	memset(&dt->coords, 0, sizeof(dt->coords));
 	memset(&dt->messages, 0, sizeof(dt->messages));
+
+	dt->active = false;
 }
 
 void display_term_resize(enum display_term_index index,
@@ -2369,11 +2433,27 @@ void display_term_pop(void)
 	Term_pop();
 }
 
-bool display_term_loaded(enum display_term_index index)
+bool display_term_active(enum display_term_index index)
 {
 	struct display_term *dt = display_term_get(index);
 
-	return dt->term != NULL;
+	return dt->active;
+}
+
+void display_term_off(enum display_term_index index)
+{
+	struct display_term *dt = display_term_get(index);
+	assert(dt->active);
+
+	dt->active = false;
+}
+
+void display_term_on(enum display_term_index index)
+{
+	struct display_term *dt = display_term_get(index);
+	assert(!dt->active);
+
+	dt->active = true;
 }
 
 void init_terms(void)
@@ -2414,7 +2494,8 @@ static struct display_term display_terms[] = {
 			.messages = {0, false}, \
 			.coords = {0}, \
 			.name = (desc), \
-			.required = (req) \
+			.required = (req), \
+			.active = false \
 		},
 	#include "list-display-terms.h"
 	#undef DISPLAY

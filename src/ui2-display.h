@@ -57,7 +57,12 @@ void display_term_get_area(enum display_term_index i,
 void display_term_push(enum display_term_index i);
 void display_term_pop(void);
 
-bool display_term_loaded(enum display_term_index i);
+bool display_term_active(enum display_term_index i);
+
+/* Temporarily disable or reenable the term;
+ * disabled terms don't react to game events */
+void display_term_off(enum display_term_index i);
+void display_term_on(enum display_term_index i);
 
 void display_terms_redraw(void);
 

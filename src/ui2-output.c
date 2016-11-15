@@ -613,7 +613,7 @@ void put_str_h_center_simple(const char *str, int y)
 
 void clear_prompt(void)
 {
-	if (display_term_loaded(DISPLAY_MESSAGE_LINE)) {
+	if (display_term_active(DISPLAY_MESSAGE_LINE)) {
 		display_term_push(DISPLAY_MESSAGE_LINE);
 		Term_erase_all();
 		Term_flush_output();
@@ -630,7 +630,7 @@ void clear_prompt(void)
  */
 void show_prompt(const char *str)
 {
-	if (display_term_loaded(DISPLAY_MESSAGE_LINE)) {
+	if (display_term_active(DISPLAY_MESSAGE_LINE)) {
 		event_signal(EVENT_MESSAGE_FLUSH);
 		display_term_push(DISPLAY_MESSAGE_LINE);
 		Term_erase_all();
