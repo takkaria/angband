@@ -60,6 +60,9 @@
 struct display_term {
 	enum display_term_index index;
 
+	int width;
+	int height;
+
 	term term;
 
 	struct {
@@ -194,7 +197,7 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 
 	Term_push(dt->term);
 
-	const int wrap = Term_width() - MSG_MORE_LEN;
+	const int wrap = dt->width - MSG_MORE_LEN;
 
 	wchar_t buf[1024];
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
@@ -710,16 +713,17 @@ static void update_sidebar(game_event_type type,
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	struct display_term *dt = user;
 
-	const int height = Term_height();
+	Term_push(dt->term);
+
 	struct loc coords = {0, 0};
 
-	for (size_t i = 0; i < N_ELEMENTS(side_handlers) && coords.y < height; i++) {
+	for (size_t i = 0; i < N_ELEMENTS(side_handlers) && coords.y < dt->height; i++) {
 		const struct side_handler_t *handler = &side_handlers[i];
 		assert(handler->priority >= 0);
 		/* If this is high enough priority, display it */
-		if (handler->priority < height) {
+		if (handler->priority < dt->height) {
 			if (handler->type == type && handler->hook != NULL) {
 				Term_erase_line(coords.x, coords.y);
 				handler->hook(coords);
@@ -1151,14 +1155,13 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	struct display_term *dt = user;
 
-	const int width = Term_width();
-
+	Term_push(dt->term);
 	Term_erase_all();
 
 	struct loc coords = {0, 0};
-	for (size_t i = 0; i < N_ELEMENTS(status_handlers) && coords.x < width; i++) {
+	for (size_t i = 0; i < N_ELEMENTS(status_handlers) && coords.x < dt->width; i++) {
 		coords.x += status_handlers[i](coords);
 	}
 
@@ -1730,14 +1733,12 @@ static void update_messages_subwindow(game_event_type type,
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	struct display_term *dt = user;
 
-	int width;
-	int height;
-	Term_get_size(&width, &height);
+	Term_push(dt->term);
 
 	/* Dump messages, starting from the last term line */
-	int y = height - 1;
+	int y = dt->height - 1;
 	for (unsigned m = 0, num = messages_num(); m < num && y >= 0; m++) {
 		uint32_t color = message_color(m);
 		unsigned count = message_count(m);
@@ -1747,7 +1748,7 @@ static void update_messages_subwindow(game_event_type type,
 			const char *msg = count == 1 ? str : format("%s <%ux>", str, count);
 
 			Term_erase_line(0, y);
-			Term_adds(0, y, width, color, msg);
+			Term_adds(0, y, dt->width, color, msg);
 			y--;
 		}
 	}
@@ -2349,6 +2350,9 @@ void display_term_create(enum display_term_index index,
 
 	dt->term = Term_create(info);
 
+	dt->width = info->width;
+	dt->height = info->height;
+
 	if (index != DISPLAY_CAVE) {
 		display_term_handler(dt, true);
 	}
@@ -2383,6 +2387,9 @@ void display_term_resize(enum display_term_index index,
 	Term_push(dt->term);
 	Term_resize(cols, rows);
 	Term_pop();
+
+	dt->width = cols;
+	dt->height = rows;
 }
 
 void display_term_get_coords(enum display_term_index index, struct loc *coords)
@@ -2413,12 +2420,11 @@ void display_term_get_area(enum display_term_index index,
 	struct display_term *dt = display_term_get(index);
 	assert(dt->term != NULL);
 
-	Term_push(dt->term);
-	Term_get_size(width, height);
-	Term_pop();
-
 	coords->x = dt->coords.x;
 	coords->y = dt->coords.y;
+
+	*width  = dt->width;
+	*height = dt->height;
 }
 
 void display_term_push(enum display_term_index index)

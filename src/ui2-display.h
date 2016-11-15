@@ -43,6 +43,7 @@ void display_term_create(enum display_term_index i,
 		const struct term_create_info *info);
 void display_term_destroy(enum display_term_index i);
 
+/* Note that all display_terms should be resized using this function */
 void display_term_resize(enum display_term_index i, int cols, int rows);
 
 /* Given absolute coords, calculate ones that are relative to display_term */
