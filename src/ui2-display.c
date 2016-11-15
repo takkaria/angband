@@ -186,8 +186,6 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 
 	Term_push(dt->term);
 
-	const int wrap = dt->width - MSG_MORE_LEN;
-
 	wchar_t buf[1024];
 	int len = text_mbstowcs(buf, data->message.msg, sizeof(buf));
 
@@ -197,7 +195,13 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 		dt->messages.offset = 0;
 	}
 
-	if (dt->messages.offset > 0 && dt->messages.offset + len > wrap) {
+	assert(dt->width > MSG_MORE_LEN);
+
+#define MESSAGE_WRAP (dt->width - MSG_MORE_LEN)
+
+	if (dt->messages.offset > 0
+			&& dt->messages.offset + len > MESSAGE_WRAP)
+	{
 		message_more(dt->messages.offset);
 		dt->messages.offset = 0;
 	}
@@ -205,7 +209,9 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 	uint32_t color = message_type_color(data->message.type);
 	wchar_t *ws = buf;
 
-	while (len > wrap) {
+	/* Message line can be resized while it is waiting for "-more-",
+	 * so we have to recalculate message_wrap on every iteration */
+	for (int wrap = MESSAGE_WRAP; len > wrap; wrap = MESSAGE_WRAP) {
 		int split = wrap;
 
 		for (int i = 0; i < wrap; i++) {
@@ -224,6 +230,8 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 		ws += split;
 		len -= split;
 	}
+
+#undef MESSAGE_WRAP
 
 	Term_addws(dt->messages.offset, 0, len, color, ws);
 	Term_flush_output();
@@ -2412,6 +2420,8 @@ void display_term_resize(enum display_term_index index,
 
 	dt->width = cols;
 	dt->height = rows;
+
+	dt->messages.clear = true;
 }
 
 void display_term_get_coords(enum display_term_index index, struct loc *coords)
