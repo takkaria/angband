@@ -80,13 +80,6 @@ struct display_term {
 static struct display_term *display_term_get(enum display_term_index index);
 static void display_terms_check(void);
 
-/* For use in event handlers */
-#define DISPLAY_TERM(void_ptr) \
-	((struct display_term *) (void_ptr))
-
-#define DISPLAY_TERM_ACTIVE(void_ptr) \
-	(((struct display_term *) (void_ptr))->active)
-
 /**
  * There are a few functions installed to be triggered by several
  * of the basic player events.  For convenience, these have been grouped
@@ -182,18 +175,14 @@ static void message_print(game_event_type type, game_event_data *data, void *use
 {
 	(void) type;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
-		return;
-	}
+	struct display_term *dt = user;
 
-	if (!character_generated
+	if (!dt->active || !character_generated
 			|| data == NULL
 			|| data->message.msg == NULL)
 	{
 		return;
 	}
-
-	struct display_term *dt = user;
 
 	Term_push(dt->term);
 
@@ -249,7 +238,9 @@ static void message_print(game_event_type type, game_event_data *data, void *use
  */
 static void message_bell(game_event_type type, game_event_data *data, void *user)
 {
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
@@ -265,11 +256,11 @@ static void message_flush(game_event_type type, game_event_data *data, void *use
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
-
-	struct display_term *dt = user;
 
 	Term_push(dt->term);
 
@@ -291,7 +282,7 @@ void message_skip_more(void)
 	struct display_term *display_message_line =
 		display_term_get(DISPLAY_MESSAGE_LINE);
 
-	if (DISPLAY_TERM_ACTIVE(display_message_line)) {
+	if (display_message_line->active) {
 		display_message_line->messages.offset = 0;
 		display_message_line->messages.clear = true;
 	}
@@ -709,11 +700,11 @@ static void update_sidebar(game_event_type type,
 {
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
-
-	struct display_term *dt = user;
 
 	Term_push(dt->term);
 
@@ -1151,11 +1142,11 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
-
-	struct display_term *dt = user;
 
 	Term_push(dt->term);
 	Term_erase_all();
@@ -1195,19 +1186,23 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
 {
 	(void) type;
 
-	Term_push(DISPLAY_TERM(user)->term);
+	struct display_term *dt = user;
+
+	Term_push(dt->term);
 
 	if (data->point.x == -1 && data->point.y == -1) {
 		/* This signals a whole-map redraw. */
-		map_redraw_all(DISPLAY_TERM(user)->index);
+		map_redraw_all(dt->index);
 	} else {
 		/* Single point to be redrawn */
 
 		/* Location relative to panel */
-		int relx = data->point.x - DISPLAY_TERM(user)->coords.x;
-		int rely = data->point.y - DISPLAY_TERM(user)->coords.y;
+		int relx = data->point.x - dt->coords.x;
+		int rely = data->point.y - dt->coords.y;
 
-		if (Term_point_ok(relx, rely)) {
+		if (relx >= 0 && rely >= 0
+				&& relx < dt->width && rely < dt->height)
+		{
 			struct grid_data g;
 			map_info(data->point.y, data->point.x, &g);
 
@@ -1398,7 +1393,9 @@ static void display_explosion(game_event_type type,
 {
 	(void) type;
 
-	Term_push(DISPLAY_TERM(user)->term);
+	struct display_term *dt = user;
+
+	Term_push(dt->term);
 
 	int gf_type   = data->explosion.gf_type;
 	bool drawing  = data->explosion.drawing;
@@ -1420,7 +1417,7 @@ static void display_explosion(game_event_type type,
 			bolt_pict(blast_grid[i], blast_grid[i], gf_type, &attr, &ch);
 
 			/* Just display the pict, ignoring what was under it */
-			print_map_relative(DISPLAY_TERM(user)->index, attr, ch, blast_grid[i]);
+			print_map_relative(dt->index, attr, ch, blast_grid[i]);
 
 			drawn = true;
 		}
@@ -1466,7 +1463,9 @@ static void display_bolt(game_event_type type,
 {
 	(void) type;
 
-	Term_push(DISPLAY_TERM(user)->term);
+	struct display_term *dt = user;
+
+	Term_push(dt->term);
 
 	struct loc old = {
 		.x = data->bolt.ox,
@@ -1483,7 +1482,7 @@ static void display_bolt(game_event_type type,
 		uint32_t attr;
 		bolt_pict(old, new, data->bolt.gf_type, &attr, &ch);
 
-		print_map_relative(DISPLAY_TERM(user)->index, attr, ch, new);
+		print_map_relative(dt->index, attr, ch, new);
 
 		Term_flush_output();
 		if (player->opts.delay_factor > 0) {
@@ -1495,7 +1494,7 @@ static void display_bolt(game_event_type type,
 		/* Display "beam" grids */
 		if (data->bolt.beam) {
 			bolt_pict(new, new, data->bolt.gf_type, &attr, &ch);
-			print_map_relative(DISPLAY_TERM(user)->index, attr, ch, new);
+			print_map_relative(dt->index, attr, ch, new);
 		}
 
 		Term_flush_output();
@@ -1519,7 +1518,9 @@ static void display_missile(game_event_type type,
 	(void) type;
 	(void) user;
 
-	Term_push(DISPLAY_TERM(user)->term);
+	struct display_term *dt = user;
+
+	Term_push(dt->term);
 
 	struct object *obj = data->missile.obj;
 	struct loc coords  = {
@@ -1529,7 +1530,7 @@ static void display_missile(game_event_type type,
 
 	/* Only do visuals if the player can "see" the missile */
 	if (data->missile.seen) {
-		print_map_relative(DISPLAY_TERM(user)->index,
+		print_map_relative(dt->index,
 				object_attr(obj), object_char(obj), coords);
 
 		Term_flush_output();
@@ -1562,11 +1563,13 @@ static void update_inven_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 	Term_erase_all();
 
 	if (!flip_inven_equip) {
@@ -1585,11 +1588,13 @@ static void update_equip_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 	Term_erase_all();
 
 	if (!flip_inven_equip) {
@@ -1647,11 +1652,13 @@ static void update_itemlist_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 	Term_erase_all();
 
 	object_list_show_subwindow();
@@ -1666,11 +1673,13 @@ static void update_monlist_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 	Term_erase_all();
 
 	monster_list_show_subwindow();
@@ -1685,11 +1694,13 @@ static void update_monster_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 
 	/* Display monster race info */
 	if (player->upkeep->monster_race) {
@@ -1707,11 +1718,13 @@ static void update_object_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 	
 	if (player->upkeep->object != NULL) {
 		display_object_recall(player->upkeep->object);
@@ -1729,11 +1742,11 @@ static void update_messages_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
-
-	struct display_term *dt = user;
 
 	Term_push(dt->term);
 
@@ -1766,11 +1779,13 @@ static void update_player_basic_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 
 	display_player(PLAYER_DISPLAY_MODE_BASIC);
 
@@ -1787,11 +1802,13 @@ static void update_player_extra_subwindow(game_event_type type,
 	(void) type;
 	(void) data;
 
-	if (!DISPLAY_TERM_ACTIVE(user)) {
+	struct display_term *dt = user;
+
+	if (!dt->active) {
 		return;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 
 	display_player(PLAYER_DISPLAY_MODE_EXTRA);
 
@@ -2002,19 +2019,22 @@ static void new_level_display_update(game_event_type type,
 	(void) type;
 	(void) data;
 
-	/* force invalid offsets so that they will be updated later */
-	DISPLAY_TERM(user)->coords.x = z_info->dungeon_wid;
-	DISPLAY_TERM(user)->coords.y = z_info->dungeon_hgt;
+	struct display_term *dt = user;
+
+	/* force invalid offsets so that
+	 * they will be updated later */
+	dt->coords.x = z_info->dungeon_wid;
+	dt->coords.y = z_info->dungeon_hgt;
 
 	if (player->upkeep->autosave) {
 		save_game();
 		player->upkeep->autosave = false;
 	}
 
-	Term_push(DISPLAY_TERM(user)->term);
+	Term_push(dt->term);
 	Term_erase_all();
 
-	verify_panel(DISPLAY_TERM(user)->index);
+	verify_panel(dt->index);
 
 	player->upkeep->only_partial = true;
 
@@ -2064,7 +2084,9 @@ static void check_viewport(game_event_type type,
 	(void) type;
 	(void) data;
 
-	verify_panel(DISPLAY_TERM(user)->index);
+	struct display_term *dt = user;
+
+	verify_panel(dt->index);
 }
 
 static void see_floor_items(game_event_type type,
