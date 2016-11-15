@@ -2443,17 +2443,26 @@ bool display_term_active(enum display_term_index index)
 void display_term_off(enum display_term_index index)
 {
 	struct display_term *dt = display_term_get(index);
-	assert(dt->active);
+	assert(dt->term != NULL);
 
+	assert(dt->active);
 	dt->active = false;
 }
 
 void display_term_on(enum display_term_index index)
 {
 	struct display_term *dt = display_term_get(index);
-	assert(!dt->active);
+	assert(dt->term != NULL);
 
+	assert(!dt->active);
 	dt->active = true;
+
+	Term_push(dt->term);
+	Term_erase_all();
+	Term_flush_output();
+	Term_pop();
+
+	display_terms_redraw();
 }
 
 void init_terms(void)
