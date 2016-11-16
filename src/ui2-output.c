@@ -491,11 +491,11 @@ static uint32_t text_out_e_attr(const char *tag, size_t taglen)
 }
 
 /**
- * Output text to the screen or to a file depending on the
- * selected hook. Takes strings with "embedded formatting",
- * such that something within {red}{/} will be printed in red.
+ * Output text to the screen depending on the selected hook.
+ * Takes strings with embedded formatting, such that text
+ * with tags like "{red}text{/}" will be printed in red.
  *
- * Note that such formatting will be treated as a "breakpoint"
+ * Note that such formatting will be treated as a breakpoint
  * for the printing, so if used within words may lead to part
  * of the word being moved to the next line.
  */
