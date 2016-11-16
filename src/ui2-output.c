@@ -389,8 +389,7 @@ void text_out_c(struct text_out_info info, uint32_t attr, const char *fmt, ...)
 
 /**
  * Given a "formatted" chunk of text (i.e. one including tags like {red}{/})
- * in 'source', with starting point 'init', this finds the next section of
- * text and any tag that goes with it.
+ * in 'source', this finds the next section of text and any tag that goes with it.
  *
  * It return true if it finds something to print.
  * 
@@ -404,13 +403,13 @@ void text_out_c(struct text_out_info info, uint32_t attr, const char *fmt, ...)
  *
  * See text_out_e for an example of its use.
  */
-static bool next_section(const char *source, size_t init,
+static bool next_section(const char *source,
 		const char **text, size_t *textlen,
 		const char **tag, size_t *taglen,
 		const char **end)
 {
 	*tag = NULL;
-	*text = source + init;
+	*text = source;
 	if (*text[0] == '\0') {
 		return false;
 	}
@@ -500,7 +499,7 @@ void text_out_e(struct text_out_info info, const char *fmt, ...)
 	va_end(vp);
 
 	start = buf;
-	while (next_section(start, 0, &text, &textlen, &tag, &taglen, &next)) {
+	while (next_section(start, &text, &textlen, &tag, &taglen, &next)) {
 
 		assert(textlen < sizeof(smallbuf));
 
