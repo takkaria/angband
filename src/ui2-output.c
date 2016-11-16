@@ -388,87 +388,106 @@ void text_out_c(struct text_out_info info, uint32_t attr, const char *fmt, ...)
 }
 
 /**
- * Given a "formatted" chunk of text (i.e. one including tags like {red}{/})
- * in 'source', this finds the next section of text and any tag that goes with it.
+ * Given a formatted chunk of text (i.e. one including tags
+ * like "{Light Red}text{/}") in 'source', this finds the
+ * next section of text and any tag that goes with it.
  *
  * It return true if it finds something to print.
  * 
  * If it returns true, then it also fills 'text' with a pointer to the start
  * of the next printable section of text, and 'textlen' with the length of
- * that text, and 'end' with a pointer to the start of the next section.
+ * that text, and 'next' with a pointer to the start of the next section.
  * This may differ from "text + textlen" because of the presence of tags.
  * If a tag applies to the section of text, it returns a pointer to the
- * start of that tag in 'tag' and the length in 'taglen'.
- * Otherwise, 'tag' is filled with NULL.
+ * start of that tag in 'tag' and the length of the tag in 'taglen'.
+ * Otherwise, 'tag' is filled with NULL and 'taglen' is 0.
  *
- * See text_out_e for an example of its use.
+ * See text_out_e() for an example of its use.
  */
 static bool next_section(const char *source,
 		const char **text, size_t *textlen,
 		const char **tag, size_t *taglen,
-		const char **end)
+		const char **next)
 {
-	*tag = NULL;
-	*text = source;
-	if (*text[0] == '\0') {
+	if (*source == 0) {
 		return false;
 	}
 
-	const char *next = strchr(*text, '{');
+	/* In a tag like "{Blue}",
+	 * a is opening bracket '{'
+	 * b is closing bracket '}' */
+	const char *a = strchr(source, '{');
 
-	while (next) {
-		const char *s = next + 1;
+	if (a) {
+		const char *b = a + 1;
 
-		while (isalpha((unsigned char) *s)
-				|| isspace((unsigned char) *s))
+		while (isalpha((unsigned char) *b)
+				|| isspace((unsigned char) *b))
 		{
-			s++;
+			b++;
 		}
 
-		/* valid opening tag */
-		if (*s == '}') {
-			const char *close = strstr(s, "{/}");
+		if (*b == '}') {
+			/* In a text like "{Red}text{/}",
+			 * c is the closing thing "{/}" */
+			const char *c = strstr(b, "{/}");
 
-			/* There's a closing thing, so it's valid. */
-			if (close) {
-				/* If this tag is at the start of the fragment */
-				if (next == *text) {
-					*tag = *text + 1;
-					*taglen = s - *text - 1;
-					*text = s + 1;
-					*textlen = close - *text;
-					*end = close + 3;
+			if (c) {
+				/* There's a closing thing,
+				 * so it's a valid tag */
+				if (a == source) {
+					/* If this tag is at the
+					 * start of the fragment */
+					*tag = a + 1;
+					*taglen = b - *tag;
+					*text = b + 1;
+					*textlen = c - *text;
+					*next = c + 3;
 					return true;
 				} else {
-					/* Otherwise return the chunk up to this */
-					*textlen = next - *text;
-					*end = *text + *textlen;
+					/* Otherwise return the
+					 * chunk up to this */
+					*tag = NULL;
+					*taglen = 0;
+					*text = source;
+					*textlen = a - source;
+					*next = *text + *textlen;
 					return true;
 				}
-			} else {
-				/* No closing thing, therefore all one lump of text. */
-				*textlen = strlen(*text);
-				*end = *text + *textlen;
-				return true;
 			}
-		} else if (*s == '\0') {
-			/* End of the string, that's fine. */
-			*textlen = strlen(*text);
-			*end = *text + *textlen;
-			return true;
-		} else {
-			/* An invalid tag, skip it. */
-			next = next + 1;
 		}
 
-		next = strchr(next, '{');
+		/* Else, an error occured: an invalid tag,
+		 * no closing thing, end of the string */
 	}
 
-	/* Default to the rest of the string */
+	/* Default to the
+	 * rest of the string */
+	*tag = NULL;
+	*taglen = 0;
+	*text = source;
 	*textlen = strlen(*text);
-	*end = *text + *textlen;
+	*next = *text + *textlen;
 
 	return true;
+}
+
+static uint32_t text_out_e_attr(const char *tag, size_t taglen)
+{
+	if (tag != NULL) {
+		char tagbuf[16];
+
+		/* Colour names are less
+		 * than 16 bytes long. */
+		assert(taglen < sizeof(tagbuf));
+
+		memcpy(tagbuf, tag, taglen);
+		tagbuf[taglen] = 0;
+
+		return color_text_to_attr(tagbuf);
+	} else {
+		return COLOUR_WHITE;
+	}
 }
 
 /**
@@ -482,48 +501,30 @@ static bool next_section(const char *source,
  */
 void text_out_e(struct text_out_info info, const char *fmt, ...)
 {
-	char buf[1024];
-	char smallbuf[1024];
-	va_list vp;
+	char textbuf[1024];
+	char sectionbuf[1024];
+	va_list ap;
 
-	const char *start;
-	const char *next;
-	const char *text;
-	const char *tag;
+	va_start(ap, fmt);
+	(void) vstrnfmt(textbuf, sizeof(textbuf), fmt, ap);
+	va_end(ap);
 
-	size_t textlen;
 	size_t taglen = 0;
+	size_t textlen = 0;
 
-	va_start(vp, fmt);
-	(void) vstrnfmt(buf, sizeof(buf), fmt, vp);
-	va_end(vp);
+	const char *tag = NULL;
+	const char *text = NULL;
+	const char *next = NULL;
+	const char *start = textbuf;
 
-	start = buf;
 	while (next_section(start, &text, &textlen, &tag, &taglen, &next)) {
 
-		assert(textlen < sizeof(smallbuf));
+		assert(textlen < sizeof(sectionbuf));
 
-		memcpy(smallbuf, text, textlen);
-		smallbuf[textlen] = 0;
+		memcpy(sectionbuf, text, textlen);
+		sectionbuf[textlen] = 0;
 
-		uint32_t attr;
-
-		if (tag) {
-			char tagbuffer[16];
-
-			/* Colour names are less than 16 characters long. */
-			assert(taglen < 16);
-
-			memcpy(tagbuffer, tag, taglen);
-			tagbuffer[taglen] = '\0';
-
-			attr = color_text_to_attr(tagbuffer);
-		} else {
-			attr = COLOUR_WHITE;
-		}
-
-		/* Output now */
-		text_out_to_screen(info, attr, smallbuf);
+		text_out_to_screen(info, text_out_e_attr(tag, taglen), sectionbuf);
 
 		start = next;
 	}
