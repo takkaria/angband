@@ -419,8 +419,8 @@ static bool next_section(const char *source,
 	while (next) {
 		const char *s = next + 1;
 
-		while (*s && (isalpha((unsigned char) *s)
-					|| isspace((unsigned char) *s)))
+		while (isalpha((unsigned char) *s)
+				|| isspace((unsigned char) *s))
 		{
 			s++;
 		}
