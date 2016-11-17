@@ -196,6 +196,7 @@
 /* some random numbers */
 #define DEFAULT_WINDOW_MINIMUM_W 198
 #define DEFAULT_WINDOW_MINIMUM_H 66
+#define DEFAULT_WINDOW_RESIZE_AMOUNT 128
 
 /* See try_snap(); range in pixels */
 #define DEFAULT_SNAP_RANGE 4
@@ -2071,7 +2072,15 @@ static void handle_menu_fullscreen(struct window *window,
 	}
 
 	if (window->flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+		int w;
+		int h;
+		SDL_GetWindowSize(window->window, &w, &h);
 		SDL_SetWindowFullscreen(window->window, 0);
+		SDL_SetWindowSize(window->window,
+				MAX(DEFAULT_WINDOW_MINIMUM_W, w / 2),
+				MAX(DEFAULT_WINDOW_MINIMUM_H, h / 2));
+		SDL_SetWindowPosition(window->window,
+				SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 		SDL_SetWindowMinimumSize(window->window,
 				DEFAULT_WINDOW_MINIMUM_W, DEFAULT_WINDOW_MINIMUM_H);
 	} else {

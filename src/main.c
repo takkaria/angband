@@ -27,6 +27,10 @@
 #include "ui2-input.h"
 #include "ui2-prefs.h"
 
+#ifdef WINDOWS
+#include <windows.h>
+#endif
+
 #ifdef SOUND
 #include "sound.h"
 #endif
@@ -35,14 +39,15 @@
  * locale junk
  */
 #include "locale.h"
+
+#ifndef WINDOWS
 #include "langinfo.h"
+#endif
 
 /**
  * Some machines have a "main()" function in their "main-xxx.c" file,
  * all the others use this file for their "main()" function.
  */
-
-#if defined(WIN32_CONSOLE_MODE) || !defined(WINDOWS) || defined(USE_SDL)
 
 #include "main.h"
 
@@ -90,6 +95,53 @@ static void quit_hook(const char *s)
 	/* Unused parameter */
 	(void) s;
 }
+
+#ifdef WINDOWS
+/**
+ * Windows cannot naturally handle UTF-8 using the standard locale and
+ * C library routines, such as mbstowcs().
+ *
+ * We assume external files are in UTF-8, and explicitly convert.
+ *
+ * MultiByteToWideChar returns number of wchars, including terminating L'\0'
+ *     mbstowcs requires the count without the terminating L'\0'
+ * dest == NULL corresponds to querying for the size needed, achieved in the
+ *     Windows fn by setting the dstlen (last) param to 0.
+ * If n is too small for all the chars in src, the Windows fn fails, but we
+ *     require success and a partial conversion. So allocate space for it to
+ *     succeed, and do the partial copy into dest.
+ */
+size_t mbstowcs_windows(wchar_t *dest, const char *src, int n)
+{
+	if (dest) {
+		int res = MultiByteToWideChar(CP_UTF8,
+				MB_ERR_INVALID_CHARS, src, -1, dest, n);
+		if (res >= 0) {
+			return res - 1;
+		} else {
+			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+				int required = MultiByteToWideChar(CP_UTF8,
+						MB_ERR_INVALID_CHARS, src, -1, NULL, 0);
+
+				wchar_t *tmp = malloc(required * sizeof(*tmp));
+
+				MultiByteToWideChar(CP_UTF8,
+						MB_ERR_INVALID_CHARS, src, -1, tmp, required);
+
+				memcpy(dest, tmp, n * sizeof(*tmp));
+				free(tmp);
+
+				return n;
+			} else {
+				return (size_t) -1;
+			}
+		}
+	} else {
+		return (size_t) (MultiByteToWideChar(CP_UTF8,
+					MB_ERR_INVALID_CHARS, src, -1, NULL, 0) - 1);
+	}
+}
+#endif
 
 /**
  * Initialize and verify the file paths, and the score file.
@@ -335,6 +387,7 @@ int main(int argc, char *argv[])
 	 * processing command line args */
 	init_stuff();
 
+#ifdef WINDOWS
 	/* Process the command line arguments */
 	for (i = 1; args && (i < argc); i++) {
 		const char *arg = argv[i];
@@ -449,6 +502,7 @@ int main(int argc, char *argv[])
 		}
 		if (*arg) goto usage;
 	}
+#endif /* WINDOWS */
 
 	/* Hack -- Forget standard args */
 	if (args) {
@@ -464,10 +518,16 @@ int main(int argc, char *argv[])
 		ANGBAND_SYS = mstr;
 
 	if (setlocale(LC_CTYPE, "")) {
+#ifndef WINDOWS
 		/* Require UTF-8 */
 		if (strcmp(nl_langinfo(CODESET), "UTF-8") != 0)
 			quit("Angband requires UTF-8 support");
+#endif
 	}
+
+#ifdef WINDOWS
+	text_mbcs_hook = mbstowcs_windows;
+#endif
 
 	/* Try the modules in the order specified by modules[] */
 	for (i = 0; i < (int)N_ELEMENTS(modules); i++) {
@@ -525,5 +585,3 @@ int main(int argc, char *argv[])
 	/* Exit */
 	return (0);
 }
-
-#endif

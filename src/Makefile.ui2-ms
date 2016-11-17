@@ -1,0 +1,162 @@
+.PHONY: default install args clean distclean devel package
+default: install
+
+# architecture;
+# i686 or x86_64
+ARCH := i686
+
+# version of mingw
+CC := $(ARCH)-w64-mingw32-gcc
+
+CFLAGS := \
+	-std=c99 \
+	-g \
+	-O2 \
+	-Wall -Wextra -Wno-unused-parameter -Wpedantic
+
+CPPFLAGS := \
+	-DUSE_PRIVATE_PATHS -DWINDOWS
+
+LDFLAGS :=
+
+# We link libm statically
+MINGW_STATIC_LIBS_DIR := /usr/i686-w64-mingw32/lib
+
+# Directory where SDL2, SDL2_image, SDL2_ttf
+# libraries (for mingw) are installed
+SDL_BASE_DIR := /home/vic/misc/SDL2_mingw
+
+SDL_MAIN_DIR  := $(SDL_BASE_DIR)/SDL2-2.0.5
+SDL_IMAGE_DIR := $(SDL_BASE_DIR)/SDL2_image-2.0.1
+SDL_TTF_DIR   := $(SDL_BASE_DIR)/SDL2_ttf-2.0.14
+
+SDL_DIRS := $(SDL_MAIN_DIR) $(SDL_IMAGE_DIR) $(SDL_TTF_DIR)
+SDL_ARCH := $(ARCH)-w64-mingw32
+
+CFLAGS += \
+	$(foreach mod,$(SDL_DIRS),-I$(mod)/$(SDL_ARCH)/include/SDL2)
+
+CPPFLAGS += \
+	-DUSE_SDL2 -DMAIN=SDL_main -DNO_SOUND
+
+LDFLAGS += \
+	$(foreach mod,$(SDL_DIRS),-L$(mod)/$(SDL_ARCH)/lib) \
+	-lmingw32 \
+	-mwindows \
+	-lSDL2main \
+	-lSDL2 \
+	-lSDL2_ttf \
+	-lSDL2_image \
+	$(MINGW_STATIC_LIBS_DIR)/libm.a
+
+# small helper function;
+# $1 is SDL2 module (MAIN, IMAGE, TTF)
+# $2 is the name of the necessary file
+sdlfile = $(SDL_$(1)_DIR)/$(SDL_ARCH)/bin/$(2)
+
+SDL_FILES := \
+	$(call sdlfile,MAIN,SDL2.dll) \
+	$(call sdlfile,IMAGE,SDL2_image.dll) \
+	$(call sdlfile,IMAGE,zlib1.dll) \
+	$(call sdlfile,IMAGE,LICENSE.zlib.txt) \
+	$(call sdlfile,IMAGE,libpng16-16.dll) \
+	$(call sdlfile,IMAGE,LICENSE.png.txt) \
+	$(call sdlfile,TTF,SDL2_ttf.dll) \
+	$(call sdlfile,TTF,libfreetype-6.dll) \
+	$(call sdlfile,TTF,LICENSE.freetype.txt)
+
+GAME_DIRS := \
+	gamedata \
+	customize \
+	help \
+	screens \
+	fonts \
+	tiles \
+	sounds \
+	icons \
+	user \
+	user/scores \
+	user/save \
+	user/info
+
+TILES := \
+	old \
+	adam-bolt \
+	gervais \
+	nomad \
+	shockbolt \
+	list.txt
+
+PACKAGE := angband-$(ARCH)
+
+MAINOBJS := main.o main2-sdl2.o
+
+### Targets and objects ###
+
+# Makefile.inc contains an up-to-date set of
+# object files to compile, so we include it;
+# (it includes Makefile.scr, which defines
+# BASEOBJS, HEADERS and PROGNAME)
+include Makefile.inc.ui2
+
+# Object definitions; don't compile sound for now
+OBJS := $(filter-out sound-core.c,$(BASEOBJS)) $(MAINOBJS)
+
+# Basic dependencies
+$(MAINOBJS): main.h $(HEADERS)
+
+args:
+	@echo CFLAGS = $(CFLAGS)
+	@echo CPPFLAGS = $(CPPFLAGS)
+	@echo LDFLAGS = $(LDFLAGS)
+	@echo SDL_FILES = $(SDL_FILES)
+	@echo OBJS = $(OBJS)
+
+# Name of binary
+EXE := $(PROGNAME).exe
+
+%.o: %.c
+	@printf "%10s %-20s\n" CC $<
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
+
+$(EXE): $(OBJS)
+	@printf "%10s %-20s\n" LINK $@
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -o "$(EXE)" $^ $(LDFLAGS)
+
+install: $(EXE)
+	cp $(EXE) ..
+
+devel: install
+	cp $(SDL_FILES) ..
+
+clean:
+	-rm -f $(OBJS) ./$(EXE) ../$(EXE) $(addprefix ../,$(notdir $(SDL_FILES)))
+
+distclean: clean
+	-rm -rf ..$(PACKAGE).zip $(PACKAGE)
+
+### Make a distribution ###
+package: gamefiles = cp -r $(wildcard ../lib/$(1)/$(2)) $(PACKAGE)/lib/$(1)
+package: install
+	@[ ! -e $(PACKAGE) ] || rm -rf $(PACKAGE)
+	@echo Making directories...
+	@mkdir -p $(foreach d,$(GAME_DIRS),$(PACKAGE)/lib/$(d))
+	@echo Copying files...
+	@$(call gamefiles,gamedata,*.txt)
+	@$(call gamefiles,screens,*.txt)
+	@$(call gamefiles,help,*.txt)
+	@$(call gamefiles,customize,*.prf)
+	@$(call gamefiles,fonts,*.fon)
+	@$(call gamefiles,fonts,*.ttf)
+	@$(call gamefiles,icons,*png)
+	@$(call gamefiles,sounds,*.mp3)
+	@$(call gamefiles,sounds,sound.cfg)
+	@$(call gamefiles,tiles,old)
+	@$(call gamefiles,user/info,*.txt)
+	@$(call gamefiles,user/info,*.hlp)
+	@$(foreach t,$(TILES),$(call gamefiles,tiles,$(t)); )
+	@cp $(EXE) $(PACKAGE)
+	@cp $(SDL_FILES) $(PACKAGE)
+	@cp ../changes.txt ../readme.txt $(PACKAGE)
+	@echo Making a zip file...
+	@zip -r ../$(PACKAGE).zip $(PACKAGE)

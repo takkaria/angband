@@ -378,18 +378,18 @@ static void prt_level(struct loc coords)
 
 static void prt_exp_aux(char *buf, size_t buf_size, bool max_level)
 {
-	long long xp;
+	long xp;
 
 	if (max_level) {
 		xp = player->exp;
 	} else {
-		long long next_level_xp =
-			((long long) player_exp[player->lev - 1] * player->expfact / 100LL);
+		long next_level_xp =
+			((long) player_exp[player->lev - 1] * player->expfact / 100LL);
 
 		xp = next_level_xp - player->exp;
 	}
 
-	strnfmt(buf, buf_size, "%8lld", xp);
+	strnfmt(buf, buf_size, "%8ld", xp);
 }
 
 /**
