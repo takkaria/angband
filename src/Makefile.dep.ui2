@@ -12,7 +12,7 @@ deperror:
 	$(error Define some targets first!)
 
 ifndef OBJS
-	$(error You forgot to define list of object files!)
+$(error You forgot to define list of object files!)
 endif
 
 DEP_DIR := .dincludes
