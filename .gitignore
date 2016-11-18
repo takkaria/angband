@@ -19,6 +19,7 @@ src/angband-master
 *.gcno
 src/tests/ran-already
 .deps
+.dincludes
 doc/manual/*.aux
 mk/buildsys.mk
 *~

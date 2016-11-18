@@ -7,7 +7,7 @@
 # (see -DHAVE_CONFIG_H and autoconf.h)
 
 # Invoke make with these arguments
-.PHONY: default clean args depgen
+.PHONY: default clean args
 
 # Make Angband binary by default
 default: install
@@ -65,17 +65,17 @@ endif
 
 #### Targets and objects #####
 
-# Makefile.inc contains an up-to-date set of
+# Makefile.src contains an up-to-date set of
 # object files to compile, so we include it;
-# (it includes Makefile.scr, which defines
-# BASEOBJS, HEADERS and PROGNAME)
-include Makefile.inc.ui2
+# (it defines BASEOBJS and PROGNAME)
+include Makefile.src.ui2
 
 # Object definitions
 OBJS := $(BASEOBJS) $(MAINOBJS)
 
-# Basic dependencies
-$(MAINOBJS): main.h $(HEADERS)
+# Makefile.dep contains commands that
+# generate dependency info from OBJS
+include Makefile.dep.ui2
 
 # Name of binary
 EXE := $(PROGNAME)

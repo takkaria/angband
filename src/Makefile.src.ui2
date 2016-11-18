@@ -1,44 +1,14 @@
 #
-# File: Makefile.src
+# File: Makefile.src.ui2
 #
-# A makefile which includes the current object files, hopefully includable
-# across a range of different makefiles, to cut down on maintenance.
+# The list of object files, which are
+# necessary for compiling Angband.
 #
 
 NAME := Angband
 VERSION := 4.0.4
 COPYRIGHT := (c) 1995-2016 Angband contributors
 PROGNAME := angband
-
-HEADERS := \
-	angband.h \
-	cmds.h \
-	cmd-core.h \
-	config.h \
-	effects.h \
-	game-event.h \
-	guid.h \
-	h-basic.h \
-	init.h \
-	main.h \
-	option.h \
-	parser.h \
-	ui-event.h \
-	ui-menu.h \
-	wizard.h \
-	z-bitflag.h \
-	z-color.h \
-	z-dice.h \
-	z-expression.h \
-	z-file.h \
-	z-form.h \
-	z-quark.h \
-	z-queue.h \
-	z-rand.h \
-	z-set.h \
-	z-type.h \
-	z-util.h \
-	z-virt.h
 
 ZFILES := \
 	z-bitflag.o \
