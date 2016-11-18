@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
 	 * processing command line args */
 	init_stuff();
 
-#ifdef WINDOWS
+#ifndef WINDOWS
 	/* Process the command line arguments */
 	for (i = 1; args && (i < argc); i++) {
 		const char *arg = argv[i];
