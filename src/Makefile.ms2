@@ -165,6 +165,7 @@ dist: all
 	@echo Making a zip file...
 	@zip -r $(DIST_FILE) $(DIST_DIR) > /dev/null
 	@echo Windows distribution is in $(DIST_FILE)
+	@rm -rf $(DIST_DIR)
 
 distclean: clean
-	-rm -rf $(DIST_FILE) $(DIST_DIR)
+	rm -f $(DIST_FILE)
