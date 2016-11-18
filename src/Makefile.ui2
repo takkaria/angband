@@ -66,11 +66,11 @@ EXE := $(PROGNAME)
 
 # View module arguments
 args:
-	@echo CFLAGS = $(CFLAGS)
-	@echo LDFLAGS = $(LDFLAGS)
-	@echo CPPFLAGS = $(CPPFLAGS)
-	@echo MAINOBJS = $(MAINOBJS)
-	@echo OBJS = $(OBJS)
+	$(info CFLAGS = $(CFLAGS))
+	$(info LDFLAGS = $(LDFLAGS))
+	$(info CPPFLAGS = $(CPPFLAGS))
+	$(info MAINOBJS = $(MAINOBJS))
+	$(info OBJS = $(OBJS))
 
 # Some file dependencies
 %.o: %.c
