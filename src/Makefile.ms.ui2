@@ -74,17 +74,15 @@ MAINOBJS := main.o main2-sdl2.o
 
 ### Targets and objects ###
 
-# Makefile.inc contains an up-to-date set of
-# object files to compile, so we include it;
-# (it includes Makefile.scr, which defines
-# BASEOBJS, HEADERS and PROGNAME)
-include Makefile.inc.ui2
+# Makefile.src contains an up-to-date set of
+# object files to compile, so we include it
+include Makefile.src.ui2
 
 # Object definitions; don't compile sound for now
 OBJS := $(filter-out sound-core.c,$(BASEOBJS)) $(MAINOBJS)
 
-# Basic dependencies
-$(MAINOBJS): main.h $(HEADERS)
+# Makefile.dep creates dependency info from OBJS
+include Makefile.dep.ui2
 
 args:
 	$(info CFLAGS = $(CFLAGS))
