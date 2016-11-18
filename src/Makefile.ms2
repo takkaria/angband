@@ -102,7 +102,7 @@ EXE := $(PROGNAME).exe
 
 $(EXE): $(OBJS)
 	@printf "%10s %-20s\n" LINK $@
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -o "$(EXE)" $^ $(LDFLAGS)
+	@$(CC) $(CFLAGS) -o "$(EXE)" $^ $(LDFLAGS)
 
 devel: all
 	cp $(EXE) ..

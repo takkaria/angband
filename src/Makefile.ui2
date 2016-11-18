@@ -1,69 +1,53 @@
-# File: Makefile.sdl2
-# Makefile for compiling SDL2 frontend
+# File: Makefile.ui2
+# Compiles Angband with textui2.
 #
 # This makefile requires GNU make.
-# It is primarily intended for development of textui2
 # It assumes Angband was configured properly
 # (see -DHAVE_CONFIG_H and autoconf.h)
 
 # Invoke make with these arguments
-.PHONY: default clean args
+.PHONY: default all clean args
+default: all
 
-# Make Angband binary by default
-default: install
+### Basic compiler stuff ###
 
-#### Things you should, or could, change ####
-
-## Support ncurses (widestring) console mode
-SYS_ncurses := -DUSE_NCURSES -I/usr/include/ncursesw -lncursesw
-
-## Support SDL2 frontend
-SYS_sdl2 := -DUSE_SDL2 \
-	$(shell sdl2-config --cflags) $(shell sdl2-config --libs) \
-	-lSDL2_ttf -lSDL2_image
-
-## Stats pseudo-frontend
-#SYS_stats := -DUSE_STATS
-
-## Support SDL2_mixer for sound
-## (snd-sdl.c will need some small changes)
-#SOUND_sdl2 := -DSOUND_SDL -DSOUND \
-	$(shell sdl2-config --cflags) \
-	$(shell sdl2-config --libs) -lSDL2_mixer
-
-# Basic compiler stuff
 CC := gcc
-LIBS := -lm
-CFLAGS := -std=c99 \
+
+CFLAGS := \
+	-std=c99 \
 	-g -O0 \
 	-Wall -Wextra -Wno-unused-parameter -Wpedantic \
-	-DHAVE_CONFIG_H \
 	-fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined
 
-#### Things you probably shouldn't change, unless there is a problem ####
+LDFLAGS := -lm
 
-MODULES := $(SYS_ncurses) $(SYS_sdl2) $(SOUND_sdl2) $(SYS_stats)
+CPPFLAGS := -DHAVE_CONFIG_H
 
-# Extract CFLAGS and LIBS from the system definitions
-CFLAGS  += $(filter-out -l%,$(MODULES))
-LIBS    += $(filter     -l%,$(MODULES))
+### Modules ###
 
 MAINOBJS := main.o
 
-ifdef SYS_ncurses
-	MAINOBJS += main2-ncurses.o
-endif
-ifdef SYS_stats
-	MAINOBJS += main-stats.o
-endif
-ifdef SYS_sdl2
-	MAINOBJS += main2-sdl2.o
-endif
-ifdef SOUND_sdl2
-	MAINOBJS += snd-sdl.o
-endif
+# Support ncurses (widestring) console mode
+CPPFLAGS += -DUSE_NCURSES -I/usr/include/ncursesw
+LDFLAGS  += -lncursesw
+MAINOBJS += main2-ncurses.o
 
-#### Targets and objects #####
+# Support SDL2 frontend
+CPPFLAGS += -DUSE_SDL2 $(shell sdl2-config --cflags)
+LDFLAGS  += $(shell sdl2-config --libs) -lSDL2_ttf -lSDL2_image
+MAINOBJS += main2-sdl2.o
+
+## Stats pseudo-frontend
+#CPPFALGS += -DUSE_STATS
+#MAINOBJS += main-stats.o
+
+## Support SDL2_mixer for sound
+## (snd-sdl.c will need some small changes)
+#CPPFLAGS += -DSOUND_SDL $(shell sdl2-config --cflags)
+#LDFLAGS  += $(shell sdl2-config --libs) -lSDL2_mixer
+#MAINOBJS += snd-sdl.o
+
+### Targets and objects ###
 
 # Makefile.src contains an up-to-date set of
 # object files to compile, so we include it;
@@ -84,28 +68,23 @@ EXE := $(PROGNAME)
 args:
 	@echo CFLAGS = $(CFLAGS)
 	@echo LDFLAGS = $(LDFLAGS)
-	@echo LIBS = $(LIBS)
+	@echo CPPFLAGS = $(CPPFLAGS)
 	@echo MAINOBJS = $(MAINOBJS)
 	@echo OBJS = $(OBJS)
 
 # Some file dependencies
 %.o: %.c
 	@printf "%10s %-20s\n" CC $<
-	@$(CC) $(CFLAGS) -o $@ -c $<
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
 # Build the program
 $(EXE): $(OBJS)
 	@printf "%10s %-20s\n" LINK $@
-	@$(CC) $(CFLAGS) $(LDFLAGS) -o $(EXE) $(OBJS) $(LIBS)
+	@$(CC) $(CFLAGS) -o $(EXE) $(OBJS) $(LDFLAGS) 
 
-# By default, copy the executable to ../ so that
-# you don't find yourself debugging a stale copy.
-../$(EXE): $(EXE)
-	cp $(EXE) ..
-
-# Install the game
-install: ../$(EXE)
+# Compile the game
+all: $(EXE)
 
 # Clean up old junk
 clean:
-	-rm -f $(OBJS) ./$(EXE) ../$(EXE)
+	rm -f $(OBJS) ./$(EXE)
