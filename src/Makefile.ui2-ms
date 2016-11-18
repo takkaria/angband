@@ -1,4 +1,4 @@
-.PHONY: default install args clean distclean devel package
+.PHONY: default install args clean distclean devel dist
 default: install
 
 # architecture;
@@ -37,7 +37,7 @@ CFLAGS += \
 	$(foreach mod,$(SDL_DIRS),-I$(mod)/$(SDL_ARCH)/include/SDL2)
 
 CPPFLAGS += \
-	-DUSE_SDL2 -DMAIN=SDL_main -DNO_SOUND
+	-DUSE_SDL2 -DMAIN=SDL_main
 
 LDFLAGS += \
 	$(foreach mod,$(SDL_DIRS),-L$(mod)/$(SDL_ARCH)/lib) \
@@ -64,30 +64,6 @@ SDL_FILES := \
 	$(call sdlfile,TTF,SDL2_ttf.dll) \
 	$(call sdlfile,TTF,libfreetype-6.dll) \
 	$(call sdlfile,TTF,LICENSE.freetype.txt)
-
-GAME_DIRS := \
-	gamedata \
-	customize \
-	help \
-	screens \
-	fonts \
-	tiles \
-	sounds \
-	icons \
-	user \
-	user/scores \
-	user/save \
-	user/info
-
-TILES := \
-	old \
-	adam-bolt \
-	gervais \
-	nomad \
-	shockbolt \
-	list.txt
-
-PACKAGE := angband-$(ARCH)
 
 MAINOBJS := main.o main2-sdl2.o
 
@@ -132,31 +108,65 @@ devel: install
 clean:
 	-rm -f $(OBJS) ./$(EXE) ../$(EXE) $(addprefix ../,$(notdir $(SDL_FILES)))
 
-distclean: clean
-	-rm -rf ..$(PACKAGE).zip $(PACKAGE)
-
 ### Make a distribution ###
-package: gamefiles = cp -r $(wildcard ../lib/$(1)/$(2)) $(PACKAGE)/lib/$(1)
-package: install
-	@[ ! -e $(PACKAGE) ] || rm -rf $(PACKAGE)
+
+MAIN_DIR := ..
+DIST_DIR := angband-$(ARCH)
+MAIN_LIB := $(MAIN_DIR)/lib
+DIST_LIB := $(DIST_DIR)/lib
+
+DIST_FILE := $(MAIN_DIR)/$(DIST_DIR).zip
+
+LIB_DIRS := \
+	user \
+	user/scores \
+	user/save \
+	user/info
+
+LIB_FILES := \
+	gamedata/*.txt \
+	customize/*.prf \
+	help/*.txt \
+	help/*.hlp \
+	screens/*.txt \
+	fonts/*.fon \
+	fonts/*.ttf \
+	tiles/old \
+	tiles/adam-bolt \
+	tiles/gervais \
+	tiles/nomad \
+	tiles/shockbolt \
+	tiles/list.txt \
+	sounds/*.mp3 \
+	icons/*.png
+
+TEXT_FILES := \
+	changes.txt \
+	readme.txt \
+	thanks.txt \
+	copying.txt \
+	faq.txt
+
+dist: install
+	@[ ! -e $(DIST_DIR) ] || rm -rf $(DIST_DIR)
 	@echo Making directories...
-	@mkdir -p $(foreach d,$(GAME_DIRS),$(PACKAGE)/lib/$(d))
-	@echo Copying files...
-	@$(call gamefiles,gamedata,*.txt)
-	@$(call gamefiles,screens,*.txt)
-	@$(call gamefiles,help,*.txt)
-	@$(call gamefiles,customize,*.prf)
-	@$(call gamefiles,fonts,*.fon)
-	@$(call gamefiles,fonts,*.ttf)
-	@$(call gamefiles,icons,*png)
-	@$(call gamefiles,sounds,*.mp3)
-	@$(call gamefiles,sounds,sound.cfg)
-	@$(call gamefiles,tiles,old)
-	@$(call gamefiles,user/info,*.txt)
-	@$(call gamefiles,user/info,*.hlp)
-	@$(foreach t,$(TILES),$(call gamefiles,tiles,$(t)); )
-	@cp $(EXE) $(PACKAGE)
-	@cp $(SDL_FILES) $(PACKAGE)
-	@cp ../changes.txt ../readme.txt $(PACKAGE)
+	@mkdir -p $(foreach d,$(LIB_DIRS),$(DIST_LIB)/$(d))
+	@mkdir -p $(foreach d,$(LIB_FILES),$(DIST_LIB)/$(dir $(d)))
+	@echo Copying lib files...
+	@for f in $(foreach f,$(LIB_FILES),'$(f)'); do \
+		cp -r $(MAIN_LIB)/$$f $(DIST_LIB)/$$(dirname "$$f"); \
+	done
+	@echo Copying text files...
+	@for f in $(foreach f,$(TEXT_FILES),'$(f)'); do \
+		perl -lpe 'BEGIN {$$\ = "\r\n"}; tr/\r//d' < $(MAIN_DIR)/$$f > $(DIST_DIR)/$$f; \
+	done
+	@echo Copying binary...
+	@cp $(EXE) $(DIST_DIR)
+	@echo Copying dlls...
+	@cp $(SDL_FILES) $(DIST_DIR)
 	@echo Making a zip file...
-	@zip -r ../$(PACKAGE).zip $(PACKAGE)
+	@zip -r $(DIST_FILE) $(DIST_DIR) > /dev/null
+	@echo Windows distribution is in $(DIST_FILE)
+
+distclean: clean
+	-rm -rf $(DIST_FILE) $(DIST_DIR)
