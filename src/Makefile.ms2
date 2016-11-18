@@ -26,19 +26,42 @@ MINGW_STATIC_LIBS_DIR := /usr/i686-w64-mingw32/lib
 # libraries (for mingw) are installed
 SDL_BASE_DIR := /home/vic/misc/SDL2_mingw
 
-SDL_MAIN_DIR  := $(SDL_BASE_DIR)/SDL2-2.0.5
-SDL_IMAGE_DIR := $(SDL_BASE_DIR)/SDL2_image-2.0.1
-SDL_TTF_DIR   := $(SDL_BASE_DIR)/SDL2_ttf-2.0.14
-
-SDL_DIRS := $(SDL_MAIN_DIR) $(SDL_IMAGE_DIR) $(SDL_TTF_DIR)
 SDL_ARCH := $(ARCH)-w64-mingw32
 
+SDL_MODULES := MAIN IMAGE TTF
+
+SDL_MAIN_DIR := $(SDL_BASE_DIR)/SDL2-2.0.5
+SDL_MAIN_FILES := \
+	SDL2.dll
+
+SDL_IMAGE_DIR := $(SDL_BASE_DIR)/SDL2_image-2.0.1
+SDL_IMAGE_FILES := \
+	SDL2_image.dll \
+	zlib1.dll \
+	LICENSE.zlib.txt \
+	libpng16-16.dll \
+	LICENSE.png.txt
+
+SDL_TTF_DIR := $(SDL_BASE_DIR)/SDL2_ttf-2.0.14
+SDL_TTF_FILES := \
+	SDL2_ttf.dll \
+	libfreetype-6.dll \
+	LICENSE.freetype.txt
+
+SDL_DIRS := \
+	$(foreach m,$(SDL_MODULES),$(SDL_$(m)_DIR))
+
+SDL_FILES := \
+	$(foreach m,$(SDL_MODULES),\
+		$(foreach f,$(SDL_$(m)_FILES),\
+			$(SDL_$(m)_DIR)/$(SDL_ARCH)/bin/$(f)))
+
 CPPFLAGS += \
-	$(foreach mod,$(SDL_DIRS),-I$(mod)/$(SDL_ARCH)/include/SDL2) \
+	$(foreach d,$(SDL_DIRS),-I$(d)/$(SDL_ARCH)/include/SDL2) \
 	-DUSE_SDL2 -DMAIN=SDL_main
 
 LDFLAGS += \
-	$(foreach mod,$(SDL_DIRS),-L$(mod)/$(SDL_ARCH)/lib) \
+	$(foreach d,$(SDL_DIRS),-L$(d)/$(SDL_ARCH)/lib) \
 	-lmingw32 \
 	-mwindows \
 	-lSDL2main \
@@ -46,22 +69,6 @@ LDFLAGS += \
 	-lSDL2_ttf \
 	-lSDL2_image \
 	$(MINGW_STATIC_LIBS_DIR)/libm.a
-
-# small helper function;
-# $1 is SDL2 module (MAIN, IMAGE, TTF)
-# $2 is the name of the necessary file
-sdlfile = $(SDL_$(1)_DIR)/$(SDL_ARCH)/bin/$(2)
-
-SDL_FILES := \
-	$(call sdlfile,MAIN,SDL2.dll) \
-	$(call sdlfile,IMAGE,SDL2_image.dll) \
-	$(call sdlfile,IMAGE,zlib1.dll) \
-	$(call sdlfile,IMAGE,LICENSE.zlib.txt) \
-	$(call sdlfile,IMAGE,libpng16-16.dll) \
-	$(call sdlfile,IMAGE,LICENSE.png.txt) \
-	$(call sdlfile,TTF,SDL2_ttf.dll) \
-	$(call sdlfile,TTF,libfreetype-6.dll) \
-	$(call sdlfile,TTF,LICENSE.freetype.txt)
 
 MAINOBJS := main.o main2-sdl2.o
 
