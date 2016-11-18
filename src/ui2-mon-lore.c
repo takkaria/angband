@@ -17,6 +17,7 @@
  */
 
 #include "angband.h"
+#include "init.h"
 #include "mon-lore.h"
 #include "ui2-mon-lore.h"
 #include "ui2-output.h"
@@ -91,8 +92,10 @@ void lore_description(textblock *tb, const struct monster_race *race,
 	memcpy(lore, original_lore, sizeof(*lore));
 
 	/* Determine the special attack colors */
-	int melee_colors[RBE_MAX];
 	int spell_colors[RSF_MAX];
+	int *melee_colors =
+		mem_zalloc(z_info->blow_effects_max * sizeof(*melee_colors));
+
 	get_attack_colors(melee_colors, spell_colors);
 
 	/* Now get the known monster flags */
@@ -146,6 +149,8 @@ void lore_description(textblock *tb, const struct monster_race *race,
 		/* Notice quest monsters (e.g., Sauron and Morgoth) */
 		textblock_append(tb, "\nYou feel an intense desire to kill this monster...");
 	}
+
+	mem_free(melee_colors);
 }
 
 /**
