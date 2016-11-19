@@ -1,9 +1,7 @@
-#
 # File: Makefile.src.ui2
 #
 # The list of object files, which are
 # necessary for compiling Angband.
-#
 
 NAME := Angband
 VERSION := 4.0.4

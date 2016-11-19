@@ -1,13 +1,10 @@
-#
 # File: Makefile.dep.ui2
 #
 # Generates dependency info.
 # Include this file with $(OBJS) defined,
 # which must contain a list of object files.
-#
 
 .PHONY: deperror
-
 deperror:
 	$(error Define some targets first!)
 
@@ -25,6 +22,7 @@ $(shell [ -d $(DEP_DIR) ] || mkdir $(DEP_DIR))
 # generate empty target for each prerequisite,
 # so that make woudn't die if we delete a file
 # (see GCC manual, 3.11 and make manual, 4.7)
+
 $(DEP_DIR)/%.d:
 	$(info Generating $@ for $*.c...)
 	@$(if $(findstring /,$*),\

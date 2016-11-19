@@ -1,8 +1,8 @@
 # File: Makefile.ui2
-# Compiles Angband with textui2.
 #
+# Compiles Angband with textui2.
 # This makefile requires GNU make.
-# It assumes Angband was configured properly
+# Assumes Angband was configured properly
 # (see -DHAVE_CONFIG_H and autoconf.h)
 
 # Invoke make with these arguments

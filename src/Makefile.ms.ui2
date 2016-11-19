@@ -1,5 +1,12 @@
+# File: Makefile.ui2
+#
+# Cross compiles Windows version of Angband
+# with textui2 and SDL2, using mingw-w64.
+
 .PHONY: args default all devel clean dist distclean
 default: all
+
+### Basic compiler stuff ###
 
 # architecture;
 # i686 or x86_64
@@ -21,6 +28,8 @@ LDFLAGS :=
 
 # We link libm statically
 MINGW_STATIC_LIBS_DIR := /usr/i686-w64-mingw32/lib
+
+### SDL module stuff ###
 
 # Directory where SDL2, SDL2_image, SDL2_ttf
 # libraries (for mingw) are installed
@@ -100,7 +109,7 @@ EXE := $(PROGNAME).exe
 
 $(EXE): $(OBJS)
 	@printf "%10s %-20s\n" LINK $@
-	@$(CC) $(CFLAGS) -o "$(EXE)" $^ $(LDFLAGS)
+	@$(CC) $(CFLAGS) -o $(EXE) $^ $(LDFLAGS)
 
 devel: all
 	cp $(EXE) ..
