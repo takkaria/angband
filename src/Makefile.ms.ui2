@@ -1,4 +1,4 @@
-# File: Makefile.ui2
+# File: Makefile.ms.ui2
 #
 # Cross compiles Windows version of Angband
 # with textui2 and SDL2, using mingw-w64.
