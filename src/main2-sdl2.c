@@ -53,6 +53,9 @@
 #define INIT_IMG_FLAGS \
 	(IMG_INIT_PNG)
 
+#define DEFAULT_WINDOW_FLAGS \
+	(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE)
+
 #define DEFAULT_CONFIG_FILE "sdl2init.txt"
 #define DEFAULT_CONFIG_FILE_DIR \
 	ANGBAND_DIR_USER
@@ -3178,13 +3181,30 @@ static void handle_last_resize_event(int num_events, const SDL_Event *events)
 {
 	assert(num_events > 0);
 
-	for (int i = num_events - 1; i >= 0; i--) {
-		if (events[i].window.event == SDL_WINDOWEVENT_RESIZED) {
-			struct window *window = get_window_by_id(events[i].window.windowID);
-			assert(window != NULL);
-			resize_window(window, events[i].window.data1, events[i].window.data2);
-			return;
+	int w = 0;
+	int h = 0;
+	struct window *window = NULL;
+
+	for (int i = num_events - 1; i >= 0 && window == NULL; i--) {
+		switch (events[i].window.event) {
+			case SDL_WINDOWEVENT_RESIZED:
+				window = get_window_by_id(events[i].window.windowID);
+				w = events[i].window.data1;
+				h = events[i].window.data2;
+				break;
+
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+				window = get_window_by_id(events[i].window.windowID);
+				SDL_GetWindowSize(window->window, &w, &h);
+				break;
+
+			default:
+				break;
 		}
+	}
+
+	if (w > 0 && h > 0) {
+		resize_window(window, w, h);
 	}
 }
 
@@ -3201,6 +3221,7 @@ static void handle_windowevent(const SDL_WindowEvent *event)
 	for (int i = 0; i < num_events; i++) {
 		switch (events[i].window.event) {
 			case SDL_WINDOWEVENT_RESIZED:
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
 				/* just for efficiency */
 				resize = true;
 				break;
@@ -5429,7 +5450,7 @@ static void start_window(struct window *window)
 		window->window = SDL_CreateWindow(VERSION_NAME,
 				window->full_rect.x, window->full_rect.y,
 				window->full_rect.w, window->full_rect.h,
-				SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE);
+				DEFAULT_WINDOW_FLAGS | SDL_WINDOW_FULLSCREEN_DESKTOP);
 	} else {
 		window->window = SDL_CreateWindow(VERSION_NAME,
 				window->full_rect.x, window->full_rect.y,
@@ -5492,7 +5513,7 @@ static void wipe_window_aux_config(struct window *window)
 	window->config->renderer_flags = rinfo.flags;
 	window->config->renderer_index = -1;
 
-	window->config->window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+	window->config->window_flags = DEFAULT_WINDOW_FLAGS | SDL_WINDOW_SHOWN;
 
 	if (main_window->config == NULL) {
 		char path[4096];
@@ -6530,7 +6551,7 @@ static enum parser_error config_window_display(struct parser *parser)
 	wipe_window(window, display);
 
 	window->config = mem_zalloc(sizeof(*window->config));
-	window->config->window_flags = SDL_WINDOW_RESIZABLE;
+	window->config->window_flags = DEFAULT_WINDOW_FLAGS;
 
 	return PARSE_ERROR_NONE;
 }
