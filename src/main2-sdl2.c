@@ -6218,6 +6218,8 @@ static void init_systems(void)
 
 	SDL_StartTextInput();
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+
+	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 }
 
 int init_sdl2(int argc, char **argv)
