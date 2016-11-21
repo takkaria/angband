@@ -19,7 +19,7 @@ CFLAGS := \
 	-std=c99 \
 	-g \
 	-O2 \
-	-Wall -Wextra -Wno-unused-parameter -Wpedantic
+	-Wall -Wextra -Wfatal-errors -Wno-unused-parameter -Wpedantic
 
 CPPFLAGS := \
 	-DUSE_PRIVATE_PATHS -DWINDOWS
@@ -64,6 +64,9 @@ SDL_FILES := \
 	$(foreach m,$(SDL_MODULES),\
 		$(foreach f,$(SDL_$(m)_FILES),\
 			$(SDL_$(m)_DIR)/$(SDL_ARCH)/bin/$(f)))
+
+SDL_DEVEL_FILES := \
+	$(addprefix ../,$(notdir $(SDL_FILES)))
 
 CPPFLAGS += \
 	$(foreach d,$(SDL_DIRS),-I$(d)/$(SDL_ARCH)/include/SDL2) \
@@ -111,12 +114,14 @@ $(EXE): $(OBJS)
 	@printf "%10s %-20s\n" LINK $@
 	@$(CC) $(CFLAGS) -o $(EXE) $^ $(LDFLAGS)
 
-devel: all
+devel: all $(SDL_DEVEL_FILES)
 	cp $(EXE) ..
-	cp $(SDL_FILES) ..
+
+$(SDL_DEVEL_FILES):
+	cp $(filter %$(notdir $@),$(SDL_FILES)) ..
 
 clean:
-	rm -f $(OBJS) $(EXE) ../$(EXE) $(addprefix ../,$(notdir $(SDL_FILES)))
+	rm -f $(OBJS) $(EXE) ../$(EXE) $(SDL_DEVEL_FILES)
 
 all: $(EXE)
 
