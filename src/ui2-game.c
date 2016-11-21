@@ -43,6 +43,7 @@
 #include "ui2-knowledge.h"
 #include "ui2-map.h"
 #include "ui2-object.h"
+#include "ui2-options.h"
 #include "ui2-output.h"
 #include "ui2-player.h"
 #include "ui2-prefs.h"
@@ -392,6 +393,12 @@ static void start_game(bool new_game)
 {
 	/* Player will be resuscitated if living in the savefile */
 	player->is_dead = true;
+
+	/* On Windows, savefile is empty,
+	 * since we don't have user's name */
+	if (savefile[0] == 0) {
+		choose_savefile(savefile, sizeof(savefile));
+	}
 
 	/* Try loading */
 	if (file_exists(savefile) && !savefile_load(savefile, arg_wizard)) {

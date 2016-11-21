@@ -27,6 +27,7 @@
 #include "obj-util.h"
 #include "object.h"
 #include "player-calcs.h"
+#include "savefile.h"
 #include "ui2-display.h"
 #include "ui2-help.h"
 #include "ui2-input.h"
@@ -1104,6 +1105,107 @@ static void quality_menu(void)
 	Term_pop();
 
 	Term_visible(true);
+}
+
+/**
+ * ------------------------------------------------------------------------
+ * Savefile menu
+ * ------------------------------------------------------------------------
+ */
+
+struct save_menu_data {
+	char *desc;
+	char *path;
+};
+
+static void savefile_menu_display(struct menu *menu,
+		int index, bool cursor, struct loc loc, int width)
+{
+	struct save_menu_data *saves = menu_priv(menu);
+
+	Term_adds(loc.x, loc.y, width,
+			menu_row_style(true, cursor), saves[index].desc);
+}
+
+static int read_saves(struct save_menu_data *saves, int n_saves)
+{
+	ang_dir *dir = my_dopen(ANGBAND_DIR_SAVE);
+	assert(dir != NULL);
+
+	char name[1024];
+	char path[4096];
+
+	int n = 0;
+	while (n < n_saves && my_dread(dir, name, sizeof(name))) {
+		path_build(path, sizeof(path), ANGBAND_DIR_SAVE, name);
+
+		const char *desc = savefile_get_description(path);
+		if (desc != NULL && !streq(desc, "Invalid savefile")) {
+			saves[n].desc = string_make(desc);
+			saves[n].path = string_make(path);
+			n++;
+		}
+	}
+
+	my_dclose(dir);
+
+	return n;
+}
+
+/**
+ * Chose a savefile to load, and copy its path into buf
+ */
+void choose_savefile(char *buf, size_t buf_size)
+{
+	struct save_menu_data saves[ANGBAND_TERM_STANDARD_HEIGHT] = {{NULL, NULL}};
+
+	int n_saves = read_saves(saves, N_ELEMENTS(saves));
+	if (n_saves == 0) {
+		return;
+	}
+
+	const char *tab = "Save files";
+
+	int maxlen = strlen(tab);
+	for (int n = 0; n < n_saves; n++) {
+		int len = strlen(saves[n].desc);
+		if (maxlen < len) {
+			maxlen = len;
+		}
+	}
+
+	struct term_hints hints = {
+		.width = maxlen + 3,
+		.height = n_saves,
+		.tabs = true,
+		.position = TERM_POSITION_CENTER,
+		.purpose = TERM_PURPOSE_TEXT
+	};
+	Term_push_new(&hints);
+	Term_add_tab(0, tab, COLOUR_WHITE, COLOUR_DARK);
+
+	struct menu menu;
+
+	menu_iter savefile_menu_iter = {
+		.display_row = savefile_menu_display,
+	};
+
+	menu_init(&menu, MN_SKIN_SCROLL, &savefile_menu_iter);
+	menu_setpriv(&menu, n_saves, saves);
+	menu.selections = lower_case;
+	menu_layout_term(&menu);
+
+	ui_event event = menu_select(&menu);
+	if (event.type == EVT_SELECT) {
+		my_strcpy(buf, saves[menu.cursor].path, buf_size);
+	}
+
+	Term_pop();
+
+	for (int n = 0; n < n_saves; n++) {
+		mem_free(saves[n].desc);
+		mem_free(saves[n].path);
+	}
 }
 
 /**

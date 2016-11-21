@@ -22,6 +22,7 @@
 
 #include "obj-ignore.h"
 
+void choose_savefile(char *buf, size_t buf_size);
 void do_cmd_options_birth(void);
 int ego_item_name(char *buf, size_t buf_size, struct ego_desc *desc);
 bool ignore_tval(int tval);
