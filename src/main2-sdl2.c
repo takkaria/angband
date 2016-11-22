@@ -20,6 +20,11 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 
+/* SDL defines its own STDINT_H,
+ * which causes compiler warning
+ * when h-basic.h is included */
+#undef HAVE_STDINT_H
+
 #include "angband.h"
 #include "buildid.h"
 #include "game-world.h"
