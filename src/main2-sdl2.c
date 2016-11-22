@@ -5447,6 +5447,17 @@ static bool choose_pixelformat(struct window *window,
 	return false;
 }
 
+static void set_window_hints(const struct window *window)
+{
+	if (window->config == NULL
+			|| window->config->renderer_flags & SDL_RENDERER_ACCELERATED)
+	{
+		SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+	} else {
+		SDL_SetHint(SDL_HINT_RENDER_DRIVER, "software");
+	}
+}
+
 static void start_window(struct window *window)
 {
 	assert(!window->loaded);
@@ -5463,6 +5474,8 @@ static void start_window(struct window *window)
 				window->config->window_flags);
 	}
 	assert(window->window != NULL);
+
+	set_window_hints(window);
 
 	if (window->config == NULL) {
 		window->renderer = SDL_CreateRenderer(window->window,
@@ -5499,6 +5512,9 @@ static void start_window(struct window *window)
 
 	window->flags = SDL_GetWindowFlags(window->window);
 	window->id = SDL_GetWindowID(window->window);
+
+	SDL_RaiseWindow(window->window);
+	window->focus = true;
 }
 
 static void wipe_window_aux_config(struct window *window)
@@ -6244,8 +6260,6 @@ static void init_systems(void)
 
 	SDL_StartTextInput();
 	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
-
-	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 }
 
 int init_sdl2(int argc, char **argv)
