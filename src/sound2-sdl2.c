@@ -91,6 +91,7 @@ static bool open_audio_sdl(void)
 	/* Initialize main SDL library */
 	if (SDL_Init(SDL_INIT_AUDIO) != 0) {
 		plog_fmt("Couldn't initialize SDL: %s", SDL_GetError());
+		return false;
 	}
 
 	/* Initialize SDL_mixer library */
