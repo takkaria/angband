@@ -42,10 +42,9 @@ MAINOBJS += main2-sdl2.o
 #MAINOBJS += main-stats.o
 
 ## Support SDL2_mixer for sound
-## (snd-sdl.c will need some small changes)
-#CPPFLAGS += -DSOUND_SDL $(shell sdl2-config --cflags)
-#LDFLAGS  += $(shell sdl2-config --libs) -lSDL2_mixer
-#MAINOBJS += snd-sdl.o
+CPPFLAGS += -DSOUND -DUSE_SOUND_SDL2 $(shell sdl2-config --cflags)
+LDFLAGS  += $(shell sdl2-config --libs) -lSDL2_mixer
+MAINOBJS += sound2-sdl2.o
 
 ### Targets and objects ###
 

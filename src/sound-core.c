@@ -20,12 +20,9 @@
 #include "sound.h"
 #include "main.h"
 #include "ui2-prefs.h"
-#ifdef SOUND_SDL
-#include "snd-sdl.h"
-#endif
 
-#if (defined(WINDOWS) && defined(USE_SOUND) && !defined(USE_SDL))
-#include "snd-win.h"
+#ifdef USE_SOUND_SDL2
+#include "sound2-sdl2.h"
 #endif
 
 #define MAX_SOUNDS_PER_MESSAGE	16
@@ -55,11 +52,8 @@ static struct msg_snd_data message_sounds[MSG_MAX];
  */
 static const struct sound_module sound_modules[] =
 {
-#ifdef SOUND_SDL
-	{ "sdl", "SDL_mixer sound module", init_sound_sdl },
-#endif /* SOUND_SDL */
-#if (defined(WINDOWS) && defined(USE_SOUND) && !defined(USE_SDL))
-	{ "win", "Windows sound module", init_sound_win },
+#ifdef USE_SOUND_SDL2
+	{ "sdl2", "SDL2_mixer sound module", init_sound_sdl },
 #endif
 
 	{ "", "", NULL },
@@ -224,7 +218,7 @@ void message_sound_define(u16b message_id, const char *sounds_str)
 		}
 
 		/* Add this sound (by id) to the message->sounds map */
-		if (message_sounds[message_id].num_sounds < (MAX_SOUNDS_PER_MESSAGE - 1)) {
+		if (message_sounds[message_id].num_sounds < MAX_SOUNDS_PER_MESSAGE) {
 			message_sounds[message_id].sound_ids[message_sounds[message_id].num_sounds] = sound_id;
 			message_sounds[message_id].num_sounds++;
 		}
