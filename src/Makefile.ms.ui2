@@ -3,7 +3,7 @@
 # Cross compiles Windows version of Angband
 # with textui2 and SDL2, using mingw-w64.
 
-.PHONY: args default devel clean dist distclean
+.PHONY: default devel clean dist distclean args
 default: devel
 
 ### Basic compiler stuff ###
@@ -31,8 +31,9 @@ MINGW_STATIC_LIBS_DIR := /usr/i686-w64-mingw32/lib
 
 ### SDL module stuff ###
 
-# Directory where SDL2, SDL2_image, SDL2_ttf
-# libraries (for mingw) are installed
+# Directory where SDL2 and associated libraries,
+# namely, SDL2_image, SDL2_ttf and SDL2_mixer
+# (for mingw) are installed
 SDL_BASE_DIR := /home/vic/misc/SDL2_mingw
 
 SDL_ARCH := $(ARCH)-w64-mingw32
