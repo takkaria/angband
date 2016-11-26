@@ -76,7 +76,6 @@ CPPFLAGS := \
 # Linker flags
 LDFLAGS :=
 
-
 ### SDL module stuff ###
 
 SDL_ARCH := $(ARCH)-w64-mingw32
