@@ -22,7 +22,7 @@ CFLAGS := \
 	-Wall -Wextra -Wfatal-errors -Wno-unused-parameter -Wpedantic
 
 CPPFLAGS := \
-	-DUSE_PRIVATE_PATHS -DWINDOWS
+	-DUSE_PRIVATE_PATHS -DWINDOWS -DUSE_SOUND_SDL2 -DSOUND
 
 LDFLAGS :=
 
@@ -37,7 +37,7 @@ SDL_BASE_DIR := /home/vic/misc/SDL2_mingw
 
 SDL_ARCH := $(ARCH)-w64-mingw32
 
-SDL_MODULES := MAIN IMAGE TTF
+SDL_MODULES := MAIN IMAGE TTF MIXER
 
 SDL_MAIN_DIR := $(SDL_BASE_DIR)/SDL2-2.0.5
 SDL_MAIN_FILES := \
@@ -56,6 +56,12 @@ SDL_TTF_FILES := \
 	SDL2_ttf.dll \
 	libfreetype-6.dll \
 	LICENSE.freetype.txt
+
+SDL_MIXER_DIR := $(SDL_BASE_DIR)/SDL2_mixer-2.0.1
+SDL_MIXER_FILES := \
+	SDL2_mixer.dll \
+	smpeg2.dll \
+	LICENSE.smpeg.txt
 
 SDL_DIRS := \
 	$(foreach m,$(SDL_MODULES),$(SDL_$(m)_DIR))
@@ -80,9 +86,10 @@ LDFLAGS += \
 	-lSDL2 \
 	-lSDL2_ttf \
 	-lSDL2_image \
+	-lSDL2_mixer \
 	$(MINGW_STATIC_LIBS_DIR)/libm.a
 
-MAINOBJS := main.o main2-sdl2.o
+MAINOBJS := main.o main2-sdl2.o sound2-sdl2.o
 
 ### Targets and objects ###
 
@@ -90,8 +97,8 @@ MAINOBJS := main.o main2-sdl2.o
 # object files to compile, so we include it
 include Makefile.src.ui2
 
-# Object definitions; don't compile sound for now
-OBJS := $(filter-out sound-core.c,$(BASEOBJS)) $(MAINOBJS)
+# Object definitions
+OBJS := $(BASEOBJS) $(MAINOBJS)
 
 # Makefile.dep creates dependency info from OBJS
 include Makefile.dep.ui2

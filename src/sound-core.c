@@ -309,9 +309,11 @@ static void play_sound(game_event_type type, game_event_data *data, void *user)
 /*
  * Shut down the sound system and free resources.
  */
-static void close_audio(void)
+static void close_audio(game_event_type type, game_event_data *data, void *user)
 {
-	int i;
+	(void) type;
+	(void) data;
+	(void) user;
 
 	if (0 == next_sound_id)
 		return;	/* Never opened */
@@ -321,7 +323,7 @@ static void close_audio(void)
 	 * sound
 	 */
 	if (hooks.unload_sound_hook)
-		for (i = 0; i < next_sound_id; i++) {
+		for (int i = 0; i < next_sound_id; i++) {
 			hooks.unload_sound_hook(&sounds[i]);
 			string_free(sounds[i].name);
 		}
@@ -363,7 +365,9 @@ errr init_sound(const char *soundstr, int argc, char **argv)
 
 	/* Enable sound */
 	event_add_handler(EVENT_SOUND, play_sound, NULL);
-	atexit(close_audio);
+
+	/* Disable sound on exit */
+	event_add_handler(EVENT_LEAVE_GAME, close_audio, NULL);
 
 	/* Success */
 	return (0);

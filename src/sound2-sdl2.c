@@ -22,6 +22,11 @@
 #include "init.h"
 #include "sound.h"
 
+/* SDL defines its own STDINT_H,
+ * which causes compiler warning
+ * when h-basic.h is included */
+#undef HAVE_STDINT_H
+
 #include <SDL.h>
 #include <SDL_mixer.h>
 
@@ -266,6 +271,7 @@ static bool unload_sound_sdl(struct sound_data *data)
  */
 static bool close_audio_sdl(void)
 {
+	Mix_Quit();
 	Mix_CloseAudio();
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
