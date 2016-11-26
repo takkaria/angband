@@ -30,6 +30,8 @@
 #include "obj-util.h"
 #include "object.h"
 #include "ui2-command.h"
+#include "ui2-input.h"
+#include "ui2-output.h"
 #include "ui2-wizard.h"
 
 /**
@@ -1663,7 +1665,7 @@ void stats_collect(void)
 	 */
 	 auto_flag = false;
 	 
-	 if (!OPT(auto_more)) {
+	 if (!OPT(player, auto_more)) {
 		/* Remember that we turned off auto_more */
 		auto_flag = true;
 

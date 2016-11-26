@@ -21,7 +21,7 @@ CFLAGS := \
 
 LDFLAGS := -lm
 
-CPPFLAGS := -DHAVE_CONFIG_H
+CPPFLAGS := -I. -DHAVE_CONFIG_H
 
 ### Modules ###
 
@@ -45,7 +45,7 @@ LDFLAGS  += $(SDL2_LDFLAGS) -lSDL2_ttf -lSDL2_image
 MAINOBJS += main2-sdl2.o
 
 ## Stats pseudo-frontend
-#CPPFALGS += -DUSE_STATS
+#CPPFLAGS += -DUSE_STATS
 #MAINOBJS += main-stats.o
 
 ## Support SDL2_mixer for sound
