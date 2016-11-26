@@ -3,8 +3,8 @@
 # Cross compiles Windows version of Angband
 # with textui2 and SDL2, using mingw-w64.
 
-.PHONY: args default all devel clean dist distclean
-default: all
+.PHONY: args default devel clean dist distclean
+default: devel
 
 ### Basic compiler stuff ###
 
@@ -121,7 +121,7 @@ $(EXE): $(OBJS)
 	@printf "%10s %-20s\n" LINK $@
 	@$(CC) $(CFLAGS) -o $(EXE) $^ $(LDFLAGS)
 
-devel: all $(SDL_DEVEL_FILES)
+devel: $(EXE) $(SDL_DEVEL_FILES)
 	cp $(EXE) ..
 
 $(SDL_DEVEL_FILES):
@@ -129,8 +129,6 @@ $(SDL_DEVEL_FILES):
 
 clean:
 	rm -f $(OBJS) $(EXE) ../$(EXE) $(SDL_DEVEL_FILES)
-
-all: $(EXE)
 
 ### Make a distribution ###
 
