@@ -75,12 +75,12 @@ args:
 	$(info MAINOBJS = $(MAINOBJS))
 	$(info OBJS = $(OBJS))
 
-# Some file dependencies
+# Compile object files
 %.o: %.c
 	@printf "%10s %-20s\n" CC $<
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
-# Build the program
+# Link the binary
 $(EXE): $(OBJS)
 	@printf "%10s %-20s\n" LINK $@
 	@$(CC) $(CFLAGS) -o $(EXE) $(OBJS) $(LDFLAGS) 
