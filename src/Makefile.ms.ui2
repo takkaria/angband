@@ -6,45 +6,45 @@
 .PHONY: default devel clean dist distclean args
 default: devel
 
-### Basic compiler stuff ###
+### Things that you might want to change ###
 
-# architecture;
+# Architecture;
 # i686 or x86_64
 ARCH := i686
 
-# version of mingw
+# Version of mingw; it will be
+# used for compiling the game
+# (so it should be in $PATH)
 CC := $(ARCH)-w64-mingw32-gcc
 
-CFLAGS := \
-	-std=c99 \
-	-g \
-	-O2 \
-	-Wall -Wextra -Wfatal-errors -Wno-unused-parameter -Wpedantic
+# Directory where archive files for Windows
+# can be found (we link libm statically)
+MINGW_STATIC_LIBS_DIR := /usr/$(ARCH)-w64-mingw32/lib
 
-CPPFLAGS := \
-	-DUSE_PRIVATE_PATHS -DWINDOWS -DUSE_SOUND_SDL2 -DSOUND
-
-LDFLAGS :=
-
-# We link libm statically
-MINGW_STATIC_LIBS_DIR := /usr/i686-w64-mingw32/lib
-
-### SDL module stuff ###
-
-# Directory where SDL2 and associated libraries,
+# Directories where SDL2 and associated libraries,
 # namely, SDL2_image, SDL2_ttf and SDL2_mixer
-# (for mingw) are installed
+# (for mingw) are installed; for example,
+# the following directory structure:
+#
+# /home/vic/misc/SDL2_mingw/SDL2-2.0.5/
+# /home/vic/misc/SDL2_mingw/SDL2_image-2.0.1/
+# /home/vic/misc/SDL2_mingw/SDL2_ttf-2.0.14/
+# /home/vic/misc/SDL2_mingw/SDL2_mixer-2.0.1/
+#
+# SDL2 team distributes precompiled .dll files
+# that are suitable for using them with mingw
 SDL_BASE_DIR := /home/vic/misc/SDL2_mingw
 
-SDL_ARCH := $(ARCH)-w64-mingw32
+SDL_MAIN_DIR  := $(SDL_BASE_DIR)/SDL2-2.0.5
+SDL_IMAGE_DIR := $(SDL_BASE_DIR)/SDL2_image-2.0.1
+SDL_TTF_DIR   := $(SDL_BASE_DIR)/SDL2_ttf-2.0.14
+SDL_MIXER_DIR := $(SDL_BASE_DIR)/SDL2_mixer-2.0.1
 
-SDL_MODULES := MAIN IMAGE TTF MIXER
-
-SDL_MAIN_DIR := $(SDL_BASE_DIR)/SDL2-2.0.5
+# Files that are needed for running
+# Windows version of Angband with SDL2
 SDL_MAIN_FILES := \
 	SDL2.dll
 
-SDL_IMAGE_DIR := $(SDL_BASE_DIR)/SDL2_image-2.0.1
 SDL_IMAGE_FILES := \
 	SDL2_image.dll \
 	zlib1.dll \
@@ -52,17 +52,36 @@ SDL_IMAGE_FILES := \
 	libpng16-16.dll \
 	LICENSE.png.txt
 
-SDL_TTF_DIR := $(SDL_BASE_DIR)/SDL2_ttf-2.0.14
 SDL_TTF_FILES := \
 	SDL2_ttf.dll \
 	libfreetype-6.dll \
 	LICENSE.freetype.txt
 
-SDL_MIXER_DIR := $(SDL_BASE_DIR)/SDL2_mixer-2.0.1
 SDL_MIXER_FILES := \
 	SDL2_mixer.dll \
 	smpeg2.dll \
 	LICENSE.smpeg.txt
+
+# Compiler flags
+CFLAGS := \
+	-std=c99 \
+	-g \
+	-O2 \
+	-Wall -Wextra -Wfatal-errors -Wno-unused-parameter -Wpedantic
+
+# Preprocessor flags
+CPPFLAGS := \
+	-DUSE_PRIVATE_PATHS -DWINDOWS -DUSE_SOUND_SDL2 -DSOUND
+
+# Linker flags
+LDFLAGS :=
+
+
+### SDL module stuff ###
+
+SDL_ARCH := $(ARCH)-w64-mingw32
+
+SDL_MODULES := MAIN IMAGE TTF MIXER
 
 SDL_DIRS := \
 	$(foreach m,$(SDL_MODULES),$(SDL_$(m)_DIR))
@@ -101,9 +120,11 @@ include Makefile.src.ui2
 # Object definitions
 OBJS := $(BASEOBJS) $(MAINOBJS)
 
-# Makefile.dep creates dependency info from OBJS
+# Makefile.dep contains commands that
+# generate dependency info from OBJS
 include Makefile.dep.ui2
 
+# View module arguments
 args:
 	$(info CFLAGS = $(CFLAGS))
 	$(info CPPFLAGS = $(CPPFLAGS))
@@ -114,20 +135,28 @@ args:
 # Name of binary
 EXE := $(PROGNAME).exe
 
+# Compile object files
 %.o: %.c
 	@printf "%10s %-20s\n" CC $<
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
+# Link the binary
 $(EXE): $(OBJS)
 	@printf "%10s %-20s\n" LINK $@
 	@$(CC) $(CFLAGS) -o $(EXE) $^ $(LDFLAGS)
 
+# Copy the binary and .dll files
+# into the main Angband directory;
+# angband.exe looks for 'lib' there
 devel: $(EXE) $(SDL_DEVEL_FILES)
 	cp $(EXE) ..
 
+# Copy the .dlls and other files
+# into the main Angband directory
 $(SDL_DEVEL_FILES):
 	cp $(filter %$(notdir $@),$(SDL_FILES)) ..
 
+# Clean up old junk
 clean:
 	rm -f $(OBJS) $(EXE) ../$(EXE) $(SDL_DEVEL_FILES)
 
@@ -138,14 +167,21 @@ DIST_DIR := angband-$(ARCH)
 MAIN_LIB := $(MAIN_DIR)/lib
 DIST_LIB := $(DIST_DIR)/lib
 
+# .zip file with the Windows version
 DIST_FILE := $(MAIN_DIR)/$(DIST_DIR).zip
 
+# Directories without files;
+# the ones with files will be
+# created automatically, based
+# on information in $(LIB_FILES)
 LIB_DIRS := \
 	user \
 	user/scores \
 	user/save \
 	user/info
 
+# Necessary files and
+# their directories
 LIB_FILES := \
 	gamedata/*.txt \
 	customize/*.prf \
@@ -163,6 +199,9 @@ LIB_FILES := \
 	sounds/*.mp3 \
 	icons/*.png
 
+# The files that have to be edited to change
+# their line endings ('\n' to '\r\n', so that
+# Windows users could read them using Notepad)
 TEXT_FILES := \
 	changes.txt \
 	readme.txt \
@@ -170,7 +209,9 @@ TEXT_FILES := \
 	copying.txt \
 	faq.txt
 
-dist: all
+# Make a .zip file that has Windows version
+# of Angband, with all necessary files in it
+dist: $(EXE)
 	@[ ! -e $(DIST_DIR) ] || rm -rf $(DIST_DIR)
 	$(info Making directories...)
 	@mkdir -p $(foreach d,$(LIB_DIRS),$(DIST_LIB)/$(d))
@@ -193,5 +234,6 @@ dist: all
 	@rm -rf $(DIST_DIR)
 	$(info Windows distribution is in $(DIST_FILE))
 
+# Clean up all Windows junk
 distclean: clean
 	rm -f $(DIST_FILE)
