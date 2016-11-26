@@ -63,16 +63,6 @@ static const struct sound_file_type supported_sound_files[] = {
 	{"",     SOUND_FILE_NONE}
 };
 
-/* SDL2_mixer 2.0.1 added ability to load
- * MP3s as chunks (instead of just music) */
-static bool can_load_mp3_as_chunk(void)
-{
-	const struct SDL_version *version = Mix_Linked_Version();
-
-	return version->major >= 2
-		&& (version->minor > 0 || version->patch > 0);
-}
-
 /**
  * Initialise SDL and open the mixer.
  */
@@ -134,7 +124,7 @@ static void sample_free(struct sample *sample)
 	switch (sample->type) {
 		case SAMPLE_CHUNK:
 			if (sample->type == SAMPLE_CHUNK) {
-				 Mix_FreeChunk(sample->data.chunk);
+				Mix_FreeChunk(sample->data.chunk);
 			}
 			break;
 
@@ -196,11 +186,7 @@ static bool load_sample_sdl(const char *filename, int file_type, struct sample *
 			break;
 
 		case SOUND_FILE_MP3:
-			if (can_load_mp3_as_chunk()) {
-				loaded = load_sample_wav(sample, filename);
-			} else {
-				loaded = load_sample_mus(sample, filename);
-			}
+			loaded = load_sample_mus(sample, filename);
 			break;
 
 		default:
@@ -240,20 +226,25 @@ static bool play_sound_sdl(struct sound_data *data)
 {
 	struct sample *sample = data->plat_data;
 
+	bool ok = false;
+
 	if (sample != NULL) {
 		switch (sample->type) {
 			case SAMPLE_CHUNK:
-				return Mix_PlayChannel(-1, sample->data.chunk, 0) == 0;
+				ok = Mix_PlayChannel(-1, sample->data.chunk, 0) == 0;
+				break;
 
 			case SAMPLE_MUSIC:
-				return Mix_PlayMusic(sample->data.music, 1) == 0;
+				Mix_HaltMusic();
+				ok = Mix_PlayMusic(sample->data.music, 1) == 0;
+				break;
 
-			default:
-				return false;
+			case SAMPLE_NONE:
+				break;
 		}
-	} else {
-		return false;
 	}
+
+	return ok;
 }
 
 /**
