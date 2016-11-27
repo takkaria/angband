@@ -125,11 +125,11 @@ include Makefile.dep.ui2
 
 # View module arguments
 args:
-	$(info CFLAGS = $(CFLAGS))
-	$(info CPPFLAGS = $(CPPFLAGS))
-	$(info LDFLAGS = $(LDFLAGS))
-	$(info SDL_FILES = $(SDL_FILES))
-	$(info OBJS = $(OBJS))
+	@echo CFLAGS = $(CFLAGS)
+	@echo CPPFLAGS = $(CPPFLAGS)
+	@echo LDFLAGS = $(LDFLAGS)
+	@echo SDL_FILES = $(SDL_FILES)
+	@echo OBJS = $(OBJS)
 
 # Name of binary
 EXE := $(PROGNAME).exe
@@ -212,26 +212,26 @@ TEXT_FILES := \
 # of Angband, with all necessary files in it
 dist: $(EXE)
 	@[ ! -e $(DIST_DIR) ] || rm -rf $(DIST_DIR)
-	$(info Making directories...)
+	@echo Making directories...
 	@mkdir -p $(foreach d,$(LIB_DIRS),$(DIST_LIB)/$(d))
 	@mkdir -p $(foreach d,$(LIB_FILES),$(DIST_LIB)/$(dir $(d)))
-	$(info Copying lib files...)
+	@echo Copying lib files...
 	@for f in $(foreach f,$(LIB_FILES),'$(f)'); do \
 		cp -r $(MAIN_LIB)/$$f $(DIST_LIB)/$$(dirname "$$f"); \
 	done
-	$(info Copying text files...)
+	@echo Copying text files...
 	@for f in $(foreach f,$(TEXT_FILES),'$(f)'); do \
 		perl -lpe 'BEGIN {$$\ = "\r\n"}; tr/\r//d' < $(MAIN_DIR)/$$f > $(DIST_DIR)/$$f; \
 	done
-	$(info Copying binary...)
+	@echo Copying binary...
 	@cp $(EXE) $(DIST_DIR)
-	$(info Copying dlls...)
+	@echo Copying dlls...
 	@cp $(SDL_FILES) $(DIST_DIR)
-	$(info Making a zip file...)
+	@echo Making a zip file...
 	@zip -r $(DIST_FILE) $(DIST_DIR) > /dev/null
-	$(info Removing temporary directory...)
+	@echo Removing temporary directory...
 	@rm -rf $(DIST_DIR)
-	$(info Windows distribution is in $(DIST_FILE))
+	@echo Windows distribution is in $(DIST_FILE)
 
 # Clean up all Windows junk
 distclean: clean
