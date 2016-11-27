@@ -18,17 +18,17 @@
  *    and not for profit purposes provided that this copyright and statement
  *    are included in all such copies.  Other copyrights may also apply.
  */
-#include "angband.h"
-#include "init.h"
-#include "sound.h"
+#include <SDL.h>
+#include <SDL_mixer.h>
 
 /* SDL defines its own STDINT_H,
  * which causes compiler warning
  * when h-basic.h is included */
 #undef HAVE_STDINT_H
 
-#include <SDL.h>
-#include <SDL_mixer.h>
+#include "angband.h"
+#include "init.h"
+#include "sound.h"
 
 /* SDL can be initialized by main SDL frontend,
  * or this module can be running standalone,
@@ -104,14 +104,58 @@ static bool open_audio_sdl(void)
 	return true;
 }
 
-static struct sample *sample_new(void)
+static bool load_sample_wav(struct sample *sample, const char *filename)
+{
+	sample->data.chunk = Mix_LoadWAV(filename);
+
+	if (sample->data.chunk != NULL) {
+		sample->type = SAMPLE_CHUNK;
+		return true;
+	} else {
+		plog_fmt("Couldn't load sound chunk from '%s': %s",
+				filename, Mix_GetError());
+		return false;
+	}
+}
+
+static bool load_sample_mus(struct sample *sample, const char *filename)
+{
+	sample->data.music = Mix_LoadMUS(filename);
+
+	if (sample->data.chunk != NULL) {
+		sample->type = SAMPLE_MUSIC;
+		return true;
+	} else {
+		plog_fmt("Couldn't load sound sample from '%s': %s",
+				filename, Mix_GetError());
+		return false;
+	}
+}
+
+static struct sample *sample_load(const char *filename, int filetype)
 {
 	struct sample *sample = mem_zalloc(sizeof(*sample));
 
-	sample->data.chunk = NULL;
-	sample->data.music = NULL;
+	bool loaded = false;
 
-	sample->type = SAMPLE_NONE;
+	switch (filetype) {
+		case SOUND_FILE_OGG:
+			loaded = load_sample_wav(sample, filename);
+			break;
+
+		case SOUND_FILE_MP3:
+			loaded = load_sample_mus(sample, filename);
+			break;
+
+		default:
+			plog("Unsupported sound file");
+			break;
+	}
+
+	if (!loaded) {
+		mem_free(sample);
+		sample = NULL;
+	}
 
 	return sample;
 }
@@ -146,82 +190,22 @@ static void sample_free(struct sample *sample)
 	mem_free(sample);
 }
 
-static bool load_sample_wav(struct sample *sample, const char *filename)
-{
-	assert(sample->type == SAMPLE_NONE);
-
-	sample->data.chunk = Mix_LoadWAV(filename);
-
-	if (sample->data.chunk != NULL) {
-		sample->type = SAMPLE_CHUNK;
-		return true;
-	} else {
-		plog_fmt("Couldn't load sound chunk from '%s': %s",
-				filename, Mix_GetError());
-		return false;
-	}
-}
-
-static bool load_sample_mus(struct sample *sample, const char *filename)
-{
-	assert(sample->type == SAMPLE_NONE);
-
-	sample->data.music = Mix_LoadMUS(filename);
-
-	if (sample->data.chunk != NULL) {
-		sample->type = SAMPLE_MUSIC;
-		return true;
-	} else {
-		plog_fmt("Couldn't load sound sample from '%s': %s",
-				filename, Mix_GetError());
-		return false;
-	}
-}
-
-/**
- * Load a sound from file.
- */
-static bool load_sample_sdl(const char *filename, int file_type, struct sample *sample)
-{
-	bool loaded = false;
-
-	switch (file_type) {
-		case SOUND_FILE_OGG:
-			loaded = load_sample_wav(sample, filename);
-			break;
-
-		case SOUND_FILE_MP3:
-			loaded = load_sample_mus(sample, filename);
-			break;
-
-		default:
-			plog("Unsupported sound file");
-			break;
-	}
-
-	return loaded;
-}
-
 /**
  * Load a sound and return a pointer to the associated
  * sound data structure back to the core sound module.
  */
-static bool load_sound_sdl(const char *filename, int file_type, struct sound_data *data)
+static bool load_sound_sdl(const char *filename, int filetype, struct sound_data *data)
 {
-	struct sample *sample = data->plat_data;
+	if (!data->loaded) {
+		struct sample *sample = sample_load(filename, filetype);
 
-	if (sample == NULL) {
-		sample = sample_new();
+		if (sample != NULL) {
+			data->plat_data = sample;
+			data->loaded = true;
+		}
 	}
 
-	if (load_sample_sdl(filename, file_type, sample)) {
-		data->plat_data = sample;
-		data->loaded = true;
-		return true;
-	} else {
-		sample_free(sample);
-		return false;
-	}
+	return data->loaded;
 }
 
 /**
@@ -240,7 +224,6 @@ static bool play_sound_sdl(struct sound_data *data)
 				break;
 
 			case SAMPLE_MUSIC:
-				Mix_HaltMusic();
 				ok = Mix_PlayMusic(sample->data.music, 1) == 0;
 				break;
 
