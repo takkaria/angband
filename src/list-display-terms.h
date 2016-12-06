@@ -5,19 +5,19 @@
  * Fields:
  * index    - unique index of a term
  * name     - full name (description) of a term
- * min_c    - minimal number of columns
- * min_r    - minimal number of rows
+ * min_c    - minimum number of columns (width)
+ * min_r    - minimum number of rows (height)
  * def_c    - default (recommended) number of columns
  * def_r    - default (recommended) number of rows
- * max_c    - maximal number of columns
- * max_r    - maximal number of rows
+ * max_c    - maximum number of columns
+ * max_r    - maximum number of rows
  * required - this term is not optional
  */
 
 /*      index            name            min_c  min_r  def_c  def_r     max_c     max_r   required */
 DISPLAY(CAVE,           "Main",              1,     1,    80,    24,  INT_MAX,  INT_MAX,      true)
-DISPLAY(MESSAGE_LINE,   "Prompt line",      40,     1,    80,     1,  INT_MAX,        1,     false)
 
+DISPLAY(MESSAGE_LINE,   "Prompt line",      40,     1,    80,     1,  INT_MAX,        1,     false)
 DISPLAY(STATUS_LINE,    "Status line",      40,     1,    80,     1,  INT_MAX,        1,     false)
 DISPLAY(PLAYER_COMPACT, "Player (compact)", 12,     1,    12,    24,  INT_MAX,  INT_MAX,     false)
 DISPLAY(PLAYER_BASIC,   "Player (basic)",   80,    24,    80,    24,  INT_MAX,  INT_MAX,     false)
