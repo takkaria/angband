@@ -39,7 +39,7 @@ struct curses_list {
 /**
  * Display an entry of the item menu
  */
-void get_curse_display(struct menu *menu,
+static void get_curse_display(struct menu *menu,
 		int index, bool cursor, struct loc loc, int width)
 {
 	struct curses_list *list = menu_priv(menu);
@@ -76,7 +76,7 @@ static void show_curse_help(int index, int curse)
 /**
  * Deal with events on the get_item menu
  */
-bool get_curse_action(struct menu *menu, const ui_event *event, int index)
+static bool get_curse_action(struct menu *menu, const ui_event *event, int index)
 {
 	struct curses_list *list = menu_priv(menu);
 
