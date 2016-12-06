@@ -20,6 +20,6 @@
 #ifndef UI2_CURSE_H
 #define UI2_CURSE_H
 
-bool textui_get_curse(struct curse **choice, struct object *obj);
+bool textui_get_curse(int *choice, struct object *obj);
 
 #endif /* UI2_CURSE_H */

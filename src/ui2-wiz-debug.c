@@ -338,7 +338,7 @@ static void wiz_display_item(const struct object *obj, bool all)
 			   obj->number, obj->pval,
 			   obj->artifact ? obj->artifact->aidx : 0,
 			   obj->ego ? obj->ego->eidx : 0,
-			   object_value(obj, 1, false)),
+			   object_value(obj, 1)),
 			loc);
 
 	loc.y = 16;
@@ -432,7 +432,6 @@ static struct object *wiz_create_item_object_from_kind(struct object_kind *kind)
 
 		/* Apply magic (no messages, no artifacts) */
 		apply_magic(obj, player->depth, false, false, false, false);
-		apply_curse_knowledge(obj);
 	}
 
 	return obj;
@@ -464,7 +463,6 @@ static struct object *wiz_create_item_object_from_artifact(struct artifact *art)
 	object_prep(obj, kind, art->alloc_min, RANDOMISE);
 	obj->artifact = art;
 	copy_artifact_data(obj, art);
-	apply_curse_knowledge(obj);
 
 	/* Mark that the artifact has been created. */
 	art->created = true;
@@ -889,19 +887,19 @@ static void wiz_reroll_item(struct object *obj)
 		} else if (ch == 'n' || ch == 'N') {
 			/* Apply normal magic, but first clear object */
 			changed = true;
-			object_wipe(new, true);
+			object_wipe(new);
 			object_prep(new, obj->kind, player->depth, RANDOMISE);
 			apply_magic(new, player->depth, false, false, false, false);
 		} else if (ch == 'g' || ch == 'G') {
 			/* Apply good magic, but first clear object */
 			changed = true;
-			object_wipe(new, true);
+			object_wipe(new);
 			object_prep(new, obj->kind, player->depth, RANDOMISE);
 			apply_magic(new, player->depth, false, true, false, false);
 		} else if (ch == 'e' || ch == 'E') {
 			/* Apply great magic, but first clear object */
 			changed = true;
-			object_wipe(new, true);
+			object_wipe(new);
 			object_prep(new, obj->kind, player->depth, RANDOMISE);
 			apply_magic(new, player->depth, false, true, true, false);
 		}
@@ -913,13 +911,17 @@ static void wiz_reroll_item(struct object *obj)
 		struct object *next = obj->next;
 		struct object *known_obj = obj->known;
 
-		/* Free slays and brands on the old object by hand */
-		free_slay(obj->slays);
-		free_brand(obj->brands);
+		/* Free slays, brands and curses
+		 * on the old object by hand */
+		mem_free(obj->slays);
+		obj->slays = NULL;
+		mem_free(obj->brands);
+		obj->brands = NULL;
+		mem_free(obj->curses);
+		obj->curses = NULL;
 
 		/* Copy over - slays and brands OK, pile info needs restoring */
 		object_copy(obj, new);
-		apply_curse_knowledge(obj);
 		obj->prev = prev;
 		obj->next = next;
 		obj->known = known_obj;
@@ -1264,8 +1266,8 @@ static void do_cmd_wiz_cure_all(void)
 {
 	/* Remove curses */
 	for (int i = 0; i < player->body.count; i++) {
-		if (player->body.slots[i].obj) {
-			free_curse(player->body.slots[i].obj->curses, true, true);
+		if (player->body.slots[i].obj && player->body.slots[i].obj->curses) {
+			mem_free(player->body.slots[i].obj->curses);
 			player->body.slots[i].obj->curses = NULL;
 		}
 	}
@@ -1813,7 +1815,6 @@ static void wiz_test_kind(int tval)
 
 				/* Apply magic (no messages, no artifacts) */
 				apply_magic(obj, player->depth, false, false, false, false);
-				apply_curse_knowledge(obj);
 
 				/* Mark as cheat, and where created */
 				obj->origin = ORIGIN_CHEAT;

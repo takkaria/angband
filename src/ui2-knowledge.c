@@ -842,12 +842,12 @@ static void get_artifact_display_name(char *o_name, size_t size, int a_idx)
 	struct object *known_obj = &known_body;
 
 	make_fake_artifact(obj, &a_info[a_idx]);
-	object_wipe(known_obj, true);
+	object_wipe(known_obj);
 	object_copy(known_obj, obj);
 	obj->known = known_obj;
 	object_desc(o_name, size, obj, ODESC_PREFIX | ODESC_BASE | ODESC_SPOIL);
-	object_wipe(known_obj, false);
-	object_wipe(obj, true);
+	object_wipe(known_obj);
+	object_wipe(obj);
 }
 
 /**
@@ -951,8 +951,8 @@ static void desc_art_fake(int a_idx, int row)
 			ODESC_PREFIX | ODESC_FULL | ODESC_CAPITAL);
 
 	if (fake) {
-		object_wipe(known_obj, false);
-		object_wipe(obj, true);
+		object_wipe(known_obj);
+		object_wipe(obj);
 	}
 
 	knowledge_textblock_show(tb, header, row);
@@ -1307,7 +1307,6 @@ static void desc_obj_fake(int k_idx, int row)
 
 	/* Create the artifact */
 	object_prep(obj, kind, 0, EXTREMIFY);
-	apply_curse_knowledge(obj);
 
 	/* It's fully known */
 	if (kind->aware || !kind->flavor) {

@@ -149,7 +149,7 @@ static void kind_info(int k_idx,
 	obj->known = known_obj;
 
 	/* Value */
-	(*val) = object_value(obj, 1, false);
+	(*val) = object_value(obj, 1);
 
 	/* Description (too brief) */
 	if (buf && buf_size > 0) {

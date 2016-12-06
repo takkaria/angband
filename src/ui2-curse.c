@@ -18,16 +18,22 @@
  */
 
 #include "angband.h"
+#include "init.h"
+#include "obj-curse.h"
 #include "obj-knowledge.h"
-#include "object.h"
 #include "ui2-menu.h"
 #include "ui2-display.h"
 #include "ui2-output.h"
 
+struct curse_menu_data {
+	int index;
+	int power;
+};
+
 struct curses_list {
-	struct curse **curses;
-	struct curse *selection;
-	size_t count;
+	struct curse_menu_data *curses;
+	int selection;
+	int count;
 };
 
 /**
@@ -39,11 +45,12 @@ void get_curse_display(struct menu *menu,
 	struct curses_list *list = menu_priv(menu);
 
 	Term_adds(loc.x, loc.y, TERM_MAX_LEN,
-			menu_row_style(true, cursor), list->curses[index]->name);
+			menu_row_style(true, cursor),
+			curses[list->curses[index].index].name);
 
 	char power[ANGBAND_TERM_STANDARD_WIDTH / 2];
 	int power_len = strnfmt(power, sizeof(power),
-			"(power %d)", list->curses[index]->power);
+			"(power %d)", list->curses[index].power);
 
 	loc.x += width - power_len;
 	Term_adds(loc.x, loc.y, power_len, COLOUR_WHITE, power);
@@ -57,7 +64,7 @@ bool get_curse_action(struct menu *menu, const ui_event *event, int index)
 	struct curses_list *list = menu_priv(menu);
 
 	if (event->type == EVT_SELECT) {
-		list->selection = list->curses[index];
+		list->selection = list->curses[index].index;
 	}
 
 	return false;
@@ -69,24 +76,21 @@ static void curses_list_init(struct curses_list *list, const struct object *obj)
 	assert(obj != NULL);
 
 	memset(list, 0, sizeof(*list));
-	list->selection = NULL;
+
 	list->curses = NULL;
-	list->count = 0;
 
-	size_t count = 0;
-	for (struct curse *c = obj->curses; c; c = c->next) {
-		count++;
-	}
+	for (int i = 1; i < z_info->curse_max; i++) {
+		if (obj->curses[i].power > 0) {
 
-	if (count > 0) {
-		list->curses = mem_zalloc(count * sizeof(*list->curses));
-		for (struct curse *c = obj->curses; c; c = c->next) {
-			list->curses[list->count] = c;
+			if (list->curses == NULL) {
+				list->curses = mem_zalloc(z_info->curse_max * sizeof(list->curses));
+			}
+
+			list->curses[list->count].index = i;
+			list->curses[list->count].power = obj->curses[i].power;
 			list->count++;
 		}
 	}
-
-	assert(list->count == count);
 }
 
 static void curses_list_destroy(struct curses_list *list)
@@ -99,8 +103,8 @@ static void curse_menu_term_push(const struct curses_list *list)
 	const char *tab = "Remove which curse?";
 
 	size_t maxlen = 0;
-	for (size_t i = 0; i < list->count; i++) {
-		size_t len = strlen(list->curses[i]->name);
+	for (int c = 0; c < list->count; c++) {
+		size_t len = strlen(curses[list->curses[c].index].name);
 		maxlen = MAX(len, maxlen);
 	}
 
@@ -126,7 +130,7 @@ static void curse_menu_term_pop(void)
 /**
  * Display list of curses to choose from
  */
-struct curse *curse_menu(struct object *obj)
+static int curse_menu(struct object *obj)
 {
 	menu_iter menu_f = {
 		.display_row = get_curse_display, 
@@ -138,7 +142,7 @@ struct curse *curse_menu(struct object *obj)
 
 	if (list.count == 0) {
 		curses_list_destroy(&list);
-		return NULL;
+		return 0;
 	}
 
 	struct menu menu;
@@ -157,11 +161,11 @@ struct curse *curse_menu(struct object *obj)
 	return list.selection;
 }
 
-bool textui_get_curse(struct curse **choice, struct object *obj)
+bool textui_get_curse(int *choice, struct object *obj)
 {
-	struct curse *curse = curse_menu(obj);
+	int curse = curse_menu(obj);
 
-	if (curse != NULL) {
+	if (curse != 0) {
 		*choice = curse;
 		return true;
 	} else {

@@ -59,7 +59,6 @@ ANGFILES := \
 	mon-make.o \
 	mon-move.o \
 	mon-msg.o \
-	mon-power.o \
 	mon-spell.o \
 	mon-summon.o \
 	mon-timed.o \
@@ -70,6 +69,7 @@ ANGFILES := \
 	obj-gear.o \
 	obj-ignore.o \
 	obj-info.o \
+	obj-init.o \
 	obj-knowledge.o \
 	obj-list.o \
 	obj-make.o \
