@@ -83,7 +83,7 @@ static void curses_list_init(struct curses_list *list, const struct object *obj)
 		if (obj->curses[i].power > 0) {
 
 			if (list->curses == NULL) {
-				list->curses = mem_zalloc(z_info->curse_max * sizeof(list->curses));
+				list->curses = mem_zalloc(z_info->curse_max * sizeof(*list->curses));
 			}
 
 			list->curses[list->count].index = i;
