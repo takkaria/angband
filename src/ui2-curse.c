@@ -26,12 +26,12 @@
 #include "ui2-output.h"
 
 struct curse_menu_data {
-	int index;
+	int curse;
 	int power;
 };
 
 struct curses_list {
-	struct curse_menu_data *curses;
+	struct curse_menu_data *data;
 	int selection;
 	int count;
 };
@@ -46,11 +46,11 @@ void get_curse_display(struct menu *menu,
 
 	Term_adds(loc.x, loc.y, TERM_MAX_LEN,
 			menu_row_style(true, cursor),
-			curses[list->curses[index].index].name);
+			curses[list->data[index].curse].name);
 
 	char power[ANGBAND_TERM_STANDARD_WIDTH / 2];
 	int power_len = strnfmt(power, sizeof(power),
-			"(power %d)", list->curses[index].power);
+			"(power %d)", list->data[index].power);
 
 	loc.x += width - power_len;
 	Term_adds(loc.x, loc.y, power_len, COLOUR_WHITE, power);
@@ -64,7 +64,7 @@ bool get_curse_action(struct menu *menu, const ui_event *event, int index)
 	struct curses_list *list = menu_priv(menu);
 
 	if (event->type == EVT_SELECT) {
-		list->selection = list->curses[index].index;
+		list->selection = list->data[index].curse;
 	}
 
 	return false;
@@ -77,17 +77,12 @@ static void curses_list_init(struct curses_list *list, const struct object *obj)
 
 	memset(list, 0, sizeof(*list));
 
-	list->curses = NULL;
+	list->data = mem_zalloc(z_info->curse_max * sizeof(*list->data));
 
-	for (int i = 1; i < z_info->curse_max; i++) {
-		if (obj->curses[i].power > 0) {
-
-			if (list->curses == NULL) {
-				list->curses = mem_zalloc(z_info->curse_max * sizeof(*list->curses));
-			}
-
-			list->curses[list->count].index = i;
-			list->curses[list->count].power = obj->curses[i].power;
+	for (int c = 1; c < z_info->curse_max; c++) {
+		if (obj->curses[c].power != 0) {
+			list->data[list->count].curse = c;
+			list->data[list->count].power = obj->curses[c].power;
 			list->count++;
 		}
 	}
@@ -95,7 +90,7 @@ static void curses_list_init(struct curses_list *list, const struct object *obj)
 
 static void curses_list_destroy(struct curses_list *list)
 {
-	mem_free(list->curses);
+	mem_free(list->data);
 }
 
 static void curse_menu_term_push(const struct curses_list *list)
@@ -104,7 +99,7 @@ static void curse_menu_term_push(const struct curses_list *list)
 
 	size_t maxlen = 0;
 	for (int c = 0; c < list->count; c++) {
-		size_t len = strlen(curses[list->curses[c].index].name);
+		size_t len = strlen(curses[list->data[c].curse].name);
 		maxlen = MAX(len, maxlen);
 	}
 
@@ -140,22 +135,20 @@ static int curse_menu(struct object *obj)
 	struct curses_list list;
 	curses_list_init(&list, obj);
 
-	if (list.count == 0) {
-		curses_list_destroy(&list);
-		return 0;
+	if (list.count > 0) {
+		struct menu menu;
+		menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
+		menu_setpriv(&menu, list.count, &list);
+		menu.selections = all_letters;
+
+		curse_menu_term_push(&list);
+		menu_layout_term(&menu);
+
+		menu_select(&menu);
+
+		curse_menu_term_pop();
 	}
 
-	struct menu menu;
-	menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
-	menu_setpriv(&menu, list.count, &list);
-	menu.selections = all_letters;
-
-	curse_menu_term_push(&list);
-	menu_layout_term(&menu);
-
-	menu_select(&menu);
-
-	curse_menu_term_pop();
 	curses_list_destroy(&list);
 
 	return list.selection;
