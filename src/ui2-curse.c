@@ -56,6 +56,23 @@ void get_curse_display(struct menu *menu,
 	Term_adds(loc.x, loc.y, power_len, COLOUR_WHITE, power);
 }
 
+static void show_curse_help(int index, int curse)
+{
+	textblock *tb = textblock_new();
+	textblock_append(tb, curses[curse].desc);
+
+	region reg = {
+		.x = 3,
+		.y = index,
+		.w = MIN(ANGBAND_TERM_STANDARD_WIDTH, strlen(curses[curse].desc)),
+		.h = 0
+	};
+
+	textui_textblock_show(tb, TERM_POSITION_EXACT, reg, curses[curse].name);
+
+	textblock_free(tb);
+}
+
 /**
  * Deal with events on the get_item menu
  */
@@ -63,11 +80,18 @@ bool get_curse_action(struct menu *menu, const ui_event *event, int index)
 {
 	struct curses_list *list = menu_priv(menu);
 
-	if (event->type == EVT_SELECT) {
-		list->selection = list->data[index].curse;
-	}
+	switch (event->type) {
+		case EVT_SELECT:
+			list->selection = list->data[index].curse;
+			return false;
 
-	return false;
+		case EVT_KBRD:
+			show_curse_help(index, list->data[index].curse);
+			return true;
+
+		default:
+			return false;
+	}
 }
 
 static void curses_list_init(struct curses_list *list, const struct object *obj)
@@ -140,6 +164,7 @@ static int curse_menu(struct object *obj)
 		menu_init(&menu, MN_SKIN_SCROLL, &menu_f);
 		menu_setpriv(&menu, list.count, &list);
 		menu.selections = all_letters;
+		menu.command_keys = "?";
 
 		curse_menu_term_push(&list);
 		menu_layout_term(&menu);
