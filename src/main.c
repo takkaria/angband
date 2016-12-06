@@ -18,7 +18,6 @@
 
 #include "angband.h"
 #include "init.h"
-#include "mon-power.h"
 #include "savefile.h"
 #include "ui2-command.h"
 #include "ui2-display.h"
@@ -444,14 +443,6 @@ static int parse_argv(int argc, char **argv,
 
 			case 'n':
 				new_game = true;
-				break;
-
-			case 'p':
-				arg_power = true;
-				break;
-
-			case 'r':
-				arg_rebalance = true;
 				break;
 
 			case 'w':

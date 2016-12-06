@@ -24,6 +24,7 @@
 #include "init.h"
 #include "mon-lore.h"
 #include "monster.h"
+#include "obj-curse.h"
 #include "obj-gear.h"
 #include "obj-ignore.h"
 #include "obj-knowledge.h"
@@ -392,8 +393,12 @@ void player_init(struct player *p)
 	}
 	if (p->timed)
 		mem_free(p->timed);
-	if (p->obj_k)
+	if (p->obj_k) {
+		mem_free(p->obj_k->brands);
+		mem_free(p->obj_k->slays);
+		mem_free(p->obj_k->curses);
 		mem_free(p->obj_k);
+	}
 
 	/* Wipe the player */
 	memset(p, 0, sizeof(struct player));
@@ -434,6 +439,10 @@ void player_init(struct player *p)
 								   sizeof(struct object *));
 	p->timed = mem_zalloc(TMD_MAX * sizeof(s16b));
 	p->obj_k = mem_zalloc(sizeof(struct object));
+	p->obj_k->brands = mem_zalloc(z_info->brand_max * sizeof(bool));
+	p->obj_k->slays = mem_zalloc(z_info->slay_max * sizeof(bool));
+	p->obj_k->curses = mem_zalloc(z_info->curse_max *
+								  sizeof(struct curse_data));
 
 	/* Options should persist */
 	p->opts = opts_save;
@@ -549,7 +558,7 @@ static void player_outfit(struct player *p)
 		obj->known->notice |= OBJ_NOTICE_ASSESSED;
 
 		/* Deduct the cost of the item from starting cash */
-		p->au -= object_value_real(obj, obj->number, false);
+		p->au -= object_value_real(obj, obj->number);
 
 		/* Carry the item */
 		inven_carry(p, obj, true, false);
@@ -1117,6 +1126,11 @@ void do_cmd_accept_character(struct command *cmd)
 	/* Know all runes for ID on walkover */
 	if (OPT(player, birth_know_runes))
 		player_learn_everything(player);
+
+	/* Hack - player knows all combat runes.  Maybe make them not runes? NRM */
+	player->obj_k->to_a = 1;
+	player->obj_k->to_h = 1;
+	player->obj_k->to_d = 1;
 
 	/* Initialise the stores */
 	store_reset();

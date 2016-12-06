@@ -27,6 +27,7 @@
 #include "mon-spell.h"
 #include "mon-util.h"
 #include "monster.h"
+#include "obj-curse.h"
 #include "obj-gear.h"
 #include "obj-ignore.h"
 #include "obj-knowledge.h"
@@ -99,7 +100,6 @@ static struct object *rd_item(void)
 
 	byte tmp8u;
 	u16b tmp16u;
-	s16b tmp16s;
 	u32b ego_idx;
 	u32b art_idx;
 	byte effect;
@@ -155,49 +155,34 @@ static struct object *rd_item(void)
 
 	/* Read brands */
 	rd_byte(&tmp8u);
-	while (tmp8u) {
-		char buf_local[40];
-		struct brand *b = mem_zalloc(sizeof *b);
-		rd_string(buf_local, sizeof(buf_local));
-		b->name = string_make(buf_local);
-		rd_s16b(&tmp16s);
-		b->element = tmp16s;
-		rd_s16b(&tmp16s);
-		b->multiplier = tmp16s;
-		b->next = obj->brands;
-		obj->brands = b;
-		rd_byte(&tmp8u);
+	if (tmp8u) {
+		obj->brands = mem_zalloc(z_info->brand_max * sizeof(bool));
+		for (i = 0; i < z_info->brand_max; i++) {
+			rd_byte(&tmp8u);
+			obj->brands[i] = tmp8u ? true : false;
+		}
 	}
 
 	/* Read slays */
 	rd_byte(&tmp8u);
-	while (tmp8u) {
-		char buf_local[40];
-		struct slay *s = mem_zalloc(sizeof *s);
-		rd_string(buf_local, sizeof(buf_local));
-		s->name = string_make(buf_local);
-		rd_s16b(&tmp16s);
-		s->race_flag = tmp16s;
-		rd_s16b(&tmp16s);
-		s->multiplier = tmp16s;
-		s->next = obj->slays;
-		obj->slays = s;
-		rd_byte(&tmp8u);
+	if (tmp8u) {
+		obj->slays = mem_zalloc(z_info->slay_max * sizeof(bool));
+		for (i = 0; i < z_info->slay_max; i++) {
+			rd_byte(&tmp8u);
+			obj->slays[i] = tmp8u ? true : false;
+		}
 	}
 
 	/* Read curses */
 	rd_byte(&tmp8u);
-	while (tmp8u) {
-		char buf_local[40];
-		struct curse *c = mem_zalloc(sizeof *c);
-		rd_string(buf_local, sizeof(buf_local));
-		c->name = string_make(buf_local);
-		c->obj = rd_item();
-		rd_s16b(&tmp16s);
-		c->power = tmp16s;
-		c->next = obj->curses;
-		obj->curses = c;
-		rd_byte(&tmp8u);
+	if (tmp8u) {
+		obj->curses = mem_zalloc(z_info->curse_max * sizeof(struct curse_data));
+		for (i = 0; i < z_info->curse_max; i++) {
+			rd_byte(&tmp8u);
+			obj->curses[i].power = tmp8u;
+			rd_u16b(&tmp16u);
+			obj->curses[i].timeout = tmp16u;
+		}
 	}
 
 	for (i = 0; i < elem_max; i++) {
@@ -876,7 +861,6 @@ int rd_misc(void)
 {
 	size_t i;
 	byte tmp8u;
-	s16b tmp16s;
 	
 	/* Read the randart seed */
 	rd_u32b(&seed_randart);
@@ -918,48 +902,22 @@ int rd_misc(void)
 		rd_byte(&player->obj_k->el_info[i].flags);
 	}
 
-	/* Brands */
-	rd_byte(&tmp8u);
-	while (tmp8u) {
-		char buf[40];
-		struct brand *b = mem_zalloc(sizeof *b);
-		rd_string(buf, sizeof(buf));
-		b->name = string_make(buf);
-		rd_s16b(&tmp16s);
-		b->element = tmp16s;
-		rd_s16b(&tmp16s);
-		b->multiplier = tmp16s;
-		b->next = player->obj_k->brands;
-		player->obj_k->brands = b;
+	/* Read brands */
+	for (i = 0; i < z_info->brand_max; i++) {
 		rd_byte(&tmp8u);
+		player->obj_k->brands[i] = tmp8u ? true : false;
 	}
 
 	/* Read slays */
-	rd_byte(&tmp8u);
-	while (tmp8u) {
-		char buf[40];
-		struct slay *s = mem_zalloc(sizeof *s);
-		rd_string(buf, sizeof(buf));
-		s->name = string_make(buf);
-		rd_s16b(&tmp16s);
-		s->race_flag = tmp16s;
-		rd_s16b(&tmp16s);
-		s->multiplier = tmp16s;
-		s->next = player->obj_k->slays;
-		player->obj_k->slays = s;
+	for (i = 0; i < z_info->slay_max; i++) {
 		rd_byte(&tmp8u);
+		player->obj_k->slays[i] = tmp8u ? true : false;
 	}
 
 	/* Read curses */
-	rd_byte(&tmp8u);
-	while (tmp8u) {
-		char buf[40];
-		struct curse *c = mem_zalloc(sizeof *c);
-		rd_string(buf, sizeof(buf));
-		c->name = string_make(buf);
-		c->next = player->obj_k->curses;
-		player->obj_k->curses = c;
+	for (i = 0; i < z_info->curse_max; i++) {
 		rd_byte(&tmp8u);
+		player->obj_k->curses[i].power = tmp8u;
 	}
 
 	/* Combat data */
@@ -1429,7 +1387,6 @@ int rd_objects(void)
 int rd_monsters(void)
 {
 	int i;
-	struct object *obj;
 
 	/* Only if the player's alive */
 	if (player->is_dead)
@@ -1439,24 +1396,6 @@ int rd_monsters(void)
 		return -1;
 	if (rd_monsters_aux(player->cave))
 		return -1;
-
-	/* Add curse info for all objects */
-	if (cave) {
-		for (i = 0; i < cave->obj_max; i++) {
-			if (cave->objects[i]) {
-				apply_curse_knowledge(cave->objects[i]);
-			}
-		}
-	}
-	for (obj = player->gear; obj; obj = obj->next) {
-		apply_curse_knowledge(obj);
-	}
-	for (i = 0; i < MAX_STORES; i++) {
-		struct store *s = &stores[i];
-		for (obj = s->stock; obj; obj = obj->next) {
-			apply_curse_knowledge(obj);
-		}
-	}
 
 	/* Associate known objects */
 	for (i = 0; i < player->cave->obj_max; i++)

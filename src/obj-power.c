@@ -25,13 +25,7 @@
 #include "obj-util.h"
 #include "init.h"
 #include "effects.h"
-#include "mon-power.h"
 #include "monster.h"
-
-/**
- * Store total monster power for use in slay cache calculations
- */
-static int tot_mon_power;
 
 /**
  * Define a set of constants for dealing with launchers and ammo:
@@ -321,100 +315,62 @@ static int extra_might_power(const struct object *obj, int p, int mult)
 static s32b slay_power(const struct object *obj, int p, int verbose,
 					   int dice_pwr)
 {
-	u32b sv = 0;
 	int i, q, num_brands = 0, num_slays = 0, num_kills = 0;
-	int mult;
-	struct brand *brands = obj->brands;
-	struct slay *slays = obj->slays;
+	int best_power = 1;
 
 	/* Count the brands and slays */
-	while (brands) {
-		num_brands++;
-		brands = brands->next;
+	if (obj->brands) {
+		for (i = 1; i < z_info->brand_max; i++) {
+			if (obj->brands[i]) {
+				num_brands++;
+				if (brands[i].power > best_power)
+					best_power = brands[i].power;
+			}
+		}
 	}
-	while (slays) {
-		if (slays->multiplier <= 3)
-			num_slays++;
-		else
-			num_kills++;
-		slays = slays->next;
+	if (obj->slays) {
+		for (i = 1; i < z_info->slay_max; i++) {
+			if (obj->slays[i]) {
+				if (slays[i].multiplier <= 3) {
+					num_slays++;
+				} else {
+					num_kills++;
+				}
+				if (slays[i].power > best_power)
+					best_power = slays[i].power;
+			}
+		}
 	}
 
 	/* If there are no slays or brands return */
 	if ((num_slays + num_brands + num_kills) == 0)
 		return p;
 
-	/* Look in the cache to see if we know this one yet */
-	sv = check_slay_cache(obj);
+	/* Write the best power */
+	if (verbose) {
+		/* Write info about the slay combination and multiplier */
+		log_obj("Slay and brands: ");
 
-	/* If it's cached (or there are no slays), return the value */
-	if (sv)	{
-		log_obj("Slay cache hit\n");
-	} else {
-
-		/*
-		 * Otherwise we need to calculate the expected average multiplier
-		 * for this combination (multiplied by the total number of
-		 * monsters, which we'll divide out later).
-		 */
-		tot_mon_power = 0;
-		for (i = 0; i < z_info->r_max; i++)	{
-			struct object *obj1 = (struct object *) obj;
-			struct monster *mon = mem_zalloc(sizeof(*mon));
-			const struct brand *b = NULL;
-			const struct slay *s = NULL;
-			char verb[20];
-
-			mult = 1;
-			mon->race = &r_info[i];
-
-			/* Find the best multiplier against this monster */
-			improve_attack_modifier(obj1, mon, &b, &s, verb, false,	false);
-			if (s)
-				mult = s->multiplier;
-			else if (b)
-				mult = b->multiplier;
-
-			/* Add up totals */
-			tot_mon_power += mon->race->scaled_power;
-			sv += mult * mon->race->scaled_power;
-			mem_free(mon);
-		}
-
-		/*
-		 * To get the expected damage for this weapon, multiply the
-		 * average damage from base dice by sv, and divide by the
-		 * total number of monsters.
-		 */
-		if (verbose) {
-			struct brand *b, *verbose_brands = NULL;
-			struct slay *s, *verbose_slays = NULL;
-
-			/* Write info about the slay combination and multiplier */
-			log_obj("Slay multiplier for: ");
-
-			verbose_brands = brand_collect(obj->brands, NULL);
-			verbose_slays = slay_collect(obj->slays, NULL);
-
-			for (b = verbose_brands; b; b = b->next) {
-				log_obj(format("%sx%d ", b->name, b->multiplier));
+		if (obj->brands) {
+			for (i = 1; i < z_info->brand_max; i++) {
+				if (obj->brands[i]) {
+					struct brand *b = &brands[i];
+					log_obj(format("%sx%d ", b->name, b->multiplier));
+				}
 			}
-			for (s = verbose_slays; s; s = s->next) {
-				log_obj(format("%sx%d ", s->name, s->multiplier));
-			}
-			log_obj(format("\nsv is: %d\n", sv));
-			log_obj(format(" and t_m_p is: %d \n", tot_mon_power));
-			log_obj(format("times 1000 is: %d\n", (1000 * sv) / tot_mon_power));
-			free_brand(verbose_brands);
-			free_slay(verbose_slays);
 		}
-
-		/* Add to the cache */
-		if (fill_slay_cache(obj, sv))
-			log_obj("Added to slay cache\n");
+		if (obj->slays) {
+			for (i = 1; i < z_info->slay_max; i++) {
+				if (obj->slays[i]) {
+					struct slay *s = &slays[i];
+					log_obj(format("%sx%d ", s->name, s->multiplier));
+				}
+			}
+		}
+		log_obj(format("\nbest power is : %d\n", best_power));
 	}
 
-	q = (dice_pwr * (sv / 100)) / (tot_mon_power / 100);
+	q = (dice_pwr * (best_power - 100)) / 100;
 	p += q;
 	log_obj(format("Add %d for slay power, total is %d\n", q, p));
 
@@ -428,6 +384,11 @@ static s32b slay_power(const struct object *obj, int p, int verbose,
 		q = (2 * num_brands * num_brands * dice_pwr) / (DAMAGE_POWER * 5);
 		p += q;
 		log_obj(format("Add %d power for multiple brands, total is %d\n",q, p));
+	}
+	if (num_slays && num_brands) {
+		q = (num_slays * num_brands * dice_pwr) / (DAMAGE_POWER * 5);
+		p += q;
+		log_obj(format("Add %d power for slay and brand, total is %d\n", q, p));
 	}
 	if (num_kills > 1) {
 		q = (3 * num_kills * num_kills * dice_pwr) / (DAMAGE_POWER * 5);
@@ -739,7 +700,7 @@ static int effects_power(const struct object *obj, int p)
 /**
  * Evaluate the object's overall power level.
  */
-s32b object_power(const struct object* obj, int verbose, ang_file *log_file)
+s32b object_power(const struct object* obj, bool verbose, ang_file *log_file)
 {
 	s32b p = 0, dice_pwr = 0;
 	int mult = 1;
@@ -827,54 +788,54 @@ static s32b object_value_base(const struct object *obj)
  * are priced according to their power rating. All ammo, and normal (non-ego)
  * torches are scaled down by AMMO_RESCALER to reflect their impermanence.
  */
-s32b object_value_real(const struct object *obj, int qty, int verbose)
+s32b object_value_real(const struct object *obj, int qty)
 {
 	s32b value, total_value;
 
 	s32b power;
 	int a = 1;
 	int b = 5;
-	static file_mode pricing_mode = MODE_WRITE;
 
 	/* Wearables and ammo have prices that vary by individual item properties */
-	if (tval_has_variable_power(obj))	{
+	if (tval_has_variable_power(obj)) {
+#ifdef PRICE_DEBUG
 		char buf[1024];
 		ang_file *log_file = NULL;
+		static file_mode pricing_mode = MODE_WRITE;
 
 		/* Logging */
-		if (verbose) {
-			path_build(buf, sizeof(buf), ANGBAND_DIR_USER, "pricing.log");
-			log_file = file_open(buf, pricing_mode, FTYPE_TEXT);
-			if (!log_file) {
-				msg("Error - can't open pricing.log for writing.");
-				exit(1);
-			}
-			pricing_mode = MODE_APPEND;
+		path_build(buf, sizeof(buf), ANGBAND_DIR_USER, "pricing.log");
+		log_file = file_open(buf, pricing_mode, FTYPE_TEXT);
+		if (!log_file) {
+			msg("Error - can't open pricing.log for writing.");
+			exit(1);
 		}
+		pricing_mode = MODE_APPEND;
 
 		file_putf(log_file, "object is %s\n", obj->kind->name);
 
-		/* Calculate power and value */
-		power = object_power(obj, verbose, log_file);
+		power = object_power(obj, true, log_file);
+#else /* PRICE_DEBUG */
+		power = object_power(obj, false, NULL);
+#endif /* PRICE_DEBUG */
 		value = SGN(power) * ((a * power * power) + (b * power));
 
 		/* Rescale for expendables */
 		if ((tval_is_light(obj) && of_has(obj->flags, OF_BURNS_OUT)
-			 && !obj->ego) || tval_is_ammo(obj)) {
+			&& !obj->ego) || tval_is_ammo(obj)) {
 			value = value / AMMO_RESCALER;
 			if (value < 1) value = 1;
 		}
-
+#ifdef PRICE_DEBUG
 		/* More logging */
 		file_putf(log_file, "a is %d and b is %d\n", a, b);
 		file_putf(log_file, "value is %d\n", value);
 
-		if (verbose) {
-			if (!file_close(log_file)) {
-				msg("Error - can't close pricing.log file.");
-				exit(1);
-			}
-		}
+		if (!file_close(log_file)) {
+			msg("Error - can't close pricing.log file.");
+			exit(1);
+	}
+#endif /* PRICE_DEBUG */
 
 		/* Get the total value */
 		total_value = value * qty;
@@ -920,13 +881,13 @@ s32b object_value_real(const struct object *obj, int qty, int verbose)
  * Never notice unknown bonuses or properties, including curses,
  * since that would give the player information they did not have.
  */
-s32b object_value(const struct object *obj, int qty, int verbose)
+s32b object_value(const struct object *obj, int qty)
 {
 	s32b value;
 
 	/* Variable power items are assessed by what is known about them */
 	if (tval_has_variable_power(obj) && obj->known)
-		value = object_value_real(obj->known, qty, verbose);
+		value = object_value_real(obj->known, qty);
 	else
 		/* Unknown constant-price items just get a base value */
 		value = object_value_base(obj) * qty;

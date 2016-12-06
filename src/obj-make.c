@@ -21,6 +21,7 @@
 #include "cave.h"
 #include "effects.h"
 #include "init.h"
+#include "obj-curse.h"
 #include "obj-gear.h"
 #include "obj-knowledge.h"
 #include "obj-make.h"
@@ -378,9 +379,9 @@ void ego_apply_magic(struct object *obj, int level)
 	of_diff(obj->flags, obj->ego->flags_off);
 
 	/* Add slays, brands and curses */
-	copy_slay(&obj->slays, obj->ego->slays);
-	copy_brand(&obj->brands, obj->ego->brands);
-	copy_curse(&obj->curses, obj->ego->curses, true, true);
+	copy_slays(&obj->slays, obj->ego->slays);
+	copy_brands(&obj->brands, obj->ego->brands);
+	copy_curses(obj, obj->ego->curses);
 
 	/* Add resists */
 	for (i = 0; i < ELEM_MAX; i++) {
@@ -480,9 +481,9 @@ void copy_artifact_data(struct object *obj, const struct artifact *art)
 	if (art->time.base != 0)
 		obj->time = art->time;
 	of_union(obj->flags, art->flags);
-	copy_slay(&obj->slays, art->slays);
-	copy_brand(&obj->brands, art->brands);
-	copy_curse(&obj->curses, art->curses, false, true);
+	copy_slays(&obj->slays, art->slays);
+	copy_brands(&obj->brands, art->brands);
+	copy_curses(obj, art->curses);
 	for (i = 0; i < ELEM_MAX; i++) {
 		/* Take the larger of artifact and base object resist levels */
 		obj->el_info[i].res_level =
@@ -684,7 +685,6 @@ bool make_fake_artifact(struct object *obj, const struct artifact *artifact)
 	object_prep(obj, kind, 0, MAXIMISE);
 	obj->artifact = (struct artifact *)artifact;
 	copy_artifact_data(obj, artifact);
-	apply_curse_knowledge(obj);
 
 	return (true);
 }
@@ -791,9 +791,9 @@ void object_prep(struct object *obj, struct object_kind *k, int lev,
 	obj->to_a = randcalc(k->to_a, lev, rand_aspect);
 
 	/* Default slays, brands and curses */
-	copy_slay(&obj->slays, k->slays);
-	copy_brand(&obj->brands, k->brands);
-	copy_curse(&obj->curses, k->curses, true, true);
+	copy_slays(&obj->slays, k->slays);
+	copy_brands(&obj->brands, k->brands);
+	copy_curses(obj, k->curses);
 
 	/* Default resists */
 	for (i = 0; i < ELEM_MAX; i++) {
@@ -814,7 +814,7 @@ static void apply_curse(struct object *obj, int *lev)
 	if (!curses[pick].poss[obj->tval]) {
 		return;
 	}
-	append_curse(&obj->curses, pick, power);
+	append_object_curse(obj, pick, power);
 	*lev += randint0(power / 10);
 	while(one_in_(100 - power)) {
 		apply_curse(obj, lev);
@@ -1086,7 +1086,7 @@ struct object *make_object(struct chunk *c, int lev, bool good, bool great,
 	if (one_in_(good ? 10 : 1000)) {
 		new_obj = make_artifact_special(lev);
 		if (new_obj) {
-			if (value) *value = object_value_real(new_obj, 1, false);
+			if (value) *value = object_value_real(new_obj, 1);
 			return new_obj;
 		}
 
@@ -1109,7 +1109,6 @@ struct object *make_object(struct chunk *c, int lev, bool good, bool great,
 		apply_curse(new_obj, &lev);
 	}
 	apply_magic(new_obj, lev, true, good, great, extra_roll);
-	apply_curse_knowledge(new_obj);
 
 	/* Generate multiple items */
 	if (kind->gen_mult_prob >= randint1(100))
@@ -1120,7 +1119,7 @@ struct object *make_object(struct chunk *c, int lev, bool good, bool great,
 
 	/* Get the value */
 	if (value)
-		*value = object_value_real(new_obj, new_obj->number, false);
+		*value = object_value_real(new_obj, new_obj->number);
 
 	/* Boost of 20% per level OOD for uncursed objects */
 	if ((!new_obj->curses) && (kind->alloc_min > c->depth)) {

@@ -53,9 +53,9 @@ char *rune_desc(size_t i);
 quark_t rune_note(size_t i);
 void rune_set_note(size_t i, const char *inscription);
 
-bool player_knows_brand(struct player *p, struct brand *b);
-bool player_knows_slay(struct player *p, struct slay *s);
-bool player_knows_curse(struct player *p, struct curse *c);
+bool player_knows_brand(struct player *p, int i);
+bool player_knows_slay(struct player *p, int i);
+bool player_knows_curse(struct player *p, int i);
 bool player_knows_ego(struct player *p, struct ego_item *ego);
 bool object_effect_is_known(const struct object *obj);
 bool object_is_known_artifact(const struct object *obj);
@@ -68,7 +68,6 @@ bool object_flag_is_known(const struct object *obj, int flag);
 bool object_element_is_known(const struct object *obj, int element);
 
 void object_set_base_known(struct object *obj);
-void apply_curse_knowledge(struct object *obj);
 void object_sense(struct player *p, struct object *obj);
 void object_see(struct player *p, struct object *obj);
 void object_touch(struct player *p, struct object *obj);
@@ -89,8 +88,8 @@ void equip_learn_after_time(struct player *p);
 void object_learn_unknown_rune(struct player *p, struct object *obj);
 void object_learn_on_wield(struct player *p, struct object *obj);
 void object_learn_on_use(struct player *p, struct object *obj);
-void object_learn_brand(struct player *p, struct object *obj, struct brand *b);
-void object_learn_slay(struct player *p, struct object *obj, struct slay *s);
+void object_learn_brand(struct player *p, struct object *obj, int index);
+void object_learn_slay(struct player *p, struct object *obj, int index);
 void missile_learn_on_ranged_attack(struct player *p, struct object *obj);
 
 bool easy_know(const struct object *obj);

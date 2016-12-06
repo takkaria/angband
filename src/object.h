@@ -9,7 +9,6 @@
 #include "z-quark.h"
 #include "z-bitflag.h"
 #include "z-dice.h"
-#include "obj-curse.h"
 #include "obj-properties.h"
 
 
@@ -60,27 +59,42 @@ struct effect {
  * Brand type
  */
 struct brand {
+	char *code;
 	char *name;
+	char *verb;
 	int element;
+	int resist_flag;
 	int multiplier;
-	int damage; /* Storage for damage during description */
+	int power;
 	struct brand *next;
 };
-
-extern struct brand *game_brands;
 
 /**
  * Slay type
  */
 struct slay {
+	char *code;
 	char *name;
+	char *base;
+	char *melee_verb;
+	char *range_verb;
 	int race_flag;
 	int multiplier;
-	int damage; /* Storage for damage during description */
+	int power;
 	struct slay *next;
 };
 
-extern struct slay *game_slays;
+/**
+ * Curse type
+ */
+struct curse {
+	struct curse *next;
+	char *name;
+	bool *poss;
+	struct object *obj;
+	int power;
+	char *desc;
+};
 
 enum {
 	EL_INFO_HATES = 0x01,
@@ -170,9 +184,9 @@ struct object_kind {
 	random_value modifiers[OBJ_MOD_MAX];
 	struct element_info el_info[ELEM_MAX];
 
-	struct brand *brands;
-	struct slay *slays;
-	struct curse *curses;	/**< Linked list of curse structures */
+	bool *brands;
+	bool *slays;
+	int *curses;			/**< Array of curse powers */
 
 	byte d_attr;			/**< Default object attribute */
 	wchar_t d_char;			/**< Default object character */
@@ -247,9 +261,9 @@ struct artifact {
 	int modifiers[OBJ_MOD_MAX];
 	struct element_info el_info[ELEM_MAX];
 
-	struct brand *brands;
-	struct slay *slays;
-	struct curse *curses;	/**< Linked list of curse structures */
+	bool *brands;
+	bool *slays;
+	int *curses;		/**< Array of curse powers */
 
 	int level;			/** Difficulty level for activation */
 
@@ -302,9 +316,9 @@ struct ego_item {
 	int min_modifiers[OBJ_MOD_MAX];
 	struct element_info el_info[ELEM_MAX];
 
-	struct brand *brands;
-	struct slay *slays;
-	struct curse *curses;	/**< Linked list of curse structures */
+	bool *brands;
+	bool *slays;
+	int *curses;			/**< Array of curse powers */
 
 	int rating;			/* Level rating boost */
 	int alloc_prob; 		/** Chance of being generated (i.e. rarity) */
@@ -341,6 +355,11 @@ enum {
 	OBJ_NOTICE_ASSESSED = 0x02,
 	OBJ_NOTICE_IGNORE = 0x04,
 	OBJ_NOTICE_IMAGINED = 0x08,
+};
+
+struct curse_data {
+	int power;
+	int timeout;
 };
 
 /**
@@ -400,9 +419,9 @@ struct object {
 	bitflag flags[OF_SIZE];	/**< Object flags */
 	s16b modifiers[OBJ_MOD_MAX];	/**< Object modifiers*/
 	struct element_info el_info[ELEM_MAX];	/**< Object element info */
-	struct brand *brands;	/**< Linked list of brand structures */
-	struct slay *slays;		/**< Linked list of slay structures */
-	struct curse *curses;	/**< Linked list of curse structures */
+	bool *brands;			/**< Array of brand structures */
+	bool *slays;			/**< Array of slay structures */
+	struct curse_data *curses;	/**< Array of curse powers and timeouts */
 
 	struct effect *effect;	/**< Effect this item produces (effects.c) */
 	char *effect_msg;		/**< Message on use */

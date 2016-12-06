@@ -38,6 +38,8 @@ struct angband_constants
 	u16b pit_max;		/**< Maximum number of monster pit types */
 	u16b act_max;		/**< Maximum number of activations for randarts */
 	u16b curse_max;		/**< Maximum number of curses */
+	u16b slay_max;		/**< Maximum number of slays */
+	u16b brand_max;		/**< Maximum number of brands */
 	u16b mon_blows_max;	/**< Maximum number of monster blows */
 	u16b blow_methods_max;	/**< Maximum number of monster blow methods */
 	u16b blow_effects_max;	/**< Maximum number of monster blow effects */
@@ -156,8 +158,7 @@ extern struct parser *init_parse_trap(void);
 extern struct parser *init_parse_quest(void);
 extern struct parser *init_parse_player_timed(void);
 
-void add_game_brand(struct brand *b);
-void add_game_slay(struct slay *s);
+errr grab_effect_data(struct parser *p, struct effect *effect);
 extern void init_file_paths(const char *config, const char *lib, const char *data);
 extern void init_game_constants(void);
 extern void init_arrays(void);
