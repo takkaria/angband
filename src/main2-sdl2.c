@@ -4859,6 +4859,10 @@ static void adjust_subwindow_size(struct subwindow *subwindow)
 
 		render_clear(subwindow->window,
 				subwindow->texture, subwindow->color);
+		if (subwindow->swap_texture != NULL) {
+			render_clear(subwindow->window,
+					subwindow->swap_texture, subwindow->color);
+		}
 		render_borders(subwindow);
 
 		display_term_resize(subwindow->index,
