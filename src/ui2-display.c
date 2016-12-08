@@ -1289,6 +1289,10 @@ static uint32_t get_flicker_random(void)
  */
 static void flicker_monsters(void)
 {
+	if (use_graphics != GRAPHICS_NONE) {
+		return;
+	}
+
 	static unsigned flicker_seq;
 
 	for (int i = 1, maxi = cave_monster_max(cave); i < maxi; i++) {
