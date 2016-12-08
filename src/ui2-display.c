@@ -1235,8 +1235,7 @@ static void update_maps(game_event_type type, game_event_data *data, void *user)
  * ------------------------------------------------------------------------
  */
 
-static byte flicker = 0;
-static byte color_flicker[MAX_COLORS][3] =
+static uint32_t color_flicker[][3] =
 {
 	{COLOUR_DARK,        COLOUR_L_DARK,      COLOUR_L_RED},
 	{COLOUR_WHITE,       COLOUR_L_WHITE,     COLOUR_L_BLUE},
@@ -1268,16 +1267,19 @@ static byte color_flicker[MAX_COLORS][3] =
 	{COLOUR_DEEP_L_BLUE, COLOUR_L_BLUE,      COLOUR_BLUE},
 };
 
-static byte get_flicker(byte a)
+static uint32_t get_flicker_ordered(const struct monster *mon, unsigned seq)
 {
-	switch (flicker % 3) {
-		case 1:
-			return color_flicker[a][1];
-		case 2:
-			return color_flicker[a][2];
-		default:
-			return a;
-	}
+	uint32_t attr = monster_x_attr[mon->race->ridx];
+	assert(attr < N_ELEMENTS(color_flicker));
+
+	seq %= N_ELEMENTS(color_flicker[0]);
+
+	return seq == 0 ? attr : color_flicker[attr][seq];
+}
+
+static uint32_t get_flicker_random(void)
+{
+	return color_flicker[randint1(N_ELEMENTS(color_flicker) - 1)][0];
 }
 
 /**
@@ -1285,28 +1287,30 @@ static byte get_flicker(byte a)
  */
 static void flicker_monsters(void)
 {
-	for (int i = 1; i < cave_monster_max(cave); i++) {
+	static unsigned flicker_seq;
+
+	for (int i = 1, maxi = cave_monster_max(cave); i < maxi; i++) {
 		struct monster *mon = cave_monster(cave, i);
-		uint32_t attr;
 
-		if (!mon || !mon->race || !mflag_has(mon->mflag, MFLAG_VISIBLE)) {
-			continue;
-		} else if (rf_has(mon->race->flags, RF_ATTR_MULTI)) {
-			attr = randint1(BASIC_COLORS - 1);
-		} else if (rf_has(mon->race->flags, RF_ATTR_FLICKER)) {
-			attr = get_flicker(monster_x_attr[mon->race->ridx]);
-		} else {
-			continue;
+		if (mon && mon->race && mflag_has(mon->mflag, MFLAG_VISIBLE)) {
+			bool redraw = false;
+
+			if (rf_has(mon->race->flags, RF_ATTR_FLICKER)) {
+				mon->attr = get_flicker_ordered(mon, flicker_seq);
+				redraw = true;
+			} else if (rf_has(mon->race->flags, RF_ATTR_MULTI)) {
+				mon->attr = get_flicker_random();
+				redraw = true;
+			}
+
+			if (redraw) {
+				event_signal_point(EVENT_MAP, mon->fx, mon->fy);
+				player->upkeep->redraw |= PR_MONLIST;
+			}
 		}
-
-		mon->attr = attr;
-
-		event_signal_point(EVENT_MAP, mon->fx, mon->fy);
 	}
 
-	player->upkeep->redraw |= PR_MONLIST;
-
-	flicker++;
+	flicker_seq++;
 }
 
 /**
