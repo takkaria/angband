@@ -1272,12 +1272,16 @@ static uint32_t get_flicker_ordered(const struct monster *mon, unsigned seq)
 	uint32_t attr = monster_x_attr[mon->race->ridx];
 	assert(attr < N_ELEMENTS(color_flicker));
 
-	return color_flicker[attr][seq % N_ELEMENTS(color_flicker[0])];
+	int s = seq % N_ELEMENTS(color_flicker[0]);
+
+	return color_flicker[attr][s];
 }
 
 static uint32_t get_flicker_random(void)
 {
-	return color_flicker[randint1(N_ELEMENTS(color_flicker) - 1)][0];
+	int a = randint1(N_ELEMENTS(color_flicker) - 1);
+
+	return color_flicker[a][0];
 }
 
 /**
