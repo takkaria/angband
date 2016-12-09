@@ -82,55 +82,57 @@
 
 struct object_menu_item_extra {
 	struct {
+		uint16_t len;
+		uint16_t size;
 		char str[EXTRA_FIELD_WEIGHT_WIDTH + 1];
-		size_t len;
-		size_t size;
 	} weight;
 
 	struct {
+		uint16_t len;
+		uint16_t size;
 		char str[EXTRA_FIELD_PRICE_WIDTH + 1];
-		size_t len;
-		size_t size;
 	} price;
 
 	struct {
+		uint16_t len;
+		uint16_t size;
 		char str[EXTRA_FIELD_FAIL_WIDTH + 1];
-		size_t len;
-		size_t size;
 	} fail;
 };
 
 struct object_menu_item {
+	struct object *object;
+
 	struct {
+		uint16_t len;
+		uint16_t size;
 		char str[OLIST_LABEL_SIZE];
-		size_t len;
-		size_t size;
 	} label;
 
 	struct {
+		uint16_t len;
+		uint16_t size;
 		char str[OLIST_EQUIP_SIZE];
-		size_t len;
-		size_t size;
 	} equip;
 
 	struct {
+		uint16_t len;
+		uint16_t size;
 		char str[OLIST_NAME_SIZE];
-		size_t len;
-		size_t size;
 	} name;
 
 	struct object_menu_item_extra extra;
-	struct object *object;
 	char key;
 };
 
 struct object_menu_list {
 	struct object_menu_item items[MAX_ITEMS];
-	size_t len;
-	size_t size;
-	size_t line_max_len;
-	size_t total_max_len;
-	size_t extra_fields_offset;
+
+	uint16_t len;
+	uint16_t size;
+	uint16_t line_max_len;
+	uint16_t total_max_len;
+	uint16_t extra_fields_offset;
 
 	bool free;
 };
@@ -343,7 +345,7 @@ static void set_olist_extra(struct object_menu_list *olist, int mode)
 	/* If we're not showing olist in permanent subwindow,
 	 * we should use standard width, since the temporary term
 	 * is not pushed on the stack yet */
-	const size_t term_width =
+	const int term_width =
 		(mode & OLIST_WINDOW) ? Term_width() : ANGBAND_TERM_STANDARD_WIDTH;
 
 	/* Don't show objects weight if the subwindow is not big enought */
@@ -353,7 +355,7 @@ static void set_olist_extra(struct object_menu_list *olist, int mode)
 		mode &= ~OLIST_WEIGHT;
 	}
 
-	size_t extra_fields_width = 0;
+	int extra_fields_width = 0;
 	if (mode & OLIST_WEIGHT) extra_fields_width += EXTRA_FIELD_WEIGHT_WIDTH;
 	if (mode & OLIST_PRICE)  extra_fields_width += EXTRA_FIELD_PRICE_WIDTH;
 	if (mode & OLIST_FAIL)   extra_fields_width += EXTRA_FIELD_FAIL_WIDTH;
@@ -1370,7 +1372,7 @@ static void cleanup_menu_data(struct object_menu_data *data)
 	}
 }
 
-static size_t item_term_tabs(const struct object_menu_data *data, bool add)
+static int item_term_tabs(const struct object_menu_data *data, bool add)
 {
 	const bool allow_inven  = (data->item_mode & USE_INVEN)  ? true : false;
 	const bool allow_equip  = (data->item_mode & USE_EQUIP)  ? true : false;
@@ -1384,7 +1386,7 @@ static size_t item_term_tabs(const struct object_menu_data *data, bool add)
 
 	/* Add 1 to length of each tab because the frontend will probably
 	 * need some kind of padding (for example, a space after each tab) */
-	size_t len = 0;
+	int len = 0;
 
 #define TAB_FG_COLOR(cond) \
 	((cond) ? COLOUR_WHITE : COLOUR_L_DARK)
@@ -1439,7 +1441,7 @@ static void push_item_term(const struct object_menu_data *data)
 	/* Handle empty floor, inventory, quiver */
 	bool empty = data->list->len > 0 ? false : true;
 
-	size_t tablen = item_term_tabs(data, false);
+	int tablen = item_term_tabs(data, false);
 
 	/* We add 3 to term's width to account for the menu's tags
 	 * and add 1 to tab's length to make the menu look better */
