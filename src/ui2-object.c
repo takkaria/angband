@@ -217,11 +217,30 @@ static void show_item(struct object_menu_item *item,
  */
 
 /**
+ * There is only one (static) object list,
+ * and this is basically a "mutex" for it
+ */
+static void lock_obj_list(bool lock)
+{
+	static bool locked;
+
+	if (lock) {
+		assert(!locked); /* we're locking it, so is must be unlocked */
+	} else {
+		assert(locked); /* we're unlocking it, so it must be locked */
+	}
+
+	locked = lock;
+}
+
+/**
  * Returns a new object list. Non-reentrant (call it optimization, or legacy)
  */
 static struct object_menu_list *get_obj_list(void)
 {
 	static struct object_menu_list olist;
+
+	lock_obj_list(true);
 
 	memset(&olist, 0, sizeof(olist));
 
@@ -245,9 +264,10 @@ static struct object_menu_list *get_obj_list(void)
 
 static void free_obj_list(struct object_menu_list *olist)
 {
+	/* Maybe get_obj_list() will become reentrant at some point? */
 	(void) olist;
 
-	/* Maybe get_obj_list() will become reentrant at some point? */
+	lock_obj_list(false);
 }
 
 static void set_item_extra(struct object_menu_list *olist, size_t i, int mode)
