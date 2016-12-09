@@ -131,6 +131,8 @@ struct object_menu_list {
 	size_t line_max_len;
 	size_t total_max_len;
 	size_t extra_fields_offset;
+
+	bool free;
 };
 
 static void show_item_extra(const struct object_menu_item *item,
@@ -217,57 +219,79 @@ static void show_item(struct object_menu_item *item,
  */
 
 /**
- * There is only one (static) object list,
- * and this is basically a "mutex" for it
+ * There is one static object list;
+ * this is basically a mutex for it
  */
-static void lock_obj_list(bool lock)
+static bool lock_obj_list(bool lock)
 {
 	static bool locked;
 
-	if (lock) {
-		assert(!locked); /* we're locking it, so is must be unlocked */
-	} else {
-		assert(locked); /* we're unlocking it, so it must be locked */
+	/* Double lock is a fatal error;
+	 * double unlock just means that
+	 * an object list is alredy used
+	 * and the calling code should
+	 * allocate one on the heap */
+
+	if (!lock) {
+		assert(locked);
 	}
 
-	locked = lock;
+	if (lock && locked) {
+		return false;
+	} else {
+		locked = lock;
+		return true;
+	}
 }
 
 /**
- * Returns a new object list. Non-reentrant (call it optimization, or legacy)
+ * Returns a new object list.
  */
 static struct object_menu_list *get_obj_list(void)
 {
+	/* As an optimization (of questionable value, but an object list
+	 * is needed whenever a player wants to use an object, which is
+	 * very often (consider macros)), we have a static object list;
+	 * if it's already used, we allocate a new one on the heap */
+
 	static struct object_menu_list olist;
 
-	lock_obj_list(true);
+	struct object_menu_list *ol;
 
-	memset(&olist, 0, sizeof(olist));
-
-	olist.size = N_ELEMENTS(olist.items);
-
-	for (size_t i = 0; i < olist.size; i++) {
-		olist.items[i].label.size = sizeof(olist.items[i].label.str);
-		olist.items[i].equip.size = sizeof(olist.items[i].equip.str);
-		olist.items[i].name.size  = sizeof(olist.items[i].name.str);
-
-		olist.items[i].extra.weight.size = sizeof(olist.items[i].extra.weight.str);
-		olist.items[i].extra.price.size  = sizeof(olist.items[i].extra.price.str);
-		olist.items[i].extra.fail.size   = sizeof(olist.items[i].extra.fail.str);
-
-		/* Pedantry */
-		olist.items[i].object = NULL;
+	if (lock_obj_list(true)) {
+		ol = &olist;
+		ol->free = false;
+	} else {
+		ol = mem_zalloc(sizeof(*ol));
+		ol->free = true;
 	}
 
-	return &olist;
+	ol->size = N_ELEMENTS(ol->items);
+
+	for (size_t i = 0; i < ol->size; i++) {
+		ol->items[i].label.size = sizeof(ol->items[i].label.str);
+		ol->items[i].equip.size = sizeof(ol->items[i].equip.str);
+		ol->items[i].name.size  = sizeof(ol->items[i].name.str);
+
+		ol->items[i].extra.weight.size = sizeof(ol->items[i].extra.weight.str);
+		ol->items[i].extra.price.size  = sizeof(ol->items[i].extra.price.str);
+		ol->items[i].extra.fail.size   = sizeof(ol->items[i].extra.fail.str);
+
+		/* Pedantry */
+		ol->items[i].object = NULL;
+	}
+
+	return ol;
 }
 
-static void free_obj_list(struct object_menu_list *olist)
+static void free_obj_list(struct object_menu_list *ol)
 {
-	/* Maybe get_obj_list() will become reentrant at some point? */
-	(void) olist;
-
-	lock_obj_list(false);
+	if (ol->free) {
+		mem_free(ol);
+	} else {
+		memset(ol, 0, sizeof(*ol));
+		lock_obj_list(false);
+	}
 }
 
 static void set_item_extra(struct object_menu_list *olist, size_t i, int mode)
