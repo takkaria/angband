@@ -135,6 +135,7 @@ struct object_menu_list {
 	uint16_t extra_fields_offset;
 
 	bool free;
+	bool used;
 };
 
 static void show_item_extra(const struct object_menu_item *item,
@@ -221,32 +222,6 @@ static void show_item(struct object_menu_item *item,
  */
 
 /**
- * There is one static object list;
- * this is basically a mutex for it
- */
-static bool lock_obj_list(bool lock)
-{
-	static bool locked;
-
-	/* Double lock is a fatal error;
-	 * double unlock just means that
-	 * an object list is alredy used
-	 * and the calling code should
-	 * allocate one on the heap */
-
-	if (!lock) {
-		assert(locked);
-	}
-
-	if (lock && locked) {
-		return false;
-	} else {
-		locked = lock;
-		return true;
-	}
-}
-
-/**
  * Returns a new object list.
  */
 static struct object_menu_list *get_obj_list(void)
@@ -260,12 +235,16 @@ static struct object_menu_list *get_obj_list(void)
 
 	struct object_menu_list *ol;
 
-	if (lock_obj_list(true)) {
-		ol = &olist;
-		ol->free = false;
-	} else {
+	if (olist.used) {
 		ol = mem_zalloc(sizeof(*ol));
 		ol->free = true;
+	} else {
+		ol = &olist;
+		ol->free = false;
+
+		/* note; free_obj_list() removes "used" flag
+		 * and makes static list available for reuse */
+		ol->used = true;
 	}
 
 	ol->size = N_ELEMENTS(ol->items);
@@ -291,8 +270,9 @@ static void free_obj_list(struct object_menu_list *ol)
 	if (ol->free) {
 		mem_free(ol);
 	} else {
+		/* Unset "used" flag,
+		 * among other things */
 		memset(ol, 0, sizeof(*ol));
-		lock_obj_list(false);
 	}
 }
 
