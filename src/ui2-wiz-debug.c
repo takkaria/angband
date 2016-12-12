@@ -775,9 +775,14 @@ static void do_cmd_wiz_create_artifact(void)
 
 static void do_cmd_wiz_detect_everything(void)
 {
+	/* Trap, door and stair detection was removed,
+	 * but the effects are still there (for now?) */
+#if 0
 	effect_simple( EF_DETECT_TRAPS,              "22d40", 0, 0, 0, NULL);
 	effect_simple( EF_DETECT_DOORS,              "22d40", 0, 0, 0, NULL);
 	effect_simple( EF_DETECT_STAIRS,             "22d40", 0, 0, 0, NULL);
+#endif
+
 	effect_simple( EF_DETECT_GOLD,               "22d40", 0, 0, 0, NULL);
 	effect_simple( EF_DETECT_OBJECTS,            "22d40", 0, 0, 0, NULL);
 	effect_simple( EF_DETECT_VISIBLE_MONSTERS,   "22d40", 0, 0, 0, NULL);
