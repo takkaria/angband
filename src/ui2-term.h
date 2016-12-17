@@ -73,18 +73,21 @@ struct term_point {
 /* forward declaration */
 struct term_create_info;
 
-/* on push_new_hook and pop_new_hook
- * push_new_hook is called when a new, temporary term is about
- * to be pushed on the stack (with the call Term_push_new())
+/* on push_new_hook and pop_new_hook;
+ *
+ * push_new_hook is called when a new, temporary term is
+ * about to be pushed on the stack (using Term_push_new())
  * the frontend must supply the desirable parameters for creation in term_create_info
- * (taking term_hints into account as it sees fit; the only thing guaranteed is that
- * the new term's width and height are no smaller than those specified in term_hints)
- * and must be ready to draw on this new term
+ * (taking term_hints into account as it sees fit; most of them can be ignored, notice
+ * that the rest of ui usually expects that the term size is not smaller than requested;
+ * at the moment of writing this, the only exception is term that displays overview map
+ * (TERM_PURPOSE_BIG_MAP - it knows how to handle small terms and scales the map down).
+ *
  * pop_new_hook is called when the temporary term is about to be popped from the stack;
  * the frontend must perform all necessary cleanup
  *
- * note that the frontend shouldn't create or destroy temporary terms
- * (with Term_destroy()); that will be done automatically */
+ * note that the frontend shouldn't create or destroy temporary terms, using Term_destroy();
+ * temporary terms are destroyed automatically when they are popped from the stack */
 
 enum term_position {
 	TERM_POSITION_NONE,
@@ -124,10 +127,10 @@ typedef void (*draw_hook)(void *user,
 		int x, int y, int num_points, struct term_point *points);
 /* erase_hook should completely clear the term */
 typedef void (*erase_hook)(void *user);
-/* cursor_hook should draw a cursor at position x, y if the cursor
- * is visible; else, it should either hide it (if it's a "hardware"
- * cursor, like in terminal emulators), or ignore it (during update,
- * cursor is erased by redrawing the tile at coordinates x, y) */
+/* cursor_hook should draw a cursor at position {x, y} if the cursor
+ * is visible; othervise, it should either hide it (if it's a "hardware"
+ * cursor, like in terminal emulators), or ignore it (basically, everything
+ * that is not the ncurses frontend should do nothing when 'visible' is false) */
 typedef void (*cursor_hook)(void *user, bool visible, int x, int y);
 /* redraw_hook should make sure that all that was drawn previously
  * actually appears on the screen; the parameter delay is the time
@@ -141,18 +144,18 @@ typedef void (*event_hook)(void *user, bool wait);
 typedef void (*flush_events_hook)(void *user);
 /* delay_hook should pause for specified number of milliseconds */
 typedef void (*delay_hook)(void *user, int msecs);
-/* make_visible_hook should make term visible or invisible
- * (if possible), depending on the argument */
+/* make_visible_hook should make the term visible or invisible, if possible */
 typedef void (*make_visible_hook)(void *user, bool visible);
 /* add_tab_hook should add a tab to the term and handle mouse clicks on it;
  * if the tab is clicked, Term_keypress() should be called, as if the user
  * pressed a key (on keyboard) with the corresponding keycode_t "code" */
 typedef void (*add_tab_hook)(void *user,
 		keycode_t code, const wchar_t *label, uint32_t fg_attr, uint32_t bg_attr);
-/* move hook asks the frontend to move rectangular of the term over another part
- * (see Term_move_points()); if the hook returns true, the moved points wont be
- * updated (flush) as they're assumed to be moved; if the hook returns false,
- * the moved points will be flushed on the next call to Term_flush_output() */
+/* move hook asks the frontend to move (copy) some rectangular part of the term
+ * over another part (see Term_move_points()); this is an optimization and if
+ * the frontend doesn't know how to do that, it should do nothing and return
+ * false; otherwise, it should copy the {src_x, src_y, width, height} part
+ * over {dst_x, dst_y, width, height} part and return true */
 typedef bool (*move_hook)(void *user,
 		int dst_x, int dst_y, int src_x, int src_y, int width, int height);
 
