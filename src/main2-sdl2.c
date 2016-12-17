@@ -1024,6 +1024,11 @@ static void set_subwindow_brightness(struct subwindow *subwindow, int brightness
 	SDL_SetTextureColorMod(subwindow->texture,
 			brightness, brightness, brightness);
 
+	if (subwindow->swap_texture != NULL) {
+		SDL_SetTextureColorMod(subwindow->swap_texture,
+				brightness, brightness, brightness);
+	}
+
 	for (size_t t = 0; t < subwindow->tab_bank.number; t++) {
 		const struct tab *tab = &subwindow->tab_bank.tabs[t];
 
