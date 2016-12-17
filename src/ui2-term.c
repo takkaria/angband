@@ -85,13 +85,6 @@ struct term {
 	} linked;
 };
 
-struct term_move_info {
-	struct {int x; int y;} src;
-	struct {int x; int y;} dst;
-	struct {int x; int y;} lim;
-	struct {int x; int y;} inc;
-};
-
 static void term_mark_point_dirty(int x, int y, int index);
 
 #define COORDS_OK(x, y) do { \
@@ -702,6 +695,86 @@ static void term_flush_out(void)
 	term_mark_all_flushed();
 }
 
+/**
+ * Some explanations for term_move_points() and term_calc_move().
+ *
+ * An example of what we're trying to do; suppose we want to copy
+ * a rectangle of points on a term to some other location on the
+ * same term, and the destination can overlap with the source:
+ *
+ * +---------------+
+ * |               |<-- term
+ * |  +-----+      |
+ * |  |     |<--------- source
+ * |  |     |--+   |
+ * |  |     |  |   |
+ * |  +-----+  |<-------destination
+ * |     |     |   |
+ * |     +-----+   |
+ * |               |
+ * +---------------+
+ *
+ *
+ * We want to copy points from source to destination.
+ *
+ * In this case, we start from bottom right corner of source rectangle
+ * and copy the point there into bottom right corner of the destination;
+ * after that we copy the point that is to the left of bottom right, etc;
+ * in other words, we copy bottom line of source rectangle to bottom line
+ * of destination rectangle in a right-to-left manner.
+ *
+ * After copying the bottom line, we copy the next-to-bottom line; that is,
+ * we copy points from bottom to top, from right to left.
+ *
+ * Copying bottom-to-top assures that portions of rectangles that overlap
+ * won't be overwritten before copying from src to dst. Notice that if
+ * we start copying from the top-left of src (into top-left of dst),
+ * that will actually overwrite a part of src itself; we want to
+ * start overwriting points on src only after they have been
+ * copied into dst. Why copy from right to left? Consider:
+ *
+ * +--------------+
+ * |              |<-- term
+ * |  +-----+-+   |
+ * |  |     | |   |
+ * |  |     | |<------ destination
+ * |  |     | |   |
+ * |  +-----+-+   |
+ * |    ^         |
+ * |    |         |
+ * |    +------------- source
+ * +--------------+
+ *
+ * (keep in mind that source and destination must have the same width);
+ * copying from left to right will overwrite some portions of source
+ * before they could be copied into destination; so we want to copy
+ * right-to-left. Of course, we could check (in term_calc_move()),
+ * whether source and destination are on the same lines, but it's
+ * simpler to just choose some particular direction of copying,
+ * based on whether src is to the left or to the right of dst.
+ */
+
+struct term_move_info {
+	/* if x is positive, we copy left-to-right,
+	 * if x is negative, we copy right-to-left;
+	 * if y is positive, we copy top-to-bottom,
+	 * if y is negative, we copy bottom-to-top */ 
+	struct {int x; int y;} inc;
+
+	/* x and y coordinates of source */
+	struct {int x; int y;} src;
+
+	/* x is one beyound the left or right column of the source rectangle
+	 * (depending on whether we copy right-to-left or left-to-right);
+	 * y is one beyound the top or bottom row of the source;
+	 * (think of 'src' and 'lim' as C++ iterators,
+	 * if you're familiar with those) */
+	struct {int x; int y;} lim;
+
+	/* x and y coordinates of destination */
+	struct {int x; int y;} dst;
+};
+
 static struct term_move_info term_calc_move(int dst_x, int dst_y,
 		int src_x, int src_y, int width, int height)
 {
@@ -718,15 +791,15 @@ static struct term_move_info term_calc_move(int dst_x, int dst_y,
 	struct term_move_info info;
 
 	if (src_x < dst_x) {
-		/* move from right to left,
-		 * starting at rightmost column */
+		/* start at rightmost column
+		 * and move from right to left */
 		info.src.x = src_x + width - 1;
 		info.dst.x = dst_x + width - 1;
 		info.lim.x = src_x - 1;
 		info.inc.x = -1;
 	} else {
-		/* move from left to right,
-		 * starting at leftmost column */
+		/* start at leftmost column
+		 * and move from left to right */
 		info.src.x = src_x;
 		info.dst.x = dst_x;
 		info.lim.x = src_x + width;
@@ -734,15 +807,15 @@ static struct term_move_info term_calc_move(int dst_x, int dst_y,
 	}
 
 	if (src_y < dst_y) {
-		/* move from bottom to top,
-		 * starting at bottom row */
+		/* start at bottom row and
+		 * move from bottom to top */
 		info.src.y = src_y + height - 1;
 		info.dst.y = dst_y + height - 1;
 		info.lim.y = src_y - 1;
 		info.inc.y = -1;
 	} else {
-		/* move from top to bottom,
-		 * starting at top row */
+		/* start at top row and
+		 * move from top to bottom */
 		info.src.y = src_y;
 		info.dst.y = dst_y;
 		info.lim.y = src_y + height;
