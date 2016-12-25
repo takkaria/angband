@@ -91,13 +91,15 @@ static void project_feature_handler_KILL_WALL(project_feature_handler_context_t 
 	const int y = context->y;
 
 	/* Non-walls (etc) */
-	if (square_ispassable(cave, y, x)) return;
+	if (square_ispassable(cave, y, x) && !square_seemslikewall(cave, y, x))
+		return;
 
 	/* Permanent walls */
 	if (square_isperm(cave, y, x)) return;
 
 	/* Different treatment for different walls */
-	if (square_iswall(cave, y, x) && !square_hasgoldvein(cave, y, x)) {
+	if (square_iswall(cave, y, x) && !square_hasgoldvein(cave, y, x) &&
+		!square_seemslikewall(cave, y, x)) {
 		/* Message */
 		if (square_isseen(cave, y, x)) {
 			msg("The wall turns into mud!");
@@ -321,6 +323,9 @@ static void project_feature_handler_FIRE(project_feature_handler_context_t *cont
 		/* Forget the floor, make lava. */
 		square_unmark(cave, context->y, context->x);
 		square_set_feat(cave, context->y, context->x, FEAT_LAVA);
+
+		/* Objects that have survived should move */
+		push_object(context->y, context->x);
 	}
 }
 
@@ -517,6 +522,9 @@ static void project_feature_handler_PLASMA(project_feature_handler_context_t *co
 		/* Forget the floor, make lava. */
 		square_unmark(cave, context->y, context->x);
 		square_set_feat(cave, context->y, context->x, FEAT_LAVA);
+
+		/* Objects that have survived should move */
+		push_object(context->y, context->x);
 	}
 }
 

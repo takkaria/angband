@@ -66,6 +66,7 @@ bool get_curse_action(struct menu *menu, const ui_event *event, int oid)
 static void curse_menu_browser(int oid, void *data, const region *loc)
 {
 	struct curse_menu_data *choice = data;
+	char buf[80];
 
 	/* Redirect output to the screen */
 	text_out_wrap = 0;
@@ -73,7 +74,9 @@ static void curse_menu_browser(int oid, void *data, const region *loc)
 	text_out_pad = 1;
 
 	Term_gotoxy(loc->col, loc->row + loc->page_rows);
-	text_out("%s.\n", curses[choice[oid].index].desc);
+	my_strcpy(buf, curses[choice[oid].index].desc, sizeof(buf));
+	my_strcap(buf);
+	text_out(" %s.\n", buf);
 
 	/* XXX */
 	text_out_pad = 0;
