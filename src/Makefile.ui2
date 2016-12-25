@@ -25,7 +25,7 @@ CPPFLAGS := -I. -DHAVE_CONFIG_H
 
 ### Modules ###
 
-MAINOBJS := main.o
+MAINOBJS := main2.o
 
 # Support ncurses (widestring) console mode
 CPPFLAGS += -DUSE_NCURSES -I/usr/include/ncursesw

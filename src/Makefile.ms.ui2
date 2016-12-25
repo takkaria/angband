@@ -108,7 +108,7 @@ LDFLAGS += \
 	-lSDL2_mixer \
 	$(MINGW_STATIC_LIBS_DIR)/libm.a
 
-MAINOBJS := main.o main2-sdl2.o sound2-sdl2.o
+MAINOBJS := main2.o main2-sdl2.o sound2-sdl2.o
 
 ### Targets and objects ###
 
