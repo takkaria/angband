@@ -18,7 +18,6 @@
 
 #include "angband.h"
 #include "init.h"
-#include "mon-power.h"
 #include "savefile.h"
 #include "ui-command.h"
 #include "ui-display.h"
@@ -359,14 +358,6 @@ int main(int argc, char *argv[])
 
 			case 'w':
 				arg_wizard = true;
-				break;
-
-			case 'p':
-				arg_power = true;
-				break;
-
-			case 'r':
-				arg_rebalance = true;
 				break;
 
 			case 'g':

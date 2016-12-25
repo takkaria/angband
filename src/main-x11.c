@@ -21,6 +21,7 @@
 #include "init.h"
 #include "ui-display.h"
 #include "ui-game.h"
+#include "ui-term.h"
 
 /**
  * This file helps Angband work with UNIX/X11 computers.
