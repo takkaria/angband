@@ -432,8 +432,8 @@ static void class_help(int index, void *data, region reg)
 	skill_help(info, race->r_skills, class->c_skills,
 			race->r_mhp + class->c_mhp, race->r_exp + class->c_exp, -1, &rows);
 
-	if (class->magic.spell_realm->index != REALM_NONE) {
-		text_out_e(info, "\nLearns %s magic", class->magic.spell_realm->adjective);
+	if (class->magic.spell_realm) {
+		text_out_e(info, "\nLearns %s magic", class->magic.spell_realm->name);
 		rows++;
 	}
 
